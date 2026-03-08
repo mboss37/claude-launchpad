@@ -17,7 +17,8 @@ The setup script will:
 2. Generate a fully filled-in `CLAUDE.md` (architecture, commands, conventions, guardrails)
 3. Generate `TASKS.md` with stack-specific Sprint 1 tasks
 4. Generate `.env.example` with stack-specific environment variables
-5. Clean up template files and reset git history
+5. Install the [ECC plugin](https://github.com/affaan-m/everything-claude-code) automatically
+6. Clean up template files and reset git history
 
 ### Supported stacks
 
@@ -31,14 +32,9 @@ The setup script will:
 
 ### After setup
 
-Install the ECC plugin for agents, skills, hooks, and rules:
+Install language-specific rules:
 
 ```bash
-claude
-> /plugin marketplace add affaan-m/everything-claude-code
-> /plugin install everything-claude-code@everything-claude-code
-
-# Install language rules
 git clone https://github.com/affaan-m/everything-claude-code.git /tmp/ecc
 cd /tmp/ecc && ./install.sh <language>   # typescript | python | golang | swift
 ```

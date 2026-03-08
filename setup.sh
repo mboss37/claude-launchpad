@@ -564,6 +564,18 @@ rm -f setup.sh
 
 print_success "Removed template files (setup.sh, README.md, LICENSE)"
 
+# ─── Generate .claude/settings.json ───
+mkdir -p .claude
+cat > .claude/settings.json << 'SETTINGS'
+{
+  "enabledPlugins": {
+    "everything-claude-code@everything-claude-code": true
+  }
+}
+SETTINGS
+
+print_success "Generated .claude/settings.json"
+
 # ─── Reset git ───
 print_step "Initializing fresh git repo..."
 
@@ -574,44 +586,50 @@ git commit -q -m "init: scaffold from claude-launchpad ($(date +%Y-%m-%d))"
 
 print_success "Clean git history with initial commit"
 
+# ─── Install ECC plugin ───
+print_step "Installing ECC plugin..."
+
+if command -v claude &> /dev/null; then
+  claude plugin marketplace add affaan-m/everything-claude-code 2>/dev/null && \
+    claude plugin install everything-claude-code@everything-claude-code 2>/dev/null && \
+    print_success "ECC plugin installed (agents, skills, hooks)" || \
+    print_warn "Could not install ECC plugin automatically — install it manually (see below)"
+else
+  print_warn "Claude CLI not found — install the ECC plugin manually (see below)"
+fi
+
 # ─── Done ───
 echo ""
 echo -e "  ${GREEN}${BOLD}Done!${RESET} Your project is ready."
 echo ""
 echo -e "  ${BOLD}Next steps:${RESET}"
 echo ""
-echo -e "    ${DIM}# 1. Install the ECC plugin (agents, skills, hooks)${RESET}"
-echo -e "    claude"
-echo -e "    ${DIM}# Inside Claude Code:${RESET}"
-echo -e "    /plugin marketplace add affaan-m/everything-claude-code"
-echo -e "    /plugin install everything-claude-code@everything-claude-code"
-echo ""
 
 case "$stack_choice" in
-  1) echo -e "    ${DIM}# 2. Install TypeScript rules${RESET}"
+  1) echo -e "    ${DIM}# 1. Install TypeScript rules${RESET}"
      echo -e "    git clone https://github.com/affaan-m/everything-claude-code.git /tmp/ecc"
      echo -e "    cd /tmp/ecc && ./install.sh typescript"
      ;;
-  2) echo -e "    ${DIM}# 2. Install Python rules${RESET}"
+  2) echo -e "    ${DIM}# 1. Install Python rules${RESET}"
      echo -e "    git clone https://github.com/affaan-m/everything-claude-code.git /tmp/ecc"
      echo -e "    cd /tmp/ecc && ./install.sh python"
      ;;
-  3) echo -e "    ${DIM}# 2. Install Go rules${RESET}"
+  3) echo -e "    ${DIM}# 1. Install Go rules${RESET}"
      echo -e "    git clone https://github.com/affaan-m/everything-claude-code.git /tmp/ecc"
      echo -e "    cd /tmp/ecc && ./install.sh golang"
      ;;
-  4) echo -e "    ${DIM}# 2. Install TypeScript rules (for JS/frontend)${RESET}"
+  4) echo -e "    ${DIM}# 1. Install TypeScript rules (for JS/frontend)${RESET}"
      echo -e "    git clone https://github.com/affaan-m/everything-claude-code.git /tmp/ecc"
      echo -e "    cd /tmp/ecc && ./install.sh typescript"
      ;;
-  5) echo -e "    ${DIM}# 2. Install language rules${RESET}"
+  5) echo -e "    ${DIM}# 1. Install language rules${RESET}"
      echo -e "    git clone https://github.com/affaan-m/everything-claude-code.git /tmp/ecc"
      echo -e "    cd /tmp/ecc && ./install.sh <language>  ${DIM}# typescript | python | golang | swift${RESET}"
      ;;
 esac
 
 echo ""
-echo -e "    ${DIM}# 3. Start building${RESET}"
+echo -e "    ${DIM}# 2. Start building${RESET}"
 echo -e "    claude"
 echo ""
 
