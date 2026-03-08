@@ -25,7 +25,13 @@ coverage/
 
 # Claude Code (local only)
 .claude/settings.local.json
+.claude/tmp/
+.claude/sessions/
+.claude/memory/
 CLAUDE.local.md
+
+# Supabase (local)
+supabase/.temp/
 
 # Secrets
 *.pem

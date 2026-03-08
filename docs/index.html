@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Claude Code Bootstrap Template</title>
-  <meta name="description" content="A ready-to-use project template with Claude Code best practices pre-configured. Agents, hooks, rules, skills, MCP servers, and permissions out of the box.">
+  <meta name="description" content="A minimal project template for Claude Code. Pairs with Everything Claude Code for 16 agents, 65 skills, and production-ready hooks.">
   <meta property="og:title" content="Claude Code Bootstrap Template">
-  <meta property="og:description" content="Skip the setup. Start building with Claude Code best practices from day one.">
+  <meta property="og:description" content="Project memory + ECC plugin = production-grade Claude Code setup in minutes.">
   <meta property="og:type" content="website">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -44,39 +44,29 @@
       overflow-x: hidden;
     }
 
-    /* ─── Ambient background ─── */
+    /* Ambient background */
     .bg-glow {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
+      position: fixed; inset: 0;
+      pointer-events: none; z-index: 0;
     }
     .bg-glow::before {
       content: '';
-      position: absolute;
-      top: -200px;
-      left: 50%;
+      position: absolute; top: -200px; left: 50%;
       transform: translateX(-50%);
-      width: 900px;
-      height: 600px;
+      width: 900px; height: 600px;
       background: radial-gradient(ellipse, rgba(34,211,238,0.07) 0%, transparent 70%);
     }
     .bg-glow::after {
       content: '';
-      position: absolute;
-      bottom: 0;
-      left: 50%;
+      position: absolute; bottom: 0; left: 50%;
       transform: translateX(-50%);
-      width: 800px;
-      height: 500px;
+      width: 800px; height: 500px;
       background: radial-gradient(ellipse, rgba(52,211,153,0.04) 0%, transparent 70%);
     }
 
     .bg-grid {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
+      position: fixed; inset: 0;
+      pointer-events: none; z-index: 0;
       background-image:
         linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
         linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
@@ -87,7 +77,6 @@
 
     section, div, footer, header { position: relative; z-index: 1; }
 
-    /* ─── Animations ─── */
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
@@ -98,57 +87,40 @@
     .anim-d3 { animation-delay: 0.28s; }
     .anim-d4 { animation-delay: 0.4s; }
 
-    /* ─── Container ─── */
     .w {
       max-width: var(--max-w);
       margin: 0 auto;
-      padding-left: 24px;
-      padding-right: 24px;
+      padding-left: 24px; padding-right: 24px;
     }
     @media (min-width: 768px) {
       .w { padding-left: 40px; padding-right: 40px; }
     }
 
-    /* ─── HERO ─── */
+    /* Hero */
     .hero { padding: 80px 0 64px; }
-
     .hero-inner {
-      display: flex;
-      flex-direction: column;
-      gap: 48px;
+      display: flex; flex-direction: column; gap: 48px;
     }
-
     @media (min-width: 768px) {
       .hero { padding: 120px 0 80px; }
-      .hero-inner {
-        flex-direction: row;
-        align-items: center;
-        gap: 56px;
-      }
+      .hero-inner { flex-direction: row; align-items: center; gap: 56px; }
       .hero-content { flex: 1 1 0; min-width: 0; }
       .hero-terminal { flex: 1 1 0; min-width: 0; }
     }
 
     .hero-tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 20px;
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 20px;
       padding: 5px 14px;
       background: var(--accent-glow);
       border: 1px solid rgba(34,211,238,0.15);
       border-radius: 100px;
     }
     .hero-tag::before {
-      content: '';
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--accent);
+      content: ''; width: 6px; height: 6px;
+      border-radius: 50%; background: var(--accent);
       box-shadow: 0 0 8px var(--accent);
       animation: pulse 2s ease-in-out infinite;
     }
@@ -159,16 +131,13 @@
 
     .hero h1 {
       font-size: clamp(36px, 5.5vw, 56px);
-      font-weight: 800;
-      letter-spacing: -0.04em;
-      line-height: 1;
-      margin-bottom: 20px;
+      font-weight: 800; letter-spacing: -0.04em;
+      line-height: 1; margin-bottom: 20px;
     }
     .hero h1 .hl {
       background: linear-gradient(135deg, var(--accent) 0%, var(--green) 50%, var(--blue) 100%);
       background-size: 200% 200%;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       background-clip: text;
       animation: shimmer 6s ease-in-out infinite;
     }
@@ -178,66 +147,46 @@
     }
 
     .hero-desc {
-      font-size: 16px;
-      color: var(--text-muted);
-      max-width: 38ch;
-      margin-bottom: 32px;
-      line-height: 1.7;
+      font-size: 16px; color: var(--text-muted);
+      max-width: 42ch; margin-bottom: 32px; line-height: 1.7;
     }
 
     .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 
-    /* ─── Buttons ─── */
+    /* Buttons */
     .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 12px 22px;
-      font-size: 14px;
-      font-weight: 600;
-      font-family: var(--font-sans);
-      text-decoration: none;
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 22px; font-size: 14px; font-weight: 600;
+      font-family: var(--font-sans); text-decoration: none;
       border-radius: 10px;
       transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
       cursor: pointer;
     }
-    .btn-primary {
-      background: var(--accent);
-      color: var(--bg);
-    }
+    .btn-primary { background: var(--accent); color: var(--bg); }
     .btn-primary:hover {
       transform: translateY(-2px);
       box-shadow: 0 8px 28px rgba(34,211,238,0.3), 0 0 0 1px rgba(34,211,238,0.2);
     }
     .btn-ghost {
-      background: transparent;
-      color: var(--text-muted);
+      background: transparent; color: var(--text-muted);
       border: 1px solid var(--border);
     }
     .btn-ghost:hover {
-      color: var(--text);
-      border-color: var(--text-faint);
+      color: var(--text); border-color: var(--text-faint);
       transform: translateY(-2px);
     }
 
-    /* ─── Terminal ─── */
+    /* Terminal */
     .terminal-wrap {
-      position: relative;
-      border-radius: 14px;
-      padding: 1px;
+      position: relative; border-radius: 14px; padding: 1px;
       background: linear-gradient(135deg, rgba(34,211,238,0.2), rgba(52,211,153,0.1), var(--border));
     }
     .terminal {
-      background: var(--surface);
-      border-radius: 13px;
-      overflow: hidden;
+      background: var(--surface); border-radius: 13px; overflow: hidden;
     }
     .terminal-bar {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      padding: 12px 16px;
-      background: var(--surface-2);
+      display: flex; align-items: center; gap: 7px;
+      padding: 12px 16px; background: var(--surface-2);
       border-bottom: 1px solid var(--border);
     }
     .terminal-dot { width: 10px; height: 10px; border-radius: 50%; }
@@ -246,14 +195,10 @@
     .terminal-dot:nth-child(3) { background: #28c840; }
 
     .terminal-body {
-      padding: 20px 22px;
-      margin: 0;
-      font-family: var(--font-mono);
-      font-size: 13px;
-      line-height: 1.85;
-      overflow-x: auto;
-      background: var(--surface);
-      color: var(--text);
+      padding: 20px 22px; margin: 0;
+      font-family: var(--font-mono); font-size: 13px;
+      line-height: 1.85; overflow-x: auto;
+      background: var(--surface); color: var(--text);
     }
     .terminal-body .c { color: var(--text-faint); }
     .terminal-body .p { color: var(--accent); user-select: none; }
@@ -261,17 +206,15 @@
     .terminal-body .s { color: var(--amber); font-size: 12px; }
 
     .cursor::after {
-      content: '';
-      display: inline-block;
+      content: ''; display: inline-block;
       width: 8px; height: 15px;
-      background: var(--accent);
-      margin-left: 3px;
+      background: var(--accent); margin-left: 3px;
       vertical-align: text-bottom;
       animation: blink 1s step-end infinite;
     }
     @keyframes blink { 50% { opacity: 0; } }
 
-    /* ─── TIP BANNER ─── */
+    /* Tip banner */
     .tip {
       border-top: 1px solid var(--border);
       border-bottom: 1px solid var(--border);
@@ -292,130 +235,83 @@
     .tip-body h3 { font-size: 17px; font-weight: 600; margin-bottom: 6px; }
     .tip-body p { font-size: 14px; color: var(--text-muted); margin-bottom: 14px; line-height: 1.65; }
     .tip-quote {
-      font-family: var(--font-mono);
-      font-size: 13px;
-      padding: 14px 18px;
-      background: rgba(0,0,0,0.4);
+      font-family: var(--font-mono); font-size: 13px;
+      padding: 14px 18px; background: rgba(0,0,0,0.4);
       border-left: 3px solid var(--accent);
-      border-radius: 6px;
-      color: var(--text-muted);
+      border-radius: 6px; color: var(--text-muted);
+      margin-bottom: 8px;
     }
-    .tip-note { font-size: 12px; color: var(--text-faint); margin-top: 8px; margin-bottom: 0; }
+    .tip-note { font-size: 12px; color: var(--text-faint); margin-top: 0; margin-bottom: 0; }
 
-    /* ─── FILE TREE ─── */
-    .tree-section {
-      padding: 80px 0 96px;
-      background: var(--surface);
-      border-top: 1px solid var(--border);
-    }
-    @media (min-width: 768px) { .tree-section { padding: 96px 0 120px; } }
-
-    .tree-header { margin-bottom: 32px; }
-    .tree-header h2 {
-      font-size: clamp(22px, 3vw, 28px);
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      margin-bottom: 10px;
-    }
-    .tree-header p {
-      font-size: 14px; color: var(--text-muted);
-      line-height: 1.65; max-width: 480px;
+    /* Gradient divider */
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent), var(--green), transparent);
+      opacity: 0.2;
     }
 
-    pre.tree-block {
-      font-family: var(--font-mono);
-      font-size: 13px;
-      line-height: 1.8;
-      padding: 28px 32px;
-      margin: 0;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-    pre.tree-block .d { color: var(--blue); }
-    pre.tree-block .f { color: var(--text-muted); }
-    pre.tree-block .ann { color: var(--text-faint); font-style: italic; }
-
-    /* ─── FEATURES BENTO ─── */
-    .features { padding: 80px 0 96px; }
-    @media (min-width: 768px) { .features { padding: 100px 0 120px; } }
-
-    .features-label {
+    /* Two-layer section */
+    .layers { padding: 80px 0 96px; }
+    @media (min-width: 768px) { .layers { padding: 96px 0 120px; } }
+    .layers-label {
       font-size: 11px; font-weight: 600;
       letter-spacing: 0.2em; text-transform: uppercase;
       color: var(--accent); margin-bottom: 10px;
     }
-    .features h2 {
+    .layers h2 {
       font-size: clamp(24px, 3.5vw, 34px);
-      font-weight: 700;
-      letter-spacing: -0.03em;
-      margin-bottom: 48px;
+      font-weight: 700; letter-spacing: -0.03em; margin-bottom: 48px;
     }
 
-    .bento { display: grid; gap: 12px; grid-template-columns: 1fr; }
+    .layer-grid { display: grid; gap: 16px; grid-template-columns: 1fr; }
     @media (min-width: 640px) {
-      .bento { grid-template-columns: repeat(2, 1fr); }
-      .bento-wide { grid-column: span 2; }
+      .layer-grid { grid-template-columns: repeat(2, 1fr); }
     }
 
-    .bento-item {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 24px;
+    .layer-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 28px;
       transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
-      position: relative;
-      overflow: hidden;
+      position: relative; overflow: hidden;
     }
-    .bento-item::after {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 2px;
-      opacity: 0;
-      transition: opacity 0.3s;
+    .layer-card::after {
+      content: ''; position: absolute;
+      top: 0; left: 0; right: 0; height: 2px;
+      opacity: 0; transition: opacity 0.3s;
     }
-    .bento-item:hover {
+    .layer-card:hover {
       border-color: rgba(34,211,238,0.15);
       transform: translateY(-3px);
       box-shadow: 0 16px 48px rgba(0,0,0,0.25);
     }
-    .bento-item:hover::after { opacity: 1; }
+    .layer-card:hover::after { opacity: 1; }
+    .layer-card:nth-child(1)::after { background: linear-gradient(90deg, var(--accent), transparent); }
+    .layer-card:nth-child(2)::after { background: linear-gradient(90deg, var(--green), transparent); }
 
-    /* Colored top-edge per card */
-    .bento-item:nth-child(1)::after { background: linear-gradient(90deg, var(--accent), transparent); }
-    .bento-item:nth-child(2)::after { background: linear-gradient(90deg, var(--blue), transparent); }
-    .bento-item:nth-child(3)::after { background: linear-gradient(90deg, var(--green), transparent); }
-    .bento-item:nth-child(4)::after { background: linear-gradient(90deg, var(--amber), transparent); }
-    .bento-item:nth-child(5)::after { background: linear-gradient(90deg, var(--accent), transparent); }
-    .bento-item:nth-child(6)::after { background: linear-gradient(90deg, var(--rose), transparent); }
-    .bento-item:nth-child(7)::after { background: linear-gradient(90deg, var(--violet), transparent); }
-    .bento-item:nth-child(8)::after { background: linear-gradient(90deg, var(--green), transparent); }
-
-    .bento-tag {
-      display: inline-block;
-      font-size: 10px; font-weight: 600;
-      font-family: var(--font-mono);
-      letter-spacing: 0.05em;
-      padding: 3px 8px;
-      border-radius: 5px;
-      margin-bottom: 14px;
+    .layer-card .tag {
+      display: inline-block; font-size: 10px; font-weight: 600;
+      font-family: var(--font-mono); letter-spacing: 0.05em;
+      padding: 3px 8px; border-radius: 5px; margin-bottom: 14px;
     }
-    .tag-cyan   { background: rgba(34,211,238,0.1);  color: var(--accent); }
-    .tag-blue   { background: rgba(56,189,248,0.1);  color: var(--blue); }
-    .tag-green  { background: rgba(52,211,153,0.1);  color: var(--green); }
-    .tag-amber  { background: rgba(251,191,36,0.1);  color: var(--amber); }
-    .tag-rose   { background: rgba(251,113,133,0.1); color: var(--rose); }
-    .tag-violet { background: rgba(167,139,250,0.1); color: var(--violet); }
+    .tag-cyan { background: rgba(34,211,238,0.1); color: var(--accent); }
+    .tag-green { background: rgba(52,211,153,0.1); color: var(--green); }
 
-    .bento-item h3 {
-      font-size: 15px; font-weight: 600;
-      margin-bottom: 6px; letter-spacing: -0.01em;
+    .layer-card h3 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+    .layer-card p { font-size: 14px; color: var(--text-muted); line-height: 1.65; margin-bottom: 12px; }
+    .layer-card ul {
+      list-style: none; padding: 0;
+      font-size: 13px; color: var(--text-muted);
     }
-    .bento-item p { font-size: 13.5px; color: var(--text-muted); line-height: 1.65; }
-    .bento-item code {
+    .layer-card ul li {
+      padding: 4px 0; padding-left: 18px; position: relative;
+    }
+    .layer-card ul li::before {
+      content: ''; position: absolute; left: 0; top: 12px;
+      width: 6px; height: 6px; border-radius: 50%;
+    }
+    .layer-card:nth-child(1) ul li::before { background: var(--accent); }
+    .layer-card:nth-child(2) ul li::before { background: var(--green); }
+    .layer-card code {
       font-family: var(--font-mono); font-size: 11px;
       background: rgba(34,211,238,0.08);
       border: 1px solid rgba(34,211,238,0.1);
@@ -423,14 +319,90 @@
       color: var(--accent);
     }
 
-    /* ─── GRADIENT DIVIDER ─── */
-    .divider {
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--accent), var(--green), transparent);
-      opacity: 0.2;
+    /* Stack examples */
+    .stacks {
+      padding: 80px 0 96px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+    }
+    @media (min-width: 768px) { .stacks { padding: 96px 0 120px; } }
+    .stacks-label {
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--green); margin-bottom: 10px;
+    }
+    .stacks h2 {
+      font-size: clamp(22px, 3vw, 28px);
+      font-weight: 700; letter-spacing: -0.02em; margin-bottom: 12px;
+    }
+    .stacks > .w > p {
+      font-size: 14px; color: var(--text-muted);
+      line-height: 1.65; max-width: 520px; margin-bottom: 40px;
     }
 
-    /* ─── FOOTER ─── */
+    .stack-grid { display: grid; gap: 12px; grid-template-columns: 1fr; }
+    @media (min-width: 640px) {
+      .stack-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .stack-card {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 12px; padding: 24px;
+      transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+    .stack-card:hover {
+      border-color: rgba(255,255,255,0.08);
+      transform: translateY(-2px);
+    }
+    .stack-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+    .stack-card .stack-tech {
+      font-size: 13px; color: var(--text-muted); line-height: 1.6;
+      margin-bottom: 12px;
+    }
+    .stack-card .stack-prompt {
+      font-family: var(--font-mono); font-size: 11px;
+      padding: 10px 14px; background: rgba(0,0,0,0.4);
+      border-left: 2px solid var(--text-faint);
+      border-radius: 4px; color: var(--text-faint);
+      line-height: 1.6;
+    }
+    .stack-card .stack-rules {
+      font-size: 12px; color: var(--text-faint); margin-top: 10px;
+    }
+    .stack-card .stack-rules code {
+      font-family: var(--font-mono); font-size: 11px;
+      background: rgba(52,211,153,0.08);
+      border: 1px solid rgba(52,211,153,0.1);
+      padding: 1px 6px; border-radius: 4px;
+      color: var(--green);
+    }
+
+    /* File tree */
+    .tree-section {
+      padding: 80px 0 96px;
+      border-top: 1px solid var(--border);
+    }
+    @media (min-width: 768px) { .tree-section { padding: 96px 0 120px; } }
+    .tree-header { margin-bottom: 32px; }
+    .tree-header h2 {
+      font-size: clamp(22px, 3vw, 28px);
+      font-weight: 700; letter-spacing: -0.02em; margin-bottom: 10px;
+    }
+    .tree-header p {
+      font-size: 14px; color: var(--text-muted);
+      line-height: 1.65; max-width: 480px;
+    }
+    pre.tree-block {
+      font-family: var(--font-mono); font-size: 13px;
+      line-height: 1.8; padding: 28px 32px; margin: 0;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; overflow-x: auto;
+    }
+    pre.tree-block .d { color: var(--blue); }
+    pre.tree-block .f { color: var(--text-muted); }
+    pre.tree-block .ann { color: var(--text-faint); font-style: italic; }
+
+    /* Footer */
     .footer { padding: 40px 0 56px; border-top: 1px solid var(--border); }
     .footer-inner {
       display: flex; flex-wrap: wrap;
@@ -440,7 +412,7 @@
     .footer a:hover { color: var(--accent); }
     .footer .dot { margin: 0 10px; color: var(--border); user-select: none; }
 
-    /* ─── Mobile ─── */
+    /* Mobile */
     @media (max-width: 639px) {
       .hero { padding: 56px 0 48px; }
       .hero h1 { font-size: 34px; }
@@ -448,8 +420,7 @@
       .hero-actions .btn { width: 100%; justify-content: center; }
       .terminal-body { font-size: 11px; padding: 16px 14px; }
       .terminal-body .s { font-size: 10px; }
-      .features { padding: 60px 0 72px; }
-      .tree-section { padding: 60px 0 72px; }
+      .layers, .stacks, .tree-section { padding: 60px 0 72px; }
       pre.tree-block { font-size: 11px; padding: 18px 16px; }
       .footer-inner { flex-direction: column; gap: 8px; }
     }
@@ -465,15 +436,15 @@
     <div class="w">
       <div class="hero-inner">
         <div class="hero-content">
-          <span class="hero-tag anim">Claude Code Template</span>
-          <h1 class="anim anim-d1">Stop configuring.<br><span class="hl">Start building.</span></h1>
-          <p class="hero-desc anim anim-d2">A ready-to-use project template with Claude Code best practices pre-configured. Agents, hooks, rules, skills, MCP servers — all wired up.</p>
+          <span class="hero-tag anim">Bootstrap Template</span>
+          <h1 class="anim anim-d1">Clone. Configure.<br><span class="hl">Start building.</span></h1>
+          <p class="hero-desc anim anim-d2">A minimal project template that pairs with Everything Claude Code. Project memory + 16 agents, 65 skills, and production-ready hooks in minutes. Works with any stack.</p>
           <div class="hero-actions anim anim-d3">
             <a href="https://github.com/mboss37/claude-bootstrap-template" class="btn btn-primary">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
               View on GitHub
             </a>
-            <a href="#features" class="btn btn-ghost">What's included</a>
+            <a href="#how-it-works" class="btn btn-ghost">How it works</a>
           </div>
         </div>
         <div class="hero-terminal anim anim-d4">
@@ -484,13 +455,20 @@
                 <span class="terminal-dot"></span>
                 <span class="terminal-dot"></span>
               </div>
-<pre class="terminal-body"><span class="c"># Clone the template</span>
-<span class="p">$ </span><span class="k">git clone</span> <span class="s">&lt;this-repo&gt;</span> my-project && <span class="k">cd</span> my-project
+<pre class="terminal-body"><span class="c"># Clone and start fresh</span>
+<span class="p">$ </span><span class="k">git clone</span> <span class="s">&lt;this-repo&gt;</span> my-project
+<span class="p">$ </span><span class="k">cd</span> my-project && <span class="k">rm</span> -rf .git && <span class="k">git</span> init
 
-<span class="c"># Fresh start</span>
-<span class="p">$ </span><span class="k">rm</span> -rf .git && <span class="k">git</span> init
+<span class="c"># Install the ECC plugin</span>
+<span class="p">$ </span><span class="k">claude</span>
+<span class="p">&gt; </span>/plugin marketplace add affaan-m/everything-claude-code
+<span class="p">&gt; </span>/plugin install everything-claude-code@everything-claude-code
 
-<span class="c"># Let Claude reconfigure for your project</span>
+<span class="c"># Install language rules</span>
+<span class="p">$ </span><span class="k">git clone</span> <span class="s">affaan-m/everything-claude-code</span> /tmp/ecc
+<span class="p">$ </span><span class="k">cd</span> /tmp/ecc && ./install.sh <span class="s">typescript</span>
+
+<span class="c"># Restart and build</span>
 <span class="p">$ </span><span class="k cursor">claude</span></pre>
             </div>
           </div>
@@ -503,12 +481,89 @@
   <section class="tip">
     <div class="w">
       <div class="tip-inner">
-        <span class="tip-badge">Pro tip</span>
+        <span class="tip-badge">Any stack</span>
         <div class="tip-body">
-          <h3>Let Claude reconfigure the template for you</h3>
-          <p>Claude understands all the config formats natively. Describe your project and stack — it rewrites CLAUDE.md, rules, agents, and settings in seconds. Faster and more consistent than editing by hand.</p>
-          <div class="tip-quote">"This is a Go + HTMX app with PostgreSQL. Reconfigure everything for my stack."</div>
-          <p class="tip-note">Example prompt — adapt to your own stack and project.</p>
+          <h3>Tell Claude your stack and it reconfigures everything</h3>
+          <p>The template ships with a Next.js + Supabase default, but it adapts to anything. Claude rewrites CLAUDE.md, conventions, commands, and project structure in seconds.</p>
+          <div class="tip-quote">"I'm building a Go API with HTMX and SQLite. Update CLAUDE.md for this stack."</div>
+          <div class="tip-quote" style="margin-top: 8px">"This is a Python FastAPI project with PostgreSQL. Reconfigure everything."</div>
+          <p class="tip-note">Just describe your stack. Claude handles the rest.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- Two layers -->
+  <section class="layers" id="how-it-works">
+    <div class="w">
+      <div class="layers-label">How it works</div>
+      <h2>Two layers, one setup</h2>
+
+      <div class="layer-grid">
+        <div class="layer-card">
+          <span class="tag tag-cyan">This template</span>
+          <h3>Project-specific layer</h3>
+          <p>Your project's memory, conventions, and task tracking. Committed to git, shared with your team.</p>
+          <ul>
+            <li><code>CLAUDE.md</code> &mdash; stack, architecture, commands, conventions</li>
+            <li><code>TASKS.md</code> &mdash; sprint tracker with session continuity</li>
+            <li><code>.gitignore</code> &mdash; sensible defaults</li>
+          </ul>
+        </div>
+
+        <div class="layer-card">
+          <span class="tag tag-green">ECC Plugin</span>
+          <h3>Agent toolkit layer</h3>
+          <p>Production-grade agents, skills, hooks, and rules. Installed as a plugin, managed separately.</p>
+          <ul>
+            <li><strong>16 agents</strong> &mdash; planner, architect, TDD, code review, security</li>
+            <li><strong>65+ skills</strong> &mdash; <code>/plan</code>, <code>/tdd</code>, <code>/security-scan</code>, <code>/e2e</code></li>
+            <li><strong>40+ commands</strong> &mdash; slash commands for common workflows</li>
+            <li><strong>Per-language rules</strong> &mdash; TypeScript, Python, Go, Swift</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- Stack examples -->
+  <section class="stacks">
+    <div class="w">
+      <div class="stacks-label">Adapt to any stack</div>
+      <h2>Four examples, infinite possibilities</h2>
+      <p>The default is Next.js + shadcn + Supabase. Here's how the same template adapts to completely different stacks.</p>
+
+      <div class="stack-grid">
+        <div class="stack-card">
+          <h3>Next.js + shadcn + Supabase</h3>
+          <div class="stack-tech">App Router, Server Components, Tailwind, RLS, pnpm</div>
+          <div class="stack-prompt">"This is the default. Just fill in your project name and start building."</div>
+          <div class="stack-rules">Rules: <code>./install.sh typescript</code></div>
+        </div>
+
+        <div class="stack-card">
+          <h3>Python + FastAPI + PostgreSQL</h3>
+          <div class="stack-tech">SQLAlchemy 2.0, Pydantic v2, Alembic, uv, pytest</div>
+          <div class="stack-prompt">"Update CLAUDE.md for a FastAPI project with PostgreSQL, SQLAlchemy, and Pydantic. Use uv as package manager."</div>
+          <div class="stack-rules">Rules: <code>./install.sh python</code></div>
+        </div>
+
+        <div class="stack-card">
+          <h3>Go + HTMX + SQLite</h3>
+          <div class="stack-tech">stdlib net/http, Go templates, modernc.org/sqlite, goose</div>
+          <div class="stack-prompt">"Reconfigure for a Go web app using stdlib, HTMX for the frontend, and SQLite with goose migrations."</div>
+          <div class="stack-rules">Rules: <code>./install.sh golang</code></div>
+        </div>
+
+        <div class="stack-card">
+          <h3>Rails 8 + Hotwire</h3>
+          <div class="stack-tech">Turbo, Stimulus, Tailwind, PostgreSQL, Solid Queue</div>
+          <div class="stack-prompt">"Change the stack to Rails 8 with Hotwire, PostgreSQL, and Solid Queue for background jobs."</div>
+          <div class="stack-rules">Rules: <code>./install.sh typescript</code> (for JS/frontend)</div>
         </div>
       </div>
     </div>
@@ -520,95 +575,19 @@
   <section class="tree-section">
     <div class="w">
       <div class="tree-header">
-        <h2>Project structure</h2>
-        <p>What ships in the template. Customize via Claude — describe your stack and let it adapt everything.</p>
+        <h2>What ships in the template</h2>
+        <p>Intentionally minimal. ECC handles the heavy lifting. These files are what ECC doesn't provide.</p>
       </div>
 <pre class="tree-block">
 <span class="d">claude-bootstrap-template/</span>
 ├── <span class="f">CLAUDE.md</span>                          <span class="ann"># project memory — loaded every session</span>
 ├── <span class="f">TASKS.md</span>                           <span class="ann"># sprint tracker — read at session start</span>
-├── <span class="f">LICENSE</span>
-├── <span class="d">.claude/</span>
-│   ├── <span class="f">settings.json</span>                  <span class="ann"># permissions, hooks, denied patterns</span>
-│   ├── <span class="d">agents/</span>
-│   │   ├── <span class="f">code-reviewer.md</span>           <span class="ann"># security-first code review</span>
-│   │   └── <span class="f">debugger.md</span>                <span class="ann"># systematic bug diagnosis</span>
-│   ├── <span class="d">hooks/</span>
-│   │   ├── <span class="f">auto-format.sh</span>             <span class="ann"># prettier, pg_format</span>
-│   │   ├── <span class="f">security-check.sh</span>          <span class="ann"># blocks dangerous commands</span>
-│   │   └── <span class="f">notify.sh</span>                  <span class="ann"># macOS desktop notifications</span>
-│   ├── <span class="d">rules/</span>
-│   │   ├── <span class="f">database.md</span>                <span class="ann"># scoped to migrations + SQL</span>
-│   │   └── <span class="f">nextjs.md</span>                  <span class="ann"># scoped to .ts/.tsx/.js/.jsx</span>
-│   └── <span class="d">skills/</span>
-│       ├── <span class="d">db-migration/</span><span class="f">SKILL.md</span>      <span class="ann"># /db-migration command</span>
-│       ├── <span class="d">deploy/</span><span class="f">SKILL.md</span>            <span class="ann"># /deploy command</span>
-│       └── <span class="d">wrap-up/</span><span class="f">SKILL.md</span>           <span class="ann"># /wrap-up command</span>
-├── <span class="f">.mcp.json</span>                          <span class="ann"># Context7 + Playwright + Sequential Thinking</span>
-└── <span class="f">.gitignore</span>
+├── <span class="f">.env.example</span>                       <span class="ann"># required environment variables</span>
+├── <span class="f">.gitignore</span>                         <span class="ann"># sensible defaults for web projects</span>
+├── <span class="f">LICENSE</span>                            <span class="ann"># MIT</span>
+└── <span class="d">docs/</span>
+    └── <span class="f">index.html</span>                    <span class="ann"># this page (GitHub Pages)</span>
 </pre>
-    </div>
-  </section>
-
-  <div class="divider"></div>
-
-  <!-- Features -->
-  <section class="features" id="features">
-    <div class="w">
-      <div class="features-label">What's included</div>
-      <h2>Eight features, pre-configured</h2>
-
-      <div class="bento">
-
-        <div class="bento-item bento-wide">
-          <span class="bento-tag tag-cyan">01</span>
-          <h3>CLAUDE.md — Project Memory</h3>
-          <p>Persistent instructions loaded every session. Your stack, conventions, commands, and architecture — Claude remembers it all. The single most important file in any Claude Code project.</p>
-        </div>
-
-        <div class="bento-item">
-          <span class="bento-tag tag-blue">02</span>
-          <h3>TASKS.md — Task Tracker</h3>
-          <p>Sprint tracker with session logs. Claude knows what was done, what's in progress, and what's next.</p>
-        </div>
-
-        <div class="bento-item">
-          <span class="bento-tag tag-green">03</span>
-          <h3>Agents — Sub-Agents</h3>
-          <p>Specialized personas with scoped tools. Code reviewer, debugger — consistent behavior. Via <code>.claude/agents/</code>.</p>
-        </div>
-
-        <div class="bento-item bento-wide">
-          <span class="bento-tag tag-amber">04</span>
-          <h3>Rules — Path-Scoped Conventions</h3>
-          <p>Conventions that activate only when relevant. Included rules for database and TypeScript are examples — replace or add your own to match your stack. Only loaded when editing matching files.</p>
-        </div>
-
-        <div class="bento-item">
-          <span class="bento-tag tag-cyan">05</span>
-          <h3>Skills — Slash Commands</h3>
-          <p><code>/deploy</code>, <code>/db-migration</code>, <code>/wrap-up</code> — example skills included as starting points. Customize or replace them for your workflow.</p>
-        </div>
-
-        <div class="bento-item">
-          <span class="bento-tag tag-rose">06</span>
-          <h3>Hooks — Event-Driven Automation</h3>
-          <p>Auto-format on every edit, block dangerous commands, desktop notifications. Zero-effort guardrails.</p>
-        </div>
-
-        <div class="bento-item">
-          <span class="bento-tag tag-violet">07</span>
-          <h3>Settings — Permissions</h3>
-          <p>Explicit allow/deny for tools. <code>rm -rf</code>, <code>sudo</code>, <code>.env</code> writes — blocked by default.</p>
-        </div>
-
-        <div class="bento-item">
-          <span class="bento-tag tag-green">08</span>
-          <h3>MCP Servers — Integrations</h3>
-          <p>Context7, Playwright, Sequential Thinking. External tools pre-wired in <code>.mcp.json</code>.</p>
-        </div>
-
-      </div>
     </div>
   </section>
 
@@ -616,7 +595,9 @@
   <footer class="footer">
     <div class="w">
       <div class="footer-inner">
-        <span>Built on the <a href="https://github.com/FlorianBruniaux/claude-code-ultimate-guide/blob/main/guide/ultimate-guide.md">Claude Code Ultimate Guide</a> by <a href="https://github.com/FlorianBruniaux">Florian Bruniaux</a></span>
+        <span>Powered by <a href="https://github.com/affaan-m/everything-claude-code">Everything Claude Code</a> by <a href="https://x.com/affaanmustafa">Affaan Mustafa</a></span>
+        <span class="dot">&middot;</span>
+        <span><a href="https://github.com/affaan-m/everything-claude-code/blob/main/the-longform-guide.md">Longform Guide</a></span>
         <span class="dot">&middot;</span>
         <span>MIT License</span>
       </div>

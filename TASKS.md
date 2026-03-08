@@ -11,15 +11,22 @@
 ### In Progress
 
 ### To Do
-- [ ] Project scaffolding
-- [ ] Dev environment setup
-- [ ] CI/CD pipeline
-<!-- TODO: Add your actual sprint tasks -->
+- [ ] Scaffold Next.js 15 with TypeScript, Tailwind, App Router
+- [ ] Install and configure shadcn/ui
+- [ ] Set up Supabase project + local dev (`supabase init`)
+- [ ] Create Supabase client helpers (browser, server, middleware)
+- [ ] Generate initial `database.types.ts`
+- [ ] Configure auth (login, signup, callback, middleware refresh)
+- [ ] Add `.env.example` with required Supabase vars
+- [ ] Set up linting (ESLint) and formatting (Prettier)
+- [ ] Add basic CI (type check + lint + test)
 
 ### Done
 
 ## Next Sprint: Sprint 2 — Core Features
-<!-- TODO: Plan your next sprint -->
+- [ ] Define initial database schema + RLS policies
+- [ ] Build auth pages (login, signup, forgot password)
+- [ ] Create protected dashboard layout
 - [ ] ...
 
 ## Session Log
