@@ -464,9 +464,10 @@
 <span class="p">&gt; </span>/plugin marketplace add affaan-m/everything-claude-code
 <span class="p">&gt; </span>/plugin install everything-claude-code@everything-claude-code
 
-<span class="c"># Install language rules</span>
+<span class="c"># Install rules for your language</span>
 <span class="p">$ </span><span class="k">git clone</span> <span class="s">affaan-m/everything-claude-code</span> /tmp/ecc
-<span class="p">$ </span><span class="k">cd</span> /tmp/ecc && ./install.sh <span class="s">typescript</span>
+<span class="p">$ </span><span class="k">cd</span> /tmp/ecc && ./install.sh <span class="s">&lt;language&gt;</span>
+<span class="c">#   options: typescript | python | golang | swift</span>
 
 <span class="c"># Restart and build</span>
 <span class="p">$ </span><span class="k cursor">claude</span></pre>

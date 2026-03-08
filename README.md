@@ -22,9 +22,9 @@ claude
 /plugin marketplace add affaan-m/everything-claude-code
 /plugin install everything-claude-code@everything-claude-code
 
-# 4. Install language-specific rules
+# 4. Install rules for your language (pick one or more)
 git clone https://github.com/affaan-m/everything-claude-code.git /tmp/ecc
-cd /tmp/ecc && ./install.sh typescript   # or: python, golang, swift
+cd /tmp/ecc && ./install.sh <language>   # options: typescript | python | golang | swift
 
 # 5. Restart Claude Code, then tell it your stack
 claude
