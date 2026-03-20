@@ -106,8 +106,9 @@ EOF
   Install the ECC plugin for agents, skills, hooks, and rules:
   /plugin marketplace add affaan-m/everything-claude-code
   /plugin install everything-claude-code@everything-claude-code
-  Then install rules: git clone https://github.com/affaan-m/everything-claude-code.git /tmp/ecc
-  cd /tmp/ecc && ./install.sh <language>  (typescript | python | golang | swift)
+  Then install rules:
+  git clone https://github.com/affaan-m/everything-claude-code.git /tmp/ecc
+  cd /tmp/ecc && npm install && ./install.sh <language>  (typescript | python | golang | swift)
 -->
 
 STATIC
@@ -587,18 +588,6 @@ git commit -q -m "init: scaffold from claude-launchpad ($(date +%Y-%m-%d))"
 
 print_success "Clean git history with initial commit"
 
-# ─── Install ECC plugin ───
-print_step "Installing ECC plugin..."
-
-if command -v claude &> /dev/null; then
-  claude plugin marketplace add affaan-m/everything-claude-code 2>/dev/null && \
-    claude plugin install everything-claude-code@everything-claude-code 2>/dev/null && \
-    print_success "ECC plugin installed (agents, skills, hooks)" || \
-    print_warn "Could not install ECC plugin automatically — install it manually (see below)"
-else
-  print_warn "Claude CLI not found — install the ECC plugin manually (see below)"
-fi
-
 # ─── Done ───
 echo ""
 echo -e "  ${GREEN}${BOLD}Done!${RESET} Your project is ready."
@@ -609,23 +598,23 @@ echo ""
 case "$stack_choice" in
   1) echo -e "    ${DIM}# 1. Install TypeScript rules${RESET}"
      echo -e "    git clone https://github.com/affaan-m/everything-claude-code.git /tmp/ecc"
-     echo -e "    cd /tmp/ecc && ./install.sh typescript"
+     echo -e "    cd /tmp/ecc && npm install && ./install.sh typescript"
      ;;
   2) echo -e "    ${DIM}# 1. Install Python rules${RESET}"
      echo -e "    git clone https://github.com/affaan-m/everything-claude-code.git /tmp/ecc"
-     echo -e "    cd /tmp/ecc && ./install.sh python"
+     echo -e "    cd /tmp/ecc && npm install && ./install.sh python"
      ;;
   3) echo -e "    ${DIM}# 1. Install Go rules${RESET}"
      echo -e "    git clone https://github.com/affaan-m/everything-claude-code.git /tmp/ecc"
-     echo -e "    cd /tmp/ecc && ./install.sh golang"
+     echo -e "    cd /tmp/ecc && npm install && ./install.sh golang"
      ;;
   4) echo -e "    ${DIM}# 1. Install TypeScript rules (for JS/frontend)${RESET}"
      echo -e "    git clone https://github.com/affaan-m/everything-claude-code.git /tmp/ecc"
-     echo -e "    cd /tmp/ecc && ./install.sh typescript"
+     echo -e "    cd /tmp/ecc && npm install && ./install.sh typescript"
      ;;
   5) echo -e "    ${DIM}# 1. Install language rules${RESET}"
      echo -e "    git clone https://github.com/affaan-m/everything-claude-code.git /tmp/ecc"
-     echo -e "    cd /tmp/ecc && ./install.sh <language>  ${DIM}# typescript | python | golang | swift${RESET}"
+     echo -e "    cd /tmp/ecc && npm install && ./install.sh <language>  ${DIM}# typescript | python | golang | swift${RESET}"
      ;;
 esac
 
