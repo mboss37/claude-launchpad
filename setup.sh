@@ -23,6 +23,19 @@ print_step() { echo -e "  ${CYAN}→${RESET} $1"; }
 print_warn() { echo -e "  ${YELLOW}!${RESET} $1"; }
 print_error() { echo -e "  ${RED}✗${RESET} $1"; }
 
+prompt_yn() {
+  local prompt="$1"
+  while true; do
+    echo -en "  ${BOLD}${prompt}${RESET} [y/n] " >&2
+    read -r answer
+    case "$answer" in
+      [yY]|[yY][eE][sS]) echo "y"; return ;;
+      [nN]|[nN][oO])     echo "n"; return ;;
+      *) print_error "Please answer y or n." >&2 ;;
+    esac
+  done
+}
+
 prompt_text() {
   local prompt="$1"
   local result=""
@@ -588,38 +601,67 @@ git commit -q -m "init: scaffold from claude-launchpad ($(date +%Y-%m-%d))"
 
 print_success "Clean git history with initial commit"
 
+# ─── ECC Plugin ───
+echo ""
+install_ecc_plugin() {
+  if command -v claude &> /dev/null; then
+    claude plugin marketplace add affaan-m/everything-claude-code 2>/dev/null && \
+      claude plugin install everything-claude-code@everything-claude-code 2>/dev/null && \
+      print_success "ECC plugin installed" || \
+      print_warn "Could not install ECC plugin — run manually: claude plugin marketplace add affaan-m/everything-claude-code"
+  else
+    print_warn "Claude CLI not found — install the ECC plugin manually after installing Claude Code"
+  fi
+}
+
+if command -v claude &> /dev/null && claude plugin list 2>/dev/null | grep -q "everything-claude-code"; then
+  answer=$(prompt_yn "ECC plugin already installed. Reinstall to check for updates?")
+  if [ "$answer" = "y" ]; then
+    install_ecc_plugin
+  else
+    print_success "Keeping existing ECC plugin"
+  fi
+else
+  print_step "Installing ECC plugin..."
+  install_ecc_plugin
+fi
+
+# ─── Language Rules ───
+echo ""
+lang_choice=$(prompt_select "Install ECC language rules for this project?" \
+  "TypeScript" \
+  "Python" \
+  "Go" \
+  "Swift" \
+  "Skip")
+
+if [ "$lang_choice" -ne 5 ]; then
+  case "$lang_choice" in
+    1) lang="typescript" ;;
+    2) lang="python" ;;
+    3) lang="golang" ;;
+    4) lang="swift" ;;
+  esac
+
+  print_step "Installing ${lang} rules..."
+  rm -rf /tmp/ecc
+  if git clone --quiet https://github.com/affaan-m/everything-claude-code.git /tmp/ecc 2>/dev/null; then
+    (cd /tmp/ecc && npm install --silent 2>/dev/null && ./install.sh "$lang") && \
+      print_success "Installed ${lang} rules" || \
+      print_warn "Could not install rules — try manually: cd /tmp/ecc && npm install && ./install.sh ${lang}"
+    rm -rf /tmp/ecc
+  else
+    print_warn "Could not clone ECC repo — check your network connection"
+  fi
+else
+  print_success "Skipped language rules"
+fi
+
 # ─── Done ───
 echo ""
 echo -e "  ${GREEN}${BOLD}Done!${RESET} Your project is ready."
 echo ""
-echo -e "  ${BOLD}Next steps:${RESET}"
-echo ""
-
-case "$stack_choice" in
-  1) echo -e "    ${DIM}# 1. Install TypeScript rules${RESET}"
-     echo -e "    git clone https://github.com/affaan-m/everything-claude-code.git /tmp/ecc"
-     echo -e "    cd /tmp/ecc && npm install && ./install.sh typescript"
-     ;;
-  2) echo -e "    ${DIM}# 1. Install Python rules${RESET}"
-     echo -e "    git clone https://github.com/affaan-m/everything-claude-code.git /tmp/ecc"
-     echo -e "    cd /tmp/ecc && npm install && ./install.sh python"
-     ;;
-  3) echo -e "    ${DIM}# 1. Install Go rules${RESET}"
-     echo -e "    git clone https://github.com/affaan-m/everything-claude-code.git /tmp/ecc"
-     echo -e "    cd /tmp/ecc && npm install && ./install.sh golang"
-     ;;
-  4) echo -e "    ${DIM}# 1. Install TypeScript rules (for JS/frontend)${RESET}"
-     echo -e "    git clone https://github.com/affaan-m/everything-claude-code.git /tmp/ecc"
-     echo -e "    cd /tmp/ecc && npm install && ./install.sh typescript"
-     ;;
-  5) echo -e "    ${DIM}# 1. Install language rules${RESET}"
-     echo -e "    git clone https://github.com/affaan-m/everything-claude-code.git /tmp/ecc"
-     echo -e "    cd /tmp/ecc && npm install && ./install.sh <language>  ${DIM}# typescript | python | golang | swift${RESET}"
-     ;;
-esac
-
-echo ""
-echo -e "    ${DIM}# 2. Start building${RESET}"
+echo -e "  ${BOLD}Next step:${RESET}"
 echo -e "    claude"
 echo ""
 

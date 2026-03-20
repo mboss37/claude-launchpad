@@ -18,6 +18,8 @@ The setup script will:
 3. Generate `TASKS.md` with stack-specific Sprint 1 tasks
 4. Generate `.env.example` with stack-specific environment variables
 5. Clean up template files and reset git history
+6. Install / update the [ECC plugin](https://github.com/affaan-m/everything-claude-code) (global, auto-detects if already installed)
+7. Install language-specific ECC rules for your project
 
 ### Supported stacks
 
@@ -28,22 +30,6 @@ The setup script will:
 | 3 | Go + HTMX + SQLite | stdlib net/http, goose, embed.FS |
 | 4 | Rails 8 + Hotwire + PostgreSQL | Turbo, Stimulus, Solid Queue, Devise |
 | 5 | Custom | Guided skeleton with TODOs — tell Claude your stack |
-
-### After setup
-
-Install the ECC plugin (one-time, global):
-
-```bash
-claude plugin marketplace add affaan-m/everything-claude-code
-claude plugin install everything-claude-code@everything-claude-code
-```
-
-Install language-specific rules from the ECC repo:
-
-```bash
-git clone https://github.com/affaan-m/everything-claude-code.git /tmp/ecc
-cd /tmp/ecc && npm install && ./install.sh <language>   # typescript | python | golang | swift
-```
 
 ---
 
