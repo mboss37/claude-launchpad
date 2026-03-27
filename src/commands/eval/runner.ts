@@ -1,5 +1,5 @@
 import { mkdir, writeFile, readFile, rm, cp } from "node:fs/promises";
-import { join } from "node:path";
+import { join, dirname } from "node:path";
 import { tmpdir } from "node:os";
 import { randomUUID } from "node:crypto";
 import { execFile } from "node:child_process";
@@ -36,7 +36,7 @@ export async function runScenario(
     // 2. Write seed files
     for (const file of scenario.setup.files) {
       const filePath = join(sandboxDir, file.path);
-      await mkdir(join(filePath, ".."), { recursive: true });
+      await mkdir(dirname(filePath), { recursive: true });
       await writeFile(filePath, file.content);
     }
 
@@ -46,13 +46,15 @@ export async function runScenario(
     try {
       await cp(claudeDir, sandboxClaudeDir, { recursive: true });
     } catch {
-      // No .claude/ dir to copy — that's fine, we'll test without it
+      // No .claude/ dir to copy — that's fine
     }
 
     // 4. Write CLAUDE.md with scenario instructions
     if (scenario.setup.instructions) {
-      const claudeMd = `# Eval Scenario\n\n${scenario.setup.instructions}\n`;
-      await writeFile(join(sandboxDir, "CLAUDE.md"), claudeMd);
+      await writeFile(
+        join(sandboxDir, "CLAUDE.md"),
+        `# Eval Scenario\n\n${scenario.setup.instructions}\n`,
+      );
     }
 
     // 5. Initialize a git repo (Claude Code expects one)
@@ -64,7 +66,7 @@ export async function runScenario(
       "commit", "-q", "-m", "eval setup",
     ], { cwd: sandboxDir });
 
-    // 6. Run Claude headless
+    // 6. Run Claude headless in bare mode (no hooks/plugins — test raw CLAUDE.md compliance)
     await runClaude(sandboxDir, scenario.prompt, options.timeout);
 
     // 7. Check results
@@ -84,13 +86,12 @@ export async function runScenario(
       checks: checkResults,
     };
   } finally {
-    // Clean up
     await rm(sandboxDir, { recursive: true, force: true }).catch(() => {});
   }
 }
 
 /**
- * Run multiple scenarios with statistical confidence (multiple runs per scenario).
+ * Run a scenario multiple times and return the median result.
  */
 export async function runScenarioWithRetries(
   scenario: EvalScenario,
@@ -103,10 +104,8 @@ export async function runScenarioWithRetries(
     results.push(result);
   }
 
-  // Return median result
   const sorted = [...results].sort((a, b) => a.score - b.score);
-  const median = sorted[Math.floor(sorted.length / 2)];
-  return median;
+  return sorted[Math.floor(sorted.length / 2)];
 }
 
 // ─── Claude Execution ───
@@ -117,27 +116,23 @@ async function runClaude(
   timeout: number,
 ): Promise<{ stdout: string; stderr: string }> {
   try {
-    const result = await exec(
+    return await exec(
       "claude",
       [
         "-p", prompt,
         "--output-format", "text",
         "--max-turns", "10",
-        "--no-user-input",
+        "--bare",
+        "--dangerously-skip-permissions",
       ],
       {
         cwd,
         timeout,
-        env: {
-          ...process.env,
-          // Disable hooks and plugins in eval to test raw config
-          CLAUDE_CODE_DISABLE_HOOKS: "1",
-        },
+        maxBuffer: 10 * 1024 * 1024,
       },
     );
-    return result;
   } catch (error: unknown) {
-    // Claude might exit non-zero but still produce output
+    // Claude might exit non-zero but still produce usable output
     if (error && typeof error === "object" && "stdout" in error) {
       return {
         stdout: String((error as Record<string, unknown>).stdout ?? ""),
@@ -158,11 +153,7 @@ async function evaluateChecks(
 
   for (const check of checks) {
     const passed = await evaluateSingleCheck(check, sandboxDir);
-    results.push({
-      label: check.label,
-      passed,
-      points: check.points,
-    });
+    results.push({ label: check.label, passed, points: check.points });
   }
 
   return results;
@@ -174,11 +165,9 @@ async function evaluateSingleCheck(check: EvalCheck, sandboxDir: string): Promis
       if (!check.pattern) return false;
       try {
         const content = await readFile(join(sandboxDir, check.target), "utf-8");
-        const regex = new RegExp(check.pattern);
-        const found = regex.test(content);
+        const found = new RegExp(check.pattern).test(content);
         return check.expect === "present" ? found : !found;
       } catch {
-        // File doesn't exist
         return check.expect === "absent";
       }
     }
@@ -202,7 +191,6 @@ async function evaluateSingleCheck(check: EvalCheck, sandboxDir: string): Promis
     }
 
     case "custom":
-      // Custom checks will be implemented when needed
       return false;
 
     default:

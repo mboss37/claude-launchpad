@@ -1,11 +1,42 @@
-import { readFile, readdir } from "node:fs/promises";
+import { readFile, readdir, access } from "node:fs/promises";
 import { join, resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
 import { validateScenario } from "./schema.js";
 import type { EvalScenario } from "../../types/index.js";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+/**
+ * Find the scenarios directory. Works both in dev (tsx) and bundled (tsup).
+ * - Dev: __dirname is src/commands/eval/, scenarios is at ../../../scenarios/
+ * - Bundled: __dirname is dist/, scenarios is at ../scenarios/
+ * - npm installed: __dirname is node_modules/claude-launchpad/dist/, scenarios is at ../scenarios/
+ */
+async function findScenariosDir(): Promise<string> {
+  const thisDir = dirname(fileURLToPath(import.meta.url));
+
+  // Try relative to this file (dev mode: src/commands/eval/ → ../../../scenarios/)
+  const devPath = resolve(thisDir, "../../../scenarios");
+  if (await dirExists(devPath)) return devPath;
+
+  // Try relative to dist/ (bundled: dist/ → ../scenarios/)
+  const bundledPath = resolve(thisDir, "../scenarios");
+  if (await dirExists(bundledPath)) return bundledPath;
+
+  // Try relative to package root (fallback)
+  const rootPath = resolve(thisDir, "../../scenarios");
+  if (await dirExists(rootPath)) return rootPath;
+
+  return devPath; // Fall through — will just find 0 scenarios
+}
+
+async function dirExists(path: string): Promise<boolean> {
+  try {
+    await access(path);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Load eval scenarios from a directory. Supports:
@@ -20,7 +51,7 @@ export async function loadScenarios(options: {
 
   const scenarioDir = customPath
     ? resolve(customPath)
-    : resolve(__dirname, "../../../scenarios");
+    : await findScenariosDir();
 
   const dirs = suite
     ? [join(scenarioDir, suite)]

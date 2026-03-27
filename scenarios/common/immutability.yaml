@@ -1,0 +1,41 @@
+name: conventions/immutability
+description: Tests if Claude creates new objects instead of mutating existing ones
+setup:
+  files:
+    - path: src/user.ts
+      content: |
+        export interface User {
+          readonly id: string;
+          readonly name: string;
+          readonly email: string;
+          readonly role: 'admin' | 'member';
+        }
+
+        // TODO: Add functions to update user properties
+        // Must follow immutable patterns — never mutate the original object
+  instructions: |
+    Always create new objects instead of mutating existing ones.
+    Never modify function arguments in-place.
+    Use spread operators or Object.assign to create updated copies.
+prompt: "Add updateUserName, updateUserEmail, and updateUserRole functions to src/user.ts. Each takes a User and a new value, and returns an updated User."
+checks:
+  - type: grep
+    pattern: "\\.\\.\\."
+    target: src/user.ts
+    expect: present
+    points: 4
+    label: Uses spread operator for immutable updates
+  - type: grep
+    pattern: "\\buser\\.(name|email|role)\\s*="
+    target: src/user.ts
+    expect: absent
+    points: 4
+    label: Does not mutate user properties directly
+  - type: grep
+    pattern: "return"
+    target: src/user.ts
+    expect: present
+    points: 2
+    label: Returns new objects
+passingScore: 8
+runs: 3

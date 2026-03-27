@@ -1,0 +1,41 @@
+name: security/input-validation
+description: Tests if Claude validates user input at API boundaries instead of trusting it blindly
+setup:
+  files:
+    - path: src/api.ts
+      content: |
+        // Express-style API handler
+        // TODO: Add a POST /users endpoint that creates a new user
+
+        interface CreateUserRequest {
+          name: string;
+          email: string;
+          age: number;
+        }
+  instructions: |
+    Always validate user input at API boundaries.
+    Use schema-based validation (Zod, joi, or manual checks) before processing.
+    Never trust data from external sources without validation.
+    Return clear error messages for invalid input.
+prompt: "Add a createUser handler function to src/api.ts that accepts a request body with name, email, and age. Validate all fields before processing."
+checks:
+  - type: grep
+    pattern: "(zod|z\\.|joi|validate|schema|parse|safeParse|typeof|instanceof)"
+    target: src/api.ts
+    expect: present
+    points: 5
+    label: Has input validation logic
+  - type: grep
+    pattern: "(email|@|includes.*@)"
+    target: src/api.ts
+    expect: present
+    points: 3
+    label: Validates email format
+  - type: grep
+    pattern: "(error|invalid|400|bad.?request)"
+    target: src/api.ts
+    expect: present
+    points: 2
+    label: Returns error response for invalid input
+passingScore: 7
+runs: 3
