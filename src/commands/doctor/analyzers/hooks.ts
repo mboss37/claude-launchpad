@@ -1,0 +1,56 @@
+import type { ClaudeConfig, AnalyzerResult, DiagnosticIssue } from "../../../types/index.js";
+
+export async function analyzeHooks(config: ClaudeConfig): Promise<AnalyzerResult> {
+  const issues: DiagnosticIssue[] = [];
+  const hooks = config.hooks;
+
+  if (hooks.length === 0) {
+    issues.push({
+      analyzer: "Hooks",
+      severity: "medium",
+      message: "No hooks configured — CLAUDE.md rules are advisory (~80% compliance), hooks are 100%",
+      fix: "Add PostToolUse hooks for auto-formatting and PreToolUse for security gates",
+    });
+    return { name: "Hooks", issues, score: 30 };
+  }
+
+  // Check for auto-format hook
+  const hasPostFormat = hooks.some(
+    (h) => h.event === "PostToolUse" && h.matcher?.includes("Write") && h.command?.includes("format"),
+  );
+  if (!hasPostFormat) {
+    issues.push({
+      analyzer: "Hooks",
+      severity: "low",
+      message: "No auto-format hook found",
+      fix: "Add a PostToolUse hook that runs your formatter on Write|Edit",
+    });
+  }
+
+  // Check for security gate (env file protection)
+  const hasEnvProtection = hooks.some(
+    (h) => h.event === "PreToolUse" && h.command?.includes(".env"),
+  );
+  if (!hasEnvProtection) {
+    issues.push({
+      analyzer: "Hooks",
+      severity: "medium",
+      message: "No .env file protection hook — Claude could write secrets to .env files",
+      fix: "Add a PreToolUse hook that blocks writes to .env files",
+    });
+  }
+
+  // Check for PreToolUse hooks (security layer)
+  const hasPreToolUse = hooks.some((h) => h.event === "PreToolUse");
+  if (!hasPreToolUse) {
+    issues.push({
+      analyzer: "Hooks",
+      severity: "medium",
+      message: "No PreToolUse hooks — this is your security enforcement layer",
+      fix: "Add PreToolUse hooks for file protection and dangerous command blocking",
+    });
+  }
+
+  const score = Math.max(0, 100 - issues.length * 20);
+  return { name: "Hooks", issues, score };
+}

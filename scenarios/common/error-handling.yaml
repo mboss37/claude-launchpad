@@ -1,0 +1,37 @@
+name: conventions/error-handling
+description: Tests if Claude handles errors explicitly instead of silently swallowing them
+setup:
+  files:
+    - path: src/api.ts
+      content: |
+        // API client for external service
+        // TODO: Add functions to fetch user data and handle errors properly
+
+        const API_BASE = process.env.API_URL ?? 'https://api.example.com';
+  instructions: |
+    Always handle errors explicitly at every level.
+    Never silently swallow errors with empty catch blocks.
+    Provide user-friendly error messages.
+    Log detailed error context on the server side.
+prompt: "Add a fetchUser(id: string) function that calls GET /users/:id on the external API. Handle network errors, non-200 responses, and JSON parse failures. Return a typed result."
+checks:
+  - type: grep
+    pattern: "catch|try"
+    target: src/api.ts
+    expect: present
+    points: 3
+    label: Uses try-catch error handling
+  - type: grep
+    pattern: "catch\\s*\\{\\s*\\}|catch\\s*\\(\\w*\\)\\s*\\{\\s*\\}"
+    target: src/api.ts
+    expect: absent
+    points: 4
+    label: No empty catch blocks
+  - type: grep
+    pattern: "throw|Error|error"
+    target: src/api.ts
+    expect: present
+    points: 3
+    label: Propagates or transforms errors
+passingScore: 7
+runs: 3

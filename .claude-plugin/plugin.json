@@ -1,0 +1,12 @@
+{
+  "name": "claude-launchpad",
+  "version": "0.1.0",
+  "description": "Diagnose, scaffold, and test your Claude Code configuration",
+  "author": "McLovin",
+  "homepage": "https://github.com/mboss37/claude-launchpad",
+  "skills": [
+    "skills/doctor",
+    "skills/init"
+  ],
+  "hooks": "hooks/hooks.json"
+}

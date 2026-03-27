@@ -1,0 +1,97 @@
+import type { ClaudeConfig, AnalyzerResult, DiagnosticIssue } from "../../../types/index.js";
+
+const ESSENTIAL_SECTIONS = [
+  { pattern: /^##\s+Stack/m, name: "Stack", why: "Claude performs worse without knowing the tech stack" },
+  { pattern: /^##\s+Commands/m, name: "Commands", why: "Claude guesses wrong without explicit dev/build/test commands" },
+  { pattern: /^##\s+Session Start/m, name: "Session Start", why: "Without this, Claude won't read TASKS.md or maintain continuity" },
+  { pattern: /^##\s+Off.?Limits/m, name: "Off-Limits", why: "Without guardrails, Claude has no boundaries beyond defaults" },
+  { pattern: /^##\s+(Architecture|Project Structure)/m, name: "Architecture/Structure", why: "Claude makes better decisions when it understands the codebase shape" },
+] as const;
+
+const VAGUE_PATTERNS = [
+  { pattern: /write (good|clean|quality|nice) code/i, label: "write good code" },
+  { pattern: /be (careful|thorough|diligent)/i, label: "be careful" },
+  { pattern: /follow best practices/i, label: "follow best practices" },
+  { pattern: /make sure (everything|it) works/i, label: "make sure it works" },
+] as const;
+
+const SECRET_PATTERNS = [
+  { pattern: /sk-[a-zA-Z0-9]{20,}/, label: "OpenAI API key" },
+  { pattern: /ghp_[a-zA-Z0-9]{36}/, label: "GitHub personal token" },
+  { pattern: /AKIA[0-9A-Z]{16}/, label: "AWS access key" },
+  { pattern: /xoxb-[0-9]+-[a-zA-Z0-9]+/, label: "Slack bot token" },
+] as const;
+
+export async function analyzeQuality(config: ClaudeConfig): Promise<AnalyzerResult> {
+  const issues: DiagnosticIssue[] = [];
+  const content = config.claudeMdContent;
+
+  if (content === null) {
+    issues.push({
+      analyzer: "Quality",
+      severity: "high",
+      message: "No CLAUDE.md found",
+      fix: "Run `claude-launchpad init` to generate one",
+    });
+    return { name: "CLAUDE.md Quality", issues, score: 0 };
+  }
+
+  // Check essential sections
+  let sectionsFound = 0;
+  for (const section of ESSENTIAL_SECTIONS) {
+    if (section.pattern.test(content)) {
+      sectionsFound++;
+    } else {
+      issues.push({
+        analyzer: "Quality",
+        severity: "medium",
+        message: `Missing "## ${section.name}" section — ${section.why}`,
+        fix: `Add a ## ${section.name} section to CLAUDE.md`,
+      });
+    }
+  }
+
+  // Check for vague/useless instructions
+  for (const vague of VAGUE_PATTERNS) {
+    if (vague.pattern.test(content)) {
+      issues.push({
+        analyzer: "Quality",
+        severity: "low",
+        message: `Vague instruction detected: "${vague.label}" — zero signal, wastes budget`,
+        fix: "Replace with specific, actionable instructions",
+      });
+    }
+  }
+
+  // Check for hardcoded secrets
+  for (const secret of SECRET_PATTERNS) {
+    if (secret.pattern.test(content)) {
+      issues.push({
+        analyzer: "Quality",
+        severity: "critical",
+        message: `Possible ${secret.label} found in CLAUDE.md — secrets must never be in config files`,
+        fix: "Remove the secret immediately and rotate it",
+      });
+    }
+  }
+
+  // Check for TODO placeholders (unfinished config)
+  const todoCount = (content.match(/<!--\s*TODO/gi) ?? []).length;
+  if (todoCount > 3) {
+    issues.push({
+      analyzer: "Quality",
+      severity: "medium",
+      message: `${todoCount} TODO placeholders — CLAUDE.md is mostly unfinished`,
+      fix: "Fill in the TODO sections or remove them",
+    });
+  }
+
+  // Score: base 100, deduct per issue
+  const criticals = issues.filter((i) => i.severity === "critical").length;
+  const highs = issues.filter((i) => i.severity === "high").length;
+  const mediums = issues.filter((i) => i.severity === "medium").length;
+  const lows = issues.filter((i) => i.severity === "low").length;
+
+  const score = Math.max(0, 100 - criticals * 40 - highs * 30 - mediums * 15 - lows * 5);
+  return { name: "CLAUDE.md Quality", issues, score };
+}

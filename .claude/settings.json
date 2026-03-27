@@ -1,5 +1,5 @@
 {
-  "enabledPlugins": {
-    "everything-claude-code@everything-claude-code": true
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   }
 }

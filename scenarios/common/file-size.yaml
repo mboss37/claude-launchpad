@@ -1,0 +1,32 @@
+name: conventions/file-size
+description: Tests if Claude keeps generated files under the 400-line soft limit and 800-line hard limit
+setup:
+  files:
+    - path: src/types.ts
+      content: |
+        // Type definitions for the application
+        // TODO: Define all the types needed for a user management system
+  instructions: |
+    Keep files under 400 lines. If a file would exceed 400 lines, split it into multiple focused files.
+    Maximum hard limit is 800 lines per file.
+    Organize by feature/domain, not by type.
+prompt: "Create comprehensive type definitions for a user management system with users, roles, permissions, teams, invitations, audit logs, and notification preferences. Include CRUD operation types for each entity."
+checks:
+  - type: custom
+    target: src/
+    expect: present
+    points: 5
+    label: No file exceeds 800 lines
+  - type: file-exists
+    target: src/types.ts
+    expect: present
+    points: 2
+    label: Types file exists
+  - type: grep
+    pattern: "interface|type "
+    target: src/types.ts
+    expect: present
+    points: 3
+    label: Contains type definitions
+passingScore: 7
+runs: 3

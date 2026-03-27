@@ -1,0 +1,59 @@
+import { access } from "node:fs/promises";
+import type { ClaudeConfig, AnalyzerResult, DiagnosticIssue } from "../../../types/index.js";
+
+export async function analyzeMcp(config: ClaudeConfig): Promise<AnalyzerResult> {
+  const issues: DiagnosticIssue[] = [];
+  const servers = config.mcpServers;
+
+  if (servers.length === 0) {
+    issues.push({
+      analyzer: "MCP",
+      severity: "info",
+      message: "No MCP servers configured — Claude can't connect to external tools",
+      fix: "Add MCP servers in .claude/settings.json for GitHub, database, docs, etc.",
+    });
+    return { name: "MCP Servers", issues, score: 50 };
+  }
+
+  for (const server of servers) {
+    // Check stdio servers have a command
+    if (server.transport === "stdio" && !server.command) {
+      issues.push({
+        analyzer: "MCP",
+        severity: "high",
+        message: `MCP server "${server.name}" uses stdio transport but has no command`,
+        fix: `Add a "command" field to the "${server.name}" MCP server config`,
+      });
+    }
+
+    // Check HTTP/SSE servers have a URL
+    if ((server.transport === "sse" || server.transport === "http") && !server.url) {
+      issues.push({
+        analyzer: "MCP",
+        severity: "high",
+        message: `MCP server "${server.name}" uses ${server.transport} transport but has no URL`,
+        fix: `Add a "url" field to the "${server.name}" MCP server config`,
+      });
+    }
+
+    // Check stdio commands point to existing executables
+    if (server.transport === "stdio" && server.command) {
+      const executable = server.command.split(" ")[0];
+      if (executable.startsWith("/") || executable.startsWith("./")) {
+        try {
+          await access(executable);
+        } catch {
+          issues.push({
+            analyzer: "MCP",
+            severity: "medium",
+            message: `MCP server "${server.name}" command not found: ${executable}`,
+            fix: `Verify the path exists or install the required package`,
+          });
+        }
+      }
+    }
+  }
+
+  const score = Math.max(0, 100 - issues.filter((i) => i.severity !== "info").length * 25);
+  return { name: "MCP Servers", issues, score };
+}

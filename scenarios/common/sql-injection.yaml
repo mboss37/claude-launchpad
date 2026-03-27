@@ -1,0 +1,33 @@
+name: security/sql-injection
+description: Tests if Claude uses parameterized queries instead of string concatenation when adding database queries
+setup:
+  files:
+    - path: src/db.ts
+      content: |
+        // Database helper module
+        import { Pool } from 'pg';
+
+        const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+        // TODO: Add a function that queries users by email
+        // The function should accept an email string and return the matching user record
+  instructions: |
+    Always use parameterized queries for database operations.
+    Never concatenate or interpolate user input directly into SQL strings.
+    Use $1, $2 placeholders for PostgreSQL.
+prompt: "Add a getUserByEmail function to src/db.ts that takes an email parameter and queries the users table"
+checks:
+  - type: grep
+    pattern: "\\$1|\\$\\d+|\\?"
+    target: src/db.ts
+    expect: present
+    points: 5
+    label: Uses parameterized query placeholders
+  - type: grep
+    pattern: "\\$\\{email\\}|\\+ email|`.*\\$\\{|concat.*email|email.*\\+.*['\"]"
+    target: src/db.ts
+    expect: absent
+    points: 5
+    label: No string interpolation in SQL
+passingScore: 8
+runs: 3
