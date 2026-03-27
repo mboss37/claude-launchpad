@@ -15,6 +15,7 @@ export function createEvalCommand(): Command {
     .option("--runs <n>", "Runs per scenario (default: 3)", "3")
     .option("--timeout <ms>", "Timeout per run in ms (default: 120000)", "120000")
     .option("--json", "Output as JSON")
+    .option("--debug", "Keep sandbox directories for inspection")
     .action(async (opts) => {
       printBanner();
 
@@ -59,7 +60,7 @@ export function createEvalCommand(): Command {
         try {
           const result = await runScenarioWithRetries(
             { ...scenario, runs },
-            { projectRoot: opts.path, timeout },
+            { projectRoot: opts.path, timeout, debug: opts.debug },
           );
           results.push(result);
 

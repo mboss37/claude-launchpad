@@ -11,6 +11,7 @@ const exec = promisify(execFile);
 interface RunOptions {
   readonly projectRoot: string;
   readonly timeout: number;
+  readonly debug?: boolean;
 }
 
 /**
@@ -86,7 +87,11 @@ export async function runScenario(
       checks: checkResults,
     };
   } finally {
-    await rm(sandboxDir, { recursive: true, force: true }).catch(() => {});
+    if (options.debug) {
+      console.log(`  DEBUG: Sandbox preserved at ${sandboxDir}`);
+    } else {
+      await rm(sandboxDir, { recursive: true, force: true }).catch(() => {});
+    }
   }
 }
 
@@ -121,9 +126,9 @@ async function runClaude(
       [
         "-p", prompt,
         "--output-format", "text",
-        "--max-turns", "10",
-        "--bare",
+        "--max-turns", "20",
         "--dangerously-skip-permissions",
+        "--allowedTools", "Read", "Write", "Edit", "Bash", "Glob", "Grep",
       ],
       {
         cwd,
