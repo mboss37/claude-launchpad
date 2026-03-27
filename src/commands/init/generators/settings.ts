@@ -25,12 +25,12 @@ export function generateSettings(detected: DetectedProject): ClaudeSettings {
   const preToolUse: HookGroup[] = [];
   const postToolUse: HookGroup[] = [];
 
-  // Universal: .env file protection
+  // Universal: .env file protection (block read + write)
   preToolUse.push({
-    matcher: "Write|Edit",
+    matcher: "Read|Write|Edit",
     hooks: [{
       type: "command",
-      command: "echo \"$TOOL_INPUT_FILE_PATH\" | grep -qE '\\.(env|env\\..*)$' && echo 'BLOCKED: Never write to .env files — use .env.example' && exit 1; exit 0",
+      command: "echo \"$TOOL_INPUT_FILE_PATH\" | grep -qE '\\.(env|env\\..*)$' && ! echo \"$TOOL_INPUT_FILE_PATH\" | grep -q '.env.example' && echo 'BLOCKED: .env files contain secrets — use .env.example for documentation' && exit 1; exit 0",
     }],
   });
 

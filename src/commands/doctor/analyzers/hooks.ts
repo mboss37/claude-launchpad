@@ -35,8 +35,8 @@ export async function analyzeHooks(config: ClaudeConfig): Promise<AnalyzerResult
     issues.push({
       analyzer: "Hooks",
       severity: "medium",
-      message: "No .env file protection hook — Claude could write secrets to .env files",
-      fix: "Add a PreToolUse hook that blocks writes to .env files",
+      message: "No .env file protection hook — Claude could read or write secrets in .env files",
+      fix: "Add a PreToolUse hook on Read|Write|Edit that blocks access to .env files",
     });
   }
 
