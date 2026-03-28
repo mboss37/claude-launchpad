@@ -13,8 +13,9 @@
 - **Sprint 6**: Community — v0.2.2, plugin submitted, docs page, privacy policy, 50 tests, 60KB package
 - **Sprint 7**: Smarts — v0.3.0, watcher, .claudeignore in --fix, enhance budget cap, Tech Stack, 57 tests
 - **Sprint 8**: Polish — v0.3.4, security fix, 5 persona reviews, Tailwind redesign, glossary, suite filtering, eval reports, 58 tests
+- **Sprint 9**: Scale — v0.4.0, enhanced init (6 files, $schema, permissions.deny, destructive cmd blocking, rules), Tailwind docs page, marketplace submissions, Reddit posts
 
-## Current Sprint: Sprint 9 — Grow
+## Current Sprint: Sprint 10 — Refine
 
 ### In Progress
 
@@ -24,18 +25,19 @@
 - [ ] eval --compare: compare configs side by side
 - [ ] eval --regression: show which commit degraded compliance
 - [ ] Plugin marketplace go-live (waiting on Anthropic review)
+- [ ] awesome-claude-code listing (submitted, waiting on validation)
 
 ### Done
 
 ## Upcoming
-- **Sprint 10**: Community scenario packs, paid tier exploration
+- **Sprint 11**: Community scenario packs, paid tier exploration
 
 ## Session Log
-### 2026-03-28 (session 4)
-- .claudeignore in --fix, MCP AI-driven recs, enhance budget cap, 57 tests, self-scores 93%
 ### 2026-03-28 (session 5)
 - Security fix v0.3.1 (command injection). 3-agent review. 11 eval scenarios.
 ### 2026-03-28 (session 6)
-- v0.3.4 published. 5 persona reviews. Tailwind/Geist redesign. Glossary. Suite filtering.
-- Eval reports to .claude/eval/. Clearer labels. --model flag. Full CI YAML. Copy buttons.
-- README reframed for "launchpad" name. Consistent headers/footers. Font size fixes.
+- v0.3.4. 5 persona reviews. Tailwind redesign. Glossary. Suite filtering. Eval reports.
+### 2026-03-28 (session 7)
+- v0.4.0: enhanced init (6 files, schema, permissions, rules). Tailwind docs page rebuild.
+- 5 marketplace directories researched. awesome-claude-code + Anthropic submitted.
+- Reddit posts drafted, reviewed 3x for AI smell, CLI screenshots for before/after.
