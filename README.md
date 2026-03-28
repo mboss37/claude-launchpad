@@ -224,7 +224,7 @@ Claude Launchpad gives you a number. Fix the issues, re-run, watch the number go
 - **Enhance uses Claude.** Spawns an interactive session to understand your codebase — costs tokens but produces a CLAUDE.md that actually knows your project.
 - **Eval uses the Agent SDK.** Runs Claude headless in sandboxes with explicit tool permissions — proof that your config works.
 - **Works with any stack.** Auto-detects your project. No fixed menu of supported frameworks.
-- **57 tests.** The tool that tests configs is itself well-tested.
+- **58 tests.** The tool that tests configs is itself well-tested.
 - **You never clone this repo.** It's a tool you run with `npx`, not a template you fork.
 
 ## License

@@ -1,6 +1,8 @@
 import { Command } from "commander";
 import ora from "ora";
 import chalk from "chalk";
+import { mkdir, writeFile } from "node:fs/promises";
+import { join } from "node:path";
 import { printBanner, log, printScoreCard } from "../../lib/output.js";
 import { loadScenarios } from "./loader.js";
 import { runScenarioWithRetries } from "./runner.js";
@@ -103,6 +105,9 @@ export function createEvalCommand(): Command {
       }
 
       renderEvalReport(results);
+
+      // Save report to .claude/eval/
+      await saveEvalReport(results, opts.path, opts.suite, opts.model);
     });
 }
 
@@ -137,6 +142,72 @@ function renderEvalReport(results: ReadonlyArray<EvalRunResult>): void {
   } else {
     log.warn(`${passed} passed, ${failed} failed out of ${results.length} scenario(s).`);
   }
+}
+
+async function saveEvalReport(
+  results: ReadonlyArray<EvalRunResult>,
+  projectRoot: string,
+  suite?: string,
+  model?: string,
+): Promise<void> {
+  const totalScore = results.reduce((s, r) => s + r.score, 0);
+  const totalMax = results.reduce((s, r) => s + r.maxScore, 0);
+  const pct = totalMax > 0 ? Math.round((totalScore / totalMax) * 100) : 0;
+  const passed = results.filter((r) => r.passed).length;
+  const failed = results.length - passed;
+  const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+
+  const lines: string[] = [
+    `# Eval Report — ${timestamp}`,
+    "",
+    `**Score: ${pct}%** (${passed} passed, ${failed} failed out of ${results.length} scenarios)`,
+    "",
+    `- Suite: ${suite ?? "all"}`,
+    `- Model: ${model ?? "default"}`,
+    `- Date: ${new Date().toISOString().split("T")[0]}`,
+    "",
+    "## Results",
+    "",
+  ];
+
+  for (const result of results) {
+    const status = result.passed ? "PASS" : "FAIL";
+    lines.push(`### ${result.scenario} — ${result.score}/${result.maxScore} ${status}`);
+
+    const failedChecks = result.checks.filter((c) => !c.passed);
+    const passedChecks = result.checks.filter((c) => c.passed);
+
+    if (passedChecks.length > 0) {
+      for (const check of passedChecks) {
+        lines.push(`- [x] ${check.label} (${check.points} pts)`);
+      }
+    }
+    if (failedChecks.length > 0) {
+      for (const check of failedChecks) {
+        lines.push(`- [ ] ${check.label} (${check.points} pts)`);
+      }
+    }
+    lines.push("");
+  }
+
+  if (failed > 0) {
+    lines.push("## Recommendations");
+    lines.push("");
+    for (const result of results.filter((r) => !r.passed)) {
+      lines.push(`### Fix: ${result.scenario}`);
+      const failedChecks = result.checks.filter((c) => !c.passed);
+      for (const check of failedChecks) {
+        lines.push(`- ${check.label} — update CLAUDE.md instructions or add hooks to enforce this behavior`);
+      }
+      lines.push("");
+    }
+  }
+
+  const evalDir = join(projectRoot, ".claude", "eval");
+  await mkdir(evalDir, { recursive: true });
+  const filename = `eval-${suite ?? "all"}-${timestamp}.md`;
+  await writeFile(join(evalDir, filename), lines.join("\n"));
+  log.success(`Report saved to .claude/eval/${filename}`);
 }
 
 async function checkClaudeCli(): Promise<boolean> {
