@@ -17,7 +17,6 @@ tailwind.config = {
         "surface": "#131313",
         "surface-low": "#1b1b1b",
         "surface-high": "#2a2a2a",
-        "surface-highest": "#353535",
         "border": "#474747",
         "border-dim": "rgba(71,71,71,0.15)",
         "text": "#e2e2e2",
@@ -30,7 +29,7 @@ tailwind.config = {
         "blue": "#79c0ff",
       },
       fontFamily: {
-        "sans": ["Geist", "Inter", "sans-serif"],
+        "sans": ["Geist", "sans-serif"],
         "mono": ["Geist Mono", "monospace"],
       },
     },
@@ -55,6 +54,7 @@ body { background: #000; color: #e2e2e2; font-family: 'Geist', sans-serif; }
     <a href="https://github.com/mboss37/claude-launchpad/releases" class="px-1.5 py-0.5 bg-surface-high text-[0.6rem] font-bold tracking-widest uppercase rounded text-text-dim hover:text-white transition-colors">v0.3.4</a>
   </div>
   <nav class="flex items-center gap-1">
+    <a class="text-white bg-surface-high px-2.5 py-1 rounded text-xs" href="/claude-launchpad/">Home</a>
     <a class="text-text-dim hover:bg-surface-high transition-colors px-2.5 py-1 rounded text-xs" href="/claude-launchpad/docs.html">Docs</a>
     <div class="h-4 w-px bg-border-dim mx-1"></div>
     <a class="text-text-dim hover:text-white transition-colors px-1.5 py-1 rounded" href="https://github.com/mboss37/claude-launchpad" title="GitHub"><svg class="w-4 h-4" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
@@ -62,14 +62,13 @@ body { background: #000; color: #e2e2e2; font-family: 'Geist', sans-serif; }
   </nav>
 </header>
 
-<main class="max-w-5xl mx-auto px-6 py-12 md:px-12">
+<main class="max-w-4xl mx-auto px-6 py-12 md:px-12">
 
   <!-- Hero -->
   <section class="mb-16">
-    <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-white mb-4 leading-tight">Your Claude Code setup<br>is probably <span class="text-red">broken</span>.</h1>
-    <p class="text-text-muted text-xs uppercase tracking-widest mb-4">Everyone's building with Claude Code. Nobody's checking if their setup actually works.</p>
-    <p class="text-text-dim text-sm max-w-2xl leading-relaxed mb-6">
-      Score your config, auto-fix issues, and prove Claude actually follows your rules. One command.
+    <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-white mb-5 leading-tight uppercase">Your Claude Code setup<br>is probably <span class="text-red">broken</span>.</h1>
+    <p class="text-text-dim text-base max-w-2xl leading-relaxed mb-6">
+      Everyone's building with Claude Code. Nobody's checking if their setup actually works. Score your config, auto-fix issues, and prove Claude actually follows your rules. One command.
     </p>
     <div class="flex gap-3 items-center">
       <div class="code-block rounded-xl px-4 py-2.5 font-mono text-sm flex items-center gap-3 group cursor-pointer hover:border-text-muted transition-colors" id="cta">
@@ -261,7 +260,7 @@ body { background: #000; color: #e2e2e2; font-family: 'Geist', sans-serif; }
 </main>
 
 <!-- Footer -->
-<footer class="border-t border-border-dim text-text-muted text-xs w-full flex justify-between items-center px-6 py-4 max-w-5xl mx-auto">
+<footer class="border-t border-border-dim text-text-muted text-xs w-full flex justify-between items-center px-6 py-4 max-w-4xl mx-auto">
   <div>&copy; 2026</div>
   <div class="flex gap-4">
     <a class="hover:text-white transition-colors" href="https://github.com/mboss37/claude-launchpad">GitHub</a>
