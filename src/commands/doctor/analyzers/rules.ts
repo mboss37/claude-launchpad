@@ -1,9 +1,21 @@
-import { readFile } from "node:fs/promises";
-import { basename } from "node:path";
+import { readFile, access } from "node:fs/promises";
+import { basename, join, dirname } from "node:path";
 import type { ClaudeConfig, AnalyzerResult, DiagnosticIssue } from "../../../types/index.js";
 
 export async function analyzeRules(config: ClaudeConfig): Promise<AnalyzerResult> {
   const issues: DiagnosticIssue[] = [];
+
+  // Check for .claudeignore
+  const projectRoot = config.claudeMdPath ? dirname(config.claudeMdPath) : process.cwd();
+  const hasClaudeignore = await fileExists(join(projectRoot, ".claudeignore"));
+  if (!hasClaudeignore) {
+    issues.push({
+      analyzer: "Rules",
+      severity: "low",
+      message: "No .claudeignore found — Claude may read noise files (node_modules, dist, lockfiles)",
+      fix: "Run `claude-launchpad init` or `doctor --fix` to generate one",
+    });
+  }
 
   if (config.rules.length === 0) {
     issues.push({
@@ -45,4 +57,13 @@ export async function analyzeRules(config: ClaudeConfig): Promise<AnalyzerResult
 
   const score = Math.max(0, 100 - issues.length * 10);
   return { name: "Rules", issues, score };
+}
+
+async function fileExists(path: string): Promise<boolean> {
+  try {
+    await access(path);
+    return true;
+  } catch {
+    return false;
+  }
 }

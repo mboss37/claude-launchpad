@@ -2,6 +2,7 @@ import { readFile, writeFile, mkdir, access } from "node:fs/promises";
 import { join } from "node:path";
 import { log } from "../../lib/output.js";
 import { detectProject } from "../../lib/detect.js";
+import { generateClaudeignore } from "../init/generators/claudeignore.js";
 import type { DiagnosticIssue, DetectedProject } from "../../types/index.js";
 
 interface FixResult {
@@ -87,6 +88,11 @@ async function tryFix(
   // ─── Quality: Missing Session Start ───
   if (issue.analyzer === "Quality" && issue.message.includes("Session Start")) {
     return addClaudeMdSection(root, "## Session Start", "- ALWAYS read @TASKS.md first — it tracks progress across sessions\n- Update TASKS.md as you complete work");
+  }
+
+  // ─── Rules: No .claudeignore ───
+  if (issue.analyzer === "Rules" && issue.message.includes("No .claudeignore")) {
+    return createClaudeignore(root, detected);
   }
 
   // ─── Rules: No rules files ───
@@ -222,6 +228,21 @@ async function addClaudeMdSection(root: string, heading: string, content: string
 
   await writeFile(claudeMdPath, updated);
   log.success(`Added "${heading}" section to CLAUDE.md`);
+  return true;
+}
+
+async function createClaudeignore(root: string, detected: DetectedProject): Promise<boolean> {
+  const ignorePath = join(root, ".claudeignore");
+  try {
+    await access(ignorePath);
+    return false; // Already exists
+  } catch {
+    // Create it
+  }
+
+  const content = generateClaudeignore(detected);
+  await writeFile(ignorePath, content);
+  log.success("Generated .claudeignore with language-specific ignore patterns");
   return true;
 }
 
