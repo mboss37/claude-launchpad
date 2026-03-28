@@ -1,289 +1,239 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="dark" lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Documentation — Claude Launchpad</title>
-  <style>
-    :root { --bg: #09090b; --surface: #18181b; --surface-2: #27272a; --border: #3f3f46; --text: #fafafa; --text-dim: #a1a1aa; --text-muted: #52525b; --accent: #3b82f6; --green: #4ade80; --yellow: #facc15; --red: #f87171; --cyan: #22d3ee; --font: 'Inter', -apple-system, sans-serif; --mono: 'JetBrains Mono', 'Fira Code', monospace; }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.7; }
-    .container { max-width: 760px; margin: 0 auto; padding: 0 24px; }
-    nav { padding: 16px 0; border-bottom: 1px solid rgba(63,63,70,0.5); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 100; background: rgba(9,9,11,0.85); }
-    nav .container { display: flex; justify-content: space-between; align-items: center; }
-    .logo { font-weight: 700; font-size: 15px; color: var(--text); text-decoration: none; }
-    .nav-links { display: flex; gap: 20px; }
-    .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 13px; }
-    .nav-links a:hover { color: var(--text); }
-    .nav-links a.active { color: var(--text); }
-    .hero { padding: 80px 0 40px; }
-    .hero h1 { font-size: 36px; font-weight: 700; letter-spacing: -0.03em; margin-bottom: 12px; }
-    .hero p { color: var(--text-dim); font-size: 16px; }
-    section { padding: 48px 0; border-top: 1px solid rgba(63,63,70,0.3); }
-    h2 { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 8px; font-family: var(--mono); }
-    h2 .tag { font-size: 11px; font-weight: 400; padding: 3px 8px; border-radius: 4px; margin-left: 8px; vertical-align: middle; }
-    .tag-free { color: var(--green); background: rgba(74,222,128,0.1); }
-    .tag-cost { color: var(--yellow); background: rgba(250,204,21,0.1); }
-    .subtitle { color: var(--text-dim); font-size: 15px; margin-bottom: 24px; }
-    h3 { font-size: 15px; font-weight: 600; margin-top: 28px; margin-bottom: 8px; }
-    p, li { font-size: 14px; color: var(--text-dim); margin-bottom: 8px; }
-    ul { padding-left: 20px; margin-bottom: 16px; }
-    code { font-family: var(--mono); font-size: 13px; background: var(--surface); padding: 2px 6px; border-radius: 4px; color: var(--green); }
-    pre { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin: 16px 0; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.8; color: var(--text-dim); }
-    pre strong { color: var(--text); font-weight: 700; }
-    pre .comment { color: var(--text-muted); }
-    .flag-table { width: 100%; border-collapse: collapse; margin: 16px 0; }
-    .flag-table th, .flag-table td { text-align: left; padding: 10px 14px; font-size: 13px; border-bottom: 1px solid rgba(63,63,70,0.3); }
-    .flag-table th { color: var(--text); font-weight: 600; }
-    .flag-table td { color: var(--text-dim); }
-    .flag-table code { background: none; padding: 0; }
-    footer { padding: 40px 0; border-top: 1px solid rgba(63,63,70,0.5); text-align: center; }
-    footer p { font-size: 12px; color: var(--text-muted); }
-    footer a { color: var(--text-dim); text-decoration: none; }
-    @media (max-width: 768px) { .hero h1 { font-size: 28px; } }
-  </style>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Documentation — Claude Launchpad</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&family=Geist:wght@100..900&display=swap" rel="stylesheet"/>
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "surface": "#131313",
+        "surface-low": "#1b1b1b",
+        "surface-high": "#2a2a2a",
+        "border": "#474747",
+        "border-dim": "rgba(71,71,71,0.15)",
+        "text": "#e2e2e2",
+        "text-dim": "#a1a1aa",
+        "text-muted": "#6b6b6b",
+        "green": "#7EE787",
+        "yellow": "#facc15",
+        "red": "#f87171",
+        "blue": "#79c0ff",
+      },
+      fontFamily: { "sans": ["Geist", "sans-serif"], "mono": ["Geist Mono", "monospace"] },
+    },
+  },
+}
+</script>
+<style>
+body { background: #000; color: #e2e2e2; font-family: 'Geist', sans-serif; }
+.code-block { background: #0e0e0e; border: 1px solid rgba(71,71,71,0.15); }
+</style>
 </head>
-<body>
-  <nav>
-    <div class="container">
-      <a class="logo" href="/claude-launchpad/">Claude Launchpad</a>
-      <div class="nav-links">
-        <a href="/">Home</a>
-        <a href="/claude-launchpad/docs.html" class="active">Docs</a>
-        <a href="https://github.com/mboss37/claude-launchpad">GitHub</a>
-        <a href="https://www.npmjs.com/package/claude-launchpad">npm</a>
-      </div>
-    </div>
-  </nav>
+<body class="min-h-screen">
 
-  <div class="container">
-    <div class="hero">
-      <h1>Documentation</h1>
-      <p>Complete reference for every command, flag, and use case.</p>
-    </div>
+<!-- Nav -->
+<header class="bg-surface text-white text-sm font-semibold tracking-tight sticky top-0 flex items-center justify-between w-full px-6 h-12 z-50 border-b border-border-dim">
+  <div class="flex items-center gap-3">
+    <span class="material-symbols-outlined">rocket_launch</span>
+    <a href="/claude-launchpad/" class="text-base font-bold tracking-tighter">Claude Launchpad</a>
+  </div>
+  <div class="flex items-center gap-1">
+    <a class="text-white bg-surface-high px-2.5 py-1 rounded text-xs" href="/claude-launchpad/docs.html">Docs</a>
+    <a class="text-text-dim hover:bg-surface-high transition-colors px-2.5 py-1 rounded text-xs" href="https://github.com/mboss37/claude-launchpad">GitHub</a>
+    <a class="text-text-dim hover:bg-surface-high transition-colors px-2.5 py-1 rounded text-xs" href="https://www.npmjs.com/package/claude-launchpad">npm</a>
+  </div>
+</header>
 
-    <!-- install -->
-    <section>
-      <h2>Install</h2>
-      <pre><span class="comment"># Install globally</span>
-<strong>npm i -g claude-launchpad</strong>
+<div class="max-w-4xl mx-auto px-6 py-10 md:px-12">
 
-<span class="comment"># Or run directly without installing (downloads temporarily)</span>
-<strong>npx claude-launchpad</strong>
-
-<span class="comment"># Or install as a Claude Code plugin (pending marketplace review)</span>
-<strong>claude plugin install claude-launchpad</strong></pre>
-    </section>
-
-    <!-- init -->
-    <section id="init">
-      <h2>init <span class="tag tag-free">Free</span></h2>
-      <p class="subtitle">Auto-detect your project and generate Claude Code configuration.</p>
-
-      <h3>Usage</h3>
-      <pre><span class="comment"># Interactive mode</span>
-<strong>claude-launchpad init</strong>
-
-<span class="comment"># Accept all defaults (no prompts)</span>
-<strong>claude-launchpad init --yes</strong>
-
-<span class="comment"># Set project name explicitly</span>
-<strong>claude-launchpad init --name "my-project"</strong></pre>
-
-      <h3>Flags</h3>
-      <table class="flag-table">
-        <tr><th>Flag</th><th>Description</th></tr>
-        <tr><td><code>-n, --name</code></td><td>Project name (auto-detected from directory name)</td></tr>
-        <tr><td><code>-y, --yes</code></td><td>Accept all defaults without prompting</td></tr>
-      </table>
-
-      <h3>What it generates</h3>
-      <ul>
-        <li><code>CLAUDE.md</code> with detected stack, commands, and essential sections</li>
-        <li><code>TASKS.md</code> for session continuity</li>
-        <li><code>.claude/settings.json</code> with auto-format hooks and .env protection</li>
-        <li><code>.claudeignore</code> with language-specific ignore patterns</li>
-      </ul>
-
-      <h3>When to use</h3>
-      <ul>
-        <li>Starting a new project with Claude Code</li>
-        <li>Adding Claude Code to an existing project that has no config</li>
-        <li>Regenerating config after major stack changes</li>
-      </ul>
-    </section>
-
-    <!-- doctor -->
-    <section id="doctor">
-      <h2>doctor <span class="tag tag-free">Free</span></h2>
-      <p class="subtitle">Scan your Claude Code configuration and get a score out of 100.</p>
-
-      <h3>Usage</h3>
-      <pre><span class="comment"># Run doctor (also the default command)</span>
-<strong>claude-launchpad doctor</strong>
-<strong>claude-launchpad</strong>
-
-<span class="comment"># Auto-fix all deterministic issues</span>
-<strong>claude-launchpad doctor --fix</strong>
-
-<span class="comment"># Watch mode — live score on every config change</span>
-<strong>claude-launchpad doctor --watch</strong>
-
-<span class="comment"># CI mode — fail if score drops below threshold</span>
-<strong>claude-launchpad doctor --min-score 80</strong>
-
-<span class="comment"># JSON output for scripts and CI</span>
-<strong>claude-launchpad doctor --json</strong>
-
-<span class="comment"># Combine flags</span>
-<strong>claude-launchpad doctor --min-score 80 --json</strong></pre>
-
-      <h3>Flags</h3>
-      <table class="flag-table">
-        <tr><th>Flag</th><th>Description</th></tr>
-        <tr><td><code>--fix</code></td><td>Auto-apply deterministic fixes (add hooks, rules, CLAUDE.md sections)</td></tr>
-        <tr><td><code>--watch</code></td><td>Re-run on every config file change, live score in terminal</td></tr>
-        <tr><td><code>--min-score &lt;n&gt;</code></td><td>Exit code 1 if score is below threshold (for CI pipelines)</td></tr>
-        <tr><td><code>--json</code></td><td>Output full results as JSON</td></tr>
-        <tr><td><code>-p, --path &lt;path&gt;</code></td><td>Project root path (defaults to current directory)</td></tr>
-      </table>
-
-      <h3>What --fix applies</h3>
-      <ul>
-        <li>.env file protection hook (blocks reading and writing .env files)</li>
-        <li>Auto-format hook (prettier, gofmt, rustfmt, etc. based on your stack)</li>
-        <li>Force-push protection hook</li>
-        <li>Missing CLAUDE.md sections (Stack, Commands, Architecture, Off-Limits, Session Start)</li>
-        <li>Starter rules file (.claude/rules/conventions.md)</li>
-      </ul>
-
-      <h3>When to use</h3>
-      <ul>
-        <li>After setting up a new project — check if the config is complete</li>
-        <li>After changing CLAUDE.md or hooks — verify nothing broke</li>
-        <li>In CI — block PRs that degrade config quality</li>
-        <li>With --watch — keep a terminal open while editing configs</li>
-      </ul>
-    </section>
-
-    <!-- enhance -->
-    <section id="enhance">
-      <h2>enhance <span class="tag tag-cost">Uses Claude</span></h2>
-      <p class="subtitle">Let Claude read your codebase and complete CLAUDE.md with real content.</p>
-
-      <h3>Usage</h3>
-      <pre><span class="comment"># Launch Claude interactively to enhance CLAUDE.md</span>
-<strong>claude-launchpad enhance</strong></pre>
-
-      <h3>What it does</h3>
-      <p>Opens an interactive Claude Code session with a pre-loaded prompt. Claude reads your actual codebase and fills in:</p>
-      <ul>
-        <li><strong>Architecture</strong> — directory structure, data flow, key modules</li>
-        <li><strong>Conventions</strong> — naming patterns, imports, state management, API patterns</li>
-        <li><strong>Off-Limits</strong> — protected files, anti-patterns, things that should never change</li>
-        <li><strong>Key Decisions</strong> — architectural decisions visible in the code</li>
-      </ul>
-
-      <h3>When to use</h3>
-      <ul>
-        <li>After <code>init</code> generates a skeleton CLAUDE.md with TODOs</li>
-        <li>When doctor reports "Missing Architecture section"</li>
-        <li>When your CLAUDE.md has generic advice instead of project-specific content</li>
-        <li>After major refactors that change the codebase structure</li>
-      </ul>
-    </section>
-
-    <!-- eval -->
-    <section id="eval">
-      <h2>eval <span class="tag tag-cost">Uses Claude</span></h2>
-      <p class="subtitle">Test if your Claude Code config actually drives correct behavior.</p>
-
-      <h3>Usage</h3>
-      <pre><span class="comment"># Run all 11 scenarios</span>
-<strong>claude-launchpad eval</strong>
-
-<span class="comment"># Run only security scenarios (4 — faster and cheaper)</span>
-<strong>claude-launchpad eval --suite security</strong>
-
-<span class="comment"># Run only conventions or workflow</span>
-<strong>claude-launchpad eval --suite conventions</strong>
-<strong>claude-launchpad eval --suite workflow</strong>
-
-<span class="comment"># Use a cheaper/faster model</span>
-<strong>claude-launchpad eval --suite security --model haiku</strong>
-
-<span class="comment"># Single run per scenario (fastest)</span>
-<strong>claude-launchpad eval --suite security --runs 1</strong>
-
-<span class="comment"># Keep sandbox directories for inspection</span>
-<strong>claude-launchpad eval --runs 1 --debug</strong>
-
-<span class="comment"># Custom scenarios from your own directory</span>
-<strong>claude-launchpad eval --scenarios ./my-scenarios/</strong>
-
-<span class="comment"># JSON output</span>
-<strong>claude-launchpad eval --json</strong>
-
-<span class="comment"># Longer timeout for complex scenarios</span>
-<strong>claude-launchpad eval --timeout 180000</strong></pre>
-
-      <h3>Flags</h3>
-      <table class="flag-table">
-        <tr><th>Flag</th><th>Description</th></tr>
-        <tr><td><code>-s, --suite &lt;name&gt;</code></td><td>Eval suite: security (4), conventions (5), workflow (2), or omit for all 11</td></tr>
-        <tr><td><code>--runs &lt;n&gt;</code></td><td>Runs per scenario, median score used (default: 3)</td></tr>
-        <tr><td><code>--timeout &lt;ms&gt;</code></td><td>Timeout per run in milliseconds (default: 120000)</td></tr>
-        <tr><td><code>--scenarios &lt;path&gt;</code></td><td>Custom scenarios directory</td></tr>
-        <tr><td><code>--debug</code></td><td>Preserve sandbox directories for inspection</td></tr>
-        <tr><td><code>--model &lt;model&gt;</code></td><td>Model to use (e.g., sonnet, haiku, opus)</td></tr>
-        <tr><td><code>--json</code></td><td>JSON output</td></tr>
-        <tr><td><code>-p, --path &lt;path&gt;</code></td><td>Project root path</td></tr>
-      </table>
-
-      <h3>Built-in suites (11 scenarios)</h3>
-      <table class="flag-table">
-        <tr><th>Suite</th><th>Scenario</th><th>Tests</th></tr>
-        <tr><td rowspan="4"><code>security</code></td><td>sql-injection</td><td>Uses parameterized queries, not string concatenation</td></tr>
-        <tr><td>env-protection</td><td>Creates .env.example, never writes .env</td></tr>
-        <tr><td>secret-exposure</td><td>Uses environment variables, not hardcoded keys</td></tr>
-        <tr><td>input-validation</td><td>Validates user input at API boundaries</td></tr>
-        <tr><td rowspan="5"><code>conventions</code></td><td>error-handling</td><td>Try-catch with no empty catch blocks</td></tr>
-        <tr><td>immutability</td><td>Returns new objects, never mutates arguments</td></tr>
-        <tr><td>file-size</td><td>All files stay under 800 lines</td></tr>
-        <tr><td>no-hardcoded-values</td><td>Uses named constants, not magic numbers</td></tr>
-        <tr><td>naming-conventions</td><td>camelCase functions, PascalCase types, UPPER_SNAKE constants</td></tr>
-        <tr><td rowspan="2"><code>workflow</code></td><td>git-conventions</td><td>Follows conventional commit format</td></tr>
-        <tr><td>session-continuity</td><td>Reads TASKS.md and continues from last session</td></tr>
-      </table>
-
-      <h3>When to use</h3>
-      <ul>
-        <li>After changing your CLAUDE.md rules — did the change actually help?</li>
-        <li>Comparing two configs — A/B test which one produces better code</li>
-        <li>Before shipping a config to the team — prove it works</li>
-        <li>With <code>--debug</code> — inspect exactly what Claude wrote in the sandbox</li>
-      </ul>
-    </section>
-
-    <!-- plugin -->
-    <section id="plugin">
-      <h2>Plugin commands</h2>
-      <p class="subtitle">When installed as a Claude Code plugin, use these inside Claude:</p>
-      <pre><strong>/launchpad:init</strong>      <span class="comment"># same as claude-launchpad init</span>
-<strong>/launchpad:doctor</strong>    <span class="comment"># same as claude-launchpad doctor</span>
-<strong>/launchpad:enhance</strong>   <span class="comment"># Claude reads your codebase and completes CLAUDE.md</span>
-<strong>/launchpad:eval</strong>      <span class="comment"># same as claude-launchpad eval</span></pre>
-      <p>The plugin also adds a hook that nudges you to re-check your score when you edit config files.</p>
-    </section>
-
+  <!-- Header -->
+  <div class="mb-10">
+    <h1 class="text-2xl font-bold tracking-tight text-white mb-2">Documentation</h1>
+    <p class="text-text-dim text-sm">Every command, flag, and scenario.</p>
   </div>
 
-  <footer>
-    <div class="container">
-      <p><a href="https://github.com/mboss37/claude-launchpad">GitHub</a> &middot; <a href="https://www.npmjs.com/package/claude-launchpad">npm</a> &middot; <a href="/claude-launchpad/privacy.html">Privacy</a> &middot; MIT License</p>
+  <!-- Install -->
+  <section class="mb-10" id="install">
+    <h2 class="text-base font-semibold text-white mb-3 border-l-2 border-white pl-3">Install</h2>
+    <div class="code-block rounded-xl p-4 font-mono text-xs leading-relaxed">
+      <div class="text-text-muted mb-1"># Install globally</div>
+      <div><span class="text-green">npm i -g claude-launchpad</span></div>
+      <div class="text-text-muted mt-3 mb-1"># Or run directly without installing</div>
+      <div><span class="text-green">npx claude-launchpad</span></div>
+      <div class="text-text-muted mt-3 mb-1"># Or install as a Claude Code plugin (pending marketplace review)</div>
+      <div><span class="text-green">claude plugin install claude-launchpad</span></div>
     </div>
-  </footer>
+  </section>
+
+  <!-- Init -->
+  <section class="mb-10 scroll-mt-16" id="init">
+    <h2 class="text-base font-semibold text-white mb-3 border-l-2 border-white pl-3">init <span class="text-[0.625rem] text-green bg-green/10 px-2 py-0.5 rounded font-bold uppercase tracking-wider ml-2">Free</span></h2>
+    <p class="text-xs text-text-dim mb-3">Auto-detect your project and generate Claude Code config from scratch.</p>
+    <div class="code-block rounded-xl p-4 font-mono text-xs leading-relaxed mb-4">
+      <div class="text-text-muted"># Interactive mode</div>
+      <div><span class="text-green">claude-launchpad</span> init</div>
+      <div class="text-text-muted mt-2"># Accept all defaults</div>
+      <div><span class="text-green">claude-launchpad</span> init --yes</div>
+      <div class="text-text-muted mt-2"># Set project name</div>
+      <div><span class="text-green">claude-launchpad</span> init --name "my-project"</div>
+    </div>
+    <div class="bg-surface-low rounded-xl border border-border-dim overflow-hidden">
+      <table class="w-full text-xs">
+        <thead><tr class="text-left text-text-muted uppercase text-[0.625rem] tracking-widest"><th class="p-3 border-b border-border-dim">Flag</th><th class="p-3 border-b border-border-dim">Description</th></tr></thead>
+        <tbody>
+          <tr class="hover:bg-white/5"><td class="p-3 border-b border-border-dim font-mono text-green">-n, --name</td><td class="p-3 border-b border-border-dim text-text-dim">Project name (auto-detected from directory)</td></tr>
+          <tr class="hover:bg-white/5"><td class="p-3 font-mono text-green">-y, --yes</td><td class="p-3 text-text-dim">Accept all defaults without prompting</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3 class="text-sm font-medium text-white mt-4 mb-2">What it generates</h3>
+    <ul class="text-xs text-text-dim space-y-1 list-disc list-inside">
+      <li><code class="text-green">CLAUDE.md</code> — stack, commands, conventions, guardrails</li>
+      <li><code class="text-green">TASKS.md</code> — sprint tracking and session continuity</li>
+      <li><code class="text-green">.claude/settings.json</code> — auto-format hooks and .env protection</li>
+      <li><code class="text-green">.claudeignore</code> — language-specific ignore patterns</li>
+    </ul>
+  </section>
+
+  <!-- Doctor -->
+  <section class="mb-10 scroll-mt-16" id="doctor">
+    <h2 class="text-base font-semibold text-white mb-3 border-l-2 border-white pl-3">doctor <span class="text-[0.625rem] text-green bg-green/10 px-2 py-0.5 rounded font-bold uppercase tracking-wider ml-2">Free</span></h2>
+    <p class="text-xs text-text-dim mb-3">Scan your config, score it 0-100, list issues.</p>
+    <div class="code-block rounded-xl p-4 font-mono text-xs leading-relaxed mb-4">
+      <div class="text-text-muted"># Run doctor (also the default command)</div>
+      <div><span class="text-green">claude-launchpad</span></div>
+      <div class="text-text-muted mt-2"># Auto-fix all issues</div>
+      <div><span class="text-green">claude-launchpad</span> doctor --fix</div>
+      <div class="text-text-muted mt-2"># Live score on config changes</div>
+      <div><span class="text-green">claude-launchpad</span> doctor --watch</div>
+      <div class="text-text-muted mt-2"># CI: fail if score below threshold</div>
+      <div><span class="text-green">claude-launchpad</span> doctor --min-score 80</div>
+      <div class="text-text-muted mt-2"># JSON output for scripts</div>
+      <div><span class="text-green">claude-launchpad</span> doctor --json</div>
+    </div>
+    <div class="bg-surface-low rounded-xl border border-border-dim overflow-hidden mb-4">
+      <table class="w-full text-xs">
+        <thead><tr class="text-left text-text-muted uppercase text-[0.625rem] tracking-widest"><th class="p-3 border-b border-border-dim">Flag</th><th class="p-3 border-b border-border-dim">Description</th></tr></thead>
+        <tbody>
+          <tr class="hover:bg-white/5"><td class="p-3 border-b border-border-dim font-mono text-green">--fix</td><td class="p-3 border-b border-border-dim text-text-dim">Auto-fix: hooks, CLAUDE.md sections, rules, .claudeignore</td></tr>
+          <tr class="hover:bg-white/5"><td class="p-3 border-b border-border-dim font-mono text-green">--watch</td><td class="p-3 border-b border-border-dim text-text-dim">Re-runs every second when config files change</td></tr>
+          <tr class="hover:bg-white/5"><td class="p-3 border-b border-border-dim font-mono text-green">--min-score &lt;n&gt;</td><td class="p-3 border-b border-border-dim text-text-dim">Exit code 1 if below threshold (for CI)</td></tr>
+          <tr class="hover:bg-white/5"><td class="p-3 border-b border-border-dim font-mono text-green">--json</td><td class="p-3 border-b border-border-dim text-text-dim">Pure JSON, no banner</td></tr>
+          <tr class="hover:bg-white/5"><td class="p-3 font-mono text-green">-p, --path &lt;dir&gt;</td><td class="p-3 text-text-dim">Run on a different directory</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3 class="text-sm font-medium text-white mb-2">What --fix applies</h3>
+    <ul class="text-xs text-text-dim space-y-1 list-disc list-inside">
+      <li>.env file protection hook (blocks reads and writes)</li>
+      <li>Auto-format hook (prettier, gofmt, ruff, etc.)</li>
+      <li>Force-push protection hook</li>
+      <li>Missing CLAUDE.md sections (Stack, Commands, Architecture, Off-Limits, Session Start)</li>
+      <li>Starter rules file (.claude/rules/conventions.md)</li>
+      <li>.claudeignore with language-specific patterns</li>
+    </ul>
+  </section>
+
+  <!-- Enhance -->
+  <section class="mb-10 scroll-mt-16" id="enhance">
+    <h2 class="text-base font-semibold text-white mb-3 border-l-2 border-white pl-3">enhance <span class="text-[0.625rem] text-yellow bg-yellow/10 px-2 py-0.5 rounded font-bold uppercase tracking-wider ml-2">Uses Claude</span></h2>
+    <p class="text-xs text-text-dim mb-3">Claude reads your codebase and completes CLAUDE.md with real content.</p>
+    <div class="code-block rounded-xl p-4 font-mono text-xs leading-relaxed mb-4">
+      <div><span class="text-green">claude-launchpad</span> enhance</div>
+    </div>
+    <h3 class="text-sm font-medium text-white mb-2">What it does</h3>
+    <ul class="text-xs text-text-dim space-y-1 list-disc list-inside">
+      <li>Opens an interactive Claude session with a pre-loaded task</li>
+      <li>Fills in Architecture, Conventions, Off-Limits, Key Decisions</li>
+      <li>Stays under 120-instruction budget — overflows to .claude/rules/</li>
+      <li>Suggests project-specific hooks and MCP servers</li>
+      <li>You see Claude working in real-time</li>
+    </ul>
+  </section>
+
+  <!-- Eval -->
+  <section class="mb-10 scroll-mt-16" id="eval">
+    <h2 class="text-base font-semibold text-white mb-3 border-l-2 border-white pl-3">eval <span class="text-[0.625rem] text-yellow bg-yellow/10 px-2 py-0.5 rounded font-bold uppercase tracking-wider ml-2">Uses Claude</span></h2>
+    <p class="text-xs text-text-dim mb-3">Test if Claude actually follows your rules.</p>
+    <div class="code-block rounded-xl p-4 font-mono text-xs leading-relaxed mb-4">
+      <div class="text-text-muted"># Run all 11 scenarios</div>
+      <div><span class="text-green">claude-launchpad</span> eval</div>
+      <div class="text-text-muted mt-2"># Run one suite (faster)</div>
+      <div><span class="text-green">claude-launchpad</span> eval --suite security</div>
+      <div><span class="text-green">claude-launchpad</span> eval --suite conventions</div>
+      <div><span class="text-green">claude-launchpad</span> eval --suite workflow</div>
+      <div class="text-text-muted mt-2"># Cheaper model, single run</div>
+      <div><span class="text-green">claude-launchpad</span> eval --suite security --model haiku --runs 1</div>
+      <div class="text-text-muted mt-2"># Inspect what Claude wrote</div>
+      <div><span class="text-green">claude-launchpad</span> eval --runs 1 --debug</div>
+    </div>
+    <div class="bg-surface-low rounded-xl border border-border-dim overflow-hidden mb-4">
+      <table class="w-full text-xs">
+        <thead><tr class="text-left text-text-muted uppercase text-[0.625rem] tracking-widest"><th class="p-3 border-b border-border-dim">Flag</th><th class="p-3 border-b border-border-dim">Description</th></tr></thead>
+        <tbody>
+          <tr class="hover:bg-white/5"><td class="p-3 border-b border-border-dim font-mono text-green">--suite &lt;name&gt;</td><td class="p-3 border-b border-border-dim text-text-dim">security (4), conventions (5), or workflow (2)</td></tr>
+          <tr class="hover:bg-white/5"><td class="p-3 border-b border-border-dim font-mono text-green">--model &lt;model&gt;</td><td class="p-3 border-b border-border-dim text-text-dim">haiku, sonnet, or opus</td></tr>
+          <tr class="hover:bg-white/5"><td class="p-3 border-b border-border-dim font-mono text-green">--runs &lt;n&gt;</td><td class="p-3 border-b border-border-dim text-text-dim">Runs per scenario (default 3, median score)</td></tr>
+          <tr class="hover:bg-white/5"><td class="p-3 border-b border-border-dim font-mono text-green">--debug</td><td class="p-3 border-b border-border-dim text-text-dim">Keep sandbox directories for inspection</td></tr>
+          <tr class="hover:bg-white/5"><td class="p-3 border-b border-border-dim font-mono text-green">--json</td><td class="p-3 border-b border-border-dim text-text-dim">JSON output</td></tr>
+          <tr class="hover:bg-white/5"><td class="p-3 font-mono text-green">--timeout &lt;ms&gt;</td><td class="p-3 text-text-dim">Timeout per run (default 120000)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="text-sm font-medium text-white mb-2">Built-in suites (11 scenarios)</h3>
+    <div class="bg-surface-low rounded-xl border border-border-dim overflow-hidden mb-4">
+      <table class="w-full text-xs">
+        <thead><tr class="text-left text-text-muted uppercase text-[0.625rem] tracking-widest"><th class="p-3 border-b border-border-dim">Suite</th><th class="p-3 border-b border-border-dim">Scenario</th><th class="p-3 border-b border-border-dim">Tests</th></tr></thead>
+        <tbody>
+          <tr class="hover:bg-white/5"><td class="p-3 border-b border-border-dim font-mono text-green" rowspan="4">security</td><td class="p-3 border-b border-border-dim">sql-injection</td><td class="p-3 border-b border-border-dim text-text-dim">Parameterized queries, not string concatenation</td></tr>
+          <tr class="hover:bg-white/5"><td class="p-3 border-b border-border-dim">env-protection</td><td class="p-3 border-b border-border-dim text-text-dim">Creates .env.example, never writes .env</td></tr>
+          <tr class="hover:bg-white/5"><td class="p-3 border-b border-border-dim">secret-exposure</td><td class="p-3 border-b border-border-dim text-text-dim">Environment variables, not hardcoded keys</td></tr>
+          <tr class="hover:bg-white/5"><td class="p-3 border-b border-border-dim">input-validation</td><td class="p-3 border-b border-border-dim text-text-dim">Validates user input at API boundaries</td></tr>
+          <tr class="hover:bg-white/5"><td class="p-3 border-b border-border-dim font-mono text-green" rowspan="5">conventions</td><td class="p-3 border-b border-border-dim">error-handling</td><td class="p-3 border-b border-border-dim text-text-dim">Try-catch with no empty catch blocks</td></tr>
+          <tr class="hover:bg-white/5"><td class="p-3 border-b border-border-dim">immutability</td><td class="p-3 border-b border-border-dim text-text-dim">New objects, never mutates arguments</td></tr>
+          <tr class="hover:bg-white/5"><td class="p-3 border-b border-border-dim">file-size</td><td class="p-3 border-b border-border-dim text-text-dim">All files under 800 lines</td></tr>
+          <tr class="hover:bg-white/5"><td class="p-3 border-b border-border-dim">no-hardcoded-values</td><td class="p-3 border-b border-border-dim text-text-dim">Named constants, not magic numbers</td></tr>
+          <tr class="hover:bg-white/5"><td class="p-3 border-b border-border-dim">naming-conventions</td><td class="p-3 border-b border-border-dim text-text-dim">camelCase, PascalCase, UPPER_SNAKE</td></tr>
+          <tr class="hover:bg-white/5"><td class="p-3 border-b border-border-dim font-mono text-green" rowspan="2">workflow</td><td class="p-3 border-b border-border-dim">git-conventions</td><td class="p-3 border-b border-border-dim text-text-dim">Conventional commit format</td></tr>
+          <tr class="hover:bg-white/5"><td class="p-3">session-continuity</td><td class="p-3 text-text-dim">Reads TASKS.md, continues from last session</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="text-xs text-text-dim">Results are saved to <code class="text-green">.claude/eval/</code> as structured markdown. Feed them back to Claude to fix failures.</p>
+  </section>
+
+  <!-- Plugin -->
+  <section class="mb-10 scroll-mt-16" id="plugin">
+    <h2 class="text-base font-semibold text-white mb-3 border-l-2 border-white pl-3">Plugin commands</h2>
+    <p class="text-xs text-text-dim mb-3">When installed as a Claude Code plugin (pending marketplace review):</p>
+    <div class="code-block rounded-xl p-4 font-mono text-xs leading-relaxed">
+      <div><span class="text-green">/launchpad:init</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-text-muted">Generate config for your project</span></div>
+      <div><span class="text-green">/launchpad:doctor</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-text-muted">Score your config</span></div>
+      <div><span class="text-green">/launchpad:enhance</span>&nbsp;&nbsp;&nbsp;<span class="text-text-muted">Claude reads code, completes CLAUDE.md</span></div>
+      <div><span class="text-green">/launchpad:eval</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-text-muted">Test if your rules work</span></div>
+    </div>
+    <p class="text-xs text-text-muted mt-2">The plugin also nudges you to re-check your score when you edit config files.</p>
+  </section>
+
+</div>
+
+<!-- Footer -->
+<footer class="border-t border-border-dim text-text-muted text-xs w-full flex justify-between items-center px-6 py-4 max-w-4xl mx-auto">
+  <div>&copy; 2026</div>
+  <div class="flex gap-4">
+    <a class="hover:text-white transition-colors" href="https://github.com/mboss37/claude-launchpad">GitHub</a>
+    <a class="hover:text-white transition-colors" href="https://www.npmjs.com/package/claude-launchpad">npm</a>
+    <a class="hover:text-white transition-colors" href="/claude-launchpad/privacy.html">Privacy</a>
+  </div>
+</footer>
+
 </body>
 </html>
