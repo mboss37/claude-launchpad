@@ -38,6 +38,14 @@ async function tryFix(
   root: string,
   detected: DetectedProject,
 ): Promise<boolean> {
+  // ─── Hooks: No hooks at all (create settings.json from scratch) ───
+  if (issue.analyzer === "Hooks" && issue.message.includes("No hooks configured")) {
+    const a = await addEnvProtectionHook(root);
+    const b = await addAutoFormatHook(root, detected);
+    const c = await addForcePushProtection(root);
+    return a || b || c;
+  }
+
   // ─── Hooks: No .env protection ───
   if (issue.analyzer === "Hooks" && issue.message.includes(".env file protection")) {
     return addEnvProtectionHook(root);
@@ -50,7 +58,7 @@ async function tryFix(
 
   // ─── Hooks: No PreToolUse ───
   if (issue.analyzer === "Hooks" && issue.message.includes("No PreToolUse")) {
-    return addEnvProtectionHook(root); // PreToolUse + .env protection in one
+    return addEnvProtectionHook(root);
   }
 
   // ─── Quality: Missing Architecture section ───
