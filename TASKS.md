@@ -7,30 +7,32 @@
 - **Sprint 0**: Bash scaffolder — killed and replaced
 - **Sprint 1**: TS CLI — init, doctor (7 analyzers), enhance, eval engine, plugin, landing page, 34 tests
 - **Sprint 2**: Eval real — 7 scenarios running, 89% score, sandbox isolation, debug mode
-- **Sprint 3**: Actionable — doctor --fix (42%→86%), .claudeignore gen, settings merge, story page, npm verified
+- **Sprint 3**: Actionable — doctor --fix (42%→86%), .claudeignore gen, settings merge, story page
+- **Sprint 4**: Ship — npm published (v0.1.0), stress tested 8 stacks (all pass), landing page carousel, self-scores 89%
 
-## Current Sprint: Sprint 4 — Ship & Community
+## Current Sprint: Sprint 5 — Harden & Grow
 
 ### In Progress
 
 ### To Do
-- [ ] npm publish to registry
-- [ ] Submit plugin to Claude Code marketplace
+- [ ] Publish v0.1.1 (homepage URL, author credit on npm)
+- [ ] Refactor eval runner to use Agent SDK instead of shelling out to `claude -p`
 - [ ] Fix file-size eval scenario (custom check type unimplemented)
 - [ ] Add tests for remaining analyzers (settings, hooks, permissions, rules)
 - [ ] GitHub Action template for CI integration
-- [ ] Community scenario format docs
+- [ ] Submit plugin to Claude Code marketplace
+- [ ] doctor --fix should create settings.json from scratch when none exists
 
 ### Done
 
 ## Upcoming
-- **Sprint 5**: doctor --watch, config diff in PRs, smart init (Claude-driven hooks)
+- **Sprint 6**: doctor --watch, config diff in PRs, community scenario packs
 
 ## Session Log
 ### 2026-03-27
 - Built entire CLI from scratch: init, doctor, enhance, eval, plugin, landing page
 - Tested all commands on real projects, fixed hook schema, parser, .env protection
 ### 2026-03-28
-- Eval real: 43% → 89%. doctor --fix: 42% → 86%. .claudeignore. Settings merge. Story page.
-- npm pack verified: 54.7KB, installs clean, all commands work from tarball
-- Sprint 3 closed. Ready to publish.
+- Published to npm (v0.1.0), stress tested 8 stacks (all 76%→86%), terminal carousel
+- Cleaned global config: removed ECC plugin, 28 agents, 50+ rules, .cursor hooks
+- Self-diagnosed at 89%. Learned Agent SDK permissions for future eval refactor.
