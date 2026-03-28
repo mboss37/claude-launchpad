@@ -180,7 +180,9 @@ jobs:
 
 Exit code is 1 when score is below the threshold, 0 when it passes.
 
-## Install as a Plugin
+## Plugin (pending marketplace review)
+
+The plugin has been submitted to the Claude Code marketplace. Once approved:
 
 ```bash
 claude plugin install claude-launchpad
