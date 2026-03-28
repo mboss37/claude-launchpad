@@ -1,6 +1,6 @@
 {
   "name": "claude-launchpad",
-  "version": "0.3.4",
+  "version": "0.4.0",
   "description": "Diagnose, scaffold, enhance, and test your Claude Code configuration",
   "author": "mboss37",
   "homepage": "https://mboss37.github.io/claude-launchpad/",
