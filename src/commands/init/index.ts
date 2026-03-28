@@ -8,6 +8,7 @@ import type { InitOptions, DetectedProject } from "../../types/index.js";
 import { generateClaudeMd } from "./generators/claude-md.js";
 import { generateTasksMd } from "./generators/tasks-md.js";
 import { generateSettings } from "./generators/settings.js";
+import { generateClaudeignore } from "./generators/claudeignore.js";
 
 export function createInitCommand(): Command {
   return new Command("init")
@@ -69,6 +70,7 @@ async function scaffold(root: string, options: InitOptions, detected: DetectedPr
   const claudeMd = generateClaudeMd(options, detected);
   const tasksMd = generateTasksMd(options);
   const settings = generateSettings(detected);
+  const claudeignore = generateClaudeignore(detected);
 
   await mkdir(join(root, ".claude"), { recursive: true });
 
@@ -76,17 +78,28 @@ async function scaffold(root: string, options: InitOptions, detected: DetectedPr
   const settingsPath = join(root, ".claude", "settings.json");
   const mergedSettings = await mergeSettings(settingsPath, settings as unknown as Record<string, unknown>);
 
+  // Only generate .claudeignore if it doesn't exist
+  const claudeignorePath = join(root, ".claudeignore");
+  const hasClaudeignore = await fileExists(claudeignorePath);
+
   const writes: Promise<void>[] = [
     writeFile(join(root, "CLAUDE.md"), claudeMd),
     writeFile(join(root, "TASKS.md"), tasksMd),
     writeFile(settingsPath, JSON.stringify(mergedSettings, null, 2) + "\n"),
   ];
 
+  if (!hasClaudeignore) {
+    writes.push(writeFile(claudeignorePath, claudeignore));
+  }
+
   await Promise.all(writes);
 
   log.success("Generated CLAUDE.md");
   log.success("Generated TASKS.md");
   log.success("Generated .claude/settings.json (merged with existing)");
+  if (!hasClaudeignore) {
+    log.success("Generated .claudeignore");
+  }
 
   log.blank();
   log.success("Done! Run `claude` to start.");
