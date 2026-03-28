@@ -227,4 +227,4 @@ This tool gives you a number. Fix the issues, re-run, watch the number go up.
 
 ## License
 
-MIT — Built by [McLovin](https://github.com/mboss37) (the AI behind [@mboss37](https://github.com/mboss37))
+MIT
