@@ -7,400 +7,118 @@
   <meta name="description" content="Your Claude Code setup is probably broken. This tool tells you how. The first CLI that diagnoses, scaffolds, and tests Claude Code configurations.">
   <style>
     :root {
-      --bg: #0a0a0a;
-      --surface: #141414;
-      --surface-2: #1c1c1c;
-      --border: #262626;
-      --text: #ededed;
-      --text-dim: #888;
-      --text-muted: #555;
+      --bg: #09090b;
+      --surface: #18181b;
+      --surface-2: #27272a;
+      --border: #3f3f46;
+      --text: #fafafa;
+      --text-dim: #a1a1aa;
+      --text-muted: #52525b;
       --accent: #3b82f6;
-      --accent-dim: #1d4ed8;
-      --green: #22c55e;
-      --yellow: #eab308;
-      --red: #ef4444;
-      --cyan: #06b6d4;
+      --green: #4ade80;
+      --yellow: #facc15;
+      --red: #f87171;
+      --cyan: #22d3ee;
       --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      --mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+      --mono: 'JetBrains Mono', 'Fira Code', monospace;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--font);
-      line-height: 1.6;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    .container {
-      max-width: 960px;
-      margin: 0 auto;
-      padding: 0 24px;
-    }
+    body { background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 1000px; margin: 0 auto; padding: 0 24px; }
+    .fade-in { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .fade-in.visible { opacity: 1; transform: translateY(0); }
 
     /* ─── Nav ─── */
-    nav {
-      padding: 20px 0;
-      border-bottom: 1px solid var(--border);
-    }
-    nav .container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .logo {
-      font-weight: 700;
-      font-size: 16px;
-      letter-spacing: -0.02em;
-      color: var(--text);
-      text-decoration: none;
-    }
-    .nav-links {
-      display: flex;
-      gap: 24px;
-    }
-    .nav-links a {
-      color: var(--text-dim);
-      text-decoration: none;
-      font-size: 14px;
-      transition: color 0.2s;
-    }
+    nav { padding: 16px 0; border-bottom: 1px solid rgba(63,63,70,0.5); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 100; background: rgba(9,9,11,0.85); }
+    nav .container { display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-weight: 700; font-size: 15px; color: var(--text); text-decoration: none; letter-spacing: -0.02em; }
+    .nav-links { display: flex; gap: 20px; }
+    .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 13px; transition: color 0.2s; }
     .nav-links a:hover { color: var(--text); }
 
     /* ─── Hero ─── */
-    .hero {
-      padding: 100px 0 60px;
-      text-align: center;
-    }
-    .hero-badge {
-      display: inline-block;
-      padding: 6px 14px;
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      border-radius: 100px;
-      font-size: 13px;
-      color: var(--text-dim);
-      margin-bottom: 24px;
-    }
-    .hero h1 {
-      font-size: clamp(36px, 6vw, 56px);
-      font-weight: 800;
-      letter-spacing: -0.03em;
-      line-height: 1.1;
-      margin-bottom: 20px;
-    }
-    .hero h1 .gradient {
-      background: linear-gradient(135deg, var(--accent), var(--cyan));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    .hero p {
-      font-size: 18px;
-      color: var(--text-dim);
-      max-width: 560px;
-      margin: 0 auto 36px;
-      line-height: 1.7;
-    }
-    .hero-cta {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 12px 28px;
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-family: var(--mono);
-      font-size: 15px;
-      color: var(--green);
-      cursor: pointer;
-      transition: all 0.2s;
-      text-decoration: none;
-    }
-    .hero-cta:hover {
-      background: var(--surface);
-      border-color: var(--text-muted);
-    }
+    .hero { padding: 120px 0 80px; text-align: center; position: relative; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; top: -200px; left: 50%; transform: translateX(-50%); width: 800px; height: 600px; background: radial-gradient(ellipse, rgba(59,130,246,0.08) 0%, rgba(34,211,238,0.04) 40%, transparent 70%); pointer-events: none; }
+    .hero-badge { display: inline-block; padding: 6px 16px; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); border-radius: 100px; font-size: 12px; color: var(--accent); margin-bottom: 28px; letter-spacing: 0.02em; }
+    .hero h1 { font-size: clamp(40px, 7vw, 64px); font-weight: 800; letter-spacing: -0.04em; line-height: 1.05; margin-bottom: 24px; position: relative; }
+    .hero h1 .gradient { background: linear-gradient(135deg, #f87171, #fb923c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero p { font-size: 18px; color: var(--text-dim); max-width: 520px; margin: 0 auto 40px; line-height: 1.7; }
+    .hero-cta { display: inline-flex; align-items: center; gap: 10px; padding: 14px 32px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; font-family: var(--mono); font-size: 15px; color: var(--green); cursor: pointer; transition: all 0.25s; text-decoration: none; }
+    .hero-cta:hover { background: var(--surface-2); border-color: var(--text-muted); transform: translateY(-1px); }
     .hero-cta .dollar { color: var(--text-muted); }
 
     /* ─── Terminal ─── */
-    .terminal-section {
-      padding: 0 0 80px;
-    }
-    .terminal {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      overflow: hidden;
-      max-width: 720px;
-      margin: 0 auto;
-    }
-    .terminal-bar {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 12px 16px;
-      background: var(--surface-2);
-      border-bottom: 1px solid var(--border);
-    }
-    .terminal-dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: var(--border);
-    }
-    .terminal-title {
-      font-size: 12px;
-      color: var(--text-muted);
-      font-family: var(--mono);
-      margin-left: 8px;
-    }
-    .terminal-body {
-      padding: 20px 24px;
-      font-family: var(--mono);
-      font-size: 13px;
-      line-height: 1.8;
-      overflow-x: auto;
-    }
-    .t-dim { color: var(--text-muted); }
-    .t-cyan { color: var(--cyan); }
-    .t-green { color: var(--green); }
-    .t-yellow { color: var(--yellow); }
-    .t-red { color: var(--red); }
-    .t-bold { font-weight: 700; }
-    .t-white { color: var(--text); }
+    .terminal-section { padding: 0 0 100px; position: relative; }
+    .terminal { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; max-width: 680px; margin: 0 auto; box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.03) inset; }
+    .terminal-bar { display: flex; align-items: center; gap: 8px; padding: 14px 18px; background: #1c1c1f; border-bottom: 1px solid rgba(63,63,70,0.5); }
+    .terminal-dot { width: 12px; height: 12px; border-radius: 50%; }
+    .terminal-dot:nth-child(1) { background: #f87171; }
+    .terminal-dot:nth-child(2) { background: #facc15; }
+    .terminal-dot:nth-child(3) { background: #4ade80; }
+    .terminal-title { font-size: 12px; color: var(--text-muted); font-family: var(--mono); margin-left: auto; }
+    .terminal-body { padding: 24px 28px; font-family: var(--mono); font-size: 12.5px; line-height: 1.9; overflow-x: auto; opacity: 0; animation: termFade 0.8s ease 0.5s forwards; }
+    @keyframes termFade { from { opacity: 0; } to { opacity: 1; } }
+    .t-dim { color: var(--text-muted); } .t-cyan { color: var(--cyan); } .t-green { color: var(--green); } .t-yellow { color: var(--yellow); } .t-red { color: var(--red); } .t-bold { font-weight: 700; } .t-white { color: var(--text); }
+    .bar-green { color: var(--green); } .bar-yellow { color: var(--yellow); } .bar-red { color: var(--red); } .bar-empty { color: var(--text-muted); opacity: 0.2; }
 
-    .bar-green { color: var(--green); }
-    .bar-yellow { color: var(--yellow); }
-    .bar-red { color: var(--red); }
-    .bar-empty { color: var(--text-muted); opacity: 0.3; }
+    /* ─── Section headers ─── */
+    .section-header { text-align: center; margin-bottom: 48px; }
+    .section-header h2 { font-size: 32px; font-weight: 700; letter-spacing: -0.03em; margin-bottom: 12px; }
+    .section-header p { color: var(--text-dim); font-size: 16px; max-width: 480px; margin: 0 auto; }
 
-    /* ─── Terminal Animations ─── */
-    .terminal-body {
-      opacity: 0;
-      animation: fadeInTerminal 0.6s ease 0.3s forwards;
-    }
-    @keyframes fadeInTerminal {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .terminal-bar::after {
-      content: '';
-      display: inline-block;
-      width: 7px;
-      height: 14px;
-      background: var(--green);
-      margin-left: auto;
-      animation: blink 1.2s step-end infinite;
-      border-radius: 1px;
-    }
-    @keyframes blink {
-      50% { opacity: 0; }
-    }
-
-    /* ─── Glow effect behind terminal ─── */
-    .terminal-section .container {
-      position: relative;
-    }
-    .terminal-section .container::before {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 80%;
-      height: 80%;
-      background: radial-gradient(ellipse, rgba(6, 182, 212, 0.06) 0%, transparent 70%);
-      pointer-events: none;
-      z-index: 0;
-    }
-    .terminal {
-      position: relative;
-      z-index: 1;
-    }
-
-    /* ─── Section fade-in ─── */
-    .pillar, .analyzer-card {
-      opacity: 0;
-      transform: translateY(16px);
-      transition: opacity 0.5s ease, transform 0.5s ease;
-    }
-    .pillar.visible, .analyzer-card.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    /* ─── Story ─── */
+    .story { padding: 100px 0; }
+    .story-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .story-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 28px; transition: border-color 0.3s, transform 0.3s; }
+    .story-card:hover { border-color: var(--text-muted); transform: translateY(-2px); }
+    .story-step { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+    .story-num { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; background: rgba(59,130,246,0.15); border-radius: 50%; font-size: 12px; font-weight: 700; color: var(--accent); }
+    .story-cmd { font-family: var(--mono); font-size: 12px; color: var(--green); }
+    .story-score { font-family: var(--mono); font-size: 13px; margin-bottom: 6px; }
+    .story-bar { height: 4px; border-radius: 2px; margin-bottom: 12px; }
+    .story-detail { font-family: var(--mono); font-size: 11px; color: var(--text-muted); line-height: 1.7; margin-bottom: 12px; }
+    .story-text { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
 
     /* ─── Pillars ─── */
-    .pillars {
-      padding: 80px 0;
-    }
-    .pillars h2 {
-      font-size: 32px;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      text-align: center;
-      margin-bottom: 48px;
-    }
-    .pillar-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
-    }
-    .pillar {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 28px;
-      transition: border-color 0.2s;
-    }
-    .pillar:hover { border-color: var(--text-muted); }
-    .pillar-icon {
-      font-size: 24px;
-      margin-bottom: 16px;
-    }
-    .pillar h3 {
-      font-size: 18px;
-      font-weight: 700;
-      margin-bottom: 8px;
-      font-family: var(--mono);
-    }
-    .pillar p {
-      font-size: 14px;
-      color: var(--text-dim);
-      line-height: 1.7;
-    }
-    .pillar .tag {
-      display: inline-block;
-      margin-top: 12px;
-      padding: 3px 10px;
-      font-size: 11px;
-      font-family: var(--mono);
-      border-radius: 4px;
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-    }
-    .tag-free { color: var(--green); }
-    .tag-cost { color: var(--yellow); }
+    .pillars { padding: 100px 0; }
+    .pillar-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .pillar { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 28px; transition: border-color 0.3s, transform 0.3s; }
+    .pillar:hover { border-color: var(--text-muted); transform: translateY(-2px); }
+    .pillar h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; font-family: var(--mono); display: flex; align-items: center; gap: 8px; }
+    .pillar p { font-size: 13px; color: var(--text-dim); line-height: 1.7; }
+    .tag { display: inline-block; margin-top: 14px; padding: 4px 10px; font-size: 10px; font-family: var(--mono); border-radius: 6px; letter-spacing: 0.03em; text-transform: uppercase; }
+    .tag-free { color: var(--green); background: rgba(74,222,128,0.08); border: 1px solid rgba(74,222,128,0.15); }
+    .tag-cost { color: var(--yellow); background: rgba(250,204,21,0.08); border: 1px solid rgba(250,204,21,0.15); }
 
     /* ─── Analyzers ─── */
-    .analyzers {
-      padding: 0 0 80px;
-    }
-    .analyzers h2 {
-      font-size: 28px;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      text-align: center;
-      margin-bottom: 12px;
-    }
-    .analyzers .subtitle {
-      text-align: center;
-      color: var(--text-dim);
-      font-size: 15px;
-      margin-bottom: 40px;
-    }
-    .analyzer-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
-    }
-    .analyzer-card {
-      display: flex;
-      align-items: flex-start;
-      gap: 14px;
-      padding: 18px 20px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-    }
-    .analyzer-card .icon {
-      font-size: 18px;
-      flex-shrink: 0;
-      margin-top: 2px;
-    }
-    .analyzer-card h4 {
-      font-size: 14px;
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-    .analyzer-card p {
-      font-size: 13px;
-      color: var(--text-dim);
-      line-height: 1.5;
-    }
+    .analyzers { padding: 0 0 100px; }
+    .analyzer-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .analyzer-card { display: flex; align-items: flex-start; gap: 14px; padding: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; transition: border-color 0.3s; }
+    .analyzer-card:hover { border-color: var(--text-muted); }
+    .analyzer-card .icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: rgba(59,130,246,0.08); border-radius: 8px; }
+    .analyzer-card h4 { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+    .analyzer-card p { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
 
     /* ─── Quick Start ─── */
-    .quickstart {
-      padding: 80px 0;
-      border-top: 1px solid var(--border);
-    }
-    .quickstart h2 {
-      font-size: 28px;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      text-align: center;
-      margin-bottom: 32px;
-    }
-    .steps {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
-      max-width: 720px;
-      margin: 0 auto;
-    }
-    .step {
-      text-align: center;
-    }
-    .step-num {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 32px;
-      height: 32px;
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      border-radius: 50%;
-      font-size: 14px;
-      font-weight: 700;
-      margin-bottom: 12px;
-      color: var(--accent);
-    }
-    .step code {
-      display: block;
-      font-family: var(--mono);
-      font-size: 13px;
-      color: var(--green);
-      margin-bottom: 8px;
-    }
-    .step p {
-      font-size: 13px;
-      color: var(--text-dim);
-    }
+    .quickstart { padding: 100px 0; border-top: 1px solid rgba(63,63,70,0.5); }
+    .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; max-width: 800px; margin: 0 auto; }
+    .step { text-align: center; }
+    .step-num { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); border-radius: 50%; font-size: 14px; font-weight: 700; margin-bottom: 14px; color: var(--accent); }
+    .step code { display: block; font-family: var(--mono); font-size: 12px; color: var(--green); margin-bottom: 8px; }
+    .step p { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
 
     /* ─── Footer ─── */
-    footer {
-      padding: 40px 0;
-      border-top: 1px solid var(--border);
-      text-align: center;
-    }
-    footer p {
-      font-size: 13px;
-      color: var(--text-muted);
-    }
-    footer a {
-      color: var(--text-dim);
-      text-decoration: none;
-    }
+    footer { padding: 40px 0; border-top: 1px solid rgba(63,63,70,0.5); text-align: center; }
+    footer p { font-size: 12px; color: var(--text-muted); }
+    footer a { color: var(--text-dim); text-decoration: none; }
     footer a:hover { color: var(--text); }
 
     /* ─── Responsive ─── */
     @media (max-width: 768px) {
-      .pillar-grid, .analyzer-grid { grid-template-columns: 1fr; }
-      .steps { grid-template-columns: 1fr; gap: 20px; }
-      .hero { padding: 60px 0 40px; }
-      .nav-links { gap: 16px; }
+      .pillar-grid, .analyzer-grid, .story-grid { grid-template-columns: 1fr; }
+      .steps { grid-template-columns: repeat(2, 1fr); }
+      .hero { padding: 80px 0 60px; }
     }
   </style>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -409,7 +127,6 @@
 </head>
 <body>
 
-  <!-- Nav -->
   <nav>
     <div class="container">
       <a class="logo" href="/">Claude Launchpad</a>
@@ -426,7 +143,7 @@
       <div class="hero-badge">Open source &middot; Works with any stack</div>
       <h1>Your Claude Code setup<br>is probably <span class="gradient">broken</span></h1>
       <p>Claude Code's effectiveness is 90% configuration, 10% prompting. But nobody can tell if their config is actually good. Until now.</p>
-      <a class="hero-cta" href="#quickstart">
+      <a class="hero-cta" href="#quickstart" id="cta">
         <span class="dollar">$</span> npx claude-launchpad
       </a>
     </div>
@@ -440,7 +157,7 @@
           <div class="terminal-dot"></div>
           <div class="terminal-dot"></div>
           <div class="terminal-dot"></div>
-          <span class="terminal-title">npx claude-launchpad doctor</span>
+          <span class="terminal-title">claude-launchpad doctor</span>
         </div>
         <div class="terminal-body">
           <div><span class="t-cyan t-bold">&nbsp;&nbsp;Claude Launchpad</span></div>
@@ -457,99 +174,81 @@
           <div>&nbsp;&nbsp;<span class="t-white t-bold">MCP Servers&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bar-yellow">━━━━━━━━━━</span><span class="bar-empty">──────────</span>&nbsp;&nbsp;<span class="t-yellow t-bold">&nbsp;50%</span></div>
           <br>
           <div>&nbsp;&nbsp;<span class="t-white t-bold">Overall&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bar-green">━━━━━━━━━━━━━━━━</span><span class="bar-empty">────</span>&nbsp;&nbsp;<span class="t-green t-bold">&nbsp;82%</span></div>
-          <br>
-          <div>&nbsp;&nbsp;<span class="t-yellow"> MEDIUM </span> <span class="t-white t-bold">Hooks</span></div>
-          <div>&nbsp;&nbsp;&nbsp;&nbsp;No .env file protection hook</div>
-          <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-dim">Fix: Add a PreToolUse hook that blocks writes to .env files</span></div>
-          <br>
-          <div>&nbsp;&nbsp;<span class="t-dim">&middot;</span> 1 issue(s) found. Fix critical/high first.</div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Story: The Journey -->
-  <section class="story" style="padding: 80px 0; border-top: 1px solid var(--border);">
+  <!-- Story -->
+  <section class="story">
     <div class="container">
-      <h2 style="font-size: 28px; font-weight: 700; letter-spacing: -0.02em; text-align: center; margin-bottom: 12px;">The 42% &rarr; 86% Story</h2>
-      <p style="text-align: center; color: var(--text-dim); font-size: 15px; margin-bottom: 48px; max-width: 560px; margin-left: auto; margin-right: auto;">You just joined a team. The repo has a half-baked CLAUDE.md from six months ago. Claude keeps ignoring coding conventions and hardcoding API keys. Nobody knows why.</p>
-
-      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px;">
-
-        <!-- Step 1 -->
-        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px;">
-          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
-            <span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 50%; font-size: 13px; font-weight: 700; color: var(--accent);">1</span>
-            <span style="font-family: var(--mono); font-size: 13px; color: var(--green);">npx claude-launchpad</span>
+      <div class="section-header">
+        <h2>The 42% &rarr; 86% Story</h2>
+        <p>You just joined a team. The repo has a half-baked CLAUDE.md from six months ago. Claude keeps ignoring conventions. Nobody knows why.</p>
+      </div>
+      <div class="story-grid">
+        <div class="story-card fade-in">
+          <div class="story-step">
+            <span class="story-num">1</span>
+            <span class="story-cmd">npx claude-launchpad</span>
           </div>
-          <div style="font-family: var(--mono); font-size: 12px; line-height: 1.6; color: var(--text-dim);">
-            <div>Overall <span style="color: var(--red); font-weight: 700;">42%</span></div>
-            <div style="margin-top: 4px;"><span style="color: var(--red);">━━━━━━━━</span><span style="color: var(--text-muted); opacity: 0.3;">────────────</span></div>
-            <div style="margin-top: 8px; font-size: 11px;">11 issues found</div>
-          </div>
-          <p style="font-size: 13px; color: var(--text-dim); margin-top: 12px; line-height: 1.6;">No hooks. No rules. Missing CLAUDE.md sections. Claude has zero guardrails.</p>
+          <div class="story-score">Overall <span style="color:var(--red);font-weight:700">42%</span></div>
+          <div class="story-bar" style="background: linear-gradient(90deg, var(--red) 42%, var(--surface-2) 42%);"></div>
+          <div class="story-detail">11 issues found</div>
+          <div class="story-text">No hooks. No rules. Missing CLAUDE.md sections. Claude has zero guardrails.</div>
         </div>
-
-        <!-- Step 2 -->
-        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px;">
-          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
-            <span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 50%; font-size: 13px; font-weight: 700; color: var(--accent);">2</span>
-            <span style="font-family: var(--mono); font-size: 13px; color: var(--green);">doctor --fix</span>
+        <div class="story-card fade-in">
+          <div class="story-step">
+            <span class="story-num">2</span>
+            <span class="story-cmd">doctor --fix</span>
           </div>
-          <div style="font-family: var(--mono); font-size: 12px; line-height: 1.8; color: var(--text-dim);">
-            <div><span style="color: var(--green);">&#10003;</span> .env protection hook</div>
-            <div><span style="color: var(--green);">&#10003;</span> Auto-format hook</div>
-            <div><span style="color: var(--green);">&#10003;</span> Force-push protection</div>
-            <div><span style="color: var(--green);">&#10003;</span> CLAUDE.md sections</div>
-            <div><span style="color: var(--green);">&#10003;</span> Starter rules</div>
+          <div style="font-family:var(--mono);font-size:12px;line-height:2;color:var(--text-dim);margin-bottom:12px;">
+            <div><span style="color:var(--green)">&#10003;</span> .env protection hook</div>
+            <div><span style="color:var(--green)">&#10003;</span> Auto-format hook</div>
+            <div><span style="color:var(--green)">&#10003;</span> Force-push protection</div>
+            <div><span style="color:var(--green)">&#10003;</span> CLAUDE.md sections</div>
+            <div><span style="color:var(--green)">&#10003;</span> Starter rules</div>
           </div>
-          <p style="font-size: 13px; color: var(--text-dim); margin-top: 12px; line-height: 1.6;">8 fixes applied automatically. Zero manual work.</p>
+          <div class="story-text">8 fixes applied automatically. Zero manual work.</div>
         </div>
-
-        <!-- Step 3 -->
-        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px;">
-          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
-            <span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 50%; font-size: 13px; font-weight: 700; color: var(--accent);">3</span>
-            <span style="font-family: var(--mono); font-size: 13px; color: var(--green);">npx claude-launchpad</span>
+        <div class="story-card fade-in">
+          <div class="story-step">
+            <span class="story-num">3</span>
+            <span class="story-cmd">npx claude-launchpad</span>
           </div>
-          <div style="font-family: var(--mono); font-size: 12px; line-height: 1.6; color: var(--text-dim);">
-            <div>Overall <span style="color: var(--green); font-weight: 700;">86%</span></div>
-            <div style="margin-top: 4px;"><span style="color: var(--green);">━━━━━━━━━━━━━━━━━</span><span style="color: var(--text-muted); opacity: 0.3;">───</span></div>
-            <div style="margin-top: 8px; font-size: 11px;">2 issues remaining (optional)</div>
-          </div>
-          <p style="font-size: 13px; color: var(--text-dim); margin-top: 12px; line-height: 1.6;">Hooks enforce rules at 100%. Force-push blocked. .env protected. Config quality locked in.</p>
+          <div class="story-score">Overall <span style="color:var(--green);font-weight:700">86%</span></div>
+          <div class="story-bar" style="background: linear-gradient(90deg, var(--green) 86%, var(--surface-2) 86%);"></div>
+          <div class="story-detail">2 issues remaining (optional)</div>
+          <div class="story-text">Hooks enforce rules at 100%. Force-push blocked. .env protected. Quality locked in.</div>
         </div>
-
       </div>
     </div>
   </section>
 
-  <!-- Three Pillars -->
+  <!-- Pillars -->
   <section class="pillars">
     <div class="container">
-      <h2>Four commands. One number.</h2>
-      <div class="pillar-grid" style="grid-template-columns: repeat(2, 1fr);">
-        <div class="pillar">
-          <div class="pillar-icon">&#128137;</div>
-          <h3>doctor</h3>
-          <p>7 analyzers scan your CLAUDE.md, hooks, rules, settings, permissions, and MCP servers. Get a score. Fix the issues. Re-run. Watch it go up.</p>
+      <div class="section-header">
+        <h2>Four commands. One number.</h2>
+      </div>
+      <div class="pillar-grid">
+        <div class="pillar fade-in">
+          <h3><span style="opacity:0.7">&#9775;</span> doctor</h3>
+          <p>7 analyzers scan your CLAUDE.md, hooks, rules, settings, permissions, and MCP servers. Get a score. Fix the issues. Re-run. Watch it climb.</p>
           <span class="tag tag-free">Free &middot; Offline &middot; No API key</span>
         </div>
-        <div class="pillar">
-          <div class="pillar-icon">&#9881;&#65039;</div>
-          <h3>init</h3>
-          <p>Auto-detects your stack (13 languages, 20+ frameworks) and generates CLAUDE.md, TASKS.md, and settings.json with hooks.</p>
+        <div class="pillar fade-in">
+          <h3><span style="opacity:0.7">&#9881;&#65039;</span> init</h3>
+          <p>Auto-detects your stack (13 languages, 20+ frameworks) and generates CLAUDE.md, TASKS.md, .claudeignore, and settings.json with hooks.</p>
           <span class="tag tag-free">Free &middot; Any stack</span>
         </div>
-        <div class="pillar">
-          <div class="pillar-icon">&#9889;</div>
-          <h3>enhance</h3>
+        <div class="pillar fade-in">
+          <h3><span style="opacity:0.7">&#9889;</span> enhance</h3>
           <p>Spawns Claude to read your actual codebase and complete CLAUDE.md — fills in Architecture, Conventions, Off-Limits, and Key Decisions.</p>
           <span class="tag tag-cost">Uses Claude CLI</span>
         </div>
-        <div class="pillar">
-          <div class="pillar-icon">&#127919;</div>
-          <h3>eval</h3>
+        <div class="pillar fade-in">
+          <h3><span style="opacity:0.7">&#9881;</span> eval</h3>
           <p>Runs Claude headless against reproducible scenarios and scores how well your config drives correct behavior. The part nobody else has built.</p>
           <span class="tag tag-cost">Uses Claude CLI</span>
         </div>
@@ -560,50 +259,34 @@
   <!-- Analyzers -->
   <section class="analyzers">
     <div class="container">
-      <h2>What doctor catches</h2>
-      <p class="subtitle">Problems you didn't know you had</p>
+      <div class="section-header">
+        <h2>What doctor catches</h2>
+        <p>Problems you didn't know you had</p>
+      </div>
       <div class="analyzer-grid">
-        <div class="analyzer-card">
-          <span class="icon">&#128200;</span>
-          <div>
-            <h4>Instruction Budget</h4>
-            <p>Past ~150 instructions, Claude starts ignoring rules. Most people don't know they're over.</p>
-          </div>
+        <div class="analyzer-card fade-in">
+          <div class="icon">&#128200;</div>
+          <div><h4>Instruction Budget</h4><p>Past ~150 instructions, Claude starts ignoring rules. Most people don't know they're over.</p></div>
         </div>
-        <div class="analyzer-card">
-          <span class="icon">&#128203;</span>
-          <div>
-            <h4>CLAUDE.md Quality</h4>
-            <p>Missing essential sections, vague instructions ("write good code"), hardcoded API keys.</p>
-          </div>
+        <div class="analyzer-card fade-in">
+          <div class="icon">&#128203;</div>
+          <div><h4>CLAUDE.md Quality</h4><p>Missing essential sections, vague instructions ("write good code"), hardcoded API keys.</p></div>
         </div>
-        <div class="analyzer-card">
-          <span class="icon">&#128268;</span>
-          <div>
-            <h4>Hooks</h4>
-            <p>CLAUDE.md rules are ~80% compliant. Hooks are 100%. Most people have zero hooks configured.</p>
-          </div>
+        <div class="analyzer-card fade-in">
+          <div class="icon">&#128268;</div>
+          <div><h4>Hooks</h4><p>CLAUDE.md rules are ~80% compliant. Hooks are 100%. Most people have zero hooks.</p></div>
         </div>
-        <div class="analyzer-card">
-          <span class="icon">&#128274;</span>
-          <div>
-            <h4>Permissions</h4>
-            <p>Bash auto-allowed without security gates. No force-push protection. Missing Off-Limits section.</p>
-          </div>
+        <div class="analyzer-card fade-in">
+          <div class="icon">&#128274;</div>
+          <div><h4>Permissions</h4><p>Bash auto-allowed without security gates. No force-push protection. Missing Off-Limits.</p></div>
         </div>
-        <div class="analyzer-card">
-          <span class="icon">&#128209;</span>
-          <div>
-            <h4>Rules &amp; Settings</h4>
-            <p>Dead rule files referencing deleted code. Empty configs. Missing permission rules in settings.json.</p>
-          </div>
+        <div class="analyzer-card fade-in">
+          <div class="icon">&#128209;</div>
+          <div><h4>Rules &amp; Settings</h4><p>Dead rule files. Empty configs. Missing permission rules in settings.json.</p></div>
         </div>
-        <div class="analyzer-card">
-          <span class="icon">&#128640;</span>
-          <div>
-            <h4>MCP Servers</h4>
-            <p>Invalid transport configs, missing commands, broken executable paths. Silent failures fixed.</p>
-          </div>
+        <div class="analyzer-card fade-in">
+          <div class="icon">&#128640;</div>
+          <div><h4>MCP Servers</h4><p>Invalid transport configs, missing commands, broken executables. Silent failures caught.</p></div>
         </div>
       </div>
     </div>
@@ -612,24 +295,26 @@
   <!-- Quick Start -->
   <section class="quickstart" id="quickstart">
     <div class="container">
-      <h2>Get started in 60 seconds</h2>
-      <div class="steps" style="grid-template-columns: repeat(4, 1fr); max-width: 860px;">
-        <div class="step">
+      <div class="section-header">
+        <h2>Get started in 60 seconds</h2>
+      </div>
+      <div class="steps">
+        <div class="step fade-in">
           <div class="step-num">1</div>
           <code>claude-launchpad init</code>
           <p>Auto-detect stack, generate config and hooks</p>
         </div>
-        <div class="step">
+        <div class="step fade-in">
           <div class="step-num">2</div>
           <code>claude-launchpad enhance</code>
           <p>Claude reads your code and completes CLAUDE.md</p>
         </div>
-        <div class="step">
+        <div class="step fade-in">
           <div class="step-num">3</div>
           <code>claude-launchpad</code>
           <p>Check your score, fix issues, repeat</p>
         </div>
-        <div class="step">
+        <div class="step fade-in">
           <div class="step-num">4</div>
           <code>--min-score 80</code>
           <p>Add to CI to guard config quality</p>
@@ -638,7 +323,6 @@
     </div>
   </section>
 
-  <!-- Footer -->
   <footer>
     <div class="container">
       <p>Built by <a href="https://github.com/mboss37">McLovin</a> (the AI behind <a href="https://github.com/mboss37">@mboss37</a>) &middot; <a href="https://github.com/mboss37/claude-launchpad">GitHub</a> &middot; <a href="https://www.npmjs.com/package/claude-launchpad">npm</a> &middot; MIT License</p>
@@ -646,25 +330,26 @@
   </footer>
 
   <script>
-    // Fade-in cards on scroll
     const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry, i) => {
+      entries.forEach((entry) => {
         if (entry.isIntersecting) {
-          setTimeout(() => entry.target.classList.add('visible'), i * 80);
+          entry.target.classList.add('visible');
           observer.unobserve(entry.target);
         }
       });
-    }, { threshold: 0.1 });
-    document.querySelectorAll('.pillar, .analyzer-card').forEach(el => observer.observe(el));
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.fade-in').forEach((el, i) => {
+      el.style.transitionDelay = `${i * 60}ms`;
+      observer.observe(el);
+    });
 
-    // Copy command on click
-    document.querySelector('.hero-cta')?.addEventListener('click', (e) => {
+    document.getElementById('cta')?.addEventListener('click', (e) => {
       e.preventDefault();
       navigator.clipboard.writeText('npx claude-launchpad').then(() => {
         const el = e.currentTarget;
-        const original = el.innerHTML;
-        el.innerHTML = '<span style="color: var(--green)">Copied!</span>';
-        setTimeout(() => { el.innerHTML = original; }, 1500);
+        const orig = el.innerHTML;
+        el.innerHTML = '<span style="color:var(--green)">Copied!</span>';
+        setTimeout(() => { el.innerHTML = orig; }, 1500);
       });
     });
   </script>
