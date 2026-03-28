@@ -62,6 +62,21 @@ CLI toolkit that makes Claude Code setups measurably good — diagnose, scaffold
 - Named exports only, no `any` types
 - All errors handled explicitly with user-friendly messages
 
+## Pre-Commit Checklist
+Before every commit, self-review:
+1. Read back every changed file — look for dead code, unused imports, wrong types
+2. Run `pnpm typecheck && pnpm test:run` — no commit if either fails
+3. Check function lengths (<50 lines) and file lengths (<400 lines)
+4. Verify no `any` types, no mutation, no hardcoded values crept in
+5. After major features: spawn a code review agent to audit the changes
+
+## Parallel Agents
+Always use parallel agents when applicable:
+- Research tasks: spawn multiple agents with different lenses (code audit, feature gaps, competitive analysis)
+- Stress testing: use one Bash call with a shell loop (agents can't run Bash — see memory)
+- Code review: spawn an Explore agent to audit while continuing to build
+- Never spawn agents for sequential/dependent work — only for independent parallel tasks
+
 ## Off-Limits
 - Never hardcode secrets
 - Never add third-party plugin dependencies (ECC, etc.) — self-contained

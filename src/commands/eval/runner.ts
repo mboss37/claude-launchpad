@@ -170,7 +170,12 @@ async function evaluateSingleCheck(check: EvalCheck, sandboxDir: string): Promis
       if (!check.pattern) return false;
       try {
         const content = await readFile(join(sandboxDir, check.target), "utf-8");
-        const found = new RegExp(check.pattern).test(content);
+        let found: boolean;
+        try {
+          found = new RegExp(check.pattern).test(content);
+        } catch {
+          return false; // Invalid regex pattern
+        }
         return check.expect === "present" ? found : !found;
       } catch {
         return check.expect === "absent";
