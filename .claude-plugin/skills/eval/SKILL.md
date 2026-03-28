@@ -13,11 +13,11 @@ Run Claude headless against reproducible scenarios and score how well your confi
 
 1. Run the eval CLI:
 ```bash
-npx claude-launchpad@latest eval --suite common
+npx claude-launchpad@latest eval --suite security
 ```
 
 2. Options:
-   - `--suite <name>` — Run a specific suite (e.g., `common`)
+   - `--suite <name>` — Run a suite: `security` (4), `conventions` (5), `workflow` (2)
    - `--runs <n>` — Runs per scenario for statistical confidence (default: 3)
    - `--timeout <ms>` — Timeout per run (default: 120000)
    - `--debug` — Preserve sandbox directories for inspection
