@@ -41,7 +41,7 @@ Scans your Claude Code config, gives you a score out of 100, and tells you exact
 
 | Command | What it does | Cost |
 |---|---|---|
-| `claude-launchpad init` | Launch a new project: detects stack, generates config, hooks, TASKS.md | Free |
+| `claude-launchpad init` | Launch a new project: detects stack, generates config, security rules, hooks, permissions | Free |
 | `claude-launchpad` | Check your config: score it 0-100, list issues | Free |
 | `claude-launchpad doctor --fix` | Auto-fix issues: adds hooks, rules, missing sections, .claudeignore | Free |
 | `claude-launchpad doctor --watch` | Live score that updates when you save config files | Free |
@@ -67,7 +67,7 @@ claude-launchpad doctor --fix
 claude-launchpad
 ```
 
-That takes you from ~42% to ~86% with zero manual work.
+That takes you from ~42% to ~93% with zero manual work.
 
 ## The Doctor
 
@@ -115,23 +115,26 @@ Detects your project and generates Claude Code config that fits. No templates, n
 
 ```
   → Detecting project...
-  ✓ Found Next.js (TypeScript) project
+  ✓ Found Next.js project
   · Package manager: pnpm
-  · Dev command: pnpm dev
 
   ✓ Generated CLAUDE.md
   ✓ Generated TASKS.md
-  ✓ Generated .claude/settings.json (with hooks)
+  ✓ Generated .claude/settings.json (schema, permissions, hooks)
+  ✓ Generated .claude/.gitignore
   ✓ Generated .claudeignore
+  ✓ Generated .claude/rules/conventions.md
 ```
 
 **Works with:** TypeScript, JavaScript, Python, Go, Ruby, Rust, Dart, PHP, Java, Kotlin, Swift, Elixir, C# — and detects frameworks (Next.js, FastAPI, Django, Rails, Laravel, Express, SvelteKit, Angular, NestJS, and 15+ more).
 
-**What you get:**
+**What you get (6 files):**
 - `CLAUDE.md` — your stack, commands, conventions, guardrails
-- `TASKS.md` — session continuity across Claude Code sessions
-- `.claude/settings.json` — auto-format hooks and .env file protection
-- `.claudeignore` — keeps Claude from reading node_modules, dist, lockfiles, etc.
+- `TASKS.md` — sprint tracking and session continuity
+- `.claude/settings.json` — `$schema` for IDE autocomplete, `permissions.deny` for security, hooks for .env protection + destructive command blocking + auto-format
+- `.claude/.gitignore` — prevents local settings and plans from being committed
+- `.claudeignore` — language-specific ignore patterns
+- `.claude/rules/conventions.md` — language-specific starter rules
 
 ## Enhance
 
@@ -237,7 +240,7 @@ Then use `/launchpad:doctor`, `/launchpad:init`, `/launchpad:enhance`, `/launchp
 
 **Doctor** reads your files and runs static analysis. No API calls. No network. No cost.
 
-**Init** scans manifest files (package.json, go.mod, pyproject.toml, etc.), detects your stack, and generates config with safe, hardcoded formatter hooks — never interpolates user-controlled strings.
+**Init** scans manifest files (package.json, go.mod, pyproject.toml, etc.), detects your stack, and generates 6 files: CLAUDE.md, TASKS.md, settings.json (with $schema, permissions.deny, and hooks), .claude/.gitignore, .claudeignore, and language-specific rules. Formatter hooks use hardcoded safe commands only.
 
 **Enhance** spawns `claude "prompt"` as an interactive child process. You see Claude's full UI. No data passes through the tool — it just launches Claude with a task.
 

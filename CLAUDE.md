@@ -16,7 +16,7 @@ CLI toolkit that makes Claude Code setups measurably good — diagnose, scaffold
 
 ## Architecture
 - Three commands: `doctor` (diagnose), `init` (scaffold), `eval` (test configs)
-- `init` auto-detects project type (package.json, go.mod, pyproject.toml, etc.) — works with ANY stack
+- `init` generates 6 files: CLAUDE.md, TASKS.md, settings.json ($schema + permissions + hooks), .claude/.gitignore, .claudeignore, rules — 91% score out of the box
 - `doctor` is pure static analysis — no API calls, no cost, works offline
 - `eval` runs Claude headless via Agent SDK against YAML scenarios and scores config quality
 - Distributed as npm package (`npx claude-launchpad`) — users never clone this repo
