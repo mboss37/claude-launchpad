@@ -15,15 +15,15 @@
 ### In Progress
 
 ### To Do
-- [ ] Publish v0.1.1 (homepage URL, author credit on npm)
 - [ ] Refactor eval runner to use Agent SDK instead of shelling out to `claude -p`
-- [ ] Fix file-size eval scenario (custom check type unimplemented)
-- [ ] Add tests for remaining analyzers (settings, hooks, permissions, rules)
-- [ ] GitHub Action template for CI integration
 - [ ] Submit plugin to Claude Code marketplace
-- [ ] doctor --fix should create settings.json from scratch when none exists
+- [ ] Publish v0.2.0 with all Sprint 5 improvements
 
 ### Done
+- [x] Single-pass --fix creates settings.json from scratch (42% → 86% in one command)
+- [x] Added 14 tests for hooks, settings, permissions analyzers (48 total)
+- [x] GitHub Action template for CI config quality gating
+- [x] Implemented max-lines eval check type, fixed file-size scenario
 
 ## Upcoming
 - **Sprint 6**: doctor --watch, config diff in PRs, community scenario packs
