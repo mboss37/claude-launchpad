@@ -69,7 +69,7 @@
 
     /* ─── Story ─── */
     .story { padding: 100px 0; }
-    .story-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .story-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
     .story-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 28px; transition: border-color 0.3s, transform 0.3s; }
     .story-card:hover { border-color: var(--text-muted); transform: translateY(-2px); }
     .story-step { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
@@ -116,7 +116,8 @@
 
     /* ─── Responsive ─── */
     @media (max-width: 768px) {
-      .pillar-grid, .analyzer-grid, .story-grid { grid-template-columns: 1fr; }
+      .pillar-grid, .analyzer-grid { grid-template-columns: 1fr; }
+      .story-grid { grid-template-columns: repeat(2, 1fr); }
       .steps { grid-template-columns: repeat(2, 1fr); }
       .hero { padding: 80px 0 60px; }
     }
@@ -183,7 +184,7 @@
   <section class="story">
     <div class="container">
       <div class="section-header">
-        <h2>The 42% &rarr; 86% Story</h2>
+        <h2>The 42% &rarr; 89% Story</h2>
         <p>You just joined a team. The repo has a half-baked CLAUDE.md from six months ago. Claude keeps ignoring conventions. Nobody knows why.</p>
       </div>
       <div class="story-grid">
@@ -219,7 +220,22 @@
           <div class="story-score">Overall <span style="color:var(--green);font-weight:700">86%</span></div>
           <div class="story-bar" style="background: linear-gradient(90deg, var(--green) 86%, var(--surface-2) 86%);"></div>
           <div class="story-detail">2 issues remaining (optional)</div>
-          <div class="story-text">Hooks enforce rules at 100%. Force-push blocked. .env protected. Quality locked in.</div>
+          <div class="story-text">Hooks enforce rules at 100%. .env protected. Quality locked in.</div>
+        </div>
+        <div class="story-card fade-in">
+          <div class="story-step">
+            <span class="story-num">4</span>
+            <span class="story-cmd">claude-launchpad eval</span>
+          </div>
+          <div style="font-family:var(--mono);font-size:11px;line-height:1.9;color:var(--text-dim);margin-bottom:12px;">
+            <div><span style="color:var(--green)">&#10003;</span> sql-injection&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--green)">10/10</span></div>
+            <div><span style="color:var(--green)">&#10003;</span> env-protection&nbsp;&nbsp;&nbsp;<span style="color:var(--green)">10/10</span></div>
+            <div><span style="color:var(--green)">&#10003;</span> error-handling&nbsp;&nbsp;&nbsp;<span style="color:var(--green)">10/10</span></div>
+            <div><span style="color:var(--green)">&#10003;</span> immutability&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--green)">10/10</span></div>
+          </div>
+          <div class="story-score">Eval Score <span style="color:var(--green);font-weight:700">89%</span></div>
+          <div class="story-bar" style="background: linear-gradient(90deg, var(--green) 89%, var(--surface-2) 89%);"></div>
+          <div class="story-text">Proof that your config actually makes Claude behave correctly. Nobody else tests this.</div>
         </div>
       </div>
     </div>
