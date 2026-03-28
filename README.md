@@ -1,25 +1,47 @@
 # Claude Launchpad
 
-**A linter for your Claude Code configuration.** Scores your setup, auto-fixes issues, and tests if Claude actually follows your rules.
+**Everything you need to launch a project with Claude Code — and keep it healthy.**
 
-You write a `CLAUDE.md`, add some hooks, configure settings — but is any of it actually working? Claude Launchpad scans your config, gives you a score out of 100, fixes what's broken, and runs Claude against test scenarios to prove it.
+A launchpad isn't just where you start. It's where you prepare, run checks, and make sure everything is ready before you go. Claude Launchpad does exactly that for your Claude Code setup:
+
+- **Launch new projects** with production-ready Claude Code config from day one
+- **Check existing projects** — score your config, find issues, auto-fix them
+- **Prove it works** — run Claude against test scenarios and see if your rules are actually followed
 
 ```bash
-npx claude-launchpad
+npm i -g claude-launchpad
 ```
 
-That's it. One command. You get a score. You see what's wrong. You fix it.
+## Two Paths, One Tool
 
-## What It Does
+### Starting a new project?
+
+```bash
+claude-launchpad init
+```
+
+Detects your stack, generates `CLAUDE.md` with your commands and conventions, creates `TASKS.md` for sprint tracking and session continuity, sets up hooks for auto-formatting and `.env` protection, and adds a `.claudeignore` so Claude doesn't waste time reading `node_modules`.
+
+Then run `enhance` to have Claude read your codebase and fill in the architecture, conventions, and guardrails with real, project-specific content — not boilerplate.
+
+### Already have a project?
+
+```bash
+claude-launchpad
+```
+
+Scans your Claude Code config, gives you a score out of 100, and tells you exactly what's wrong. Run `--fix` to auto-apply fixes. Run `--watch` to see the score update live as you edit. Run `eval` to prove your config actually makes Claude behave.
+
+## All Commands
 
 | Command | What it does | Cost |
 |---|---|---|
-| `claude-launchpad` | Scans your config, scores it 0-100, lists issues | Free |
-| `claude-launchpad doctor --fix` | Auto-fixes issues (adds hooks, rules, missing sections) | Free |
-| `claude-launchpad doctor --watch` | Live score that updates when you edit config files | Free |
-| `claude-launchpad init` | Detects your stack, generates config from scratch | Free |
-| `claude-launchpad enhance` | Opens Claude to read your code and complete CLAUDE.md | Uses Claude |
-| `claude-launchpad eval --suite security` | Runs Claude against test scenarios, proves your config works | Uses Claude |
+| `claude-launchpad init` | Launch a new project: detects stack, generates config, hooks, TASKS.md | Free |
+| `claude-launchpad` | Check your config: score it 0-100, list issues | Free |
+| `claude-launchpad doctor --fix` | Auto-fix issues: adds hooks, rules, missing sections, .claudeignore | Free |
+| `claude-launchpad doctor --watch` | Live score that updates when you save config files | Free |
+| `claude-launchpad enhance` | Claude reads your code and completes CLAUDE.md with real content | Uses Claude |
+| `claude-launchpad eval --suite security` | Run Claude against test scenarios, prove your config works | Uses Claude |
 
 ## Quick Start
 
