@@ -6,30 +6,31 @@
 ## Completed Sprints
 - **Sprint 0**: Bash scaffolder — killed and replaced
 - **Sprint 1**: TS CLI — init, doctor (7 analyzers), enhance, eval engine, plugin, landing page, 34 tests
-- **Sprint 2**: Eval real — 7 scenarios running, 89% score, sandbox isolation, debug mode, path resolution fixed
+- **Sprint 2**: Eval real — 7 scenarios running, 89% score, sandbox isolation, debug mode
+- **Sprint 3**: Actionable — doctor --fix (42%→86%), .claudeignore gen, settings merge, story page, npm verified
 
-## Current Sprint: Sprint 3 — Make It Actionable
+## Current Sprint: Sprint 4 — Ship & Community
 
 ### In Progress
 
 ### To Do
-- [ ] `doctor --fix` — auto-apply deterministic fixes (add hooks, .claudeignore, Off-Limits section)
-- [ ] Init should merge with existing settings.json, not overwrite
-- [ ] Fix file-size scenario (custom check type unimplemented)
+- [ ] npm publish to registry
+- [ ] Submit plugin to Claude Code marketplace
+- [ ] Fix file-size eval scenario (custom check type unimplemented)
 - [ ] Add tests for remaining analyzers (settings, hooks, permissions, rules)
-- [ ] Generate `.claudeignore` in init (node_modules, dist, __pycache__, etc.)
-- [ ] npm publish dry run — verify package works via npx
+- [ ] GitHub Action template for CI integration
+- [ ] Community scenario format docs
 
 ### Done
 
 ## Upcoming
-- **Sprint 4**: npm publish, plugin marketplace, community scenario packs
+- **Sprint 5**: doctor --watch, config diff in PRs, smart init (Claude-driven hooks)
 
 ## Session Log
 ### 2026-03-27
 - Built entire CLI from scratch: init, doctor, enhance, eval, plugin, landing page
 - Tested all commands on real projects, fixed hook schema, parser, .env protection
 ### 2026-03-28
-- Made eval real: fixed runner (drop --bare, allow tools), added 3 scenarios, debug mode
-- First eval run: 43% → 89% after fixing tool permissions. 6/7 scenarios pass at 10/10
-- Updated vision with full iceberg, cleaned up dead code, committed everything
+- Eval real: 43% → 89%. doctor --fix: 42% → 86%. .claudeignore. Settings merge. Story page.
+- npm pack verified: 54.7KB, installs clean, all commands work from tarball
+- Sprint 3 closed. Ready to publish.
