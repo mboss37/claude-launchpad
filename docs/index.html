@@ -250,7 +250,8 @@ body { background: #000; color: #e2e2e2; font-family: 'Geist', sans-serif; }
   <section class="mb-16">
     <h2 class="text-lg font-semibold text-white mb-4 border-l-2 border-accent pl-3">Use in CI</h2>
     <p class="text-sm text-text-dim mb-3">Once your config scores well, lock it in. Add this GitHub Action to your repo and every pull request that touches Claude Code config files will be checked automatically. If someone's change drops the score below your threshold, the PR gets blocked until they fix it. Your config quality never degrades.</p>
-    <div class="code-block rounded-xl p-4 font-mono text-xs leading-relaxed">
+    <div class="code-block rounded-xl p-4 font-mono text-xs leading-relaxed relative group" id="ci-block">
+      <button onclick="copyCI()" class="absolute top-3 right-3 text-text-muted hover:text-white transition-colors opacity-0 group-hover:opacity-100" title="Copy workflow"><span class="material-symbols-outlined text-base">content_copy</span></button>
       <div class="text-text-muted mb-1"># .github/workflows/claude-config.yml</div>
       <div><span class="text-blue">name</span>: Claude Code Config Quality</div>
       <div><span class="text-blue">on</span>:</div>
@@ -282,6 +283,27 @@ body { background: #000; color: #e2e2e2; font-family: 'Geist', sans-serif; }
 </footer>
 
 <script>
+const ciYaml = `name: Claude Code Config Quality
+on:
+  pull_request:
+    paths: ['CLAUDE.md', '.claude/**', '.claudeignore']
+jobs:
+  config-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      - run: npx claude-launchpad@latest doctor --min-score 80 --json`;
+
+function copyCI() {
+  navigator.clipboard.writeText(ciYaml).then(() => {
+    const btn = document.querySelector('#ci-block button');
+    btn.innerHTML = '<span class="material-symbols-outlined text-base text-green">check</span>';
+    setTimeout(() => { btn.innerHTML = '<span class="material-symbols-outlined text-base">content_copy</span>'; }, 1500);
+  });
+}
+
 document.getElementById('cta')?.addEventListener('click', () => {
   navigator.clipboard.writeText('npm i -g claude-launchpad').then(() => {
     const el = document.getElementById('cta');
