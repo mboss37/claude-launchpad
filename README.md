@@ -113,7 +113,7 @@ You see Claude working in real-time — same experience as running `claude` your
 
 ### `eval` — Prove your config works
 
-Runs Claude headless against 9 reproducible scenarios using the [Agent SDK](https://www.npmjs.com/package/@anthropic-ai/claude-agent-sdk) and **scores how well your config actually drives correct behavior**.
+Runs Claude headless against 11 reproducible scenarios using the [Agent SDK](https://www.npmjs.com/package/@anthropic-ai/claude-agent-sdk) and **scores how well your config actually drives correct behavior**.
 
 ```bash
 claude-launchpad eval --suite common

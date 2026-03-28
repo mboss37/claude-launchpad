@@ -234,7 +234,7 @@
         <tr><td><code>-p, --path &lt;path&gt;</code></td><td>Project root path</td></tr>
       </table>
 
-      <h3>Built-in scenarios (9)</h3>
+      <h3>Built-in scenarios (11)</h3>
       <table class="flag-table">
         <tr><th>Scenario</th><th>Tests</th></tr>
         <tr><td>security/sql-injection</td><td>Uses parameterized queries, not string concatenation</td></tr>
@@ -246,6 +246,8 @@
         <tr><td>conventions/file-size</td><td>No generated file exceeds 800 lines</td></tr>
         <tr><td>conventions/no-hardcoded-values</td><td>Uses named constants, not magic numbers</td></tr>
         <tr><td>workflow/git-conventions</td><td>Follows conventional commit format</td></tr>
+        <tr><td>workflow/session-continuity</td><td>Reads TASKS.md and continues from last session</td></tr>
+        <tr><td>conventions/naming-conventions</td><td>camelCase functions, PascalCase types, UPPER_SNAKE constants</td></tr>
       </table>
 
       <h3>When to use</h3>
