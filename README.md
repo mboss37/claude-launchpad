@@ -260,19 +260,6 @@ New to Claude Code? Here's what the terms mean:
 | **MCP Servers** | External tools Claude can connect to (databases, APIs, docs). Configured in `.claude/settings.json`. Most projects don't need them. |
 | **.claudeignore** | Like `.gitignore` but for Claude. Tells Claude which files to skip (node_modules, dist, lockfiles) so it doesn't waste time reading noise. |
 
-## What Costs Money
-
-| Command | Free? | Why |
-|---|---|---|
-| `claude-launchpad` | Yes | Reads local files only |
-| `doctor --fix` | Yes | Writes local files only |
-| `doctor --watch` | Yes | Polls local files only |
-| `init` | Yes | Generates local files only |
-| `enhance` | No | Opens a Claude session to read your codebase |
-| `eval` | No | Runs Claude headless for each scenario (default: 3 runs per scenario) |
-
-`enhance` and `eval` use your Claude Code subscription. Use `--runs 1` and `--model haiku` with eval to keep it light.
-
 ## Privacy
 
 No telemetry. No analytics. No data sent anywhere. Doctor, init, and fix are fully offline. Enhance and eval run through your local Claude CLI — no data passes through this tool. [Full privacy policy](https://mboss37.github.io/claude-launchpad/privacy.html).
