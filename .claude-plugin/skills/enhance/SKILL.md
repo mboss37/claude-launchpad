@@ -7,16 +7,26 @@ userInvocable: true
 
 # /enhance — Complete CLAUDE.md with Codebase Intelligence
 
-Read CLAUDE.md and the project's codebase, then update CLAUDE.md to fill in missing or incomplete sections:
+Read CLAUDE.md and the project's codebase, then update CLAUDE.md to fill in missing or incomplete sections.
 
-1. **## Architecture** or **## Project Structure** — describe the actual codebase structure (directories, key files, data flow)
-2. **## Conventions** — add project-specific patterns you observe (naming, imports, state management, API patterns)
-3. **## Off-Limits** — add guardrails based on what you see (protected files, patterns to avoid, things that should never change)
-4. **## Key Decisions** — document any architectural decisions visible in the code
+## CRITICAL: Budget Rule
+
+CLAUDE.md must stay UNDER 120 lines of actionable content. Claude Code starts ignoring rules past ~150 instructions. If you need more detail, create `.claude/rules/` files:
+- `.claude/rules/conventions.md` for detailed coding patterns
+- `.claude/rules/architecture.md` for detailed structure docs
+- Keep CLAUDE.md to HIGH-LEVEL summaries only (3-5 bullets per section max)
+
+## Sections to Fill
+
+1. **## Architecture** — 3-5 bullet points describing the codebase shape (not a full directory tree)
+2. **## Conventions** — max 8 key patterns. Move detailed rules to `.claude/rules/conventions.md`
+3. **## Off-Limits** — max 8 guardrails specific to this project
+4. **## Key Decisions** — only decisions that affect how Claude should work in this codebase
 
 ## Rules
-- Keep CLAUDE.md under 150 instructions (lines of actionable content)
 - Don't remove existing content — only add or improve
 - Be specific to THIS project, not generic advice
 - Use bullet points, not paragraphs
-- After completing, suggest running `claude-launchpad doctor` to verify the score improved
+- If a section would exceed 8 bullets, split into a `.claude/rules/` file and reference it
+- After editing, count the actionable lines. If over 120, move content to rules files
+- Suggest running `claude-launchpad doctor` after to verify the score improved
