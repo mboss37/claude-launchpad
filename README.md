@@ -133,9 +133,30 @@ claude-launchpad eval --suite common
   Config Eval Score      ━━━━━━━━━━━━━━━━━━──    89%
 ```
 
-Each scenario creates an isolated sandbox, runs Claude with explicit tool permissions, and verifies the output with grep/file assertions. [Write your own scenarios](scenarios/CONTRIBUTING.md) in YAML.
+Each scenario is a YAML file. [Write your own](scenarios/CONTRIBUTING.md).
 
 This is the part nobody else has built. Template repos scaffold. Audit tools diagnose. **Nobody tests whether your config actually makes Claude better.** Until now.
+
+## How It Works Under the Hood
+
+### doctor
+Reads your `CLAUDE.md`, `.claude/settings.json`, `.claude/rules/`, and `.claudeignore`. Runs 7 analyzers that check instruction count, section completeness, hook configuration, rule validity, permission safety, and MCP server configs. Pure static analysis — no API calls, no network, no cost.
+
+### init
+Scans the project root for manifest files (`package.json`, `go.mod`, `pyproject.toml`, `Gemfile`, `Cargo.toml`, `composer.json`, etc.). Detects language, framework, package manager, and available scripts. Generates config files with stack-appropriate hooks (prettier for TypeScript, gofmt for Go, ruff for Python, etc.). Merges with existing `settings.json` if one exists.
+
+### enhance
+Spawns `claude "prompt"` as an interactive child process with `stdio: "inherit"` — you see Claude's full UI. The prompt instructs Claude to read the codebase and fill in CLAUDE.md sections. No data passes through the launchpad — it just launches Claude with a pre-loaded task.
+
+### eval
+1. Creates a temp directory (`/tmp/claude-eval-<uuid>/`)
+2. Writes seed files from the scenario YAML (e.g., a `src/db.ts` with a TODO)
+3. Writes a `CLAUDE.md` with the scenario's instructions
+4. Initializes a git repo (Claude Code expects one)
+5. Runs Claude via the [Agent SDK](https://www.npmjs.com/package/@anthropic-ai/claude-agent-sdk) with `allowedTools: ["Bash", "Read", "Write", "Edit", "Glob", "Grep"]` and `permissionMode: "dontAsk"` — or falls back to `claude -p` if the SDK isn't installed
+6. After Claude finishes, runs grep/file assertions against the modified files
+7. Scores: each check has points, total determines pass/fail
+8. Cleans up the temp directory (or preserves it with `--debug`)
 
 ## Use in CI
 
