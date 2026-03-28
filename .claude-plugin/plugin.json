@@ -1,12 +1,15 @@
 {
   "name": "claude-launchpad",
-  "version": "0.1.0",
-  "description": "Diagnose, scaffold, and test your Claude Code configuration",
-  "author": "McLovin",
-  "homepage": "https://github.com/mboss37/claude-launchpad",
+  "version": "0.2.0",
+  "description": "Diagnose, scaffold, enhance, and test your Claude Code configuration",
+  "author": "McLovin (the AI behind @mboss37)",
+  "homepage": "https://mboss37.github.io/claude-launchpad/",
+  "repository": "https://github.com/mboss37/claude-launchpad",
   "skills": [
     "skills/doctor",
-    "skills/init"
+    "skills/init",
+    "skills/enhance",
+    "skills/eval"
   ],
   "hooks": "hooks/hooks.json"
 }
