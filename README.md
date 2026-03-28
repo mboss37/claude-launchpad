@@ -1,32 +1,62 @@
 # Claude Launchpad
 
-**Your Claude Code setup is probably broken. This tool tells you how.**
+**A linter for your Claude Code configuration.** Scores your setup, auto-fixes issues, and tests if Claude actually follows your rules.
 
-Claude Code's effectiveness is 90% configuration, 10% prompting. But nobody can tell if their config is actually good. You write a `CLAUDE.md`, add some hooks, install some plugins — and then *hope* Claude follows them.
-
-Claude Launchpad is the first CLI that **diagnoses, scaffolds, enhances, and tests** Claude Code configurations. Think ESLint for your AI setup.
+You write a `CLAUDE.md`, add some hooks, configure settings — but is any of it actually working? Claude Launchpad scans your config, gives you a score out of 100, fixes what's broken, and runs Claude against test scenarios to prove it.
 
 ```bash
 npx claude-launchpad
 ```
 
-## The Workflow
+That's it. One command. You get a score. You see what's wrong. You fix it.
+
+## What It Does
+
+| Command | What it does | Cost |
+|---|---|---|
+| `claude-launchpad` | Scans your config, scores it 0-100, lists issues | Free |
+| `claude-launchpad doctor --fix` | Auto-fixes issues (adds hooks, rules, missing sections) | Free |
+| `claude-launchpad doctor --watch` | Live score that updates when you edit config files | Free |
+| `claude-launchpad init` | Detects your stack, generates config from scratch | Free |
+| `claude-launchpad enhance` | Opens Claude to read your code and complete CLAUDE.md | Uses Claude |
+| `claude-launchpad eval --suite security` | Runs Claude against test scenarios, proves your config works | Uses Claude |
+
+## Quick Start
 
 ```bash
-npx claude-launchpad init          # 1. Auto-detect stack, generate config + hooks + .claudeignore
-npx claude-launchpad enhance       # 2. Claude reads your code, completes CLAUDE.md
-npx claude-launchpad               # 3. Check your score (42%)
-npx claude-launchpad doctor --fix  # 4. Auto-fix everything (→ 86%)
-npx claude-launchpad eval          # 5. Prove your config works (89% eval score)
+# Install
+npm i -g claude-launchpad
+
+# Go to any project with Claude Code
+cd your-project
+
+# See your score
+claude-launchpad
+
+# Fix everything it found
+claude-launchpad doctor --fix
+
+# See your new score
+claude-launchpad
 ```
 
-> See the [full story on the landing page](https://mboss37.github.io/claude-launchpad/) — a 42% → 89% journey.
+That takes you from ~42% to ~86% with zero manual work.
 
-## Commands
+## The Doctor
 
-### `doctor` — Know your score
+The core of the tool. Runs 7 analyzers against your `.claude/` directory and `CLAUDE.md`:
 
-Runs 7 static analyzers against your `.claude/` directory and `CLAUDE.md`. No API calls, no cost, works offline.
+| Analyzer | What it catches |
+|---|---|
+| **Instruction Budget** | Too many instructions in CLAUDE.md — Claude starts ignoring rules past ~150 |
+| **CLAUDE.md Quality** | Missing sections, vague instructions ("write good code"), hardcoded secrets |
+| **Settings** | No hooks configured, dangerous tool access without safety nets |
+| **Hooks** | Missing auto-format on save, no .env file protection, no security gates |
+| **Rules** | Dead rule files, stale references, empty configs |
+| **Permissions** | Bash auto-allowed without security hooks, no force-push protection |
+| **MCP Servers** | Invalid transport configs, missing commands/URLs |
+
+Output looks like this:
 
 ```
   Instruction Budget     ━━━━━━━━━━━━━━━━━━━━   100%
@@ -42,40 +72,25 @@ Runs 7 static analyzers against your `.claude/` directory and `CLAUDE.md`. No AP
   ✓ No issues found. Your configuration looks solid.
 ```
 
-Running bare `claude-launchpad` with no subcommand auto-detects your config and runs doctor.
+**All doctor flags:**
 
-**Flags:**
-- `--fix` — Auto-apply deterministic fixes (42% → 86% in one command)
-- `--watch` — Live score that updates every time you save a config file
-- `--json` — JSON output for programmatic use
-- `--min-score <n>` — Exit non-zero if score drops below threshold (for CI)
-
-**What it checks:**
-
-| Analyzer | What it catches |
+| Flag | What it does |
 |---|---|
-| **Instruction Budget** | Are you over the ~150 instruction limit where Claude starts ignoring rules? |
-| **CLAUDE.md Quality** | Missing essential sections, vague instructions ("write good code"), hardcoded secrets |
-| **Settings** | Hooks configured, dangerous tool access without safety nets |
-| **Hooks** | Missing auto-format, no .env protection, no PreToolUse security gates |
-| **Rules** | Dead rule files, stale references, empty configs |
-| **Permissions** | Bash auto-allowed without security hooks, no force-push protection |
-| **MCP Servers** | Invalid transport configs, missing commands/URLs, broken executables |
+| `--fix` | Auto-fixes issues: adds hooks, CLAUDE.md sections, rules, .claudeignore |
+| `--watch` | Re-runs every second, updates when you save a config file |
+| `--json` | Pure JSON output, no colors, no banner — for scripts and CI |
+| `--min-score <n>` | Exit code 1 if score is below threshold — use in CI to block bad configs |
+| `-p, --path <dir>` | Run on a different directory |
 
-### `init` — Set up any project in seconds
+## Init
 
-Auto-detects your stack and generates optimized Claude Code configuration. Works with **any** language — no fixed menu, no templates to pick from.
-
-```bash
-claude-launchpad init
-```
+Detects your project and generates Claude Code config that fits. No templates, no menus — it reads your manifest files and figures it out.
 
 ```
   → Detecting project...
   ✓ Found Next.js (TypeScript) project
   · Package manager: pnpm
   · Dev command: pnpm dev
-  · Test command: pnpm test
 
   ✓ Generated CLAUDE.md
   ✓ Generated TASKS.md
@@ -83,100 +98,87 @@ claude-launchpad init
   ✓ Generated .claudeignore
 ```
 
-**Detects 13 languages:** TypeScript, JavaScript, Python, Go, Ruby, Rust, Dart, PHP, Java, Kotlin, Swift, Elixir, C#
-
-**Detects 20+ frameworks:** Next.js, FastAPI, Django, Rails, Laravel, Express, SvelteKit, Angular, NestJS, Hono, Astro, Remix, Nuxt, Symfony, and more.
-
-**Detects package managers from lockfiles:** pnpm, yarn, npm, bun, uv, poetry, cargo, bundler, composer, go modules.
+**Works with:** TypeScript, JavaScript, Python, Go, Ruby, Rust, Dart, PHP, Java, Kotlin, Swift, Elixir, C# — and detects frameworks (Next.js, FastAPI, Django, Rails, Laravel, Express, SvelteKit, Angular, NestJS, and 15+ more).
 
 **What you get:**
-- `CLAUDE.md` with your detected stack, commands, and essential sections
-- `TASKS.md` for session continuity across Claude sessions
-- `.claude/settings.json` with auto-format hooks and .env file protection (merges with existing)
-- `.claudeignore` with language-specific ignore patterns (node_modules, __pycache__, dist, etc.)
+- `CLAUDE.md` — your stack, commands, conventions, guardrails
+- `TASKS.md` — session continuity across Claude Code sessions
+- `.claude/settings.json` — auto-format hooks and .env file protection
+- `.claudeignore` — keeps Claude from reading node_modules, dist, lockfiles, etc.
 
-### `enhance` — Let Claude finish what init started
+## Enhance
 
-Init auto-detects your stack but can't understand your architecture. Enhance spawns Claude interactively to read your actual codebase and fill in the gaps.
+Init detects your stack but can't understand your architecture. Enhance opens Claude to read your actual code and fill in the details.
 
 ```bash
 claude-launchpad enhance
 ```
 
-Claude opens, reads your code, and updates CLAUDE.md with:
-- **Architecture** — actual directory structure, data flow, key modules
-- **Conventions** — patterns it observes in your code (naming, imports, state management)
-- **Off-Limits** — guardrails based on what it sees (protected files, anti-patterns)
-- **Key Decisions** — architectural decisions visible in the code
+Claude reads your codebase and updates CLAUDE.md with real content — actual architecture, actual conventions, actual guardrails. Not boilerplate. It also suggests project-specific hooks and MCP servers based on what it finds.
 
-You see Claude working in real-time — same experience as running `claude` yourself.
+Stays under the 120-instruction budget. Overflows detailed content to `.claude/rules/` files.
 
-### `eval` — Prove your config works
+## Eval
 
-Runs Claude headless against 11 reproducible scenarios using the [Agent SDK](https://www.npmjs.com/package/@anthropic-ai/claude-agent-sdk) and **scores how well your config actually drives correct behavior**.
+The part nobody else has built. Runs Claude against real test scenarios and scores the results.
 
 ```bash
-# Run all 11 scenarios
-claude-launchpad eval
-
-# Run only security scenarios (4 scenarios, faster + cheaper)
+# Run only security tests (4 scenarios)
 claude-launchpad eval --suite security
 
-# Run only conventions or workflow
+# Run only convention tests (5 scenarios)
 claude-launchpad eval --suite conventions
+
+# Run only workflow tests (2 scenarios)
 claude-launchpad eval --suite workflow
 
-# Use a specific model (default: your Claude Code default)
+# Run everything (11 scenarios)
+claude-launchpad eval
+
+# Use a cheaper model
 claude-launchpad eval --suite security --model haiku
 
-# Single run per scenario (fastest)
+# One run per scenario (fastest)
 claude-launchpad eval --suite security --runs 1
 ```
+
+Each scenario creates an isolated sandbox, runs Claude with a task, and checks if Claude followed the rules:
 
 ```
   ✓ security/sql-injection            10/10  PASS
   ✓ security/env-protection           10/10  PASS
   ✓ security/secret-exposure          10/10  PASS
   ✓ security/input-validation         10/10  PASS
-  ✓ conventions/error-handling        10/10  PASS
-  ✓ conventions/immutability          10/10  PASS
-  ✓ conventions/no-hardcoded-values   10/10  PASS
-  ✓ conventions/naming-conventions    10/10  PASS
-  ✓ conventions/file-size             10/10  PASS
-  ✓ workflow/git-conventions          10/10  PASS
-  ✗ workflow/session-continuity        7/10  WARN
+  ✗ conventions/file-size              5/10  FAIL
+    ✗ Claude kept all generated files under 800 lines
 
   Config Eval Score      ━━━━━━━━━━━━━━━━━━━─    95%
 ```
 
-Each scenario is a YAML file. [Write your own](scenarios/CONTRIBUTING.md).
+Results are saved to `.claude/eval/` as structured markdown — you can feed these reports back to Claude to fix the failures.
 
-This is the part nobody else has built. Template repos scaffold. Audit tools diagnose. **Nobody tests whether your config actually makes Claude better.** Until now.
+**Suites:**
 
-## How It Works Under the Hood
+| Suite | Scenarios | What it tests |
+|---|---|---|
+| `security` | 4 | SQL injection, .env protection, secret exposure, input validation |
+| `conventions` | 5 | Error handling, immutability, file size, naming, no hardcoded values |
+| `workflow` | 2 | Git conventions, session continuity |
 
-### doctor
-Reads your `CLAUDE.md`, `.claude/settings.json`, `.claude/rules/`, and `.claudeignore`. Runs 7 analyzers that check instruction count, section completeness, hook configuration, rule validity, permission safety, and MCP server configs. Pure static analysis — no API calls, no network, no cost.
+**All eval flags:**
 
-### init
-Scans the project root for manifest files (`package.json`, `go.mod`, `pyproject.toml`, `Gemfile`, `Cargo.toml`, `composer.json`, etc.). Detects language, framework, package manager, and available scripts. Generates config files with stack-appropriate hooks (prettier for TypeScript, gofmt for Go, ruff for Python, etc.). Merges with existing `settings.json` if one exists.
-
-### enhance
-Spawns `claude "prompt"` as an interactive child process with `stdio: "inherit"` — you see Claude's full UI. The prompt instructs Claude to read the codebase and fill in CLAUDE.md sections. No data passes through the launchpad — it just launches Claude with a pre-loaded task.
-
-### eval
-1. Creates a temp directory (`/tmp/claude-eval-<uuid>/`)
-2. Writes seed files from the scenario YAML (e.g., a `src/db.ts` with a TODO)
-3. Writes a `CLAUDE.md` with the scenario's instructions
-4. Initializes a git repo (Claude Code expects one)
-5. Runs Claude via the [Agent SDK](https://www.npmjs.com/package/@anthropic-ai/claude-agent-sdk) with `allowedTools: ["Bash", "Read", "Write", "Edit", "Glob", "Grep"]` and `permissionMode: "dontAsk"` — or falls back to `claude -p` if the SDK isn't installed
-6. After Claude finishes, runs grep/file assertions against the modified files
-7. Scores: each check has points, total determines pass/fail
-8. Cleans up the temp directory (or preserves it with `--debug`)
+| Flag | What it does |
+|---|---|
+| `--suite <name>` | Run one suite: `security`, `conventions`, or `workflow` |
+| `--model <model>` | Model to use: `haiku`, `sonnet`, `opus` |
+| `--runs <n>` | Runs per scenario (default 3, median score used) |
+| `--debug` | Keep sandbox directories so you can inspect what Claude wrote |
+| `--json` | JSON output |
+| `--timeout <ms>` | Timeout per run (default 120000) |
 
 ## Use in CI
 
-Add this workflow to block PRs that degrade Claude Code config quality:
+Block PRs that degrade your Claude Code config quality:
 
 ```yaml
 # .github/workflows/claude-config.yml
@@ -194,38 +196,34 @@ jobs:
       - run: npx claude-launchpad@latest doctor --min-score 80 --json
 ```
 
-Exit code is 1 when score is below the threshold, 0 when it passes.
+Score below threshold = exit code 1 = PR blocked.
 
 ## Plugin (pending marketplace review)
-
-The plugin has been submitted to the Claude Code marketplace. Once approved:
 
 ```bash
 claude plugin install claude-launchpad
 ```
 
-Then use `/launchpad:doctor`, `/launchpad:init`, `/launchpad:enhance`, and `/launchpad:eval` directly inside Claude Code. The plugin also nudges you to re-check your score when you edit config files.
+Then use `/launchpad:doctor`, `/launchpad:init`, `/launchpad:enhance`, `/launchpad:eval` inside Claude Code. The plugin nudges you to re-check your score when you edit config files.
 
-## Why this exists
+## How It Works
 
-Claude Code configurations are the new `.eslintrc` — everyone has one, nobody knows if it's good. The difference:
+**Doctor** reads your files and runs static analysis. No API calls. No network. No cost.
 
-- **CLAUDE.md is advisory** (~80% compliance). Claude might ignore your rules.
-- **Hooks are deterministic** (100% compliance). But most people don't have any.
-- **Instruction budget is real.** Past ~150 instructions, compliance drops. Most people don't know they're over.
+**Init** scans manifest files (package.json, go.mod, pyproject.toml, etc.), detects your stack, and generates config with safe, hardcoded formatter hooks — never interpolates user-controlled strings.
+
+**Enhance** spawns `claude "prompt"` as an interactive child process. You see Claude's full UI. No data passes through the tool — it just launches Claude with a task.
+
+**Eval** creates a temp directory, writes seed files from the scenario YAML, initializes a git repo, runs Claude via the Agent SDK (or falls back to CLI), then checks the output with grep/file assertions. Sandbox is cleaned up after (or preserved with `--debug`).
+
+## Why This Exists
+
+- **CLAUDE.md is advisory.** ~80% compliance. Claude might ignore your rules.
+- **Hooks are deterministic.** 100% compliance. But most people have zero hooks.
+- **Instruction budget is real.** Past ~150, compliance drops. Most people don't know they're over.
 - **Nobody measures.** You can't improve what you can't measure.
 
-Claude Launchpad gives you a number. Fix the issues, re-run, watch the number go up.
-
-## Philosophy
-
-- **Zero dependencies on third-party Claude plugins.** Generates its own hooks and settings.
-- **Doctor is free.** No API calls, no secrets, works offline and air-gapped.
-- **Enhance uses Claude.** Spawns an interactive session to understand your codebase — costs tokens but produces a CLAUDE.md that actually knows your project.
-- **Eval uses the Agent SDK.** Runs Claude headless in sandboxes with explicit tool permissions — proof that your config works.
-- **Works with any stack.** Auto-detects your project. No fixed menu of supported frameworks.
-- **58 tests.** The tool that tests configs is itself well-tested.
-- **You never clone this repo.** It's a tool you run with `npx`, not a template you fork.
+This tool gives you a number. Fix the issues, re-run, watch the number go up.
 
 ## License
 
