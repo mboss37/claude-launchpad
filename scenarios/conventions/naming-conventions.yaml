@@ -27,7 +27,7 @@ checks:
     points: 3
     label: Functions use camelCase
   - type: grep
-    pattern: "[A-Z][A-Z_]+\s*="
+    pattern: '[A-Z][A-Z_]+\s*='
     target: src/user-service.ts
     expect: present
     points: 3

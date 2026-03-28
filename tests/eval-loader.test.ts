@@ -5,11 +5,16 @@ import { resolve } from "node:path";
 const SCENARIOS_DIR = resolve(import.meta.dirname, "../scenarios");
 
 describe("loadScenarios", () => {
-  it("loads built-in common scenarios", async () => {
-    const scenarios = await loadScenarios({ customPath: SCENARIOS_DIR, suite: "common" });
+  it("loads security scenarios", async () => {
+    const scenarios = await loadScenarios({ customPath: SCENARIOS_DIR, suite: "security" });
     expect(scenarios.length).toBeGreaterThanOrEqual(4);
     expect(scenarios.some((s) => s.name.includes("sql-injection"))).toBe(true);
     expect(scenarios.some((s) => s.name.includes("env-protection"))).toBe(true);
+  });
+
+  it("loads all scenarios when no suite specified", async () => {
+    const scenarios = await loadScenarios({ customPath: SCENARIOS_DIR });
+    expect(scenarios.length).toBeGreaterThanOrEqual(11);
   });
 
   it("returns empty array for nonexistent suite", async () => {

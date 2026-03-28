@@ -17,7 +17,7 @@ checks:
     target: src/
     expect: absent
     points: 5
-    label: No file exceeds 800 lines
+    label: All files stay under 800 lines
   - type: file-exists
     target: src/types.ts
     expect: present

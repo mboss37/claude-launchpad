@@ -16,6 +16,7 @@ export function createEvalCommand(): Command {
     .option("--timeout <ms>", "Timeout per run in ms (default: 120000)", "120000")
     .option("--json", "Output as JSON")
     .option("--debug", "Keep sandbox directories for inspection")
+    .option("--model <model>", "Model to use for eval (e.g., sonnet, haiku, opus)")
     .action(async (opts) => {
       printBanner();
 
@@ -60,7 +61,7 @@ export function createEvalCommand(): Command {
         try {
           const result = await runScenarioWithRetries(
             { ...scenario, runs },
-            { projectRoot: opts.path, timeout, debug: opts.debug },
+            { projectRoot: opts.path, timeout, debug: opts.debug, model: opts.model },
           );
           results.push(result);
 
@@ -112,7 +113,7 @@ function renderEvalReport(results: ReadonlyArray<EvalRunResult>): void {
 
     const failedChecks = result.checks.filter((c) => !c.passed);
     for (const check of failedChecks) {
-      console.log(`    ${chalk.dim("─")} ${chalk.dim(check.label)}`);
+      console.log(`    ${chalk.red("✗")} ${chalk.dim(check.label)}`);
     }
   }
 

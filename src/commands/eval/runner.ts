@@ -12,6 +12,7 @@ interface RunOptions {
   readonly projectRoot: string;
   readonly timeout: number;
   readonly debug?: boolean;
+  readonly model?: string;
 }
 
 /**
@@ -31,7 +32,7 @@ export async function runScenario(
 
   try {
     await setupSandbox(sandboxDir, scenario);
-    await runClaudeInSandbox(sandboxDir, scenario.prompt, options.timeout);
+    await runClaudeInSandbox(sandboxDir, scenario.prompt, options.timeout, options.model);
     return await scoreResults(scenario, sandboxDir);
   } finally {
     if (options.debug) {
@@ -93,6 +94,7 @@ async function runClaudeInSandbox(
   cwd: string,
   prompt: string,
   timeout: number,
+  model?: string,
 ): Promise<void> {
   // Try Agent SDK first, fall back to CLI subprocess
   try {
@@ -110,6 +112,7 @@ async function runClaudeInSandbox(
           settingSources: [],
           maxTurns: 20,
           abortController: controller,
+          ...(model ? { model } : {}),
         },
       })) {
         // Consume the stream — we only care about side effects (file edits)
@@ -119,7 +122,7 @@ async function runClaudeInSandbox(
     }
   } catch {
     // SDK not available or failed — fall back to CLI
-    await runClaudeCli(cwd, prompt, timeout);
+    await runClaudeCli(cwd, prompt, timeout, model);
   }
 }
 
@@ -127,19 +130,18 @@ async function runClaudeCli(
   cwd: string,
   prompt: string,
   timeout: number,
+  model?: string,
 ): Promise<void> {
   try {
-    await exec(
-      "claude",
-      [
-        "-p", prompt,
-        "--output-format", "text",
-        "--max-turns", "20",
-        "--dangerously-skip-permissions",
-        "--allowedTools", "Bash", "Read", "Write", "Edit", "Glob", "Grep",
-      ],
-      { cwd, timeout, maxBuffer: 10 * 1024 * 1024 },
-    );
+    const args = [
+      "-p", prompt,
+      "--output-format", "text",
+      "--max-turns", "20",
+      "--dangerously-skip-permissions",
+      "--allowedTools", "Bash", "Read", "Write", "Edit", "Glob", "Grep",
+    ];
+    if (model) args.push("--model", model);
+    await exec("claude", args, { cwd, timeout, maxBuffer: 10 * 1024 * 1024 });
   } catch (error: unknown) {
     // Claude might exit non-zero but still produce usable output
     if (error && typeof error === "object" && "stdout" in error) {
