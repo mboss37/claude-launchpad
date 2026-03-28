@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — Claude Launchpad</title>
+  <style>
+    body { background: #09090b; color: #fafafa; font-family: 'Inter', -apple-system, sans-serif; line-height: 1.8; margin: 0; padding: 0; }
+    .container { max-width: 680px; margin: 0 auto; padding: 80px 24px; }
+    h1 { font-size: 32px; font-weight: 700; letter-spacing: -0.03em; margin-bottom: 12px; }
+    h2 { font-size: 20px; font-weight: 600; margin-top: 40px; margin-bottom: 12px; }
+    p, li { color: #a1a1aa; font-size: 15px; margin-bottom: 12px; }
+    ul { padding-left: 20px; }
+    a { color: #3b82f6; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .date { color: #52525b; font-size: 13px; margin-bottom: 40px; }
+    footer { border-top: 1px solid #27272a; margin-top: 60px; padding-top: 24px; text-align: center; }
+    footer p { font-size: 12px; color: #52525b; }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <h1>Privacy Policy</h1>
+    <p class="date">Last updated: March 28, 2026</p>
+
+    <p>Claude Launchpad is an open source CLI tool and Claude Code plugin. This policy explains what data the tool accesses and what it does not collect.</p>
+
+    <h2>What the tool reads</h2>
+    <p>Claude Launchpad reads files in your project directory to diagnose and scaffold Claude Code configurations:</p>
+    <ul>
+      <li><code>CLAUDE.md</code>, <code>.claude/</code>, <code>.claudeignore</code> — analyzed by the doctor command</li>
+      <li><code>package.json</code>, <code>go.mod</code>, <code>pyproject.toml</code>, and other manifest files — used to detect your project's language and framework</li>
+    </ul>
+    <p>All file reading happens locally on your machine. No file contents are sent to any server.</p>
+
+    <h2>What the tool does NOT collect</h2>
+    <ul>
+      <li>No telemetry, analytics, or usage tracking of any kind</li>
+      <li>No personal information</li>
+      <li>No file contents sent to external servers</li>
+      <li>No cookies, local storage, or browser tracking on the landing page</li>
+      <li>No account creation or authentication required</li>
+    </ul>
+
+    <h2>Eval command</h2>
+    <p>The <code>eval</code> command runs Claude Code headless in temporary sandboxed directories to test your configuration. This uses the Anthropic API through your existing Claude Code CLI or the Agent SDK. API usage is subject to <a href="https://www.anthropic.com/privacy">Anthropic's privacy policy</a>. Claude Launchpad does not independently send data to Anthropic — it uses your local Claude Code installation.</p>
+
+    <h2>Enhance command</h2>
+    <p>The <code>enhance</code> command spawns an interactive Claude Code session to analyze your codebase. This runs entirely through your local Claude Code CLI. No data passes through Claude Launchpad — it simply launches Claude with a prompt.</p>
+
+    <h2>Third-party services</h2>
+    <ul>
+      <li><strong>npm</strong> — the package is distributed via npm. npm's <a href="https://docs.npmjs.com/policies/privacy">privacy policy</a> applies to package downloads.</li>
+      <li><strong>GitHub Pages</strong> — the landing page is hosted on GitHub Pages. GitHub's <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">privacy statement</a> applies.</li>
+      <li><strong>Google Fonts</strong> — the landing page loads Inter and JetBrains Mono from Google Fonts. Google's <a href="https://policies.google.com/privacy">privacy policy</a> applies.</li>
+    </ul>
+
+    <h2>Open source</h2>
+    <p>Claude Launchpad is MIT licensed. The complete source code is available at <a href="https://github.com/mboss37/claude-launchpad">github.com/mboss37/claude-launchpad</a>. You can audit exactly what the tool does.</p>
+
+    <h2>Contact</h2>
+    <p>For questions about this policy, open an issue on <a href="https://github.com/mboss37/claude-launchpad/issues">GitHub</a>.</p>
+
+    <footer>
+      <p><a href="/">Claude Launchpad</a> — Built by <a href="https://github.com/mboss37">McLovin</a></p>
+    </footer>
+  </div>
+</body>
+</html>
