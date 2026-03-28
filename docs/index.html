@@ -252,9 +252,20 @@ body { background: #000; color: #e2e2e2; font-family: 'Geist', sans-serif; }
     <p class="text-sm text-text-dim mb-3">Block PRs that degrade your Claude Code config.</p>
     <div class="code-block rounded-xl p-4 font-mono text-xs leading-relaxed">
       <div class="text-text-muted mb-1"># .github/workflows/claude-config.yml</div>
-      <div><span class="text-blue">run</span>: npx claude-launchpad@latest doctor --min-score 80 --json</div>
+      <div><span class="text-blue">name</span>: Claude Code Config Quality</div>
+      <div><span class="text-blue">on</span>:</div>
+      <div>&nbsp;&nbsp;<span class="text-blue">pull_request</span>:</div>
+      <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-blue">paths</span>: [<span class="text-green">'CLAUDE.md'</span>, <span class="text-green">'.claude/**'</span>, <span class="text-green">'.claudeignore'</span>]</div>
+      <div><span class="text-blue">jobs</span>:</div>
+      <div>&nbsp;&nbsp;<span class="text-blue">config-check</span>:</div>
+      <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-blue">runs-on</span>: ubuntu-latest</div>
+      <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-blue">steps</span>:</div>
+      <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- <span class="text-blue">uses</span>: actions/checkout@v4</div>
+      <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- <span class="text-blue">uses</span>: actions/setup-node@v4</div>
+      <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-blue">with</span>: { <span class="text-blue">node-version</span>: <span class="text-green">'22'</span> }</div>
+      <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- <span class="text-blue">run</span>: npx claude-launchpad@latest doctor --min-score 80 --json</div>
     </div>
-    <p class="text-xs text-text-muted mt-2">Score below threshold = exit code 1 = PR blocked.</p>
+    <p class="text-sm text-text-muted mt-2">Copy this file to your repo. Score below 80 = PR blocked.</p>
   </section>
 
 </main>
