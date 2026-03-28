@@ -12,9 +12,10 @@ setup:
     Organize by feature/domain, not by type.
 prompt: "Create comprehensive type definitions for a user management system with users, roles, permissions, teams, invitations, audit logs, and notification preferences. Include CRUD operation types for each entity."
 checks:
-  - type: custom
+  - type: max-lines
+    pattern: "800"
     target: src/
-    expect: present
+    expect: absent
     points: 5
     label: No file exceeds 800 lines
   - type: file-exists

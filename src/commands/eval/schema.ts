@@ -66,7 +66,7 @@ function validateChecks(raw: unknown, filePath: string): ReadonlyArray<EvalCheck
     }
     const check = c as Record<string, unknown>;
 
-    const validTypes = ["grep", "file-exists", "file-absent", "custom"];
+    const validTypes = ["grep", "file-exists", "file-absent", "max-lines", "custom"];
     if (!validTypes.includes(check.type as string)) {
       throw new ScenarioError(filePath, `checks[${i}].type must be one of: ${validTypes.join(", ")}`);
     }

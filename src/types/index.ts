@@ -48,7 +48,7 @@ export interface DoctorReport {
 // ─── Eval Types ───
 
 export interface EvalCheck {
-  readonly type: "grep" | "file-exists" | "file-absent" | "custom";
+  readonly type: "grep" | "file-exists" | "file-absent" | "max-lines" | "custom";
   readonly pattern?: string;
   readonly target: string;
   readonly expect: "present" | "absent";

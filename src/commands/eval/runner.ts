@@ -1,4 +1,4 @@
-import { mkdir, writeFile, readFile, rm, cp } from "node:fs/promises";
+import { mkdir, writeFile, readFile, readdir, rm, cp } from "node:fs/promises";
 import { join, dirname } from "node:path";
 import { tmpdir } from "node:os";
 import { randomUUID } from "node:crypto";
@@ -195,10 +195,46 @@ async function evaluateSingleCheck(check: EvalCheck, sandboxDir: string): Promis
       }
     }
 
+    case "max-lines": {
+      // Check that no file in the target directory exceeds the line count in `pattern`
+      const maxLines = parseInt(check.pattern ?? "800", 10);
+      try {
+        const files = await listAllFiles(join(sandboxDir, check.target));
+        for (const file of files) {
+          const content = await readFile(file, "utf-8");
+          const lineCount = content.split("\n").length;
+          if (lineCount > maxLines) {
+            return check.expect === "absent"; // File exceeds limit = violation present
+          }
+        }
+        return check.expect === "present"; // No file exceeds limit = no violation
+      } catch {
+        return check.expect === "absent";
+      }
+    }
+
     case "custom":
       return false;
 
     default:
       return false;
   }
+}
+
+async function listAllFiles(dir: string): Promise<string[]> {
+  const results: string[] = [];
+  try {
+    const entries = await readdir(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = join(dir, entry.name);
+      if (entry.isDirectory()) {
+        results.push(...await listAllFiles(fullPath));
+      } else {
+        results.push(fullPath);
+      }
+    }
+  } catch {
+    // Directory doesn't exist
+  }
+  return results;
 }
