@@ -13,14 +13,14 @@ npx claude-launchpad
 ## The Workflow
 
 ```bash
-npx claude-launchpad init        # 1. Auto-detect stack, generate config + hooks
-npx claude-launchpad enhance     # 2. Claude reads your code, completes CLAUDE.md
-npx claude-launchpad             # 3. Check your score (42%)
+npx claude-launchpad init          # 1. Auto-detect stack, generate config + hooks + .claudeignore
+npx claude-launchpad enhance       # 2. Claude reads your code, completes CLAUDE.md
+npx claude-launchpad               # 3. Check your score (42%)
 npx claude-launchpad doctor --fix  # 4. Auto-fix everything (→ 86%)
-npx claude-launchpad             # 5. Confirm the jump
+npx claude-launchpad eval          # 5. Prove your config works (89% eval score)
 ```
 
-> See the [full story on the landing page](https://mboss37.github.io/claude-launchpad/) — a 42% → 86% journey in three commands.
+> See the [full story on the landing page](https://mboss37.github.io/claude-launchpad/) — a 42% → 89% journey.
 
 ## Commands
 
@@ -31,26 +31,24 @@ Runs 7 static analyzers against your `.claude/` directory and `CLAUDE.md`. No AP
 ```
   Instruction Budget     ━━━━━━━━━━━━━━━━━━━━   100%
   CLAUDE.md Quality      ━━━━━━━━━━━━━━━━━━━━   100%
-  Settings               ━━━━━━━━━━━━━━━━━───    85%
+  Settings               ━━━━━━━━━━━━━━━━━━━━   100%
   Hooks                  ━━━━━━━━━━━━━━━━━━━━   100%
-  Rules                  ━━━━━━━━━━━━────────    60%
-  Permissions            ━━━━━━━━━━━━━━━━────    80%
+  Rules                  ━━━━━━━━━━━━━━━━━━━━   100%
+  Permissions            ━━━━━━━━━━━━━━━━━━━━   100%
   MCP Servers            ━━━━━━━━━━──────────    50%
 
-  Overall                ━━━━━━━━━━━━━━━━────    82%
+  Overall                ━━━━━━━━━━━━━━━━━━━─    93%
 
-   MEDIUM  Hooks
-    No .env file protection hook
-    Fix: Add a PreToolUse hook that blocks writes to .env files
-
-   LOW  Permissions
-    No force-push protection hook
-    Fix: Add a PreToolUse hook that warns on `git push --force` commands
+  ✓ No issues found. Your configuration looks solid.
 ```
 
 Running bare `claude-launchpad` with no subcommand auto-detects your config and runs doctor.
 
-**Watch mode:** `claude-launchpad doctor --watch` — live score that updates every time you save a config file.
+**Flags:**
+- `--fix` — Auto-apply deterministic fixes (42% → 86% in one command)
+- `--watch` — Live score that updates every time you save a config file
+- `--json` — JSON output for programmatic use
+- `--min-score <n>` — Exit non-zero if score drops below threshold (for CI)
 
 **What it checks:**
 
@@ -58,7 +56,7 @@ Running bare `claude-launchpad` with no subcommand auto-detects your config and 
 |---|---|
 | **Instruction Budget** | Are you over the ~150 instruction limit where Claude starts ignoring rules? |
 | **CLAUDE.md Quality** | Missing essential sections, vague instructions ("write good code"), hardcoded secrets |
-| **Settings** | Plugin config, permission rules, environment variables |
+| **Settings** | Hooks configured, dangerous tool access without safety nets |
 | **Hooks** | Missing auto-format, no .env protection, no PreToolUse security gates |
 | **Rules** | Dead rule files, stale references, empty configs |
 | **Permissions** | Bash auto-allowed without security hooks, no force-push protection |
@@ -82,6 +80,7 @@ claude-launchpad init
   ✓ Generated CLAUDE.md
   ✓ Generated TASKS.md
   ✓ Generated .claude/settings.json (with hooks)
+  ✓ Generated .claudeignore
 ```
 
 **Detects 13 languages:** TypeScript, JavaScript, Python, Go, Ruby, Rust, Dart, PHP, Java, Kotlin, Swift, Elixir, C#
@@ -93,7 +92,8 @@ claude-launchpad init
 **What you get:**
 - `CLAUDE.md` with your detected stack, commands, and essential sections
 - `TASKS.md` for session continuity across Claude sessions
-- `.claude/settings.json` with auto-format hooks and .env file protection
+- `.claude/settings.json` with auto-format hooks and .env file protection (merges with existing)
+- `.claudeignore` with language-specific ignore patterns (node_modules, __pycache__, dist, etc.)
 
 ### `enhance` — Let Claude finish what init started
 
@@ -111,22 +111,29 @@ Claude opens, reads your code, and updates CLAUDE.md with:
 
 You see Claude working in real-time — same experience as running `claude` yourself.
 
-### `eval` — Test your config (coming soon)
+### `eval` — Prove your config works
 
-Runs Claude headless against reproducible scenarios and **scores how well your config actually works**.
+Runs Claude headless against 9 reproducible scenarios using the [Agent SDK](https://www.npmjs.com/package/@anthropic-ai/claude-agent-sdk) and **scores how well your config actually drives correct behavior**.
 
 ```bash
-claude-launchpad eval --suite security
+claude-launchpad eval --suite common
 ```
 
 ```
   ✓ security/sql-injection          10/10  PASS
-  ✓ security/env-file-protection    10/10  PASS
-  ✗ conventions/error-handling       7/10  WARN
-  ✗ conventions/file-size            4/10  FAIL
+  ✓ security/env-protection         10/10  PASS
+  ✓ security/secret-exposure        10/10  PASS
+  ✓ security/input-validation       10/10  PASS
+  ✓ conventions/error-handling      10/10  PASS
+  ✓ conventions/immutability        10/10  PASS
+  ✓ conventions/no-hardcoded-values 10/10  PASS
+  ✓ conventions/file-size           10/10  PASS
+  ✗ workflow/git-conventions         7/10  WARN
 
-  Config Eval Score        ━━━━━━━━━━━━━━━━────    78%
+  Config Eval Score      ━━━━━━━━━━━━━━━━━━──    89%
 ```
+
+Each scenario creates an isolated sandbox, runs Claude with explicit tool permissions, and verifies the output with grep/file assertions. [Write your own scenarios](scenarios/CONTRIBUTING.md) in YAML.
 
 This is the part nobody else has built. Template repos scaffold. Audit tools diagnose. **Nobody tests whether your config actually makes Claude better.** Until now.
 
@@ -150,7 +157,7 @@ jobs:
       - run: npx claude-launchpad@latest doctor --min-score 80 --json
 ```
 
-Exit code is 1 when score is below the threshold, 0 when it passes. The workflow only triggers when Claude Code config files change.
+Exit code is 1 when score is below the threshold, 0 when it passes.
 
 ## Install as a Plugin
 
@@ -158,7 +165,7 @@ Exit code is 1 when score is below the threshold, 0 when it passes. The workflow
 claude plugin install claude-launchpad
 ```
 
-Then use `/doctor` and `/init` directly inside Claude Code.
+Then use `/launchpad:doctor`, `/launchpad:init`, `/launchpad:enhance`, and `/launchpad:eval` directly inside Claude Code. The plugin also nudges you to re-check your score when you edit config files.
 
 ## Why this exists
 
@@ -176,10 +183,11 @@ Claude Launchpad gives you a number. Fix the issues, re-run, watch the number go
 - **Zero dependencies on third-party Claude plugins.** Generates its own hooks and settings.
 - **Doctor is free.** No API calls, no secrets, works offline and air-gapped.
 - **Enhance uses Claude.** Spawns an interactive session to understand your codebase — costs tokens but produces a CLAUDE.md that actually knows your project.
-- **Eval costs money.** Runs Claude headless against scenarios — proof that your config works.
+- **Eval uses the Agent SDK.** Runs Claude headless in sandboxes with explicit tool permissions — proof that your config works.
 - **Works with any stack.** Auto-detects your project. No fixed menu of supported frameworks.
+- **50 tests.** The tool that tests configs is itself well-tested.
 - **You never clone this repo.** It's a tool you run with `npx`, not a template you fork.
 
 ## License
 
-MIT
+MIT — Built by [McLovin](https://github.com/mboss37) (the AI behind [@mboss37](https://github.com/mboss37))
