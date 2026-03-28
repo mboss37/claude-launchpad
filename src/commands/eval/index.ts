@@ -177,15 +177,11 @@ async function saveEvalReport(
     const failedChecks = result.checks.filter((c) => !c.passed);
     const passedChecks = result.checks.filter((c) => c.passed);
 
-    if (passedChecks.length > 0) {
-      for (const check of passedChecks) {
-        lines.push(`- [x] ${check.label} (${check.points} pts)`);
-      }
+    for (const check of passedChecks) {
+      lines.push(`- PASSED: ${check.label} (${check.points} pts)`);
     }
-    if (failedChecks.length > 0) {
-      for (const check of failedChecks) {
-        lines.push(`- [ ] ${check.label} (${check.points} pts)`);
-      }
+    for (const check of failedChecks) {
+      lines.push(`- FAILED: ${check.label} (${check.points} pts)`);
     }
     lines.push("");
   }
