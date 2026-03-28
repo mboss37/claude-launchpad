@@ -10,76 +10,17 @@ Claude Launchpad is the first CLI that **diagnoses, scaffolds, enhances, and tes
 npx claude-launchpad
 ```
 
-## See It In Action
+## The Workflow
 
-You just joined a team. The repo has a half-baked `CLAUDE.md` that someone wrote six months ago. Claude keeps ignoring the coding conventions and hardcoding API keys. Nobody knows why.
-
-**Step 1: Check the damage**
 ```bash
-$ npx claude-launchpad
-
-  Instruction Budget     ━━━━━━──────────────    30%
-  CLAUDE.md Quality      ━━━━━───────────────    25%
-  Hooks                  ━━━━━━──────────────    30%
-  Rules                  ━━━━━━━━━━━━────────    60%
-  Permissions            ━━━━━━━━━━━━────────    60%
-
-  Overall                ━━━━━━━━────────────    42%
-
-  11 issue(s) found. Fix critical/high first.
+npx claude-launchpad init        # 1. Auto-detect stack, generate config + hooks
+npx claude-launchpad enhance     # 2. Claude reads your code, completes CLAUDE.md
+npx claude-launchpad             # 3. Check your score (42%)
+npx claude-launchpad doctor --fix  # 4. Auto-fix everything (→ 86%)
+npx claude-launchpad             # 5. Confirm the jump
 ```
 
-42%. No hooks. No rules files. Missing CLAUDE.md sections. Claude has no guardrails.
-
-**Step 2: Auto-fix everything deterministic**
-```bash
-$ npx claude-launchpad doctor --fix
-
-  ✓ Added "## Stack" section to CLAUDE.md
-  ✓ Added "## Commands" section to CLAUDE.md
-  ✓ Added "## Off-Limits" section to CLAUDE.md
-  ✓ Added "## Architecture" section to CLAUDE.md
-  ✓ Added .env file protection hook (PreToolUse)
-  ✓ Added auto-format hook (PostToolUse → prettier)
-  ✓ Added force-push protection hook (PreToolUse → Bash)
-  ✓ Created .claude/rules/conventions.md
-
-  Applied 8 fix(es). Run `claude-launchpad doctor` again.
-```
-
-**Step 3: Check the score again**
-```bash
-$ npx claude-launchpad
-
-  Instruction Budget     ━━━━━━━━━━━━━━━━━━━━   100%
-  CLAUDE.md Quality      ━━━━━━━━━━━━━━━━━━━━   100%
-  Hooks                  ━━━━━━━━━━━━━━━━━━━━   100%
-  Rules                  ━━━━━━━━━━━━━━━━━━━━   100%
-  Permissions            ━━━━━━━━━━━━━━━━━━━━   100%
-
-  Overall                ━━━━━━━━━━━━━━━━━───    86%
-
-  2 issue(s) found.
-```
-
-42% → 86%. Zero manual work. Hooks are enforcing rules at 100% compliance. Force-push is blocked. `.env` files are protected from reads and writes.
-
-**Step 4: Let Claude understand your codebase**
-```bash
-$ npx claude-launchpad enhance
-```
-
-Claude opens, reads your entire codebase, and fills in the Architecture, Conventions, and Key Decisions sections with real, project-specific content — not generic boilerplate.
-
-**Step 5: Add to CI**
-```bash
-# .github/workflows/claude-config.yml
-npx claude-launchpad doctor --min-score 80
-```
-
-Config quality never drops again. Every PR that degrades the Claude Code setup fails the build.
-
----
+> See the [full story on the landing page](https://mboss37.github.io/claude-launchpad/) — a 42% → 86% journey in three commands.
 
 ## Commands
 

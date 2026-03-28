@@ -468,6 +468,62 @@
     </div>
   </section>
 
+  <!-- Story: The Journey -->
+  <section class="story" style="padding: 80px 0; border-top: 1px solid var(--border);">
+    <div class="container">
+      <h2 style="font-size: 28px; font-weight: 700; letter-spacing: -0.02em; text-align: center; margin-bottom: 12px;">The 42% &rarr; 86% Story</h2>
+      <p style="text-align: center; color: var(--text-dim); font-size: 15px; margin-bottom: 48px; max-width: 560px; margin-left: auto; margin-right: auto;">You just joined a team. The repo has a half-baked CLAUDE.md from six months ago. Claude keeps ignoring coding conventions and hardcoding API keys. Nobody knows why.</p>
+
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px;">
+
+        <!-- Step 1 -->
+        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px;">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+            <span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 50%; font-size: 13px; font-weight: 700; color: var(--accent);">1</span>
+            <span style="font-family: var(--mono); font-size: 13px; color: var(--green);">npx claude-launchpad</span>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; line-height: 1.6; color: var(--text-dim);">
+            <div>Overall <span style="color: var(--red); font-weight: 700;">42%</span></div>
+            <div style="margin-top: 4px;"><span style="color: var(--red);">━━━━━━━━</span><span style="color: var(--text-muted); opacity: 0.3;">────────────</span></div>
+            <div style="margin-top: 8px; font-size: 11px;">11 issues found</div>
+          </div>
+          <p style="font-size: 13px; color: var(--text-dim); margin-top: 12px; line-height: 1.6;">No hooks. No rules. Missing CLAUDE.md sections. Claude has zero guardrails.</p>
+        </div>
+
+        <!-- Step 2 -->
+        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px;">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+            <span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 50%; font-size: 13px; font-weight: 700; color: var(--accent);">2</span>
+            <span style="font-family: var(--mono); font-size: 13px; color: var(--green);">doctor --fix</span>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; line-height: 1.8; color: var(--text-dim);">
+            <div><span style="color: var(--green);">&#10003;</span> .env protection hook</div>
+            <div><span style="color: var(--green);">&#10003;</span> Auto-format hook</div>
+            <div><span style="color: var(--green);">&#10003;</span> Force-push protection</div>
+            <div><span style="color: var(--green);">&#10003;</span> CLAUDE.md sections</div>
+            <div><span style="color: var(--green);">&#10003;</span> Starter rules</div>
+          </div>
+          <p style="font-size: 13px; color: var(--text-dim); margin-top: 12px; line-height: 1.6;">8 fixes applied automatically. Zero manual work.</p>
+        </div>
+
+        <!-- Step 3 -->
+        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px;">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+            <span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 50%; font-size: 13px; font-weight: 700; color: var(--accent);">3</span>
+            <span style="font-family: var(--mono); font-size: 13px; color: var(--green);">npx claude-launchpad</span>
+          </div>
+          <div style="font-family: var(--mono); font-size: 12px; line-height: 1.6; color: var(--text-dim);">
+            <div>Overall <span style="color: var(--green); font-weight: 700;">86%</span></div>
+            <div style="margin-top: 4px;"><span style="color: var(--green);">━━━━━━━━━━━━━━━━━</span><span style="color: var(--text-muted); opacity: 0.3;">───</span></div>
+            <div style="margin-top: 8px; font-size: 11px;">2 issues remaining (optional)</div>
+          </div>
+          <p style="font-size: 13px; color: var(--text-dim); margin-top: 12px; line-height: 1.6;">Hooks enforce rules at 100%. Force-push blocked. .env protected. Config quality locked in.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
   <!-- Three Pillars -->
   <section class="pillars">
     <div class="container">
