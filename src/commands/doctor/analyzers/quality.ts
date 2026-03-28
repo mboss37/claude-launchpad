@@ -1,7 +1,7 @@
 import type { ClaudeConfig, AnalyzerResult, DiagnosticIssue } from "../../../types/index.js";
 
 const ESSENTIAL_SECTIONS = [
-  { pattern: /^##\s+Stack/m, name: "Stack", why: "Claude performs worse without knowing the tech stack" },
+  { pattern: /^##\s+(Tech )?Stack/m, name: "Stack", why: "Claude performs worse without knowing the tech stack" },
   { pattern: /^##\s+Commands/m, name: "Commands", why: "Claude guesses wrong without explicit dev/build/test commands" },
   { pattern: /^##\s+Session Start/m, name: "Session Start", why: "Without this, Claude won't read TASKS.md or maintain continuity" },
   { pattern: /^##\s+Off.?Limits/m, name: "Off-Limits", why: "Without guardrails, Claude has no boundaries beyond defaults" },
