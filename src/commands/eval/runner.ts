@@ -1,4 +1,4 @@
-import { mkdir, writeFile, readFile, readdir, rm, cp } from "node:fs/promises";
+import { mkdir, writeFile, readFile, readdir, rm } from "node:fs/promises";
 import { join, dirname } from "node:path";
 import { tmpdir } from "node:os";
 import { randomUUID } from "node:crypto";
@@ -15,14 +15,13 @@ interface RunOptions {
 }
 
 /**
- * Execute a single eval scenario run.
+ * Execute a single eval scenario run using the Agent SDK.
  *
  * 1. Create a temp directory with the scenario's seed files
- * 2. Copy the project's .claude/ config into it
- * 3. Write a minimal CLAUDE.md with the scenario's instructions
- * 4. Run Claude headless with the scenario prompt
- * 5. Check the results against the scenario's checks
- * 6. Clean up
+ * 2. Write a minimal CLAUDE.md with the scenario's instructions
+ * 3. Run Claude via Agent SDK with explicit tool permissions
+ * 4. Check the results against the scenario's checks
+ * 5. Clean up
  */
 export async function runScenario(
   scenario: EvalScenario,
@@ -31,61 +30,9 @@ export async function runScenario(
   const sandboxDir = join(tmpdir(), `claude-eval-${randomUUID()}`);
 
   try {
-    // 1. Set up sandbox
-    await mkdir(sandboxDir, { recursive: true });
-
-    // 2. Write seed files
-    for (const file of scenario.setup.files) {
-      const filePath = join(sandboxDir, file.path);
-      await mkdir(dirname(filePath), { recursive: true });
-      await writeFile(filePath, file.content);
-    }
-
-    // 3. Copy .claude/ config from the real project
-    const claudeDir = join(options.projectRoot, ".claude");
-    const sandboxClaudeDir = join(sandboxDir, ".claude");
-    try {
-      await cp(claudeDir, sandboxClaudeDir, { recursive: true });
-    } catch {
-      // No .claude/ dir to copy — that's fine
-    }
-
-    // 4. Write CLAUDE.md with scenario instructions
-    if (scenario.setup.instructions) {
-      await writeFile(
-        join(sandboxDir, "CLAUDE.md"),
-        `# Eval Scenario\n\n${scenario.setup.instructions}\n`,
-      );
-    }
-
-    // 5. Initialize a git repo (Claude Code expects one)
-    await exec("git", ["init", "-q"], { cwd: sandboxDir });
-    await exec("git", ["add", "-A"], { cwd: sandboxDir });
-    await exec("git", [
-      "-c", "user.name=eval",
-      "-c", "user.email=eval@test",
-      "commit", "-q", "-m", "eval setup",
-    ], { cwd: sandboxDir });
-
-    // 6. Run Claude headless in bare mode (no hooks/plugins — test raw CLAUDE.md compliance)
-    await runClaude(sandboxDir, scenario.prompt, options.timeout);
-
-    // 7. Check results
-    const checkResults = await evaluateChecks(scenario.checks, sandboxDir);
-
-    const score = checkResults
-      .filter((c) => c.passed)
-      .reduce((sum, c) => sum + c.points, 0);
-
-    const maxScore = scenario.checks.reduce((sum, c) => sum + c.points, 0);
-
-    return {
-      scenario: scenario.name,
-      score,
-      maxScore,
-      passed: score >= scenario.passingScore,
-      checks: checkResults,
-    };
+    await setupSandbox(sandboxDir, scenario);
+    await runClaudeInSandbox(sandboxDir, scenario.prompt, options.timeout);
+    return await scoreResults(scenario, sandboxDir);
   } finally {
     if (options.debug) {
       console.log(`  DEBUG: Sandbox preserved at ${sandboxDir}`);
@@ -113,42 +60,117 @@ export async function runScenarioWithRetries(
   return sorted[Math.floor(sorted.length / 2)];
 }
 
+// ─── Sandbox Setup ───
+
+async function setupSandbox(sandboxDir: string, scenario: EvalScenario): Promise<void> {
+  await mkdir(sandboxDir, { recursive: true });
+
+  for (const file of scenario.setup.files) {
+    const filePath = join(sandboxDir, file.path);
+    await mkdir(dirname(filePath), { recursive: true });
+    await writeFile(filePath, file.content);
+  }
+
+  if (scenario.setup.instructions) {
+    await writeFile(
+      join(sandboxDir, "CLAUDE.md"),
+      `# Eval Scenario\n\n${scenario.setup.instructions}\n`,
+    );
+  }
+
+  await exec("git", ["init", "-q"], { cwd: sandboxDir });
+  await exec("git", ["add", "-A"], { cwd: sandboxDir });
+  await exec("git", [
+    "-c", "user.name=eval",
+    "-c", "user.email=eval@test",
+    "commit", "-q", "-m", "eval setup",
+  ], { cwd: sandboxDir });
+}
+
 // ─── Claude Execution ───
 
-async function runClaude(
+async function runClaudeInSandbox(
   cwd: string,
   prompt: string,
   timeout: number,
-): Promise<{ stdout: string; stderr: string }> {
+): Promise<void> {
+  // Try Agent SDK first, fall back to CLI subprocess
   try {
-    return await exec(
+    const sdk = await import("@anthropic-ai/claude-agent-sdk");
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+    try {
+      for await (const _message of sdk.query({
+        prompt,
+        options: {
+          cwd,
+          allowedTools: ["Bash", "Read", "Write", "Edit", "Glob", "Grep"],
+          permissionMode: "dontAsk",
+          settingSources: [],
+          maxTurns: 20,
+          abortController: controller,
+        },
+      })) {
+        // Consume the stream — we only care about side effects (file edits)
+      }
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  } catch {
+    // SDK not available or failed — fall back to CLI
+    await runClaudeCli(cwd, prompt, timeout);
+  }
+}
+
+async function runClaudeCli(
+  cwd: string,
+  prompt: string,
+  timeout: number,
+): Promise<void> {
+  try {
+    await exec(
       "claude",
       [
         "-p", prompt,
         "--output-format", "text",
         "--max-turns", "20",
         "--dangerously-skip-permissions",
-        "--allowedTools", "Read", "Write", "Edit", "Bash", "Glob", "Grep",
+        "--allowedTools", "Bash", "Read", "Write", "Edit", "Glob", "Grep",
       ],
-      {
-        cwd,
-        timeout,
-        maxBuffer: 10 * 1024 * 1024,
-      },
+      { cwd, timeout, maxBuffer: 10 * 1024 * 1024 },
     );
   } catch (error: unknown) {
     // Claude might exit non-zero but still produce usable output
     if (error && typeof error === "object" && "stdout" in error) {
-      return {
-        stdout: String((error as Record<string, unknown>).stdout ?? ""),
-        stderr: String((error as Record<string, unknown>).stderr ?? ""),
-      };
+      return; // Files may have been modified despite exit code
     }
     throw error;
   }
 }
 
-// ─── Check Evaluation ───
+// ─── Scoring ───
+
+async function scoreResults(
+  scenario: EvalScenario,
+  sandboxDir: string,
+): Promise<EvalRunResult> {
+  const checkResults = await evaluateChecks(scenario.checks, sandboxDir);
+
+  const score = checkResults
+    .filter((c) => c.passed)
+    .reduce((sum, c) => sum + c.points, 0);
+
+  const maxScore = scenario.checks.reduce((sum, c) => sum + c.points, 0);
+
+  return {
+    scenario: scenario.name,
+    score,
+    maxScore,
+    passed: score >= scenario.passingScore,
+    checks: checkResults,
+  };
+}
 
 async function evaluateChecks(
   checks: ReadonlyArray<EvalCheck>,
@@ -166,65 +188,74 @@ async function evaluateChecks(
 
 async function evaluateSingleCheck(check: EvalCheck, sandboxDir: string): Promise<boolean> {
   switch (check.type) {
-    case "grep": {
-      if (!check.pattern) return false;
-      try {
-        const content = await readFile(join(sandboxDir, check.target), "utf-8");
-        let found: boolean;
-        try {
-          found = new RegExp(check.pattern).test(content);
-        } catch {
-          return false; // Invalid regex pattern
-        }
-        return check.expect === "present" ? found : !found;
-      } catch {
-        return check.expect === "absent";
-      }
-    }
-
-    case "file-exists": {
-      try {
-        await readFile(join(sandboxDir, check.target));
-        return check.expect === "present";
-      } catch {
-        return check.expect === "absent";
-      }
-    }
-
-    case "file-absent": {
-      try {
-        await readFile(join(sandboxDir, check.target));
-        return check.expect === "absent";
-      } catch {
-        return check.expect === "present";
-      }
-    }
-
-    case "max-lines": {
-      // Check that no file in the target directory exceeds the line count in `pattern`
-      const maxLines = parseInt(check.pattern ?? "800", 10);
-      try {
-        const files = await listAllFiles(join(sandboxDir, check.target));
-        for (const file of files) {
-          const content = await readFile(file, "utf-8");
-          const lineCount = content.split("\n").length;
-          if (lineCount > maxLines) {
-            return check.expect === "absent"; // File exceeds limit = violation present
-          }
-        }
-        return check.expect === "present"; // No file exceeds limit = no violation
-      } catch {
-        return check.expect === "absent";
-      }
-    }
-
+    case "grep":
+      return checkGrep(check, sandboxDir);
+    case "file-exists":
+      return checkFileExists(check, sandboxDir);
+    case "file-absent":
+      return checkFileAbsent(check, sandboxDir);
+    case "max-lines":
+      return checkMaxLines(check, sandboxDir);
     case "custom":
       return false;
-
     default:
       return false;
   }
 }
+
+// ─── Individual Check Implementations ───
+
+async function checkGrep(check: EvalCheck, sandboxDir: string): Promise<boolean> {
+  if (!check.pattern) return false;
+  try {
+    const content = await readFile(join(sandboxDir, check.target), "utf-8");
+    let found: boolean;
+    try {
+      found = new RegExp(check.pattern).test(content);
+    } catch {
+      return false; // Invalid regex
+    }
+    return check.expect === "present" ? found : !found;
+  } catch {
+    return check.expect === "absent";
+  }
+}
+
+async function checkFileExists(check: EvalCheck, sandboxDir: string): Promise<boolean> {
+  try {
+    await readFile(join(sandboxDir, check.target));
+    return check.expect === "present";
+  } catch {
+    return check.expect === "absent";
+  }
+}
+
+async function checkFileAbsent(check: EvalCheck, sandboxDir: string): Promise<boolean> {
+  try {
+    await readFile(join(sandboxDir, check.target));
+    return check.expect === "absent";
+  } catch {
+    return check.expect === "present";
+  }
+}
+
+async function checkMaxLines(check: EvalCheck, sandboxDir: string): Promise<boolean> {
+  const maxLines = parseInt(check.pattern ?? "800", 10);
+  try {
+    const files = await listAllFiles(join(sandboxDir, check.target));
+    for (const file of files) {
+      const content = await readFile(file, "utf-8");
+      if (content.split("\n").length > maxLines) {
+        return check.expect === "absent";
+      }
+    }
+    return check.expect === "present";
+  } catch {
+    return check.expect === "absent";
+  }
+}
+
+// ─── Utilities ───
 
 async function listAllFiles(dir: string): Promise<string[]> {
   const results: string[] = [];
