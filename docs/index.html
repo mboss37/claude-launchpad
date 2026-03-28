@@ -249,7 +249,7 @@ body { background: #000; color: #e2e2e2; font-family: 'Geist', sans-serif; }
   <!-- CI -->
   <section class="mb-16">
     <h2 class="text-lg font-semibold text-white mb-4 border-l-2 border-accent pl-3">Use in CI</h2>
-    <p class="text-sm text-text-dim mb-3">Block PRs that degrade your Claude Code config.</p>
+    <p class="text-sm text-text-dim mb-3">Once your config scores well, lock it in. Add this GitHub Action to your repo and every pull request that touches Claude Code config files will be checked automatically. If someone's change drops the score below your threshold, the PR gets blocked until they fix it. Your config quality never degrades.</p>
     <div class="code-block rounded-xl p-4 font-mono text-xs leading-relaxed">
       <div class="text-text-muted mb-1"># .github/workflows/claude-config.yml</div>
       <div><span class="text-blue">name</span>: Claude Code Config Quality</div>
