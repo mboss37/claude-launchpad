@@ -16,14 +16,17 @@
 ### In Progress
 
 ### To Do
-- [ ] Publish v0.2.0 to npm (Agent SDK, single-pass fix, all Sprint 5 improvements)
-- [ ] Submit plugin to Claude Code marketplace
-- [ ] doctor --watch (re-run on .claude/ file changes)
-- [ ] Config diff: "score dropped from 85% → 72% in this PR" in GitHub Action output
-- [ ] Community scenario format documentation
-- [ ] More eval scenarios: git-conventions, session-continuity
+- [ ] Submit plugin to marketplace (needs human: claude.ai/settings/plugins/submit)
+- [ ] Config diff in GitHub Action output (before/after score comparison)
+- [ ] Community scenario format documentation (how to write your own YAML scenarios)
+- [ ] More test coverage for fixer.ts and runner.ts
 
 ### Done
+- [x] v0.2.0 published to npm
+- [x] doctor --watch (live score on config changes)
+- [x] 2 new eval scenarios (git-conventions, no-hardcoded-values) — 9 total
+- [x] Complete plugin: 4 skills (/doctor, /init, /enhance, /eval) + PostToolUse hook
+- [x] Plugin manifest updated with author, repository, homepage
 
 ## Upcoming
 - **Sprint 7**: Smart init (Claude-driven hooks), MCP server recommendations
@@ -32,6 +35,6 @@
 ### 2026-03-28
 - Published to npm (v0.1.0), stress tested 8 stacks, terminal carousel, cleaned global config
 ### 2026-03-28 (session 2)
-- Single-pass --fix (42%→86%), 48 tests, GitHub Action, max-lines check, Agent SDK eval runner
-- Code review process added to CLAUDE.md (pre-commit checklist + parallel agents guidance)
-- Refactored eval: Agent SDK primary, CLI fallback, decomposed into 5 focused functions
+- Single-pass --fix, 48 tests, GitHub Action, Agent SDK eval runner, code review process
+### 2026-03-28 (session 3)
+- v0.2.0 published. doctor --watch. 9 eval scenarios. Complete plugin (4 skills + hook).
