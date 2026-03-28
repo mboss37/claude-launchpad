@@ -1,0 +1,21 @@
+name: Claude Code Config Quality
+
+on:
+  pull_request:
+    paths:
+      - 'CLAUDE.md'
+      - '.claude/**'
+      - '.claudeignore'
+
+jobs:
+  config-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Check Claude Code config quality
+        run: npx claude-launchpad@latest doctor --min-score 80 --json

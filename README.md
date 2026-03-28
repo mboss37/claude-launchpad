@@ -130,15 +130,25 @@ This is the part nobody else has built. Template repos scaffold. Audit tools dia
 
 ## Use in CI
 
-```bash
-# Fail the build if config quality drops below 80%
-npx claude-launchpad doctor --min-score 80
+Add this workflow to block PRs that degrade Claude Code config quality:
 
-# JSON output for programmatic use
-npx claude-launchpad doctor --json
+```yaml
+# .github/workflows/claude-config.yml
+name: Claude Code Config Quality
+on:
+  pull_request:
+    paths: ['CLAUDE.md', '.claude/**', '.claudeignore']
+jobs:
+  config-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      - run: npx claude-launchpad@latest doctor --min-score 80 --json
 ```
 
-Exit code is 1 when score is below the threshold, 0 when it passes.
+Exit code is 1 when score is below the threshold, 0 when it passes. The workflow only triggers when Claude Code config files change.
 
 ## Install as a Plugin
 
