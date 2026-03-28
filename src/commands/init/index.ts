@@ -3,6 +3,7 @@ import { input, confirm } from "@inquirer/prompts";
 import { writeFile, mkdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { printBanner, log } from "../../lib/output.js";
+import { fileExists } from "../../lib/fs-utils.js";
 import { detectProject } from "../../lib/detect.js";
 import type { InitOptions, DetectedProject } from "../../types/index.js";
 import { generateClaudeMd } from "./generators/claude-md.js";
@@ -107,14 +108,6 @@ async function scaffold(root: string, options: InitOptions, detected: DetectedPr
   log.blank();
 }
 
-async function fileExists(path: string): Promise<boolean> {
-  try {
-    await readFile(path);
-    return true;
-  } catch {
-    return false;
-  }
-}
 
 async function mergeSettings(
   existingPath: string,

@@ -1,5 +1,5 @@
-import { readFile, access } from "node:fs/promises";
 import { join, basename } from "node:path";
+import { fileExists, readFileOrNull, readJsonOrNull } from "./fs-utils.js";
 import type { DetectedProject } from "../types/index.js";
 
 /**
@@ -320,32 +320,6 @@ interface PackageJson {
 interface ComposerJson {
   require?: Record<string, string>;
   "require-dev"?: Record<string, string>;
-}
-
-async function readJsonOrNull<T>(path: string): Promise<T | null> {
-  try {
-    const content = await readFile(path, "utf-8");
-    return JSON.parse(content) as T;
-  } catch {
-    return null;
-  }
-}
-
-async function readFileOrNull(path: string): Promise<string | null> {
-  try {
-    return await readFile(path, "utf-8");
-  } catch {
-    return null;
-  }
-}
-
-async function fileExists(path: string): Promise<boolean> {
-  try {
-    await access(path);
-    return true;
-  } catch {
-    return false;
-  }
 }
 
 async function globExists(dir: string, pattern: string): Promise<boolean> {

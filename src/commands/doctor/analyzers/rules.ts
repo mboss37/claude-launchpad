@@ -1,5 +1,6 @@
-import { readFile, access } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import { basename, join, dirname } from "node:path";
+import { fileExists } from "../../../lib/fs-utils.js";
 import type { ClaudeConfig, AnalyzerResult, DiagnosticIssue } from "../../../types/index.js";
 
 export async function analyzeRules(config: ClaudeConfig): Promise<AnalyzerResult> {
@@ -59,11 +60,3 @@ export async function analyzeRules(config: ClaudeConfig): Promise<AnalyzerResult
   return { name: "Rules", issues, score };
 }
 
-async function fileExists(path: string): Promise<boolean> {
-  try {
-    await access(path);
-    return true;
-  } catch {
-    return false;
-  }
-}

@@ -1,5 +1,6 @@
-import { readFile, readdir, access } from "node:fs/promises";
+import { readdir, access } from "node:fs/promises";
 import { join, resolve } from "node:path";
+import { readFileOrNull } from "./fs-utils.js";
 import type { ClaudeConfig, HookConfig, McpServerConfig } from "../types/index.js";
 
 const CLAUDE_MD = "CLAUDE.md";
@@ -176,15 +177,6 @@ async function readSkills(claudeDir: string): Promise<ReadonlyArray<string>> {
   return [...commands, ...skills];
 }
 
-// ─── Utilities ───
-
-async function readFileOrNull(path: string): Promise<string | null> {
-  try {
-    return await readFile(path, "utf-8");
-  } catch {
-    return null;
-  }
-}
 
 async function listFilesRecursive(dir: string, ext: string): Promise<string[]> {
   try {

@@ -1,11 +1,11 @@
 import { Command } from "commander";
-import { access } from "node:fs/promises";
 import { join } from "node:path";
 import { createInitCommand } from "./commands/init/index.js";
 import { createDoctorCommand } from "./commands/doctor/index.js";
 import { createEvalCommand } from "./commands/eval/index.js";
 import { createEnhanceCommand } from "./commands/enhance/index.js";
 import { printBanner, log } from "./lib/output.js";
+import { fileExists } from "./lib/fs-utils.js";
 
 const program = new Command()
   .name("claude-launchpad")
@@ -36,12 +36,3 @@ program.addCommand(createEnhanceCommand());
 program.addCommand(createEvalCommand());
 
 program.parse();
-
-async function fileExists(path: string): Promise<boolean> {
-  try {
-    await access(path);
-    return true;
-  } catch {
-    return false;
-  }
-}
