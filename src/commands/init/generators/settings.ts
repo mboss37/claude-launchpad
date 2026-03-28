@@ -47,71 +47,35 @@ export function generateSettings(detected: DetectedProject): ClaudeSettings {
   return Object.keys(hooks).length > 0 ? { hooks } : {};
 }
 
+// Safe formatter commands — never interpolate user-controlled strings into shell commands
+const SAFE_FORMATTERS: Record<string, { extensions: string[]; command: string }> = {
+  TypeScript: { extensions: ["ts", "tsx"], command: "npx prettier --write" },
+  JavaScript: { extensions: ["js", "jsx"], command: "npx prettier --write" },
+  Python: { extensions: ["py"], command: "ruff format" },
+  Go: { extensions: ["go"], command: "gofmt -w" },
+  Rust: { extensions: ["rs"], command: "rustfmt" },
+  Ruby: { extensions: ["rb"], command: "rubocop -A" },
+  Dart: { extensions: ["dart"], command: "dart format" },
+  PHP: { extensions: ["php"], command: "vendor/bin/pint" },
+  Kotlin: { extensions: ["kt", "kts"], command: "ktlint -F" },
+  Java: { extensions: ["java"], command: "google-java-format -i" },
+  Swift: { extensions: ["swift"], command: "swift-format format -i" },
+  Elixir: { extensions: ["ex", "exs"], command: "mix format" },
+  "C#": { extensions: ["cs"], command: "dotnet format" },
+};
+
 function buildFormatHook(detected: DetectedProject): HookGroup | null {
   if (!detected.language) return null;
 
-  const formatters: Record<string, { extensions: string[]; command: string }> = {
-    TypeScript: {
-      extensions: ["ts", "tsx"],
-      command: detected.formatCommand ?? "npx prettier --write",
-    },
-    JavaScript: {
-      extensions: ["js", "jsx"],
-      command: detected.formatCommand ?? "npx prettier --write",
-    },
-    Python: {
-      extensions: ["py"],
-      command: detected.formatCommand ?? "ruff format",
-    },
-    Go: {
-      extensions: ["go"],
-      command: "gofmt -w",
-    },
-    Rust: {
-      extensions: ["rs"],
-      command: "rustfmt",
-    },
-    Ruby: {
-      extensions: ["rb"],
-      command: "rubocop -A",
-    },
-    Dart: {
-      extensions: ["dart"],
-      command: "dart format",
-    },
-    PHP: {
-      extensions: ["php"],
-      command: detected.formatCommand ?? "vendor/bin/pint",
-    },
-    Kotlin: {
-      extensions: ["kt", "kts"],
-      command: "ktlint -F",
-    },
-    Java: {
-      extensions: ["java"],
-      command: "google-java-format -i",
-    },
-    Swift: {
-      extensions: ["swift"],
-      command: "swift-format format -i",
-    },
-    Elixir: {
-      extensions: ["ex", "exs"],
-      command: "mix format",
-    },
-    "C#": {
-      extensions: ["cs"],
-      command: "dotnet format",
-    },
-  };
-
-  const config = formatters[detected.language];
+  const config = SAFE_FORMATTERS[detected.language];
   if (!config) return null;
 
   const extChecks = config.extensions
     .map((ext) => `[ "$ext" = "${ext}" ]`)
     .join(" || ");
 
+  // Only use hardcoded safe commands — never interpolate detected.formatCommand
+  // to prevent command injection via malicious package.json scripts
   return {
     matcher: "Write|Edit",
     hooks: [{

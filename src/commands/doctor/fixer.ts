@@ -141,14 +141,15 @@ async function addEnvProtectionHook(root: string): Promise<boolean> {
 async function addAutoFormatHook(root: string, detected: DetectedProject): Promise<boolean> {
   if (!detected.language) return false;
 
+  // Safe formatter commands only — never use detected.formatCommand to prevent injection
   const formatters: Record<string, { extensions: string[]; command: string }> = {
-    TypeScript: { extensions: ["ts", "tsx"], command: detected.formatCommand ?? "npx prettier --write" },
-    JavaScript: { extensions: ["js", "jsx"], command: detected.formatCommand ?? "npx prettier --write" },
-    Python: { extensions: ["py"], command: detected.formatCommand ?? "ruff format" },
+    TypeScript: { extensions: ["ts", "tsx"], command: "npx prettier --write" },
+    JavaScript: { extensions: ["js", "jsx"], command: "npx prettier --write" },
+    Python: { extensions: ["py"], command: "ruff format" },
     Go: { extensions: ["go"], command: "gofmt -w" },
     Rust: { extensions: ["rs"], command: "rustfmt" },
     Ruby: { extensions: ["rb"], command: "rubocop -A" },
-    PHP: { extensions: ["php"], command: detected.formatCommand ?? "vendor/bin/pint" },
+    PHP: { extensions: ["php"], command: "vendor/bin/pint" },
   };
 
   const config = formatters[detected.language];

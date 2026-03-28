@@ -25,9 +25,7 @@ npx claude-launchpad@latest eval --suite common
 
 3. Built-in scenarios test:
    - **security**: SQL injection, env protection, secret exposure, input validation
-   - **conventions**: Error handling, immutability, file size, no hardcoded values
-   - **workflow**: Git conventions
+   - **conventions**: Error handling, immutability, file size, no hardcoded values, naming conventions
+   - **workflow**: Git conventions, session continuity
 
 4. Each scenario creates an isolated sandbox, runs Claude with your config's instructions, and checks the output with grep/file assertions.
-
-5. **Cost note**: Each scenario spawns a Claude session. 9 scenarios x 3 runs = 27 sessions. Estimate ~$1-3 depending on model.

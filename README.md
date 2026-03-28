@@ -120,17 +120,19 @@ claude-launchpad eval --suite common
 ```
 
 ```
-  ✓ security/sql-injection          10/10  PASS
-  ✓ security/env-protection         10/10  PASS
-  ✓ security/secret-exposure        10/10  PASS
-  ✓ security/input-validation       10/10  PASS
-  ✓ conventions/error-handling      10/10  PASS
-  ✓ conventions/immutability        10/10  PASS
-  ✓ conventions/no-hardcoded-values 10/10  PASS
-  ✓ conventions/file-size           10/10  PASS
-  ✗ workflow/git-conventions         7/10  WARN
+  ✓ security/sql-injection            10/10  PASS
+  ✓ security/env-protection           10/10  PASS
+  ✓ security/secret-exposure          10/10  PASS
+  ✓ security/input-validation         10/10  PASS
+  ✓ conventions/error-handling        10/10  PASS
+  ✓ conventions/immutability          10/10  PASS
+  ✓ conventions/no-hardcoded-values   10/10  PASS
+  ✓ conventions/naming-conventions    10/10  PASS
+  ✓ conventions/file-size             10/10  PASS
+  ✓ workflow/git-conventions          10/10  PASS
+  ✗ workflow/session-continuity        7/10  WARN
 
-  Config Eval Score      ━━━━━━━━━━━━━━━━━━──    89%
+  Config Eval Score      ━━━━━━━━━━━━━━━━━━━─    95%
 ```
 
 Each scenario is a YAML file. [Write your own](scenarios/CONTRIBUTING.md).
@@ -208,7 +210,7 @@ Claude Launchpad gives you a number. Fix the issues, re-run, watch the number go
 - **Enhance uses Claude.** Spawns an interactive session to understand your codebase — costs tokens but produces a CLAUDE.md that actually knows your project.
 - **Eval uses the Agent SDK.** Runs Claude headless in sandboxes with explicit tool permissions — proof that your config works.
 - **Works with any stack.** Auto-detects your project. No fixed menu of supported frameworks.
-- **50 tests.** The tool that tests configs is itself well-tested.
+- **57 tests.** The tool that tests configs is itself well-tested.
 - **You never clone this repo.** It's a tool you run with `npx`, not a template you fork.
 
 ## License

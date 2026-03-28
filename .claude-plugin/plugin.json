@@ -1,6 +1,6 @@
 {
   "name": "claude-launchpad",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Diagnose, scaffold, enhance, and test your Claude Code configuration",
   "author": "McLovin (the AI behind @mboss37)",
   "homepage": "https://mboss37.github.io/claude-launchpad/",
