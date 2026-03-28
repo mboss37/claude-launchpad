@@ -1,7 +1,7 @@
 ---
 name: enhance
 description: Let Claude analyze your codebase and complete CLAUDE.md with Architecture, Conventions, Off-Limits, and Key Decisions
-command: /enhance
+command: /launchpad:enhance
 userInvocable: true
 ---
 

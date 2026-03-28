@@ -1,7 +1,7 @@
 ---
 name: eval
 description: Test your Claude Code config against eval scenarios — runs Claude headless in sandboxes and scores the results
-command: /eval
+command: /launchpad:eval
 userInvocable: true
 ---
 

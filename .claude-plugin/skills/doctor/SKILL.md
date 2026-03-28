@@ -1,7 +1,7 @@
 ---
 name: doctor
 description: Diagnose your Claude Code configuration quality — instruction budget, CLAUDE.md quality, hooks, rules, permissions, MCP servers
-command: /doctor
+command: /launchpad:doctor
 userInvocable: true
 ---
 

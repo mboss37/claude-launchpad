@@ -1,7 +1,7 @@
 ---
 name: init
 description: Set up optimized Claude Code configuration for any project — auto-detects stack, generates CLAUDE.md, TASKS.md, and hooks
-command: /init
+command: /launchpad:init
 userInvocable: true
 ---
 
