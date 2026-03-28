@@ -137,27 +137,27 @@ body { background: #000; color: #e2e2e2; font-family: 'Geist', sans-serif; }
     <h2 class="text-lg font-semibold text-white mb-4 border-l-2 border-accent pl-3">All commands</h2>
     <div class="grid md:grid-cols-3 gap-4">
 
-      <!-- Doctor -->
+      <!-- Init -->
       <div class="md:col-span-2 bg-surface-low p-5 rounded-xl border border-border-dim">
         <div class="flex items-center justify-between mb-3">
           <h3 class="text-sm font-bold text-white flex items-center gap-2">
-            <span class="material-symbols-outlined text-lg">vital_signs</span>doctor
+            <span class="material-symbols-outlined text-lg">rocket_launch</span>init
           </h3>
           <span class="text-[0.625rem] text-green bg-green/10 px-2 py-0.5 rounded font-bold uppercase tracking-wider">Free</span>
         </div>
-        <p class="text-xs text-text-dim leading-relaxed mb-3">7 analyzers scan your CLAUDE.md, hooks, rules, settings, permissions, and MCP servers. Gives you a score. Run <code class="text-green">--fix</code> to auto-repair. Run <code class="text-green">--watch</code> for live updates.</p>
+        <p class="text-xs text-text-dim leading-relaxed mb-3">Launch your project with Claude Code. Detects your stack, generates CLAUDE.md, TASKS.md for sprint tracking, hooks for auto-format and .env protection, and .claudeignore. 13 languages, 20+ frameworks.</p>
         <div class="code-block rounded-lg p-3 font-mono text-[0.7rem] bg-black/40">
-          <span class="text-green">claude-launchpad</span> doctor --fix
+          <span class="text-green">claude-launchpad</span> init
         </div>
       </div>
 
-      <!-- Init -->
+      <!-- Doctor -->
       <div class="bg-surface-low p-5 rounded-xl border border-border-dim flex flex-col justify-between">
         <div>
           <h3 class="text-sm font-bold text-white mb-2 flex items-center gap-2">
-            <span class="material-symbols-outlined text-lg">rocket_launch</span>init
+            <span class="material-symbols-outlined text-lg">vital_signs</span>doctor
           </h3>
-          <p class="text-xs text-text-dim leading-relaxed">Detects your stack. Generates config, hooks, tasks, .claudeignore. 13 languages, 20+ frameworks.</p>
+          <p class="text-xs text-text-dim leading-relaxed">7 analyzers score your config 0-100. Run <code class="text-green">--fix</code> to auto-repair. Run <code class="text-green">--watch</code> for live updates.</p>
         </div>
         <span class="text-[0.625rem] text-green bg-green/10 px-2 py-0.5 rounded font-bold uppercase tracking-wider self-start mt-3">Free</span>
       </div>
