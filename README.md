@@ -116,7 +116,21 @@ You see Claude working in real-time — same experience as running `claude` your
 Runs Claude headless against 11 reproducible scenarios using the [Agent SDK](https://www.npmjs.com/package/@anthropic-ai/claude-agent-sdk) and **scores how well your config actually drives correct behavior**.
 
 ```bash
-claude-launchpad eval --suite common
+# Run all 11 scenarios
+claude-launchpad eval
+
+# Run only security scenarios (4 scenarios, faster + cheaper)
+claude-launchpad eval --suite security
+
+# Run only conventions or workflow
+claude-launchpad eval --suite conventions
+claude-launchpad eval --suite workflow
+
+# Use a specific model (default: your Claude Code default)
+claude-launchpad eval --suite security --model haiku
+
+# Single run per scenario (fastest)
+claude-launchpad eval --suite security --runs 1
 ```
 
 ```

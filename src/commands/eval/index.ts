@@ -44,6 +44,9 @@ export function createEvalCommand(): Command {
       }
 
       log.success(`Loaded ${scenarios.length} scenario(s)`);
+      if (opts.model) {
+        log.info(`Model: ${opts.model}`);
+      }
       log.blank();
 
       const runs = parseInt(opts.runs, 10);

@@ -201,53 +201,61 @@
       <p class="subtitle">Test if your Claude Code config actually drives correct behavior.</p>
 
       <h3>Usage</h3>
-      <pre><span class="comment"># Run all 11 built-in scenarios</span>
-<strong>claude-launchpad eval --suite common</strong>
+      <pre><span class="comment"># Run all 11 scenarios</span>
+<strong>claude-launchpad eval</strong>
 
-<span class="comment"># Single run per scenario (faster, less accurate)</span>
-<strong>claude-launchpad eval --suite common --runs 1</strong>
+<span class="comment"># Run only security scenarios (4 — faster and cheaper)</span>
+<strong>claude-launchpad eval --suite security</strong>
 
-<span class="comment"># 5 runs per scenario (slower, more statistical confidence)</span>
-<strong>claude-launchpad eval --suite common --runs 5</strong>
+<span class="comment"># Run only conventions or workflow</span>
+<strong>claude-launchpad eval --suite conventions</strong>
+<strong>claude-launchpad eval --suite workflow</strong>
+
+<span class="comment"># Use a cheaper/faster model</span>
+<strong>claude-launchpad eval --suite security --model haiku</strong>
+
+<span class="comment"># Single run per scenario (fastest)</span>
+<strong>claude-launchpad eval --suite security --runs 1</strong>
 
 <span class="comment"># Keep sandbox directories for inspection</span>
-<strong>claude-launchpad eval --suite common --runs 1 --debug</strong>
+<strong>claude-launchpad eval --runs 1 --debug</strong>
 
 <span class="comment"># Custom scenarios from your own directory</span>
 <strong>claude-launchpad eval --scenarios ./my-scenarios/</strong>
 
 <span class="comment"># JSON output</span>
-<strong>claude-launchpad eval --suite common --json</strong>
+<strong>claude-launchpad eval --json</strong>
 
 <span class="comment"># Longer timeout for complex scenarios</span>
-<strong>claude-launchpad eval --suite common --timeout 180000</strong></pre>
+<strong>claude-launchpad eval --timeout 180000</strong></pre>
 
       <h3>Flags</h3>
       <table class="flag-table">
         <tr><th>Flag</th><th>Description</th></tr>
-        <tr><td><code>-s, --suite &lt;name&gt;</code></td><td>Eval suite to run (e.g., "common")</td></tr>
+        <tr><td><code>-s, --suite &lt;name&gt;</code></td><td>Eval suite: security (4), conventions (5), workflow (2), or omit for all 11</td></tr>
         <tr><td><code>--runs &lt;n&gt;</code></td><td>Runs per scenario, median score used (default: 3)</td></tr>
         <tr><td><code>--timeout &lt;ms&gt;</code></td><td>Timeout per run in milliseconds (default: 120000)</td></tr>
         <tr><td><code>--scenarios &lt;path&gt;</code></td><td>Custom scenarios directory</td></tr>
         <tr><td><code>--debug</code></td><td>Preserve sandbox directories for inspection</td></tr>
+        <tr><td><code>--model &lt;model&gt;</code></td><td>Model to use (e.g., sonnet, haiku, opus)</td></tr>
         <tr><td><code>--json</code></td><td>JSON output</td></tr>
         <tr><td><code>-p, --path &lt;path&gt;</code></td><td>Project root path</td></tr>
       </table>
 
-      <h3>Built-in scenarios (11)</h3>
+      <h3>Built-in suites (11 scenarios)</h3>
       <table class="flag-table">
-        <tr><th>Scenario</th><th>Tests</th></tr>
-        <tr><td>security/sql-injection</td><td>Uses parameterized queries, not string concatenation</td></tr>
-        <tr><td>security/env-protection</td><td>Creates .env.example, never writes .env</td></tr>
-        <tr><td>security/secret-exposure</td><td>Uses environment variables, not hardcoded keys</td></tr>
-        <tr><td>security/input-validation</td><td>Validates user input at API boundaries</td></tr>
-        <tr><td>conventions/error-handling</td><td>Try-catch with no empty catch blocks</td></tr>
-        <tr><td>conventions/immutability</td><td>Returns new objects, never mutates arguments</td></tr>
-        <tr><td>conventions/file-size</td><td>No generated file exceeds 800 lines</td></tr>
-        <tr><td>conventions/no-hardcoded-values</td><td>Uses named constants, not magic numbers</td></tr>
-        <tr><td>workflow/git-conventions</td><td>Follows conventional commit format</td></tr>
-        <tr><td>workflow/session-continuity</td><td>Reads TASKS.md and continues from last session</td></tr>
-        <tr><td>conventions/naming-conventions</td><td>camelCase functions, PascalCase types, UPPER_SNAKE constants</td></tr>
+        <tr><th>Suite</th><th>Scenario</th><th>Tests</th></tr>
+        <tr><td rowspan="4"><code>security</code></td><td>sql-injection</td><td>Uses parameterized queries, not string concatenation</td></tr>
+        <tr><td>env-protection</td><td>Creates .env.example, never writes .env</td></tr>
+        <tr><td>secret-exposure</td><td>Uses environment variables, not hardcoded keys</td></tr>
+        <tr><td>input-validation</td><td>Validates user input at API boundaries</td></tr>
+        <tr><td rowspan="5"><code>conventions</code></td><td>error-handling</td><td>Try-catch with no empty catch blocks</td></tr>
+        <tr><td>immutability</td><td>Returns new objects, never mutates arguments</td></tr>
+        <tr><td>file-size</td><td>All files stay under 800 lines</td></tr>
+        <tr><td>no-hardcoded-values</td><td>Uses named constants, not magic numbers</td></tr>
+        <tr><td>naming-conventions</td><td>camelCase functions, PascalCase types, UPPER_SNAKE constants</td></tr>
+        <tr><td rowspan="2"><code>workflow</code></td><td>git-conventions</td><td>Follows conventional commit format</td></tr>
+        <tr><td>session-continuity</td><td>Reads TASKS.md and continues from last session</td></tr>
       </table>
 
       <h3>When to use</h3>
