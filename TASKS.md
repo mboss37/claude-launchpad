@@ -8,33 +8,30 @@
 - **Sprint 1**: TS CLI — init, doctor (7 analyzers), enhance, eval engine, plugin, landing page, 34 tests
 - **Sprint 2**: Eval real — 7 scenarios running, 89% score, sandbox isolation, debug mode
 - **Sprint 3**: Actionable — doctor --fix (42%→86%), .claudeignore gen, settings merge, story page
-- **Sprint 4**: Ship — npm published (v0.1.0), stress tested 8 stacks (all pass), landing page carousel, self-scores 89%
-- **Sprint 5**: Harden — Agent SDK eval runner, single-pass --fix, 48 tests, GitHub Action, max-lines check, code review process
+- **Sprint 4**: Ship — npm published (v0.1.0), stress tested 8 stacks, landing page carousel, self-scores 89%
+- **Sprint 5**: Harden — Agent SDK eval runner, single-pass --fix, 48 tests, GitHub Action, code review process
+- **Sprint 6**: Community — v0.2.2, plugin submitted, docs page, privacy policy, 50 tests, 60KB package, -v flag
 
-## Current Sprint: Sprint 6 — Community & Polish
+## Current Sprint: Sprint 7 — Grow
 
 ### In Progress
 
 ### To Do
-- [ ] Submit plugin to marketplace (needs human: claude.ai/settings/plugins/submit)
+- [ ] Smart init — use Claude to generate project-specific hooks based on codebase analysis
+- [ ] MCP server recommendations — "you have Postgres but no database MCP server"
 - [ ] Config diff in GitHub Action output (before/after score comparison)
-- [ ] Community scenario format documentation (how to write your own YAML scenarios)
 - [ ] More test coverage for fixer.ts and runner.ts
+- [ ] doctor --fix should also generate .claudeignore when missing
 
 ### Done
-- [x] v0.2.0 published to npm
-- [x] doctor --watch (live score on config changes)
-- [x] 2 new eval scenarios (git-conventions, no-hardcoded-values) — 9 total
-- [x] Complete plugin: 4 skills (/doctor, /init, /enhance, /eval) + PostToolUse hook
-- [x] Plugin manifest updated with author, repository, homepage
 
 ## Upcoming
-- **Sprint 7**: Smart init (Claude-driven hooks), MCP server recommendations
+- **Sprint 8**: Community scenario packs, leaderboard, plugin marketplace analytics
 
 ## Session Log
-### 2026-03-28
-- Published to npm (v0.1.0), stress tested 8 stacks, terminal carousel, cleaned global config
 ### 2026-03-28 (session 2)
 - Single-pass --fix, 48 tests, GitHub Action, Agent SDK eval runner, code review process
 ### 2026-03-28 (session 3)
-- v0.2.0 published. doctor --watch. 9 eval scenarios. Complete plugin (4 skills + hook).
+- v0.2.2 published. Plugin submitted. Docs page. Privacy policy. 60KB package. -v flag.
+- Smarter settings analyzer (plugins=info, permissions context-aware). Self-scores 93%.
+- Tested eval on real project (hyperterminal): 94%. Tested doctor --watch + --fix live: 70%→93%.
