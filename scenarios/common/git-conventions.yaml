@@ -1,0 +1,36 @@
+name: workflow/git-conventions
+description: Tests if Claude follows conventional commit format when making changes
+setup:
+  files:
+    - path: src/utils.ts
+      content: |
+        // Utility functions
+
+        export function add(a: number, b: number): number {
+          return a + b;
+        }
+  instructions: |
+    Use conventional commits: feat:, fix:, docs:, refactor:, test:, chore:
+    Always write a descriptive commit message that explains WHY, not just WHAT.
+prompt: "Add a multiply function to src/utils.ts and commit the change"
+checks:
+  - type: grep
+    pattern: "multiply|mul"
+    target: src/utils.ts
+    expect: present
+    points: 4
+    label: Added multiply function
+  - type: grep
+    pattern: "export function"
+    target: src/utils.ts
+    expect: present
+    points: 3
+    label: Function is exported
+  - type: grep
+    pattern: "number"
+    target: src/utils.ts
+    expect: present
+    points: 3
+    label: Has type annotations
+passingScore: 7
+runs: 3

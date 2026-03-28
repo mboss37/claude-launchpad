@@ -50,6 +50,8 @@ Runs 7 static analyzers against your `.claude/` directory and `CLAUDE.md`. No AP
 
 Running bare `claude-launchpad` with no subcommand auto-detects your config and runs doctor.
 
+**Watch mode:** `claude-launchpad doctor --watch` — live score that updates every time you save a config file.
+
 **What it checks:**
 
 | Analyzer | What it catches |
