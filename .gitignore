@@ -37,3 +37,4 @@ supabase/.temp/
 *.pem
 *.key
 secrets/
+.sfdx/
