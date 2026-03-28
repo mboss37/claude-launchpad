@@ -24,18 +24,18 @@ checks:
     target: src/api.ts
     expect: present
     points: 5
-    label: Has input validation logic
+    label: Claude added input validation (Zod, typeof, or manual checks)
   - type: grep
     pattern: "(email|@|includes.*@)"
     target: src/api.ts
     expect: present
     points: 3
-    label: Validates email format
+    label: Claude validates the email field format
   - type: grep
     pattern: "(error|invalid|400|bad.?request)"
     target: src/api.ts
     expect: present
     points: 2
-    label: Returns error response for invalid input
+    label: Claude returns an error response when input is invalid
 passingScore: 7
 runs: 3

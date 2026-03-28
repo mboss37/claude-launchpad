@@ -22,12 +22,12 @@ checks:
     target: src/db.ts
     expect: present
     points: 5
-    label: Uses parameterized query placeholders
+    label: Claude used parameterized query placeholders ($1, ?)
   - type: grep
     pattern: "\\$\\{email\\}|\\+ email|`.*\\$\\{|concat.*email|email.*\\+.*['\"]"
     target: src/db.ts
     expect: absent
     points: 5
-    label: No string interpolation in SQL
+    label: Claude did not concatenate user input into SQL strings
 passingScore: 8
 runs: 3

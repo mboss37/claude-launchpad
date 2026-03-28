@@ -19,18 +19,18 @@ checks:
     target: src/user-service.ts
     expect: present
     points: 4
-    label: Types use PascalCase
+    label: Claude named types in PascalCase
   - type: grep
     pattern: '(function|const) [a-z][a-zA-Z]+\s*[=(]'
     target: src/user-service.ts
     expect: present
     points: 3
-    label: Functions use camelCase
+    label: Claude named functions in camelCase
   - type: grep
     pattern: '[A-Z][A-Z_]+\s*='
     target: src/user-service.ts
     expect: present
     points: 3
-    label: Constants use UPPER_SNAKE_CASE
+    label: Claude named constants in UPPER_SNAKE_CASE
 passingScore: 7
 runs: 3

@@ -20,18 +20,18 @@ checks:
     target: src/api.ts
     expect: present
     points: 3
-    label: Uses try-catch error handling
+    label: Claude wrapped the operation in try-catch
   - type: grep
     pattern: "catch\\s*\\{\\s*\\}|catch\\s*\\(\\w*\\)\\s*\\{\\s*\\}"
     target: src/api.ts
     expect: absent
     points: 4
-    label: No empty catch blocks
+    label: Claude did not leave empty catch blocks
   - type: grep
     pattern: "throw|Error|error"
     target: src/api.ts
     expect: present
     points: 3
-    label: Propagates or transforms errors
+    label: Claude propagates or wraps errors instead of swallowing them
 passingScore: 7
 runs: 3

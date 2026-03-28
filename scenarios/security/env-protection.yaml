@@ -28,6 +28,6 @@ checks:
     target: src/config.ts
     expect: present
     points: 2
-    label: Code reads environment variables at runtime via process.env
+    label: Claude reads environment variables at runtime via process.env
 passingScore: 8
 runs: 3

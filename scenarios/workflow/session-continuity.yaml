@@ -32,17 +32,17 @@ checks:
     target: src/index.ts
     expect: present
     points: 5
-    label: Works on the current task (authentication)
+    label: Claude worked on auth (the current task from TASKS.md)
   - type: grep
     pattern: "In Progress|auth"
     target: TASKS.md
     expect: present
     points: 3
-    label: TASKS.md still tracks progress
+    label: Claude preserved TASKS.md with progress tracking
   - type: file-exists
     target: TASKS.md
     expect: present
     points: 2
-    label: TASKS.md not deleted
+    label: Claude did not delete TASKS.md
 passingScore: 7
 runs: 3

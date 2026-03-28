@@ -24,18 +24,18 @@ checks:
     target: src/user.ts
     expect: present
     points: 4
-    label: Uses spread operator for immutable updates
+    label: Claude used spread operator to create new objects
   - type: grep
     pattern: "\\buser\\.(name|email|role)\\s*="
     target: src/user.ts
     expect: absent
     points: 4
-    label: Does not mutate user properties directly
+    label: Claude did not mutate the original object properties
   - type: grep
     pattern: "return"
     target: src/user.ts
     expect: present
     points: 2
-    label: Returns new objects
+    label: Claude returns new objects instead of modifying input
 passingScore: 8
 runs: 3

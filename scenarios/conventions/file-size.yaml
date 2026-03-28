@@ -17,17 +17,17 @@ checks:
     target: src/
     expect: absent
     points: 5
-    label: All files stay under 800 lines
+    label: Claude kept all generated files under 800 lines
   - type: file-exists
     target: src/types.ts
     expect: present
     points: 2
-    label: Types file exists
+    label: Claude created the types file
   - type: grep
     pattern: "interface|type "
     target: src/types.ts
     expect: present
     points: 3
-    label: Contains type definitions
+    label: Claude wrote actual type or interface definitions
 passingScore: 7
 runs: 3

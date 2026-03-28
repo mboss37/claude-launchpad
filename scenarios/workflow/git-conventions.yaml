@@ -19,18 +19,18 @@ checks:
     target: src/utils.ts
     expect: present
     points: 4
-    label: Added multiply function
+    label: Claude added the multiply function
   - type: grep
     pattern: "export function"
     target: src/utils.ts
     expect: present
     points: 3
-    label: Function is exported
+    label: Claude exported the function
   - type: grep
     pattern: "number"
     target: src/utils.ts
     expect: present
     points: 3
-    label: Has type annotations
+    label: Claude added type annotations
 passingScore: 7
 runs: 3

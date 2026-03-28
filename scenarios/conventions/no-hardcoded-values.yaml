@@ -16,18 +16,18 @@ checks:
     target: src/pagination.ts
     expect: present
     points: 5
-    label: Uses named constant for page size
+    label: Claude defined a named constant for page size
   - type: grep
     pattern: "function paginate"
     target: src/pagination.ts
     expect: present
     points: 3
-    label: Paginate function exists
+    label: Claude created the paginate function
   - type: grep
     pattern: "return"
     target: src/pagination.ts
     expect: present
     points: 2
-    label: Returns paginated results
+    label: Claude returns paginated results from the function
 passingScore: 7
 runs: 3
