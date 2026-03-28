@@ -48,20 +48,18 @@ body { background: #000; color: #e2e2e2; font-family: 'Geist', sans-serif; }
 <body class="min-h-screen">
 
 <!-- Nav -->
-<header class="bg-surface text-accent text-sm font-semibold tracking-tight sticky top-0 flex items-center justify-between w-full px-6 h-12 z-50 border-b border-border-dim">
+<header class="bg-surface font-sans text-sm font-semibold tracking-tight sticky top-0 flex items-center justify-between w-full px-6 h-12 z-50 border-b border-border-dim">
   <div class="flex items-center gap-3">
-    <span class="material-symbols-outlined">rocket_launch</span>
-    <a href="/claude-launchpad/" class="text-base font-bold tracking-tighter">Claude Launchpad</a>
+    <span class="material-symbols-outlined text-white">rocket_launch</span>
+    <a href="/claude-launchpad/" class="text-white text-sm font-bold tracking-tighter font-sans">Claude Launchpad</a>
   </div>
-  <div class="flex items-center gap-4">
-    <nav class="hidden md:flex items-center gap-1">
-      <a class="text-text-dim hover:bg-surface-high transition-colors px-2.5 py-1 rounded" href="/claude-launchpad/docs.html">Docs</a>
-      <a class="text-text-dim hover:bg-surface-high transition-colors px-2.5 py-1 rounded" href="https://github.com/mboss37/claude-launchpad/releases">Releases</a>
-      <a class="text-text-dim hover:bg-surface-high transition-colors px-2.5 py-1 rounded" href="https://github.com/mboss37/claude-launchpad">GitHub</a>
-    </nav>
-    <div class="h-4 w-px bg-border-dim hidden md:block"></div>
-    <a href="https://www.npmjs.com/package/claude-launchpad" class="bg-accent text-black px-3 py-1 rounded-lg font-medium text-xs hover:opacity-90 transition-opacity">npm</a>
-  </div>
+  <nav class="flex items-center gap-1">
+    <a class="text-text-dim hover:bg-surface-high transition-colors px-2.5 py-1 rounded text-xs font-sans" href="/claude-launchpad/docs.html">Docs</a>
+    <a class="text-text-dim hover:bg-surface-high transition-colors px-2.5 py-1 rounded text-xs font-sans" href="https://github.com/mboss37/claude-launchpad/releases">Releases</a>
+    <div class="h-4 w-px bg-border-dim mx-1"></div>
+    <a class="text-text-dim hover:text-white transition-colors px-1.5 py-1 rounded" href="https://github.com/mboss37/claude-launchpad" title="GitHub"><svg class="w-4 h-4" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
+    <a class="text-text-dim hover:text-white transition-colors px-1.5 py-1 rounded" href="https://www.npmjs.com/package/claude-launchpad" title="npm"><svg class="w-4 h-4" viewBox="0 0 16 16" fill="currentColor"><path d="M0 0v16h16V0H0zm13 13H8V5h2.5v5.5H13V3H3v10h10V0z"/></svg></a>
+  </nav>
 </header>
 
 <main class="max-w-5xl mx-auto px-6 py-12 md:px-12">
@@ -72,9 +70,10 @@ body { background: #000; color: #e2e2e2; font-family: 'Geist', sans-serif; }
       <span class="px-2 py-0.5 bg-surface-high text-[0.625rem] font-bold tracking-widest uppercase rounded">v0.3.4</span>
       <span class="text-text-muted text-xs">58 tests &middot; 11 eval scenarios &middot; 13 languages</span>
     </div>
-    <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-white mb-3 leading-tight">Your Claude Code setup<br>is probably <span class="text-red">broken</span>.</h1>
+    <p class="text-text-muted text-xs uppercase tracking-widest mb-4">Everyone's building with Claude Code. Nobody's checking if their setup actually works.</p>
+    <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-white mb-3 leading-tight font-sans">Your Claude Code setup<br>is probably <span class="text-red">broken</span>.</h1>
     <p class="text-text-dim text-sm max-w-2xl leading-relaxed mb-6">
-      Claude Code's effectiveness is 90% configuration, 10% prompting. But nobody can tell if their config is actually good. Until now.
+      Score your config, auto-fix issues, and prove Claude actually follows your rules. One command.
     </p>
     <div class="flex gap-3 items-center">
       <div class="code-block rounded-xl px-4 py-2.5 font-mono text-sm flex items-center gap-3 group cursor-pointer hover:border-text-muted transition-colors" id="cta">
