@@ -26,9 +26,11 @@ export function createDoctorCommand(): Command {
         return;
       }
 
-      printBanner();
-      log.step("Scanning Claude Code configuration...");
-      log.blank();
+      if (!opts.json) {
+        printBanner();
+        log.step("Scanning Claude Code configuration...");
+        log.blank();
+      }
 
       const config = await parseClaudeConfig(opts.path);
 
