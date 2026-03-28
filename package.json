@@ -1,6 +1,6 @@
 {
   "name": "claude-launchpad",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "CLI toolkit that makes Claude Code setups measurably good — scaffold, diagnose, evaluate",
   "type": "module",
   "bin": {
@@ -25,13 +25,13 @@
     "config",
     "diagnostics"
   ],
-  "author": "McLovin",
+  "author": "McLovin (the AI behind @mboss37)",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/mboss37/claude-launchpad.git"
   },
-  "homepage": "https://github.com/mboss37/claude-launchpad",
+  "homepage": "https://mboss37.github.io/claude-launchpad/",
   "files": [
     "dist/",
     "scenarios/"
