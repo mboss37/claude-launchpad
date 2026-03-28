@@ -73,15 +73,19 @@ async function scaffold(root: string, options: InitOptions, detected: DetectedPr
   const settings = generateSettings(detected);
   const claudeignore = generateClaudeignore(detected);
 
-  await mkdir(join(root, ".claude"), { recursive: true });
+  await mkdir(join(root, ".claude", "rules"), { recursive: true });
 
   // Merge with existing settings.json instead of overwriting
   const settingsPath = join(root, ".claude", "settings.json");
   const mergedSettings = await mergeSettings(settingsPath, settings as unknown as Record<string, unknown>);
 
-  // Only generate .claudeignore if it doesn't exist
+  // Only generate files that don't exist yet
   const claudeignorePath = join(root, ".claudeignore");
   const hasClaudeignore = await fileExists(claudeignorePath);
+  const claudeGitignorePath = join(root, ".claude", ".gitignore");
+  const hasClaudeGitignore = await fileExists(claudeGitignorePath);
+  const rulesPath = join(root, ".claude", "rules", "conventions.md");
+  const hasRules = await fileExists(rulesPath);
 
   const writes: Promise<void>[] = [
     writeFile(join(root, "CLAUDE.md"), claudeMd),
@@ -93,19 +97,70 @@ async function scaffold(root: string, options: InitOptions, detected: DetectedPr
     writes.push(writeFile(claudeignorePath, claudeignore));
   }
 
+  if (!hasClaudeGitignore) {
+    writes.push(writeFile(claudeGitignorePath, [
+      "# Local-only Claude Code files (never commit these)",
+      "settings.local.json",
+      "plans/",
+      "memory/",
+      "sessions/",
+      "tmp/",
+      "",
+    ].join("\n")));
+  }
+
+  if (!hasRules) {
+    const rulesContent = generateStarterRules(detected);
+    writes.push(writeFile(rulesPath, rulesContent));
+  }
+
   await Promise.all(writes);
 
   log.success("Generated CLAUDE.md");
   log.success("Generated TASKS.md");
-  log.success("Generated .claude/settings.json (merged with existing)");
-  if (!hasClaudeignore) {
-    log.success("Generated .claudeignore");
-  }
+  log.success("Generated .claude/settings.json (schema, permissions, hooks)");
+  if (!hasClaudeGitignore) log.success("Generated .claude/.gitignore");
+  if (!hasClaudeignore) log.success("Generated .claudeignore");
+  if (!hasRules) log.success("Generated .claude/rules/conventions.md");
 
   log.blank();
   log.success("Done! Run `claude` to start.");
   log.info("Run `claude-launchpad doctor` to check your config quality.");
   log.blank();
+}
+
+function generateStarterRules(detected: DetectedProject): string {
+  const lines = [
+    "# Project Conventions",
+    "",
+    "- Use conventional commits (feat:, fix:, docs:, refactor:, test:, chore:)",
+    "- Keep files under 400 lines, functions under 50 lines",
+    "- Handle errors explicitly - no empty catch blocks",
+    "- Validate input at system boundaries",
+  ];
+
+  if (detected.language === "TypeScript" || detected.language === "JavaScript") {
+    lines.push("- Use named exports, no default exports except Next.js pages");
+    lines.push("- No `any` types in TypeScript");
+  }
+
+  if (detected.language === "Python") {
+    lines.push("- Type hints on all function signatures");
+    lines.push("- Async everywhere for I/O operations");
+  }
+
+  if (detected.language === "Go") {
+    lines.push("- Table-driven tests");
+    lines.push("- Errors are values - handle them, don't ignore them");
+  }
+
+  if (detected.language === "Rust") {
+    lines.push("- Prefer Result over unwrap/expect in library code");
+    lines.push("- No unsafe blocks without a safety comment");
+  }
+
+  lines.push("");
+  return lines.join("\n");
 }
 
 

@@ -11,15 +11,16 @@ interface HookGroup {
 }
 
 interface ClaudeSettings {
+  readonly $schema?: string;
+  readonly permissions?: {
+    readonly deny?: ReadonlyArray<string>;
+  };
   readonly hooks?: Record<string, ReadonlyArray<HookGroup>>;
 }
 
 /**
  * Generate .claude/settings.json based on detected project.
- * No third-party plugin dependencies — just hooks that match the project's tooling.
- *
- * Claude Code hook schema:
- * { "PostToolUse": [{ "matcher": "Write|Edit", "hooks": [{ "type": "command", "command": "..." }] }] }
+ * Includes: schema for IDE autocomplete, security deny-lists, hooks.
  */
 export function generateSettings(detected: DetectedProject): ClaudeSettings {
   const preToolUse: HookGroup[] = [];
@@ -30,7 +31,16 @@ export function generateSettings(detected: DetectedProject): ClaudeSettings {
     matcher: "Read|Write|Edit",
     hooks: [{
       type: "command",
-      command: "echo \"$TOOL_INPUT_FILE_PATH\" | grep -qE '\\.(env|env\\..*)$' && ! echo \"$TOOL_INPUT_FILE_PATH\" | grep -q '.env.example' && echo 'BLOCKED: .env files contain secrets — use .env.example for documentation' && exit 1; exit 0",
+      command: "echo \"$TOOL_INPUT_FILE_PATH\" | grep -qE '\\.(env|env\\..*)$' && ! echo \"$TOOL_INPUT_FILE_PATH\" | grep -q '.env.example' && echo 'BLOCKED: .env files contain secrets' && exit 1; exit 0",
+    }],
+  });
+
+  // Universal: block destructive commands
+  preToolUse.push({
+    matcher: "Bash",
+    hooks: [{
+      type: "command",
+      command: "echo \"$TOOL_INPUT_COMMAND\" | grep -qE 'rm\\s+-rf\\s+/|DROP\\s+TABLE|DROP\\s+DATABASE|push.*--force|push.*-f' && echo 'BLOCKED: Destructive command detected' && exit 1; exit 0",
     }],
   });
 
@@ -44,10 +54,22 @@ export function generateSettings(detected: DetectedProject): ClaudeSettings {
   if (preToolUse.length > 0) hooks.PreToolUse = preToolUse;
   if (postToolUse.length > 0) hooks.PostToolUse = postToolUse;
 
-  return Object.keys(hooks).length > 0 ? { hooks } : {};
+  return {
+    $schema: "https://json.schemastore.org/claude-code-settings.json",
+    permissions: {
+      deny: [
+        "Bash(rm -rf /)",
+        "Bash(rm -rf ~)",
+        "Read(.env)",
+        "Read(.env.*)",
+        "Read(secrets/**)",
+      ],
+    },
+    hooks,
+  };
 }
 
-// Safe formatter commands — never interpolate user-controlled strings into shell commands
+// Safe formatter commands - never interpolate user-controlled strings
 const SAFE_FORMATTERS: Record<string, { extensions: string[]; command: string }> = {
   TypeScript: { extensions: ["ts", "tsx"], command: "npx prettier --write" },
   JavaScript: { extensions: ["js", "jsx"], command: "npx prettier --write" },
@@ -74,8 +96,6 @@ function buildFormatHook(detected: DetectedProject): HookGroup | null {
     .map((ext) => `[ "$ext" = "${ext}" ]`)
     .join(" || ");
 
-  // Only use hardcoded safe commands — never interpolate detected.formatCommand
-  // to prevent command injection via malicious package.json scripts
   return {
     matcher: "Write|Edit",
     hooks: [{
