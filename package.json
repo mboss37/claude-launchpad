@@ -1,6 +1,6 @@
 {
   "name": "claude-launchpad",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "CLI toolkit that makes Claude Code setups measurably good — scaffold, diagnose, evaluate",
   "type": "module",
   "bin": {

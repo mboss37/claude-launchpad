@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import type { Severity } from "../types/index.js";
+import type { Severity, AnalyzerResult, DiagnosticIssue } from "../types/index.js";
 
 // ─── Colors ───
 
@@ -72,4 +72,42 @@ export function printIssue(severity: Severity, analyzer: string, message: string
     console.log(`    ${chalk.dim("Fix:")} ${chalk.dim(fix)}`);
   }
   console.log();
+}
+
+// ─── Report Rendering (shared by doctor + watcher) ───
+
+export function renderDoctorReport(results: ReadonlyArray<AnalyzerResult>): {
+  overallScore: number;
+  actionableCount: number;
+} {
+  const overallScore = Math.round(
+    results.reduce((sum, r) => sum + r.score, 0) / results.length,
+  );
+
+  for (const result of results) {
+    printScoreCard(result.name, result.score);
+  }
+  log.blank();
+  printScoreCard("Overall", overallScore);
+  log.blank();
+
+  const allIssues = results.flatMap((r) => r.issues);
+  const actionable = allIssues.filter((i) => i.severity !== "info");
+
+  if (actionable.length === 0) {
+    log.success("No issues found. Your configuration looks solid.");
+    return { overallScore, actionableCount: 0 };
+  }
+
+  const sorted = [...actionable].sort((a, b) => {
+    const order: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3, info: 4 };
+    return (order[a.severity] ?? 4) - (order[b.severity] ?? 4);
+  });
+
+  for (const issue of sorted) {
+    printIssue(issue.severity, issue.analyzer, issue.message, issue.fix);
+  }
+
+  log.info(`${actionable.length} issue(s) found. Fix critical/high first.`);
+  return { overallScore, actionableCount: actionable.length };
 }
