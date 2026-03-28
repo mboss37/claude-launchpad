@@ -9,6 +9,7 @@ import { analyzePermissions } from "./analyzers/permissions.js";
 import { analyzeMcp } from "./analyzers/mcp.js";
 import { analyzeQuality } from "./analyzers/quality.js";
 import { applyFixes } from "./fixer.js";
+import { watchConfig } from "./watcher.js";
 import type { AnalyzerResult, DiagnosticIssue } from "../../types/index.js";
 
 export function createDoctorCommand(): Command {
@@ -18,7 +19,13 @@ export function createDoctorCommand(): Command {
     .option("--json", "Output as JSON")
     .option("--min-score <n>", "Exit non-zero if overall score is below this threshold (for CI)")
     .option("--fix", "Auto-apply deterministic fixes for detected issues")
+    .option("--watch", "Watch for config changes and re-run automatically")
     .action(async (opts) => {
+      if (opts.watch) {
+        await watchConfig(opts.path);
+        return;
+      }
+
       printBanner();
       log.step("Scanning Claude Code configuration...");
       log.blank();
