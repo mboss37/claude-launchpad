@@ -1,479 +1,290 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="dark" lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Claude Launchpad — Diagnose, Scaffold, Test Your Claude Code Setup</title>
-  <meta name="description" content="Your Claude Code setup is probably broken. This tool tells you how. The first CLI that diagnoses, scaffolds, and tests Claude Code configurations.">
-  <style>
-    :root {
-      --bg: #09090b;
-      --surface: #18181b;
-      --surface-2: #27272a;
-      --border: #3f3f46;
-      --text: #fafafa;
-      --text-dim: #a1a1aa;
-      --text-muted: #52525b;
-      --accent: #3b82f6;
-      --green: #4ade80;
-      --yellow: #facc15;
-      --red: #f87171;
-      --cyan: #22d3ee;
-      --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      --mono: 'JetBrains Mono', 'Fira Code', monospace;
-    }
-
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.6; -webkit-font-smoothing: antialiased; }
-    .container { max-width: 1000px; margin: 0 auto; padding: 0 24px; }
-    .fade-in { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
-    .fade-in.visible { opacity: 1; transform: translateY(0); }
-
-    /* ─── Nav ─── */
-    nav { padding: 16px 0; border-bottom: 1px solid rgba(63,63,70,0.5); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 100; background: rgba(9,9,11,0.85); }
-    nav .container { display: flex; justify-content: space-between; align-items: center; }
-    .logo { font-weight: 700; font-size: 15px; color: var(--text); text-decoration: none; letter-spacing: -0.02em; }
-    .nav-links { display: flex; gap: 20px; }
-    .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 13px; transition: color 0.2s; }
-    .nav-links a:hover { color: var(--text); }
-
-    /* ─── Hero ─── */
-    .hero { padding: 120px 0 80px; text-align: center; position: relative; overflow: hidden; }
-    .hero::before { content: ''; position: absolute; top: -200px; left: 50%; transform: translateX(-50%); width: 800px; height: 600px; background: radial-gradient(ellipse, rgba(59,130,246,0.08) 0%, rgba(34,211,238,0.04) 40%, transparent 70%); pointer-events: none; }
-    .hero-badge { display: inline-block; padding: 6px 16px; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); border-radius: 100px; font-size: 12px; color: var(--accent); margin-bottom: 28px; letter-spacing: 0.02em; }
-    .hero h1 { font-size: clamp(40px, 7vw, 64px); font-weight: 800; letter-spacing: -0.04em; line-height: 1.05; margin-bottom: 24px; position: relative; }
-    .hero h1 .gradient { background: linear-gradient(135deg, #f87171, #fb923c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-    .hero p { font-size: 18px; color: var(--text-dim); max-width: 520px; margin: 0 auto 40px; line-height: 1.7; }
-    .hero-cta { display: inline-flex; align-items: center; gap: 10px; padding: 14px 32px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; font-family: var(--mono); font-size: 15px; color: var(--green); cursor: pointer; transition: all 0.25s; text-decoration: none; }
-    .hero-cta:hover { background: var(--surface-2); border-color: var(--text-muted); transform: translateY(-1px); }
-    .hero-cta .dollar { color: var(--text-muted); }
-
-    /* ─── Terminal ─── */
-    .terminal-section { padding: 0 0 100px; position: relative; }
-    .terminal { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; max-width: 680px; margin: 0 auto; box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.03) inset; }
-    .terminal-bar { display: flex; align-items: center; gap: 8px; padding: 14px 18px; background: #1c1c1f; border-bottom: 1px solid rgba(63,63,70,0.5); }
-    .terminal-dot { width: 12px; height: 12px; border-radius: 50%; }
-    .terminal-dot:nth-child(1) { background: #f87171; }
-    .terminal-dot:nth-child(2) { background: #facc15; }
-    .terminal-dot:nth-child(3) { background: #4ade80; }
-    .terminal-title { font-size: 12px; color: var(--text-muted); font-family: var(--mono); margin-left: auto; }
-    .terminal-body { padding: 24px 28px; font-family: var(--mono); font-size: 12.5px; line-height: 1.9; overflow-x: auto; min-height: 420px; }
-    .terminal-tabs { display: flex; gap: 0; padding: 0 18px; background: #1c1c1f; border-bottom: 1px solid rgba(63,63,70,0.5); }
-    .terminal-tab { padding: 10px 16px; font-family: var(--mono); font-size: 11px; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; user-select: none; }
-    .terminal-tab:hover { color: var(--text-dim); }
-    .terminal-tab.active { color: var(--green); border-bottom-color: var(--green); }
-    .terminal-panel { display: none; }
-    .terminal-panel.active { display: block; animation: termFade 0.4s ease; }
-    @keyframes termFade { from { opacity: 0; } to { opacity: 1; } }
-    .t-dim { color: var(--text-muted); } .t-cyan { color: var(--cyan); } .t-green { color: var(--green); } .t-yellow { color: var(--yellow); } .t-red { color: var(--red); } .t-bold { font-weight: 700; } .t-white { color: var(--text); }
-    .bar-green { color: var(--green); } .bar-yellow { color: var(--yellow); } .bar-red { color: var(--red); } .bar-empty { color: var(--text-muted); opacity: 0.2; }
-
-    /* ─── Section headers ─── */
-    .section-header { text-align: center; margin-bottom: 48px; }
-    .section-header h2 { font-size: 32px; font-weight: 700; letter-spacing: -0.03em; margin-bottom: 12px; }
-    .section-header p { color: var(--text-dim); font-size: 16px; max-width: 480px; margin: 0 auto; }
-
-    /* ─── Story ─── */
-    .story { padding: 100px 0; }
-    .story-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-    .story-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 28px; transition: border-color 0.3s, transform 0.3s; }
-    .story-card:hover { border-color: var(--text-muted); transform: translateY(-2px); }
-    .story-step { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
-    .story-num { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; background: rgba(59,130,246,0.15); border-radius: 50%; font-size: 12px; font-weight: 700; color: var(--accent); }
-    .story-cmd { font-family: var(--mono); font-size: 12px; color: var(--green); }
-    .story-score { font-family: var(--mono); font-size: 13px; margin-bottom: 6px; }
-    .story-bar { height: 4px; border-radius: 2px; margin-bottom: 12px; }
-    .story-detail { font-family: var(--mono); font-size: 11px; color: var(--text-muted); line-height: 1.7; margin-bottom: 12px; }
-    .story-text { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
-
-    /* ─── Pillars ─── */
-    .pillars { padding: 100px 0; }
-    .pillar-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-    .pillar { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 28px; transition: border-color 0.3s, transform 0.3s; }
-    .pillar:hover { border-color: var(--text-muted); transform: translateY(-2px); }
-    .pillar h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; font-family: var(--mono); display: flex; align-items: center; gap: 8px; }
-    .pillar p { font-size: 13px; color: var(--text-dim); line-height: 1.7; }
-    .tag { display: inline-block; margin-top: 14px; padding: 4px 10px; font-size: 10px; font-family: var(--mono); border-radius: 6px; letter-spacing: 0.03em; text-transform: uppercase; }
-    .tag-free { color: var(--green); background: rgba(74,222,128,0.08); border: 1px solid rgba(74,222,128,0.15); }
-    .tag-cost { color: var(--yellow); background: rgba(250,204,21,0.08); border: 1px solid rgba(250,204,21,0.15); }
-
-    /* ─── Analyzers ─── */
-    .analyzers { padding: 0 0 100px; }
-    .analyzer-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-    .analyzer-card { display: flex; align-items: flex-start; gap: 14px; padding: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; transition: border-color 0.3s; }
-    .analyzer-card:hover { border-color: var(--text-muted); }
-    .analyzer-card .icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: rgba(59,130,246,0.08); border-radius: 8px; }
-    .analyzer-card h4 { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
-    .analyzer-card p { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
-
-    /* ─── Quick Start ─── */
-    .quickstart { padding: 100px 0; border-top: 1px solid rgba(63,63,70,0.5); }
-    .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; max-width: 800px; margin: 0 auto; }
-    .step { text-align: center; }
-    .step-num { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); border-radius: 50%; font-size: 14px; font-weight: 700; margin-bottom: 14px; color: var(--accent); }
-    .step code { display: block; font-family: var(--mono); font-size: 12px; color: var(--green); margin-bottom: 8px; }
-    .step p { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
-
-    /* ─── Footer ─── */
-    footer { padding: 40px 0; border-top: 1px solid rgba(63,63,70,0.5); text-align: center; }
-    footer p { font-size: 12px; color: var(--text-muted); }
-    footer a { color: var(--text-dim); text-decoration: none; }
-    footer a:hover { color: var(--text); }
-
-    /* ─── Responsive ─── */
-    @media (max-width: 768px) {
-      .pillar-grid, .analyzer-grid { grid-template-columns: 1fr; }
-      .story-grid { grid-template-columns: repeat(2, 1fr); }
-      .steps { grid-template-columns: repeat(2, 1fr); }
-      .hero { padding: 80px 0 60px; }
-    }
-  </style>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Claude Launchpad — Launch, Check, Prove Your Claude Code Setup</title>
+<meta name="description" content="Everything you need to launch a project with Claude Code and keep it healthy. Score your config, auto-fix issues, test if Claude follows your rules.">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&family=Geist:wght@100..900&display=swap" rel="stylesheet"/>
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "surface": "#131313",
+        "surface-low": "#1b1b1b",
+        "surface-high": "#2a2a2a",
+        "surface-highest": "#353535",
+        "border": "#474747",
+        "border-dim": "rgba(71,71,71,0.15)",
+        "text": "#e2e2e2",
+        "text-dim": "#a1a1aa",
+        "text-muted": "#6b6b6b",
+        "accent": "#ffffff",
+        "green": "#7EE787",
+        "yellow": "#facc15",
+        "red": "#f87171",
+        "blue": "#79c0ff",
+      },
+      fontFamily: {
+        "sans": ["Geist", "Inter", "sans-serif"],
+        "mono": ["Geist Mono", "monospace"],
+      },
+    },
+  },
+}
+</script>
+<style>
+body { background: #000; color: #e2e2e2; font-family: 'Geist', sans-serif; }
+.code-block { background: #0e0e0e; border: 1px solid rgba(71,71,71,0.15); }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #131313; }
+::-webkit-scrollbar-thumb { background: #353535; border-radius: 2px; }
+</style>
 </head>
-<body>
+<body class="min-h-screen">
 
-  <nav>
-    <div class="container">
-      <a class="logo" href="/claude-launchpad/">Claude Launchpad</a>
-      <div class="nav-links">
-        <a href="/claude-launchpad/docs.html">Docs</a>
-        <a href="https://github.com/mboss37/claude-launchpad/releases">Releases</a>
-        <a href="https://github.com/mboss37/claude-launchpad">GitHub</a>
-        <a href="https://www.npmjs.com/package/claude-launchpad">npm</a>
-      </div>
-    </div>
-  </nav>
+<!-- Nav -->
+<header class="bg-surface text-accent text-sm font-semibold tracking-tight sticky top-0 flex items-center justify-between w-full px-6 h-12 z-50 border-b border-border-dim">
+  <div class="flex items-center gap-3">
+    <span class="material-symbols-outlined">rocket_launch</span>
+    <a href="/claude-launchpad/" class="text-base font-bold tracking-tighter">Claude Launchpad</a>
+  </div>
+  <div class="flex items-center gap-4">
+    <nav class="hidden md:flex items-center gap-1">
+      <a class="text-text-dim hover:bg-surface-high transition-colors px-2.5 py-1 rounded" href="/claude-launchpad/docs.html">Docs</a>
+      <a class="text-text-dim hover:bg-surface-high transition-colors px-2.5 py-1 rounded" href="https://github.com/mboss37/claude-launchpad/releases">Releases</a>
+      <a class="text-text-dim hover:bg-surface-high transition-colors px-2.5 py-1 rounded" href="https://github.com/mboss37/claude-launchpad">GitHub</a>
+    </nav>
+    <div class="h-4 w-px bg-border-dim hidden md:block"></div>
+    <a href="https://www.npmjs.com/package/claude-launchpad" class="bg-accent text-black px-3 py-1 rounded-lg font-medium text-xs hover:opacity-90 transition-opacity">npm</a>
+  </div>
+</header>
+
+<main class="max-w-5xl mx-auto px-6 py-12 md:px-12">
 
   <!-- Hero -->
-  <section class="hero">
-    <div class="container">
-      <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px;">
-        <img src="https://img.shields.io/npm/v/claude-launchpad?style=flat-square&color=22c55e&label=npm" alt="npm version" height="20">
-        <img src="https://img.shields.io/github/stars/mboss37/claude-launchpad?style=flat-square&color=facc15&label=stars" alt="GitHub stars" height="20">
-        <img src="https://img.shields.io/npm/dm/claude-launchpad?style=flat-square&color=3b82f6&label=downloads" alt="npm downloads" height="20">
-        <img src="https://img.shields.io/github/license/mboss37/claude-launchpad?style=flat-square&color=a1a1aa&label=license" alt="MIT license" height="20">
+  <section class="mb-16">
+    <div class="flex items-center gap-2 mb-3">
+      <span class="px-2 py-0.5 bg-surface-high text-[0.625rem] font-bold tracking-widest uppercase rounded">v0.3.4</span>
+      <span class="text-text-muted text-xs">58 tests &middot; 11 eval scenarios &middot; 13 languages</span>
+    </div>
+    <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-white mb-3 leading-tight">Everything you need to launch a project<br>with Claude Code — and keep it healthy.</h1>
+    <p class="text-text-dim text-sm max-w-2xl leading-relaxed mb-6">
+      Score your Claude Code config, auto-fix issues, and test if Claude actually follows your rules. Works with any stack.
+    </p>
+    <div class="flex gap-3 items-center">
+      <div class="code-block rounded-xl px-4 py-2.5 font-mono text-sm flex items-center gap-3 group cursor-pointer hover:border-text-muted transition-colors" id="cta">
+        <span class="text-text-muted">$</span>
+        <span class="text-green">npm i -g claude-launchpad</span>
+        <span class="material-symbols-outlined text-text-muted text-base group-hover:text-white transition-colors">content_copy</span>
       </div>
-      <div class="hero-badge">Open source &middot; Works with any stack &middot; 58 tests</div>
-      <h1>Your Claude Code setup<br>is probably <span class="gradient">broken</span></h1>
-      <p>Claude Code's effectiveness is 90% configuration, 10% prompting. But nobody can tell if their config is actually good. Until now.</p>
-      <a class="hero-cta" href="#quickstart" id="cta">
-        <span class="dollar">$</span> npx claude-launchpad
-      </a>
     </div>
   </section>
 
-  <!-- Terminal Demo -->
-  <section class="terminal-section">
-    <div class="container">
-      <div class="terminal" id="terminal-carousel">
-        <div class="terminal-bar">
-          <div class="terminal-dot"></div>
-          <div class="terminal-dot"></div>
-          <div class="terminal-dot"></div>
+  <!-- Two Paths -->
+  <section class="mb-16">
+    <h2 class="text-lg font-semibold text-white mb-4 border-l-2 border-accent pl-3">Two paths, one tool</h2>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="bg-surface-low p-5 rounded-xl border border-border-dim">
+        <h3 class="text-sm font-bold text-white mb-2 flex items-center gap-2">
+          <span class="material-symbols-outlined text-lg">add_circle</span>
+          Starting a new project?
+        </h3>
+        <p class="text-xs text-text-dim mb-3">Detects your stack, generates CLAUDE.md, TASKS.md, hooks, and .claudeignore.</p>
+        <div class="code-block rounded-lg p-3 font-mono text-xs">
+          <span class="text-green">claude-launchpad</span> init
         </div>
-        <div class="terminal-tabs">
-          <div class="terminal-tab active" data-tab="init">init</div>
-          <div class="terminal-tab" data-tab="doctor">doctor</div>
-          <div class="terminal-tab" data-tab="fix">doctor --fix</div>
-          <div class="terminal-tab" data-tab="eval">eval</div>
-        </div>
-
-        <!-- init -->
-        <div class="terminal-body terminal-panel active" data-panel="init">
-          <div><span class="t-cyan t-bold">&nbsp;&nbsp;Claude Launchpad</span></div>
-          <div><span class="t-dim">&nbsp;&nbsp;Scaffold &middot; Diagnose &middot; Evaluate</span></div>
-          <br>
-          <div>&nbsp;&nbsp;<span class="t-cyan">&#8594;</span> Detecting project...</div>
-          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> Found <span class="t-white t-bold">Next.js</span> (TypeScript) project</div>
-          <div>&nbsp;&nbsp;<span class="t-dim">&middot;</span> Package manager: pnpm</div>
-          <div>&nbsp;&nbsp;<span class="t-dim">&middot;</span> Dev command: pnpm dev</div>
-          <div>&nbsp;&nbsp;<span class="t-dim">&middot;</span> Test command: pnpm test</div>
-          <br>
-          <div>&nbsp;&nbsp;<span class="t-cyan">&#8594;</span> Generating configuration...</div>
-          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> Generated CLAUDE.md</div>
-          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> Generated TASKS.md</div>
-          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> Generated .claude/settings.json (with hooks)</div>
-          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> Generated .claudeignore</div>
-          <br>
-          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> Done! Run <span class="t-white t-bold">claude</span> to start.</div>
-        </div>
-
-        <!-- doctor -->
-        <div class="terminal-body terminal-panel" data-panel="doctor">
-          <div><span class="t-cyan t-bold">&nbsp;&nbsp;Claude Launchpad</span></div>
-          <div><span class="t-dim">&nbsp;&nbsp;Scaffold &middot; Diagnose &middot; Evaluate</span></div>
-          <br>
-          <div>&nbsp;&nbsp;<span class="t-cyan">&#8594;</span> Scanning Claude Code configuration...</div>
-          <br>
-          <div>&nbsp;&nbsp;<span class="t-white t-bold">Instruction Budget&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bar-green">━━━━━━━━━━━━━━━━━━━━</span>&nbsp;&nbsp;<span class="t-green t-bold">100%</span></div>
-          <div>&nbsp;&nbsp;<span class="t-white t-bold">CLAUDE.md Quality&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bar-green">━━━━━━━━━━━━━━━━━━━━</span>&nbsp;&nbsp;<span class="t-green t-bold">100%</span></div>
-          <div>&nbsp;&nbsp;<span class="t-white t-bold">Settings&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bar-green">━━━━━━━━━━━━━━━━━</span><span class="bar-empty">───</span>&nbsp;&nbsp;<span class="t-green t-bold">&nbsp;85%</span></div>
-          <div>&nbsp;&nbsp;<span class="t-white t-bold">Hooks&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bar-red">━━━━━━</span><span class="bar-empty">──────────────</span>&nbsp;&nbsp;<span class="t-red t-bold">&nbsp;30%</span></div>
-          <div>&nbsp;&nbsp;<span class="t-white t-bold">Rules&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bar-yellow">━━━━━━━━━━━━</span><span class="bar-empty">────────</span>&nbsp;&nbsp;<span class="t-yellow t-bold">&nbsp;60%</span></div>
-          <div>&nbsp;&nbsp;<span class="t-white t-bold">Permissions&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bar-yellow">━━━━━━━━━━━━</span><span class="bar-empty">────────</span>&nbsp;&nbsp;<span class="t-yellow t-bold">&nbsp;60%</span></div>
-          <div>&nbsp;&nbsp;<span class="t-white t-bold">MCP Servers&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bar-yellow">━━━━━━━━━━</span><span class="bar-empty">──────────</span>&nbsp;&nbsp;<span class="t-yellow t-bold">&nbsp;50%</span></div>
-          <br>
-          <div>&nbsp;&nbsp;<span class="t-white t-bold">Overall&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bar-yellow">━━━━━━━━━━━━</span><span class="bar-empty">────────</span>&nbsp;&nbsp;<span class="t-yellow t-bold">&nbsp;55%</span></div>
-          <br>
-          <div>&nbsp;&nbsp;<span class="t-dim">&middot;</span> 7 issue(s) found. Fix critical/high first.</div>
-        </div>
-
-        <!-- doctor --fix -->
-        <div class="terminal-body terminal-panel" data-panel="fix">
-          <div>&nbsp;&nbsp;<span class="t-cyan">&#8594;</span> Applying fixes...</div>
-          <br>
-          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> Added "## Stack" section to CLAUDE.md</div>
-          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> Added "## Commands" section to CLAUDE.md</div>
-          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> Added "## Off-Limits" section to CLAUDE.md</div>
-          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> Added "## Architecture" section to CLAUDE.md</div>
-          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> Added .env file protection hook (PreToolUse)</div>
-          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> Added auto-format hook (PostToolUse &rarr; prettier)</div>
-          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> Added force-push protection hook (PreToolUse)</div>
-          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> Created .claude/rules/conventions.md</div>
-          <br>
-          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> Applied <span class="t-white t-bold">8</span> fix(es). Score: <span class="t-red">42%</span> &rarr; <span class="t-green t-bold">86%</span></div>
-        </div>
-
-        <!-- eval -->
-        <div class="terminal-body terminal-panel" data-panel="eval">
-          <div><span class="t-cyan t-bold">&nbsp;&nbsp;Claude Launchpad</span></div>
-          <div><span class="t-dim">&nbsp;&nbsp;Scaffold &middot; Diagnose &middot; Evaluate</span></div>
-          <br>
-          <div>&nbsp;&nbsp;<span class="t-cyan">&#8594;</span> Loading eval scenarios...</div>
-          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> Loaded 11 scenario(s)</div>
-          <br>
-          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> security/sql-injection&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-white">10/10</span>&nbsp;&nbsp;<span class="t-green">PASS</span></div>
-          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> security/env-protection&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-white">10/10</span>&nbsp;&nbsp;<span class="t-green">PASS</span></div>
-          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> security/secret-exposure&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-white">10/10</span>&nbsp;&nbsp;<span class="t-green">PASS</span></div>
-          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> conventions/error-handling&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-white">10/10</span>&nbsp;&nbsp;<span class="t-green">PASS</span></div>
-          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> conventions/immutability&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-white">10/10</span>&nbsp;&nbsp;<span class="t-green">PASS</span></div>
-          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> security/input-validation&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-white">10/10</span>&nbsp;&nbsp;<span class="t-green">PASS</span></div>
-          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> conventions/no-hardcoded-values&nbsp;<span class="t-white">10/10</span>&nbsp;&nbsp;<span class="t-green">PASS</span></div>
-          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> workflow/git-conventions&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-white">10/10</span>&nbsp;&nbsp;<span class="t-green">PASS</span></div>
-          <div>&nbsp;&nbsp;<span class="t-red">&#10007;</span> conventions/file-size&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-white">&nbsp;2/10</span>&nbsp;&nbsp;<span class="t-red">FAIL</span></div>
-          <br>
-          <div>&nbsp;&nbsp;<span class="t-white t-bold">Config Eval Score&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bar-green">━━━━━━━━━━━━━━━━━━</span><span class="bar-empty">──</span>&nbsp;&nbsp;<span class="t-green t-bold">&nbsp;89%</span></div>
-          <br>
-          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> 10 passed, <span class="t-red">1 failed</span> out of 11 scenario(s).</div>
+      </div>
+      <div class="bg-surface-low p-5 rounded-xl border border-border-dim">
+        <h3 class="text-sm font-bold text-white mb-2 flex items-center gap-2">
+          <span class="material-symbols-outlined text-lg">search</span>
+          Already have a project?
+        </h3>
+        <p class="text-xs text-text-dim mb-3">Scans your config, scores it 0-100, tells you what's wrong, fixes it.</p>
+        <div class="code-block rounded-lg p-3 font-mono text-xs">
+          <span class="text-green">claude-launchpad</span>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Story -->
-  <section class="story">
-    <div class="container">
-      <div class="section-header">
-        <h2>The 42% &rarr; 89% Story</h2>
-        <p>You just joined a team. The repo has a half-baked CLAUDE.md from six months ago. Claude keeps ignoring conventions. Nobody knows why.</p>
+  <!-- Doctor Output -->
+  <section class="mb-16">
+    <h2 class="text-lg font-semibold text-white mb-4 border-l-2 border-accent pl-3">What you see when you run it</h2>
+    <div class="code-block rounded-xl p-5 font-mono text-xs leading-relaxed">
+      <div class="text-blue font-bold mb-1">&nbsp;&nbsp;Claude Launchpad</div>
+      <div class="text-text-muted mb-3">&nbsp;&nbsp;Scaffold &middot; Diagnose &middot; Evaluate</div>
+      <div class="space-y-1">
+        <div>&nbsp;&nbsp;<span class="text-white font-medium">Instruction Budget&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="text-green">━━━━━━━━━━━━━━━━━━━━</span>&nbsp;&nbsp;<span class="text-green font-bold">100%</span></div>
+        <div>&nbsp;&nbsp;<span class="text-white font-medium">CLAUDE.md Quality&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="text-green">━━━━━━━━━━━━━━━━━━━━</span>&nbsp;&nbsp;<span class="text-green font-bold">100%</span></div>
+        <div>&nbsp;&nbsp;<span class="text-white font-medium">Settings&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="text-green">━━━━━━━━━━━━━━━━━━━━</span>&nbsp;&nbsp;<span class="text-green font-bold">100%</span></div>
+        <div>&nbsp;&nbsp;<span class="text-white font-medium">Hooks&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="text-red">━━━━━━</span><span class="text-text-muted opacity-30">──────────────</span>&nbsp;&nbsp;<span class="text-red font-bold">&nbsp;30%</span></div>
+        <div>&nbsp;&nbsp;<span class="text-white font-medium">Rules&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="text-yellow">━━━━━━━━━━━━</span><span class="text-text-muted opacity-30">────────</span>&nbsp;&nbsp;<span class="text-yellow font-bold">&nbsp;60%</span></div>
+        <div>&nbsp;&nbsp;<span class="text-white font-medium">Permissions&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="text-yellow">━━━━━━━━━━━━</span><span class="text-text-muted opacity-30">────────</span>&nbsp;&nbsp;<span class="text-yellow font-bold">&nbsp;60%</span></div>
+        <div>&nbsp;&nbsp;<span class="text-white font-medium">MCP Servers&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="text-yellow">━━━━━━━━━━</span><span class="text-text-muted opacity-30">──────────</span>&nbsp;&nbsp;<span class="text-yellow font-bold">&nbsp;50%</span></div>
       </div>
-      <div class="story-grid">
-        <div class="story-card fade-in">
-          <div class="story-step">
-            <span class="story-num">1</span>
-            <span class="story-cmd">npx claude-launchpad</span>
-          </div>
-          <div class="story-score">Overall <span style="color:var(--red);font-weight:700">42%</span></div>
-          <div class="story-bar" style="background: linear-gradient(90deg, var(--red) 42%, var(--surface-2) 42%);"></div>
-          <div class="story-detail">11 issues found</div>
-          <div class="story-text">No hooks. No rules. Missing CLAUDE.md sections. Claude has zero guardrails.</div>
+      <div class="mt-3">&nbsp;&nbsp;<span class="text-white font-bold">Overall&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="text-yellow">━━━━━━━━━━━━</span><span class="text-text-muted opacity-30">────────</span>&nbsp;&nbsp;<span class="text-yellow font-bold">&nbsp;55%</span></div>
+      <div class="mt-3 text-text-muted">&nbsp;&nbsp;7 issue(s) found. Run <span class="text-green">--fix</span> to auto-repair.</div>
+    </div>
+  </section>
+
+  <!-- Bento Grid -->
+  <section class="mb-16">
+    <h2 class="text-lg font-semibold text-white mb-4 border-l-2 border-accent pl-3">All commands</h2>
+    <div class="grid md:grid-cols-3 gap-4">
+
+      <!-- Doctor -->
+      <div class="md:col-span-2 bg-surface-low p-5 rounded-xl border border-border-dim">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-sm font-bold text-white flex items-center gap-2">
+            <span class="material-symbols-outlined text-lg">vital_signs</span>doctor
+          </h3>
+          <span class="text-[0.625rem] text-green bg-green/10 px-2 py-0.5 rounded font-bold uppercase tracking-wider">Free</span>
         </div>
-        <div class="story-card fade-in">
-          <div class="story-step">
-            <span class="story-num">2</span>
-            <span class="story-cmd">doctor --fix</span>
-          </div>
-          <div style="font-family:var(--mono);font-size:12px;line-height:2;color:var(--text-dim);margin-bottom:12px;">
-            <div><span style="color:var(--green)">&#10003;</span> .env protection hook</div>
-            <div><span style="color:var(--green)">&#10003;</span> Auto-format hook</div>
-            <div><span style="color:var(--green)">&#10003;</span> Force-push protection</div>
-            <div><span style="color:var(--green)">&#10003;</span> CLAUDE.md sections</div>
-            <div><span style="color:var(--green)">&#10003;</span> Starter rules</div>
-          </div>
-          <div class="story-text">8 fixes applied automatically. Zero manual work.</div>
+        <p class="text-xs text-text-dim leading-relaxed mb-3">7 analyzers scan your CLAUDE.md, hooks, rules, settings, permissions, and MCP servers. Gives you a score. Run <code class="text-green">--fix</code> to auto-repair. Run <code class="text-green">--watch</code> for live updates.</p>
+        <div class="code-block rounded-lg p-3 font-mono text-[0.7rem] bg-black/40">
+          <span class="text-green">claude-launchpad</span> doctor --fix
         </div>
-        <div class="story-card fade-in">
-          <div class="story-step">
-            <span class="story-num">3</span>
-            <span class="story-cmd">npx claude-launchpad</span>
-          </div>
-          <div class="story-score">Overall <span style="color:var(--green);font-weight:700">86%</span></div>
-          <div class="story-bar" style="background: linear-gradient(90deg, var(--green) 86%, var(--surface-2) 86%);"></div>
-          <div class="story-detail">2 issues remaining (optional)</div>
-          <div class="story-text">Hooks enforce rules at 100%. .env protected. Quality locked in.</div>
+      </div>
+
+      <!-- Init -->
+      <div class="bg-surface-low p-5 rounded-xl border border-border-dim flex flex-col justify-between">
+        <div>
+          <h3 class="text-sm font-bold text-white mb-2 flex items-center gap-2">
+            <span class="material-symbols-outlined text-lg">rocket_launch</span>init
+          </h3>
+          <p class="text-xs text-text-dim leading-relaxed">Detects your stack. Generates config, hooks, tasks, .claudeignore. 13 languages, 20+ frameworks.</p>
         </div>
-        <div class="story-card fade-in">
-          <div class="story-step">
-            <span class="story-num">4</span>
-            <span class="story-cmd">claude-launchpad eval</span>
-          </div>
-          <div style="font-family:var(--mono);font-size:11px;line-height:1.9;color:var(--text-dim);margin-bottom:12px;">
-            <div><span style="color:var(--green)">&#10003;</span> 8/11 scenarios&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--green)">PASS</span></div>
-            <div><span style="color:var(--green)">&#10003;</span> sql-injection&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--green)">10/10</span></div>
-            <div><span style="color:var(--green)">&#10003;</span> secret-exposure&nbsp;&nbsp;<span style="color:var(--green)">10/10</span></div>
-            <div><span style="color:var(--green)">&#10003;</span> immutability&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--green)">10/10</span></div>
-          </div>
-          <div class="story-score">Eval Score <span style="color:var(--green);font-weight:700">89%</span></div>
-          <div class="story-bar" style="background: linear-gradient(90deg, var(--green) 89%, var(--surface-2) 89%);"></div>
-          <div class="story-text">Proof that your config actually makes Claude behave correctly. Nobody else tests this.</div>
+        <span class="text-[0.625rem] text-green bg-green/10 px-2 py-0.5 rounded font-bold uppercase tracking-wider self-start mt-3">Free</span>
+      </div>
+
+      <!-- Enhance -->
+      <div class="bg-gradient-to-br from-surface-low to-surface-high p-5 rounded-xl border border-border-dim">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-sm font-bold text-white flex items-center gap-2">
+            <span class="material-symbols-outlined text-lg">auto_awesome</span>enhance
+          </h3>
+          <span class="text-[0.625rem] text-yellow bg-yellow/10 px-2 py-0.5 rounded font-bold uppercase tracking-wider">Uses Claude</span>
         </div>
+        <p class="text-xs text-text-dim leading-relaxed">Claude reads your codebase and completes CLAUDE.md with real architecture, conventions, and guardrails. Suggests project-specific hooks and MCP servers.</p>
+      </div>
+
+      <!-- Eval -->
+      <div class="md:col-span-2 bg-accent text-black p-5 rounded-xl relative overflow-hidden">
+        <span class="material-symbols-outlined absolute -right-4 -bottom-4 text-[6rem] opacity-5 rotate-12">analytics</span>
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-sm font-extrabold flex items-center gap-2">
+            <span class="material-symbols-outlined text-lg">science</span>eval
+          </h3>
+          <span class="text-[0.625rem] bg-black/10 px-2 py-0.5 rounded font-bold uppercase tracking-wider">Uses Claude</span>
+        </div>
+        <p class="text-xs opacity-80 leading-relaxed mb-3">11 scenarios test if Claude actually follows your rules. SQL injection, secrets, immutability, naming, error handling. Run by suite: <code class="font-mono bg-black/10 px-1 rounded">--suite security</code></p>
+        <div class="flex gap-6 mt-2">
+          <div>
+            <div class="text-xl font-mono font-bold">95%</div>
+            <div class="text-[0.625rem] opacity-60">Eval Score</div>
+          </div>
+          <div>
+            <div class="text-xl font-mono font-bold">11</div>
+            <div class="text-[0.625rem] opacity-60">Scenarios</div>
+          </div>
+          <div>
+            <div class="text-xl font-mono font-bold">3</div>
+            <div class="text-[0.625rem] opacity-60">Suites</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- The Story -->
+  <section class="mb-16">
+    <h2 class="text-lg font-semibold text-white mb-4 border-l-2 border-accent pl-3">The 42% → 86% story</h2>
+    <p class="text-xs text-text-dim mb-6 max-w-xl">You join a team. The repo has a stale CLAUDE.md. Claude keeps ignoring conventions. Nobody knows why.</p>
+    <div class="grid md:grid-cols-4 gap-3">
+      <div class="bg-surface-low p-4 rounded-xl border border-border-dim">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="h-5 w-5 rounded-full bg-surface-high flex items-center justify-center text-[0.625rem] text-text-dim font-bold">1</span>
+          <code class="text-[0.7rem] text-green">claude-launchpad</code>
+        </div>
+        <div class="font-mono text-xs mb-1">Score: <span class="text-red font-bold">42%</span></div>
+        <div class="h-1 bg-surface-high rounded-full mb-2"><div class="h-1 bg-red rounded-full" style="width:42%"></div></div>
+        <p class="text-[0.65rem] text-text-muted">11 issues. No hooks. No rules.</p>
+      </div>
+      <div class="bg-surface-low p-4 rounded-xl border border-border-dim">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="h-5 w-5 rounded-full bg-surface-high flex items-center justify-center text-[0.625rem] text-text-dim font-bold">2</span>
+          <code class="text-[0.7rem] text-green">doctor --fix</code>
+        </div>
+        <div class="space-y-1 text-[0.65rem] text-text-dim font-mono">
+          <div><span class="text-green">✓</span> .env hook</div>
+          <div><span class="text-green">✓</span> format hook</div>
+          <div><span class="text-green">✓</span> force-push gate</div>
+          <div><span class="text-green">✓</span> rules + sections</div>
+        </div>
+      </div>
+      <div class="bg-surface-low p-4 rounded-xl border border-border-dim">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="h-5 w-5 rounded-full bg-surface-high flex items-center justify-center text-[0.625rem] text-text-dim font-bold">3</span>
+          <code class="text-[0.7rem] text-green">claude-launchpad</code>
+        </div>
+        <div class="font-mono text-xs mb-1">Score: <span class="text-green font-bold">86%</span></div>
+        <div class="h-1 bg-surface-high rounded-full mb-2"><div class="h-1 bg-green rounded-full" style="width:86%"></div></div>
+        <p class="text-[0.65rem] text-text-muted">Hooks enforce at 100%.</p>
+      </div>
+      <div class="bg-surface-low p-4 rounded-xl border border-border-dim">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="h-5 w-5 rounded-full bg-surface-high flex items-center justify-center text-[0.625rem] text-text-dim font-bold">4</span>
+          <code class="text-[0.7rem] text-green">eval --suite security</code>
+        </div>
+        <div class="space-y-1 text-[0.65rem] text-text-dim font-mono">
+          <div><span class="text-green">✓</span> sql-injection 10/10</div>
+          <div><span class="text-green">✓</span> env-protection 10/10</div>
+          <div><span class="text-green">✓</span> secrets 10/10</div>
+        </div>
+        <div class="font-mono text-xs mt-2">Eval: <span class="text-green font-bold">95%</span></div>
       </div>
     </div>
   </section>
 
-  <!-- Pillars -->
-  <section class="pillars">
-    <div class="container">
-      <div class="section-header">
-        <h2>Four commands. One number.</h2>
-      </div>
-      <div class="pillar-grid">
-        <div class="pillar fade-in">
-          <h3><span style="opacity:0.7">&#9775;</span> doctor</h3>
-          <p>7 analyzers scan your CLAUDE.md, hooks, rules, settings, permissions, and MCP servers. Get a score. Fix the issues. Re-run. Watch it climb.</p>
-          <span class="tag tag-free">Free</span>
-        </div>
-        <div class="pillar fade-in">
-          <h3><span style="opacity:0.7">&#9881;&#65039;</span> init</h3>
-          <p>Auto-detects your stack (13 languages, 20+ frameworks) and generates CLAUDE.md, TASKS.md, .claudeignore, and settings.json with hooks.</p>
-          <span class="tag tag-free">Free</span>
-        </div>
-        <div class="pillar fade-in">
-          <h3><span style="opacity:0.7">&#9889;</span> enhance</h3>
-          <p>Spawns Claude to read your actual codebase and complete CLAUDE.md with real architecture, conventions, and guardrails.</p>
-          <span class="tag tag-cost">Requires Claude</span>
-        </div>
-        <div class="pillar fade-in">
-          <h3><span style="opacity:0.7">&#9881;</span> eval</h3>
-          <p>11 scenarios test if Claude actually follows your rules. The part nobody else has built.</p>
-          <span class="tag tag-cost">Requires Claude</span>
-        </div>
-      </div>
+  <!-- CI -->
+  <section class="mb-16">
+    <h2 class="text-lg font-semibold text-white mb-4 border-l-2 border-accent pl-3">Use in CI</h2>
+    <p class="text-xs text-text-dim mb-3">Block PRs that degrade your Claude Code config.</p>
+    <div class="code-block rounded-xl p-4 font-mono text-[0.7rem] leading-relaxed">
+      <div class="text-text-muted mb-1"># .github/workflows/claude-config.yml</div>
+      <div><span class="text-blue">run</span>: npx claude-launchpad@latest doctor --min-score 80 --json</div>
     </div>
+    <p class="text-[0.65rem] text-text-muted mt-2">Score below threshold = exit code 1 = PR blocked.</p>
   </section>
 
-  <!-- Analyzers -->
-  <section class="analyzers">
-    <div class="container">
-      <div class="section-header">
-        <h2>What doctor catches</h2>
-        <p>Problems you didn't know you had</p>
-      </div>
-      <div class="analyzer-grid">
-        <div class="analyzer-card fade-in">
-          <div class="icon">&#128200;</div>
-          <div><h4>Instruction Budget</h4><p>Past ~150 instructions, Claude starts ignoring rules. Most people don't know they're over.</p></div>
-        </div>
-        <div class="analyzer-card fade-in">
-          <div class="icon">&#128203;</div>
-          <div><h4>CLAUDE.md Quality</h4><p>Missing essential sections, vague instructions ("write good code"), hardcoded API keys.</p></div>
-        </div>
-        <div class="analyzer-card fade-in">
-          <div class="icon">&#128268;</div>
-          <div><h4>Hooks</h4><p>CLAUDE.md rules are ~80% compliant. Hooks are 100%. Most people have zero hooks.</p></div>
-        </div>
-        <div class="analyzer-card fade-in">
-          <div class="icon">&#128274;</div>
-          <div><h4>Permissions</h4><p>Bash auto-allowed without security gates. No force-push protection. Missing Off-Limits.</p></div>
-        </div>
-        <div class="analyzer-card fade-in">
-          <div class="icon">&#128209;</div>
-          <div><h4>Rules &amp; Settings</h4><p>Dead rule files. Empty configs. Missing permission rules in settings.json.</p></div>
-        </div>
-        <div class="analyzer-card fade-in">
-          <div class="icon">&#128640;</div>
-          <div><h4>MCP Servers</h4><p>Invalid transport configs, missing commands, broken executables. Silent failures caught.</p></div>
-        </div>
-      </div>
-    </div>
-  </section>
+</main>
 
-  <!-- Quick Start -->
-  <section class="quickstart" id="quickstart">
-    <div class="container">
-      <div class="section-header">
-        <h2>Get started in 60 seconds</h2>
-      </div>
-      <div class="steps">
-        <div class="step fade-in">
-          <div class="step-num">1</div>
-          <code>claude-launchpad init</code>
-          <p>Auto-detect stack, generate config and hooks</p>
-        </div>
-        <div class="step fade-in">
-          <div class="step-num">2</div>
-          <code>claude-launchpad enhance</code>
-          <p>Claude reads your code and completes CLAUDE.md</p>
-        </div>
-        <div class="step fade-in">
-          <div class="step-num">3</div>
-          <code>claude-launchpad</code>
-          <p>Check your score, fix issues, repeat</p>
-        </div>
-        <div class="step fade-in">
-          <div class="step-num">4</div>
-          <code>--min-score 80</code>
-          <p>Add to CI to guard config quality</p>
-        </div>
-      </div>
-    </div>
-  </section>
+<!-- Footer -->
+<footer class="border-t border-border-dim text-text-muted text-xs w-full flex justify-between items-center px-6 py-4 max-w-5xl mx-auto">
+  <div>&copy; 2026</div>
+  <div class="flex gap-4">
+    <a class="hover:text-white transition-colors" href="https://github.com/mboss37/claude-launchpad">GitHub</a>
+    <a class="hover:text-white transition-colors" href="https://www.npmjs.com/package/claude-launchpad">npm</a>
+    <a class="hover:text-white transition-colors" href="/claude-launchpad/docs.html">Docs</a>
+    <a class="hover:text-white transition-colors" href="/claude-launchpad/privacy.html">Privacy</a>
+  </div>
+</footer>
 
-  <footer>
-    <div class="container">
-      <p><a href="https://github.com/mboss37/claude-launchpad">GitHub</a> &middot; <a href="https://www.npmjs.com/package/claude-launchpad">npm</a> &middot; <a href="/claude-launchpad/privacy.html">Privacy</a> &middot; MIT License</p>
-    </div>
-  </footer>
-
-  <script>
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-          observer.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-    document.querySelectorAll('.fade-in').forEach((el, i) => {
-      el.style.transitionDelay = `${i * 60}ms`;
-      observer.observe(el);
-    });
-
-    // Terminal carousel
-    const tabs = document.querySelectorAll('.terminal-tab');
-    const panels = document.querySelectorAll('.terminal-panel');
-    let currentTab = 0;
-    let autoRotate;
-
-    function switchTab(index) {
-      tabs.forEach(t => t.classList.remove('active'));
-      panels.forEach(p => p.classList.remove('active'));
-      tabs[index].classList.add('active');
-      panels[index].classList.add('active');
-      currentTab = index;
-    }
-
-    tabs.forEach((tab, i) => {
-      tab.addEventListener('click', () => {
-        switchTab(i);
-        clearInterval(autoRotate);
-        autoRotate = setInterval(() => switchTab((currentTab + 1) % tabs.length), 5000);
-      });
-    });
-
-    autoRotate = setInterval(() => switchTab((currentTab + 1) % tabs.length), 4000);
-
-    document.getElementById('cta')?.addEventListener('click', (e) => {
-      e.preventDefault();
-      navigator.clipboard.writeText('npx claude-launchpad').then(() => {
-        const el = e.currentTarget;
-        const orig = el.innerHTML;
-        el.innerHTML = '<span style="color:var(--green)">Copied!</span>';
-        setTimeout(() => { el.innerHTML = orig; }, 1500);
-      });
-    });
-  </script>
+<script>
+document.getElementById('cta')?.addEventListener('click', () => {
+  navigator.clipboard.writeText('npm i -g claude-launchpad').then(() => {
+    const el = document.getElementById('cta');
+    const orig = el.innerHTML;
+    el.innerHTML = '<span class="text-green font-mono text-sm">Copied!</span>';
+    setTimeout(() => { el.innerHTML = orig; }, 1500);
+  });
+});
+</script>
 </body>
 </html>
