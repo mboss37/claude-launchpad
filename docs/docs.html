@@ -43,14 +43,14 @@ body { background: #000; color: #e2e2e2; font-family: 'Geist', sans-serif; }
   <div class="flex items-center gap-3">
     <span class="material-symbols-outlined text-white">rocket_launch</span>
     <a href="/claude-launchpad/" class="text-white text-sm font-bold tracking-tighter">Claude Launchpad</a>
-    <a href="https://github.com/mboss37/claude-launchpad/releases" class="px-1.5 py-0.5 bg-surface-high text-[0.6rem] font-bold tracking-widest uppercase rounded text-text-dim hover:text-white transition-colors">v0.3.4</a>
+    <a href="https://github.com/mboss37/claude-launchpad/releases" class="px-1.5 py-0.5 bg-surface-high text-xs font-bold tracking-widest uppercase rounded text-text-dim hover:text-white transition-colors">v0.3.4</a>
   </div>
   <nav class="flex items-center gap-1">
     <a class="text-text-dim hover:bg-surface-high transition-colors px-2.5 py-1 rounded text-xs" href="/claude-launchpad/">Home</a>
     <a class="text-white bg-surface-high px-2.5 py-1 rounded text-xs" href="/claude-launchpad/docs.html">Docs</a>
     <div class="h-4 w-px bg-border-dim mx-1"></div>
     <a class="text-text-dim hover:text-white transition-colors px-1.5 py-1 rounded" href="https://github.com/mboss37/claude-launchpad" title="GitHub"><svg class="w-4 h-4" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
-    <a class="text-text-dim hover:text-white transition-colors px-1.5 py-1 rounded text-[0.65rem] font-bold" href="https://www.npmjs.com/package/claude-launchpad" title="npm">npm</a>
+    <a class="text-text-dim hover:text-white transition-colors px-1.5 py-1 rounded text-xs font-bold" href="https://www.npmjs.com/package/claude-launchpad" title="npm">npm</a>
   </nav>
 </header>
 
@@ -77,8 +77,8 @@ body { background: #000; color: #e2e2e2; font-family: 'Geist', sans-serif; }
 
   <!-- Init -->
   <section class="mb-10 scroll-mt-16" id="init">
-    <h2 class="text-base font-semibold text-white mb-3 border-l-2 border-white pl-3">init <span class="text-[0.625rem] text-green bg-green/10 px-2 py-0.5 rounded font-bold uppercase tracking-wider ml-2">Free</span></h2>
-    <p class="text-xs text-text-dim mb-3">Auto-detect your project and generate Claude Code config from scratch.</p>
+    <h2 class="text-base font-semibold text-white mb-3 border-l-2 border-white pl-3">init <span class="text-xs text-green bg-green/10 px-2 py-0.5 rounded font-bold uppercase tracking-wider ml-2">Free</span></h2>
+    <p class="text-sm text-text-dim mb-3">Auto-detect your project and generate Claude Code config from scratch.</p>
     <div class="code-block rounded-xl p-4 font-mono text-xs leading-relaxed mb-4">
       <div class="text-text-muted"># Interactive mode</div>
       <div><span class="text-green">claude-launchpad</span> init</div>
@@ -89,15 +89,15 @@ body { background: #000; color: #e2e2e2; font-family: 'Geist', sans-serif; }
     </div>
     <div class="bg-surface-low rounded-xl border border-border-dim overflow-hidden">
       <table class="w-full text-xs">
-        <thead><tr class="text-left text-text-muted uppercase text-[0.625rem] tracking-widest"><th class="p-3 border-b border-border-dim">Flag</th><th class="p-3 border-b border-border-dim">Description</th></tr></thead>
+        <thead><tr class="text-left text-text-muted uppercase text-xs tracking-widest"><th class="p-3 border-b border-border-dim">Flag</th><th class="p-3 border-b border-border-dim">Description</th></tr></thead>
         <tbody>
-          <tr class="hover:bg-white/5"><td class="p-3 border-b border-border-dim font-mono text-green">-n, --name</td><td class="p-3 border-b border-border-dim text-text-dim">Project name (auto-detected from directory)</td></tr>
+          <tr class="hover:bg-white/5"><td class="p-3 border-b border-border-dim font-mono text-green">-n, --name</td><td class="p-3 border-b border-border-dim text-text-dim text-sm">Project name (auto-detected from directory)</td></tr>
           <tr class="hover:bg-white/5"><td class="p-3 font-mono text-green">-y, --yes</td><td class="p-3 text-text-dim">Accept all defaults without prompting</td></tr>
         </tbody>
       </table>
     </div>
     <h3 class="text-sm font-medium text-white mt-4 mb-2">What it generates</h3>
-    <ul class="text-xs text-text-dim space-y-1 list-disc list-inside">
+    <ul class="text-sm text-text-dim space-y-1 list-disc list-inside">
       <li><code class="text-green">CLAUDE.md</code> — stack, commands, conventions, guardrails</li>
       <li><code class="text-green">TASKS.md</code> — sprint tracking and session continuity</li>
       <li><code class="text-green">.claude/settings.json</code> — auto-format hooks and .env protection</li>
@@ -107,8 +107,8 @@ body { background: #000; color: #e2e2e2; font-family: 'Geist', sans-serif; }
 
   <!-- Doctor -->
   <section class="mb-10 scroll-mt-16" id="doctor">
-    <h2 class="text-base font-semibold text-white mb-3 border-l-2 border-white pl-3">doctor <span class="text-[0.625rem] text-green bg-green/10 px-2 py-0.5 rounded font-bold uppercase tracking-wider ml-2">Free</span></h2>
-    <p class="text-xs text-text-dim mb-3">Scan your config, score it 0-100, list issues.</p>
+    <h2 class="text-base font-semibold text-white mb-3 border-l-2 border-white pl-3">doctor <span class="text-xs text-green bg-green/10 px-2 py-0.5 rounded font-bold uppercase tracking-wider ml-2">Free</span></h2>
+    <p class="text-sm text-text-dim mb-3">Scan your config, score it 0-100, list issues.</p>
     <div class="code-block rounded-xl p-4 font-mono text-xs leading-relaxed mb-4">
       <div class="text-text-muted"># Run doctor (also the default command)</div>
       <div><span class="text-green">claude-launchpad</span></div>
@@ -123,7 +123,7 @@ body { background: #000; color: #e2e2e2; font-family: 'Geist', sans-serif; }
     </div>
     <div class="bg-surface-low rounded-xl border border-border-dim overflow-hidden mb-4">
       <table class="w-full text-xs">
-        <thead><tr class="text-left text-text-muted uppercase text-[0.625rem] tracking-widest"><th class="p-3 border-b border-border-dim">Flag</th><th class="p-3 border-b border-border-dim">Description</th></tr></thead>
+        <thead><tr class="text-left text-text-muted uppercase text-xs tracking-widest"><th class="p-3 border-b border-border-dim">Flag</th><th class="p-3 border-b border-border-dim">Description</th></tr></thead>
         <tbody>
           <tr class="hover:bg-white/5"><td class="p-3 border-b border-border-dim font-mono text-green">--fix</td><td class="p-3 border-b border-border-dim text-text-dim">Auto-fix: hooks, CLAUDE.md sections, rules, .claudeignore</td></tr>
           <tr class="hover:bg-white/5"><td class="p-3 border-b border-border-dim font-mono text-green">--watch</td><td class="p-3 border-b border-border-dim text-text-dim">Re-runs every second when config files change</td></tr>
@@ -134,7 +134,7 @@ body { background: #000; color: #e2e2e2; font-family: 'Geist', sans-serif; }
       </table>
     </div>
     <h3 class="text-sm font-medium text-white mb-2">What --fix applies</h3>
-    <ul class="text-xs text-text-dim space-y-1 list-disc list-inside">
+    <ul class="text-sm text-text-dim space-y-1 list-disc list-inside">
       <li>.env file protection hook (blocks reads and writes)</li>
       <li>Auto-format hook (prettier, gofmt, ruff, etc.)</li>
       <li>Force-push protection hook</li>
@@ -146,13 +146,13 @@ body { background: #000; color: #e2e2e2; font-family: 'Geist', sans-serif; }
 
   <!-- Enhance -->
   <section class="mb-10 scroll-mt-16" id="enhance">
-    <h2 class="text-base font-semibold text-white mb-3 border-l-2 border-white pl-3">enhance <span class="text-[0.625rem] text-yellow bg-yellow/10 px-2 py-0.5 rounded font-bold uppercase tracking-wider ml-2">Uses Claude</span></h2>
-    <p class="text-xs text-text-dim mb-3">Claude reads your codebase and completes CLAUDE.md with real content.</p>
+    <h2 class="text-base font-semibold text-white mb-3 border-l-2 border-white pl-3">enhance <span class="text-xs text-yellow bg-yellow/10 px-2 py-0.5 rounded font-bold uppercase tracking-wider ml-2">Uses Claude</span></h2>
+    <p class="text-sm text-text-dim mb-3">Claude reads your codebase and completes CLAUDE.md with real content.</p>
     <div class="code-block rounded-xl p-4 font-mono text-xs leading-relaxed mb-4">
       <div><span class="text-green">claude-launchpad</span> enhance</div>
     </div>
     <h3 class="text-sm font-medium text-white mb-2">What it does</h3>
-    <ul class="text-xs text-text-dim space-y-1 list-disc list-inside">
+    <ul class="text-sm text-text-dim space-y-1 list-disc list-inside">
       <li>Opens an interactive Claude session with a pre-loaded task</li>
       <li>Fills in Architecture, Conventions, Off-Limits, Key Decisions</li>
       <li>Stays under 120-instruction budget — overflows to .claude/rules/</li>
@@ -163,8 +163,8 @@ body { background: #000; color: #e2e2e2; font-family: 'Geist', sans-serif; }
 
   <!-- Eval -->
   <section class="mb-10 scroll-mt-16" id="eval">
-    <h2 class="text-base font-semibold text-white mb-3 border-l-2 border-white pl-3">eval <span class="text-[0.625rem] text-yellow bg-yellow/10 px-2 py-0.5 rounded font-bold uppercase tracking-wider ml-2">Uses Claude</span></h2>
-    <p class="text-xs text-text-dim mb-3">Test if Claude actually follows your rules.</p>
+    <h2 class="text-base font-semibold text-white mb-3 border-l-2 border-white pl-3">eval <span class="text-xs text-yellow bg-yellow/10 px-2 py-0.5 rounded font-bold uppercase tracking-wider ml-2">Uses Claude</span></h2>
+    <p class="text-sm text-text-dim mb-3">Test if Claude actually follows your rules.</p>
     <div class="code-block rounded-xl p-4 font-mono text-xs leading-relaxed mb-4">
       <div class="text-text-muted"># Run all 11 scenarios</div>
       <div><span class="text-green">claude-launchpad</span> eval</div>
@@ -179,7 +179,7 @@ body { background: #000; color: #e2e2e2; font-family: 'Geist', sans-serif; }
     </div>
     <div class="bg-surface-low rounded-xl border border-border-dim overflow-hidden mb-4">
       <table class="w-full text-xs">
-        <thead><tr class="text-left text-text-muted uppercase text-[0.625rem] tracking-widest"><th class="p-3 border-b border-border-dim">Flag</th><th class="p-3 border-b border-border-dim">Description</th></tr></thead>
+        <thead><tr class="text-left text-text-muted uppercase text-xs tracking-widest"><th class="p-3 border-b border-border-dim">Flag</th><th class="p-3 border-b border-border-dim">Description</th></tr></thead>
         <tbody>
           <tr class="hover:bg-white/5"><td class="p-3 border-b border-border-dim font-mono text-green">--suite &lt;name&gt;</td><td class="p-3 border-b border-border-dim text-text-dim">security (4), conventions (5), or workflow (2)</td></tr>
           <tr class="hover:bg-white/5"><td class="p-3 border-b border-border-dim font-mono text-green">--model &lt;model&gt;</td><td class="p-3 border-b border-border-dim text-text-dim">haiku, sonnet, or opus</td></tr>
@@ -194,7 +194,7 @@ body { background: #000; color: #e2e2e2; font-family: 'Geist', sans-serif; }
     <h3 class="text-sm font-medium text-white mb-2">Built-in suites (11 scenarios)</h3>
     <div class="bg-surface-low rounded-xl border border-border-dim overflow-hidden mb-4">
       <table class="w-full text-xs">
-        <thead><tr class="text-left text-text-muted uppercase text-[0.625rem] tracking-widest"><th class="p-3 border-b border-border-dim">Suite</th><th class="p-3 border-b border-border-dim">Scenario</th><th class="p-3 border-b border-border-dim">Tests</th></tr></thead>
+        <thead><tr class="text-left text-text-muted uppercase text-xs tracking-widest"><th class="p-3 border-b border-border-dim">Suite</th><th class="p-3 border-b border-border-dim">Scenario</th><th class="p-3 border-b border-border-dim">Tests</th></tr></thead>
         <tbody>
           <tr class="hover:bg-white/5"><td class="p-3 border-b border-border-dim font-mono text-green" rowspan="4">security</td><td class="p-3 border-b border-border-dim">sql-injection</td><td class="p-3 border-b border-border-dim text-text-dim">Parameterized queries, not string concatenation</td></tr>
           <tr class="hover:bg-white/5"><td class="p-3 border-b border-border-dim">env-protection</td><td class="p-3 border-b border-border-dim text-text-dim">Creates .env.example, never writes .env</td></tr>
@@ -210,13 +210,13 @@ body { background: #000; color: #e2e2e2; font-family: 'Geist', sans-serif; }
         </tbody>
       </table>
     </div>
-    <p class="text-xs text-text-dim">Results are saved to <code class="text-green">.claude/eval/</code> as structured markdown. Feed them back to Claude to fix failures.</p>
+    <p class="text-sm text-text-dim">Results are saved to <code class="text-green">.claude/eval/</code> as structured markdown. Feed them back to Claude to fix failures.</p>
   </section>
 
   <!-- Plugin -->
   <section class="mb-10 scroll-mt-16" id="plugin">
     <h2 class="text-base font-semibold text-white mb-3 border-l-2 border-white pl-3">Plugin commands</h2>
-    <p class="text-xs text-text-dim mb-3">When installed as a Claude Code plugin (pending marketplace review):</p>
+    <p class="text-sm text-text-dim mb-3">When installed as a Claude Code plugin (pending marketplace review):</p>
     <div class="code-block rounded-xl p-4 font-mono text-xs leading-relaxed">
       <div><span class="text-green">/launchpad:init</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-text-muted">Generate config for your project</span></div>
       <div><span class="text-green">/launchpad:doctor</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-text-muted">Score your config</span></div>
