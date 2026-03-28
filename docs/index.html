@@ -57,7 +57,13 @@
     .terminal-dot:nth-child(2) { background: #facc15; }
     .terminal-dot:nth-child(3) { background: #4ade80; }
     .terminal-title { font-size: 12px; color: var(--text-muted); font-family: var(--mono); margin-left: auto; }
-    .terminal-body { padding: 24px 28px; font-family: var(--mono); font-size: 12.5px; line-height: 1.9; overflow-x: auto; opacity: 0; animation: termFade 0.8s ease 0.5s forwards; }
+    .terminal-body { padding: 24px 28px; font-family: var(--mono); font-size: 12.5px; line-height: 1.9; overflow-x: auto; }
+    .terminal-tabs { display: flex; gap: 0; padding: 0 18px; background: #1c1c1f; border-bottom: 1px solid rgba(63,63,70,0.5); }
+    .terminal-tab { padding: 10px 16px; font-family: var(--mono); font-size: 11px; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; user-select: none; }
+    .terminal-tab:hover { color: var(--text-dim); }
+    .terminal-tab.active { color: var(--green); border-bottom-color: var(--green); }
+    .terminal-panel { display: none; }
+    .terminal-panel.active { display: block; animation: termFade 0.4s ease; }
     @keyframes termFade { from { opacity: 0; } to { opacity: 1; } }
     .t-dim { color: var(--text-muted); } .t-cyan { color: var(--cyan); } .t-green { color: var(--green); } .t-yellow { color: var(--yellow); } .t-red { color: var(--red); } .t-bold { font-weight: 700; } .t-white { color: var(--text); }
     .bar-green { color: var(--green); } .bar-yellow { color: var(--yellow); } .bar-red { color: var(--red); } .bar-empty { color: var(--text-muted); opacity: 0.2; }
@@ -153,14 +159,21 @@
   <!-- Terminal Demo -->
   <section class="terminal-section">
     <div class="container">
-      <div class="terminal">
+      <div class="terminal" id="terminal-carousel">
         <div class="terminal-bar">
           <div class="terminal-dot"></div>
           <div class="terminal-dot"></div>
           <div class="terminal-dot"></div>
-          <span class="terminal-title">claude-launchpad doctor</span>
         </div>
-        <div class="terminal-body">
+        <div class="terminal-tabs">
+          <div class="terminal-tab active" data-tab="doctor">doctor</div>
+          <div class="terminal-tab" data-tab="init">init</div>
+          <div class="terminal-tab" data-tab="fix">doctor --fix</div>
+          <div class="terminal-tab" data-tab="eval">eval</div>
+        </div>
+
+        <!-- doctor -->
+        <div class="terminal-body terminal-panel active" data-panel="doctor">
           <div><span class="t-cyan t-bold">&nbsp;&nbsp;Claude Launchpad</span></div>
           <div><span class="t-dim">&nbsp;&nbsp;Scaffold &middot; Diagnose &middot; Evaluate</span></div>
           <br>
@@ -169,12 +182,71 @@
           <div>&nbsp;&nbsp;<span class="t-white t-bold">Instruction Budget&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bar-green">━━━━━━━━━━━━━━━━━━━━</span>&nbsp;&nbsp;<span class="t-green t-bold">100%</span></div>
           <div>&nbsp;&nbsp;<span class="t-white t-bold">CLAUDE.md Quality&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bar-green">━━━━━━━━━━━━━━━━━━━━</span>&nbsp;&nbsp;<span class="t-green t-bold">100%</span></div>
           <div>&nbsp;&nbsp;<span class="t-white t-bold">Settings&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bar-green">━━━━━━━━━━━━━━━━━</span><span class="bar-empty">───</span>&nbsp;&nbsp;<span class="t-green t-bold">&nbsp;85%</span></div>
-          <div>&nbsp;&nbsp;<span class="t-white t-bold">Hooks&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bar-green">━━━━━━━━━━━━━━━━━━━━</span>&nbsp;&nbsp;<span class="t-green t-bold">100%</span></div>
+          <div>&nbsp;&nbsp;<span class="t-white t-bold">Hooks&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bar-red">━━━━━━</span><span class="bar-empty">──────────────</span>&nbsp;&nbsp;<span class="t-red t-bold">&nbsp;30%</span></div>
           <div>&nbsp;&nbsp;<span class="t-white t-bold">Rules&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bar-yellow">━━━━━━━━━━━━</span><span class="bar-empty">────────</span>&nbsp;&nbsp;<span class="t-yellow t-bold">&nbsp;60%</span></div>
-          <div>&nbsp;&nbsp;<span class="t-white t-bold">Permissions&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bar-green">━━━━━━━━━━━━━━━━</span><span class="bar-empty">────</span>&nbsp;&nbsp;<span class="t-green t-bold">&nbsp;80%</span></div>
+          <div>&nbsp;&nbsp;<span class="t-white t-bold">Permissions&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bar-yellow">━━━━━━━━━━━━</span><span class="bar-empty">────────</span>&nbsp;&nbsp;<span class="t-yellow t-bold">&nbsp;60%</span></div>
           <div>&nbsp;&nbsp;<span class="t-white t-bold">MCP Servers&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bar-yellow">━━━━━━━━━━</span><span class="bar-empty">──────────</span>&nbsp;&nbsp;<span class="t-yellow t-bold">&nbsp;50%</span></div>
           <br>
-          <div>&nbsp;&nbsp;<span class="t-white t-bold">Overall&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bar-green">━━━━━━━━━━━━━━━━</span><span class="bar-empty">────</span>&nbsp;&nbsp;<span class="t-green t-bold">&nbsp;82%</span></div>
+          <div>&nbsp;&nbsp;<span class="t-white t-bold">Overall&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bar-yellow">━━━━━━━━━━━━</span><span class="bar-empty">────────</span>&nbsp;&nbsp;<span class="t-yellow t-bold">&nbsp;55%</span></div>
+          <br>
+          <div>&nbsp;&nbsp;<span class="t-dim">&middot;</span> 7 issue(s) found. Fix critical/high first.</div>
+        </div>
+
+        <!-- init -->
+        <div class="terminal-body terminal-panel" data-panel="init">
+          <div><span class="t-cyan t-bold">&nbsp;&nbsp;Claude Launchpad</span></div>
+          <div><span class="t-dim">&nbsp;&nbsp;Scaffold &middot; Diagnose &middot; Evaluate</span></div>
+          <br>
+          <div>&nbsp;&nbsp;<span class="t-cyan">&#8594;</span> Detecting project...</div>
+          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> Found <span class="t-white t-bold">Next.js</span> (TypeScript) project</div>
+          <div>&nbsp;&nbsp;<span class="t-dim">&middot;</span> Package manager: pnpm</div>
+          <div>&nbsp;&nbsp;<span class="t-dim">&middot;</span> Dev command: pnpm dev</div>
+          <div>&nbsp;&nbsp;<span class="t-dim">&middot;</span> Test command: pnpm test</div>
+          <br>
+          <div>&nbsp;&nbsp;<span class="t-cyan">&#8594;</span> Generating configuration...</div>
+          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> Generated CLAUDE.md</div>
+          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> Generated TASKS.md</div>
+          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> Generated .claude/settings.json (with hooks)</div>
+          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> Generated .claudeignore</div>
+          <br>
+          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> Done! Run <span class="t-white t-bold">claude</span> to start.</div>
+        </div>
+
+        <!-- doctor --fix -->
+        <div class="terminal-body terminal-panel" data-panel="fix">
+          <div>&nbsp;&nbsp;<span class="t-cyan">&#8594;</span> Applying fixes...</div>
+          <br>
+          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> Added "## Stack" section to CLAUDE.md</div>
+          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> Added "## Commands" section to CLAUDE.md</div>
+          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> Added "## Off-Limits" section to CLAUDE.md</div>
+          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> Added "## Architecture" section to CLAUDE.md</div>
+          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> Added .env file protection hook (PreToolUse)</div>
+          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> Added auto-format hook (PostToolUse &rarr; prettier)</div>
+          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> Added force-push protection hook (PreToolUse)</div>
+          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> Created .claude/rules/conventions.md</div>
+          <br>
+          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> Applied <span class="t-white t-bold">8</span> fix(es). Score: <span class="t-red">42%</span> &rarr; <span class="t-green t-bold">86%</span></div>
+        </div>
+
+        <!-- eval -->
+        <div class="terminal-body terminal-panel" data-panel="eval">
+          <div><span class="t-cyan t-bold">&nbsp;&nbsp;Claude Launchpad</span></div>
+          <div><span class="t-dim">&nbsp;&nbsp;Scaffold &middot; Diagnose &middot; Evaluate</span></div>
+          <br>
+          <div>&nbsp;&nbsp;<span class="t-cyan">&#8594;</span> Loading eval scenarios...</div>
+          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> Loaded 7 scenario(s)</div>
+          <br>
+          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> security/sql-injection&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-white">10/10</span>&nbsp;&nbsp;<span class="t-green">PASS</span></div>
+          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> security/env-protection&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-white">10/10</span>&nbsp;&nbsp;<span class="t-green">PASS</span></div>
+          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> security/secret-exposure&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-white">10/10</span>&nbsp;&nbsp;<span class="t-green">PASS</span></div>
+          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> conventions/error-handling&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-white">10/10</span>&nbsp;&nbsp;<span class="t-green">PASS</span></div>
+          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> conventions/immutability&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-white">10/10</span>&nbsp;&nbsp;<span class="t-green">PASS</span></div>
+          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> security/input-validation&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-white">10/10</span>&nbsp;&nbsp;<span class="t-green">PASS</span></div>
+          <div>&nbsp;&nbsp;<span class="t-red">&#10007;</span> conventions/file-size&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="t-white">&nbsp;2/10</span>&nbsp;&nbsp;<span class="t-red">FAIL</span></div>
+          <br>
+          <div>&nbsp;&nbsp;<span class="t-white t-bold">Config Eval Score&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bar-green">━━━━━━━━━━━━━━━━━━</span><span class="bar-empty">──</span>&nbsp;&nbsp;<span class="t-green t-bold">&nbsp;89%</span></div>
+          <br>
+          <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> 6 passed, <span class="t-red">1 failed</span> out of 7 scenario(s).</div>
         </div>
       </div>
     </div>
@@ -358,6 +430,30 @@
       el.style.transitionDelay = `${i * 60}ms`;
       observer.observe(el);
     });
+
+    // Terminal carousel
+    const tabs = document.querySelectorAll('.terminal-tab');
+    const panels = document.querySelectorAll('.terminal-panel');
+    let currentTab = 0;
+    let autoRotate;
+
+    function switchTab(index) {
+      tabs.forEach(t => t.classList.remove('active'));
+      panels.forEach(p => p.classList.remove('active'));
+      tabs[index].classList.add('active');
+      panels[index].classList.add('active');
+      currentTab = index;
+    }
+
+    tabs.forEach((tab, i) => {
+      tab.addEventListener('click', () => {
+        switchTab(i);
+        clearInterval(autoRotate);
+        autoRotate = setInterval(() => switchTab((currentTab + 1) % tabs.length), 5000);
+      });
+    });
+
+    autoRotate = setInterval(() => switchTab((currentTab + 1) % tabs.length), 4000);
 
     document.getElementById('cta')?.addEventListener('click', (e) => {
       e.preventDefault();
