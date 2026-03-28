@@ -19,6 +19,7 @@ Sections to fill in:
 2. **## Conventions** — max 8 key patterns. Move detailed rules to .claude/rules/conventions.md
 3. **## Off-Limits** — max 8 guardrails specific to this project
 4. **## Key Decisions** — only decisions that affect how Claude should work in this codebase
+5. **MCP server suggestions** — look at what external services the project uses (databases, APIs, storage). If you spot Postgres, Redis, Stripe, GitHub API, or similar, suggest relevant MCP servers the user could add. Print these as suggestions at the end, not in CLAUDE.md.
 
 Rules:
 - Don't remove existing content — only add or improve
