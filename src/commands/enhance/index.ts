@@ -22,6 +22,12 @@ Sections to fill in or preserve (DO NOT remove any existing section):
 5. **## Key Decisions** — only decisions that affect how Claude should work in this codebase
 6. **MCP server suggestions** — look at what external services the project uses (databases, APIs, storage). If you spot Postgres, Redis, Stripe, GitHub API, or similar, suggest relevant MCP servers the user could add. Print these as suggestions at the end, not in CLAUDE.md.
 
+Also review .claude/settings.json hooks:
+- Read the existing hooks in .claude/settings.json
+- If you see project-specific patterns that deserve hooks (e.g., protected directories, test file patterns, migration files), suggest adding them
+- DO NOT overwrite existing hooks — only add new ones that are specific to this project
+- Print hook suggestions at the end with the exact JSON to add, don't modify settings.json directly
+
 Rules:
 - Don't remove existing content — only add or improve
 - Be specific to THIS project, not generic advice

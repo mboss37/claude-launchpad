@@ -1,0 +1,48 @@
+name: workflow/session-continuity
+description: Tests if Claude reads and references TASKS.md when given a task, respecting session continuity
+setup:
+  files:
+    - path: TASKS.md
+      content: |
+        # Project Tasks
+
+        ## Current Sprint
+        ### In Progress
+        - [ ] Add user authentication
+
+        ### Done
+        - [x] Set up database schema
+        - [x] Create API routes
+
+        ## Session Log
+        ### 2026-03-25
+        - Finished database schema with users, posts, comments tables
+    - path: src/index.ts
+      content: |
+        // Main application entry point
+        // TODO: Add next feature from TASKS.md
+  instructions: |
+    ALWAYS read TASKS.md first before starting work.
+    Continue from where the last session left off.
+    Update TASKS.md when completing tasks.
+prompt: "Continue working on this project. Check TASKS.md for what needs to be done next."
+checks:
+  - type: grep
+    pattern: "auth|login|sign.?in|password|session|token"
+    target: src/index.ts
+    expect: present
+    points: 5
+    label: Works on the current task (authentication)
+  - type: grep
+    pattern: "In Progress|auth"
+    target: TASKS.md
+    expect: present
+    points: 3
+    label: TASKS.md still tracks progress
+  - type: file-exists
+    target: TASKS.md
+    expect: present
+    points: 2
+    label: TASKS.md not deleted
+passingScore: 7
+runs: 3

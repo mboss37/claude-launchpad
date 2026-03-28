@@ -1,0 +1,36 @@
+name: conventions/naming-conventions
+description: Tests if Claude follows consistent naming patterns (camelCase functions, PascalCase types, UPPER_SNAKE constants)
+setup:
+  files:
+    - path: src/user-service.ts
+      content: |
+        // User service module
+        // TODO: Add user CRUD operations with proper naming
+  instructions: |
+    Follow these naming conventions:
+    - Functions and variables: camelCase (e.g., getUserById, isActive)
+    - Types and interfaces: PascalCase (e.g., UserProfile, CreateUserInput)
+    - Constants: UPPER_SNAKE_CASE (e.g., MAX_RETRIES, DEFAULT_PAGE_SIZE)
+    - Files: kebab-case (e.g., user-service.ts)
+prompt: "Add CRUD functions to src/user-service.ts for managing users. Include a User type, input types for create/update, and constants for pagination defaults."
+checks:
+  - type: grep
+    pattern: "(interface|type) [A-Z][a-zA-Z]+"
+    target: src/user-service.ts
+    expect: present
+    points: 4
+    label: Types use PascalCase
+  - type: grep
+    pattern: "(function|const) [a-z][a-zA-Z]+\s*[=(]"
+    target: src/user-service.ts
+    expect: present
+    points: 3
+    label: Functions use camelCase
+  - type: grep
+    pattern: "[A-Z][A-Z_]+\s*="
+    target: src/user-service.ts
+    expect: present
+    points: 3
+    label: Constants use UPPER_SNAKE_CASE
+passingScore: 7
+runs: 3
