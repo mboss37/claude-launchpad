@@ -1,5 +1,10 @@
 # Claude Launchpad
 
+[![npm version](https://img.shields.io/npm/v/claude-launchpad?style=flat-square)](https://www.npmjs.com/package/claude-launchpad)
+[![npm downloads](https://img.shields.io/npm/dm/claude-launchpad?style=flat-square)](https://www.npmjs.com/package/claude-launchpad)
+[![GitHub stars](https://img.shields.io/github/stars/mboss37/claude-launchpad?style=flat-square)](https://github.com/mboss37/claude-launchpad)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](https://github.com/mboss37/claude-launchpad/blob/master/LICENSE)
+
 **Everything you need to launch a project with Claude Code — and keep it healthy.**
 
 A launchpad isn't just where you start. It's where you prepare, run checks, and make sure everything is ready before you go. Claude Launchpad does exactly that for your Claude Code setup:
