@@ -23,22 +23,39 @@ describe("analyzeSettings", () => {
     expect(result.issues[0].severity).toBe("medium");
   });
 
-  it("scores 100 with plugins, permissions, and env", async () => {
+  it("scores 100 when settings has hooks", async () => {
     const result = await analyzeSettings(makeConfig({
-      enabledPlugins: { "some-plugin": true },
-      permissions: { allow: ["Bash"] },
-      env: { NODE_ENV: "development" },
+      hooks: { PreToolUse: [{ matcher: "Write", hooks: [] }] },
     }));
     expect(result.score).toBe(100);
   });
 
-  it("flags missing plugins", async () => {
+  it("flags missing hooks as medium", async () => {
     const result = await analyzeSettings(makeConfig({}));
-    expect(result.issues.some((i) => i.message.includes("plugin"))).toBe(true);
+    expect(result.issues.some((i) => i.severity === "medium" && i.message.includes("hooks"))).toBe(true);
   });
 
-  it("flags missing permissions", async () => {
-    const result = await analyzeSettings(makeConfig({ enabledPlugins: { x: true } }));
-    expect(result.issues.some((i) => i.message.includes("permission"))).toBe(true);
+  it("plugins missing is info severity (does not affect score)", async () => {
+    const result = await analyzeSettings(makeConfig({
+      hooks: { PreToolUse: [{}] },
+    }));
+    const pluginIssue = result.issues.find((i) => i.message.includes("plugin"));
+    expect(pluginIssue?.severity).toBe("info");
+  });
+
+  it("flags allowedTools without parsed hooks as dangerous", async () => {
+    // config.hooks is the parsed array — empty means no hooks detected
+    const config = makeConfig({ allowedTools: ["Bash", "Write"] });
+    const result = await analyzeSettings(config);
+    expect(result.issues.some((i) => i.message.includes("safety net"))).toBe(true);
+  });
+
+  it("does not flag allowedTools when parsed hooks exist", async () => {
+    const config: ClaudeConfig = {
+      ...makeConfig({ allowedTools: ["Bash"], hooks: { PreToolUse: [{}] } }),
+      hooks: [{ event: "PreToolUse", type: "command", matcher: "Bash", command: "echo ok" }],
+    };
+    const result = await analyzeSettings(config);
+    expect(result.issues.some((i) => i.message.includes("safety net"))).toBe(false);
   });
 });

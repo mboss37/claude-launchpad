@@ -13,39 +13,40 @@ export async function analyzeSettings(config: ClaudeConfig): Promise<AnalyzerRes
     return { name: "Settings", issues, score: 40 };
   }
 
-  // Check for plugins
+  // Check for hooks (the most important setting)
+  const hooks = config.settings.hooks as Record<string, unknown> | undefined;
+  if (!hooks || Object.keys(hooks).length === 0) {
+    issues.push({
+      analyzer: "Settings",
+      severity: "medium",
+      message: "settings.json has no hooks configured",
+      fix: "Run `claude-launchpad doctor --fix` to generate hooks",
+    });
+  }
+
+  // Plugins are optional — info only, doesn't affect score
   const plugins = config.settings.enabledPlugins as Record<string, boolean> | undefined;
   if (!plugins || Object.keys(plugins).length === 0) {
     issues.push({
       analyzer: "Settings",
-      severity: "low",
-      message: "No plugins enabled",
-      fix: "Consider enabling plugins for enhanced capabilities",
-    });
-  }
-
-  // Check for permission rules
-  const permissions = config.settings.permissions as Record<string, unknown> | undefined;
-  if (!permissions) {
-    issues.push({
-      analyzer: "Settings",
-      severity: "low",
-      message: "No permission rules configured",
-      fix: "Add permission rules to control which tools Claude can use automatically",
-    });
-  }
-
-  // Check for environment variables
-  const env = config.settings.env as Record<string, string> | undefined;
-  if (!env) {
-    issues.push({
-      analyzer: "Settings",
       severity: "info",
-      message: "No environment variables defined in settings",
-      fix: "Define env vars in settings.json for consistent development environments",
+      message: "No plugins enabled — plugins are optional but can add capabilities",
     });
   }
 
-  const score = Math.max(0, 100 - issues.length * 15);
+  // Permission rules — only flag if allowedTools is set without security hooks
+  const allowedTools = config.settings.allowedTools as string[] | undefined;
+  if (allowedTools && allowedTools.length > 0 && config.hooks.length === 0) {
+    issues.push({
+      analyzer: "Settings",
+      severity: "medium",
+      message: "Tools auto-allowed without any hooks — no safety net for dangerous operations",
+      fix: "Add PreToolUse hooks for security or remove allowedTools to use interactive prompting",
+    });
+  }
+
+  // Score: deduct for actionable issues only (not info)
+  const actionableCount = issues.filter((i) => i.severity !== "info").length;
+  const score = Math.max(0, 100 - actionableCount * 20);
   return { name: "Settings", issues, score };
 }
