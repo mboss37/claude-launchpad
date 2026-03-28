@@ -166,34 +166,14 @@
           <div class="terminal-dot"></div>
         </div>
         <div class="terminal-tabs">
-          <div class="terminal-tab active" data-tab="doctor">doctor</div>
-          <div class="terminal-tab" data-tab="init">init</div>
+          <div class="terminal-tab active" data-tab="init">init</div>
+          <div class="terminal-tab" data-tab="doctor">doctor</div>
           <div class="terminal-tab" data-tab="fix">doctor --fix</div>
           <div class="terminal-tab" data-tab="eval">eval</div>
         </div>
 
-        <!-- doctor -->
-        <div class="terminal-body terminal-panel active" data-panel="doctor">
-          <div><span class="t-cyan t-bold">&nbsp;&nbsp;Claude Launchpad</span></div>
-          <div><span class="t-dim">&nbsp;&nbsp;Scaffold &middot; Diagnose &middot; Evaluate</span></div>
-          <br>
-          <div>&nbsp;&nbsp;<span class="t-cyan">&#8594;</span> Scanning Claude Code configuration...</div>
-          <br>
-          <div>&nbsp;&nbsp;<span class="t-white t-bold">Instruction Budget&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bar-green">━━━━━━━━━━━━━━━━━━━━</span>&nbsp;&nbsp;<span class="t-green t-bold">100%</span></div>
-          <div>&nbsp;&nbsp;<span class="t-white t-bold">CLAUDE.md Quality&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bar-green">━━━━━━━━━━━━━━━━━━━━</span>&nbsp;&nbsp;<span class="t-green t-bold">100%</span></div>
-          <div>&nbsp;&nbsp;<span class="t-white t-bold">Settings&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bar-green">━━━━━━━━━━━━━━━━━</span><span class="bar-empty">───</span>&nbsp;&nbsp;<span class="t-green t-bold">&nbsp;85%</span></div>
-          <div>&nbsp;&nbsp;<span class="t-white t-bold">Hooks&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bar-red">━━━━━━</span><span class="bar-empty">──────────────</span>&nbsp;&nbsp;<span class="t-red t-bold">&nbsp;30%</span></div>
-          <div>&nbsp;&nbsp;<span class="t-white t-bold">Rules&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bar-yellow">━━━━━━━━━━━━</span><span class="bar-empty">────────</span>&nbsp;&nbsp;<span class="t-yellow t-bold">&nbsp;60%</span></div>
-          <div>&nbsp;&nbsp;<span class="t-white t-bold">Permissions&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bar-yellow">━━━━━━━━━━━━</span><span class="bar-empty">────────</span>&nbsp;&nbsp;<span class="t-yellow t-bold">&nbsp;60%</span></div>
-          <div>&nbsp;&nbsp;<span class="t-white t-bold">MCP Servers&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bar-yellow">━━━━━━━━━━</span><span class="bar-empty">──────────</span>&nbsp;&nbsp;<span class="t-yellow t-bold">&nbsp;50%</span></div>
-          <br>
-          <div>&nbsp;&nbsp;<span class="t-white t-bold">Overall&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bar-yellow">━━━━━━━━━━━━</span><span class="bar-empty">────────</span>&nbsp;&nbsp;<span class="t-yellow t-bold">&nbsp;55%</span></div>
-          <br>
-          <div>&nbsp;&nbsp;<span class="t-dim">&middot;</span> 7 issue(s) found. Fix critical/high first.</div>
-        </div>
-
         <!-- init -->
-        <div class="terminal-body terminal-panel" data-panel="init">
+        <div class="terminal-body terminal-panel active" data-panel="init">
           <div><span class="t-cyan t-bold">&nbsp;&nbsp;Claude Launchpad</span></div>
           <div><span class="t-dim">&nbsp;&nbsp;Scaffold &middot; Diagnose &middot; Evaluate</span></div>
           <br>
@@ -210,6 +190,26 @@
           <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> Generated .claudeignore</div>
           <br>
           <div>&nbsp;&nbsp;<span class="t-green">&#10003;</span> Done! Run <span class="t-white t-bold">claude</span> to start.</div>
+        </div>
+
+        <!-- doctor -->
+        <div class="terminal-body terminal-panel" data-panel="doctor">
+          <div><span class="t-cyan t-bold">&nbsp;&nbsp;Claude Launchpad</span></div>
+          <div><span class="t-dim">&nbsp;&nbsp;Scaffold &middot; Diagnose &middot; Evaluate</span></div>
+          <br>
+          <div>&nbsp;&nbsp;<span class="t-cyan">&#8594;</span> Scanning Claude Code configuration...</div>
+          <br>
+          <div>&nbsp;&nbsp;<span class="t-white t-bold">Instruction Budget&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bar-green">━━━━━━━━━━━━━━━━━━━━</span>&nbsp;&nbsp;<span class="t-green t-bold">100%</span></div>
+          <div>&nbsp;&nbsp;<span class="t-white t-bold">CLAUDE.md Quality&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bar-green">━━━━━━━━━━━━━━━━━━━━</span>&nbsp;&nbsp;<span class="t-green t-bold">100%</span></div>
+          <div>&nbsp;&nbsp;<span class="t-white t-bold">Settings&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bar-green">━━━━━━━━━━━━━━━━━</span><span class="bar-empty">───</span>&nbsp;&nbsp;<span class="t-green t-bold">&nbsp;85%</span></div>
+          <div>&nbsp;&nbsp;<span class="t-white t-bold">Hooks&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bar-red">━━━━━━</span><span class="bar-empty">──────────────</span>&nbsp;&nbsp;<span class="t-red t-bold">&nbsp;30%</span></div>
+          <div>&nbsp;&nbsp;<span class="t-white t-bold">Rules&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bar-yellow">━━━━━━━━━━━━</span><span class="bar-empty">────────</span>&nbsp;&nbsp;<span class="t-yellow t-bold">&nbsp;60%</span></div>
+          <div>&nbsp;&nbsp;<span class="t-white t-bold">Permissions&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bar-yellow">━━━━━━━━━━━━</span><span class="bar-empty">────────</span>&nbsp;&nbsp;<span class="t-yellow t-bold">&nbsp;60%</span></div>
+          <div>&nbsp;&nbsp;<span class="t-white t-bold">MCP Servers&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bar-yellow">━━━━━━━━━━</span><span class="bar-empty">──────────</span>&nbsp;&nbsp;<span class="t-yellow t-bold">&nbsp;50%</span></div>
+          <br>
+          <div>&nbsp;&nbsp;<span class="t-white t-bold">Overall&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bar-yellow">━━━━━━━━━━━━</span><span class="bar-empty">────────</span>&nbsp;&nbsp;<span class="t-yellow t-bold">&nbsp;55%</span></div>
+          <br>
+          <div>&nbsp;&nbsp;<span class="t-dim">&middot;</span> 7 issue(s) found. Fix critical/high first.</div>
         </div>
 
         <!-- doctor --fix -->
