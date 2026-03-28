@@ -1,4 +1,4 @@
-import { watch } from "node:fs";
+import { readdir, stat } from "node:fs/promises";
 import { join } from "node:path";
 import { parseClaudeConfig } from "../../lib/parser.js";
 import { log, printScoreCard, printIssue } from "../../lib/output.js";
@@ -12,14 +12,10 @@ import { analyzeQuality } from "./analyzers/quality.js";
 import type { AnalyzerResult } from "../../types/index.js";
 
 /**
- * Watch .claude/ and CLAUDE.md for changes. Re-run doctor on every save.
- * Clears screen and shows live score.
+ * Watch config files for changes using polling (reliable on all OS).
+ * Re-runs doctor on every detected change.
  */
 export async function watchConfig(projectRoot: string): Promise<void> {
-  const claudeDir = join(projectRoot, ".claude");
-  const claudeMd = join(projectRoot, "CLAUDE.md");
-  const claudeignore = join(projectRoot, ".claudeignore");
-
   // Initial run
   await runAndDisplay(projectRoot);
 
@@ -27,42 +23,59 @@ export async function watchConfig(projectRoot: string): Promise<void> {
   log.info("Watching for changes... (Ctrl+C to stop)");
   log.blank();
 
-  let debounce: ReturnType<typeof setTimeout> | null = null;
+  // Track file mtimes for change detection
+  let lastSnapshot = await getFileSnapshot(projectRoot);
 
-  const onChange = () => {
-    if (debounce) clearTimeout(debounce);
-    debounce = setTimeout(async () => {
+  setInterval(async () => {
+    const currentSnapshot = await getFileSnapshot(projectRoot);
+    if (currentSnapshot !== lastSnapshot) {
+      lastSnapshot = currentSnapshot;
       console.clear();
       await runAndDisplay(projectRoot);
       log.blank();
       log.info("Watching for changes... (Ctrl+C to stop)");
       log.blank();
-    }, 300);
-  };
-
-  // Watch .claude/ directory
-  try {
-    watch(claudeDir, { recursive: true }, onChange);
-  } catch {
-    // .claude/ might not exist yet
-  }
-
-  // Watch CLAUDE.md
-  try {
-    watch(claudeMd, onChange);
-  } catch {
-    // CLAUDE.md might not exist yet
-  }
-
-  // Watch .claudeignore
-  try {
-    watch(claudeignore, onChange);
-  } catch {
-    // .claudeignore might not exist yet
-  }
+    }
+  }, 1000);
 
   // Keep process alive
   await new Promise(() => {});
+}
+
+/**
+ * Get a snapshot of all config file mtimes as a string for comparison.
+ */
+async function getFileSnapshot(projectRoot: string): Promise<string> {
+  const files = [
+    join(projectRoot, "CLAUDE.md"),
+    join(projectRoot, ".claudeignore"),
+  ];
+
+  // Add all files in .claude/
+  const claudeDir = join(projectRoot, ".claude");
+  try {
+    const entries = await readdir(claudeDir, { withFileTypes: true, recursive: true });
+    for (const entry of entries) {
+      if (entry.isFile()) {
+        const parentPath = (entry as unknown as { parentPath?: string }).parentPath ?? claudeDir;
+        files.push(join(parentPath, entry.name));
+      }
+    }
+  } catch {
+    // .claude/ doesn't exist
+  }
+
+  const mtimes: string[] = [];
+  for (const file of files) {
+    try {
+      const s = await stat(file);
+      mtimes.push(`${file}:${s.mtimeMs}`);
+    } catch {
+      mtimes.push(`${file}:missing`);
+    }
+  }
+
+  return mtimes.join("|");
 }
 
 async function runAndDisplay(projectRoot: string): Promise<void> {

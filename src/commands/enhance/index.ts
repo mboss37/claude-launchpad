@@ -14,12 +14,13 @@ CRITICAL BUDGET RULE: CLAUDE.md must stay UNDER 120 lines of actionable content 
 - Create .claude/rules/architecture.md for detailed structure docs
 - Keep CLAUDE.md to HIGH-LEVEL summaries only (3-5 bullets per section max)
 
-Sections to fill in:
-1. **## Architecture** — 3-5 bullet points describing the codebase shape (not a full directory tree)
-2. **## Conventions** — max 8 key patterns. Move detailed rules to .claude/rules/conventions.md
-3. **## Off-Limits** — max 8 guardrails specific to this project
-4. **## Key Decisions** — only decisions that affect how Claude should work in this codebase
-5. **MCP server suggestions** — look at what external services the project uses (databases, APIs, storage). If you spot Postgres, Redis, Stripe, GitHub API, or similar, suggest relevant MCP servers the user could add. Print these as suggestions at the end, not in CLAUDE.md.
+Sections to fill in or preserve (DO NOT remove any existing section):
+1. **## Stack** — if missing or incomplete, detect and add language, framework, package manager
+2. **## Architecture** — 3-5 bullet points describing the codebase shape (not a full directory tree)
+3. **## Conventions** — max 8 key patterns. Move detailed rules to .claude/rules/conventions.md
+4. **## Off-Limits** — max 8 guardrails specific to this project
+5. **## Key Decisions** — only decisions that affect how Claude should work in this codebase
+6. **MCP server suggestions** — look at what external services the project uses (databases, APIs, storage). If you spot Postgres, Redis, Stripe, GitHub API, or similar, suggest relevant MCP servers the user could add. Print these as suggestions at the end, not in CLAUDE.md.
 
 Rules:
 - Don't remove existing content — only add or improve
