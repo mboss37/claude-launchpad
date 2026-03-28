@@ -21,7 +21,7 @@ checks:
     points: 4
     label: Types use PascalCase
   - type: grep
-    pattern: "(function|const) [a-z][a-zA-Z]+\s*[=(]"
+    pattern: '(function|const) [a-z][a-zA-Z]+\s*[=(]'
     target: src/user-service.ts
     expect: present
     points: 3
