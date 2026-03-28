@@ -72,17 +72,21 @@ async function scaffold(root: string, options: InitOptions, detected: DetectedPr
 
   await mkdir(join(root, ".claude"), { recursive: true });
 
+  // Merge with existing settings.json instead of overwriting
+  const settingsPath = join(root, ".claude", "settings.json");
+  const mergedSettings = await mergeSettings(settingsPath, settings as unknown as Record<string, unknown>);
+
   const writes: Promise<void>[] = [
     writeFile(join(root, "CLAUDE.md"), claudeMd),
     writeFile(join(root, "TASKS.md"), tasksMd),
-    writeFile(join(root, ".claude", "settings.json"), JSON.stringify(settings, null, 2) + "\n"),
+    writeFile(settingsPath, JSON.stringify(mergedSettings, null, 2) + "\n"),
   ];
 
   await Promise.all(writes);
 
   log.success("Generated CLAUDE.md");
   log.success("Generated TASKS.md");
-  log.success("Generated .claude/settings.json (with hooks)");
+  log.success("Generated .claude/settings.json (merged with existing)");
 
   log.blank();
   log.success("Done! Run `claude` to start.");
@@ -96,5 +100,35 @@ async function fileExists(path: string): Promise<boolean> {
     return true;
   } catch {
     return false;
+  }
+}
+
+async function mergeSettings(
+  existingPath: string,
+  generated: Record<string, unknown>,
+): Promise<Record<string, unknown>> {
+  try {
+    const existing = JSON.parse(await readFile(existingPath, "utf-8")) as Record<string, unknown>;
+
+    // Merge hooks: keep existing hooks, add generated ones that don't conflict
+    const existingHooks = (existing.hooks ?? {}) as Record<string, unknown[]>;
+    const generatedHooks = (generated.hooks ?? {}) as Record<string, unknown[]>;
+
+    const mergedHooks: Record<string, unknown[]> = { ...existingHooks };
+    for (const [event, hookList] of Object.entries(generatedHooks)) {
+      if (!mergedHooks[event]) {
+        mergedHooks[event] = hookList;
+      }
+      // If event already exists, keep existing (don't duplicate)
+    }
+
+    return {
+      ...existing,
+      ...generated,
+      hooks: Object.keys(mergedHooks).length > 0 ? mergedHooks : undefined,
+    };
+  } catch {
+    // No existing file — just use generated
+    return generated;
   }
 }

@@ -8,6 +8,7 @@ import { analyzeRules } from "./analyzers/rules.js";
 import { analyzePermissions } from "./analyzers/permissions.js";
 import { analyzeMcp } from "./analyzers/mcp.js";
 import { analyzeQuality } from "./analyzers/quality.js";
+import { applyFixes } from "./fixer.js";
 import type { AnalyzerResult, DiagnosticIssue } from "../../types/index.js";
 
 export function createDoctorCommand(): Command {
@@ -16,6 +17,7 @@ export function createDoctorCommand(): Command {
     .option("-p, --path <path>", "Project root path", process.cwd())
     .option("--json", "Output as JSON")
     .option("--min-score <n>", "Exit non-zero if overall score is below this threshold (for CI)")
+    .option("--fix", "Auto-apply deterministic fixes for detected issues")
     .action(async (opts) => {
       printBanner();
       log.step("Scanning Claude Code configuration...");
@@ -48,6 +50,25 @@ export function createDoctorCommand(): Command {
       }
 
       renderReport(results);
+
+      // Auto-fix mode
+      if (opts.fix) {
+        const allIssues = results.flatMap((r) => r.issues);
+        const fixable = allIssues.filter((i) => i.severity !== "info");
+        if (fixable.length > 0) {
+          log.blank();
+          log.step("Applying fixes...");
+          log.blank();
+          const { fixed, skipped } = await applyFixes(fixable, opts.path);
+          log.blank();
+          if (fixed > 0) {
+            log.success(`Applied ${fixed} fix(es). Run \`claude-launchpad doctor\` again to see your new score.`);
+          }
+          if (skipped > 0) {
+            log.info(`${skipped} issue(s) require manual intervention.`);
+          }
+        }
+      }
 
       // CI mode: exit non-zero if score is below threshold
       if (opts.minScore) {

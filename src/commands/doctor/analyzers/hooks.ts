@@ -14,9 +14,10 @@ export async function analyzeHooks(config: ClaudeConfig): Promise<AnalyzerResult
     return { name: "Hooks", issues, score: 30 };
   }
 
-  // Check for auto-format hook
+  // Check for auto-format hook (prettier, ruff, gofmt, rustfmt, etc.)
+  const formatPatterns = ["format", "prettier", "gofmt", "rustfmt", "rubocop", "pint", "ktlint", "swift-format", "dotnet format"];
   const hasPostFormat = hooks.some(
-    (h) => h.event === "PostToolUse" && h.matcher?.includes("Write") && h.command?.includes("format"),
+    (h) => h.event === "PostToolUse" && h.matcher?.includes("Write") && formatPatterns.some((p) => h.command?.includes(p)),
   );
   if (!hasPostFormat) {
     issues.push({
