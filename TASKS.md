@@ -61,3 +61,5 @@
 - Fumadocs migration: 7 MDX pages, GitHub Actions auto-deploy, search, OG meta.
 - Landing page: provocative hero, 2x2 command cards with icons, footer.
 - Docs: Steps, Tabs, File trees, Accordions, Callouts, navigation Cards.
+### 2026-03-29 (session 11)
+- Landing page polish: aligned homepage shell with header width, upgraded hero/cards/CTA, added shadcn-style UI primitives for the docs app.
