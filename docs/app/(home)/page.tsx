@@ -266,12 +266,11 @@ export default function HomePage() {
                 CLI toolkit for Claude Code
               </Badge>
               <h1 className="mt-5 text-3xl font-semibold tracking-tight text-fd-foreground sm:mt-6 sm:text-5xl md:text-6xl">
-                Claude reads your codebase.
-                <span className="mt-2 block text-fd-muted-foreground">Does it actually know the rules?</span>
+                Your Claude Code config
+                <span className="mt-2 block text-fd-muted-foreground">deserves better.</span>
               </h1>
               <p className="mt-5 max-w-2xl text-sm leading-7 text-fd-muted-foreground sm:mt-6 sm:text-lg">
-                Most Claude Code setups have no hooks, no security boundaries, and no way to verify compliance.
-                Launchpad scaffolds a secure config, lets Claude perfect it with real codebase context, and proves it works with 15 test scenarios.
+                From stale and insecure to codebase-aware, hardened, and verified — in four commands.
               </p>
 
               <div className="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:items-center sm:gap-4">
