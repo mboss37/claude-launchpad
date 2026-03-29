@@ -2,7 +2,7 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 
 const variantClasses = {
-  default: 'bg-emerald-500/12 text-emerald-300',
+  default: 'bg-emerald-500/12 text-emerald-700 dark:text-emerald-300',
   secondary: 'bg-fd-card text-fd-muted-foreground',
   outline: 'border border-fd-border bg-transparent text-fd-muted-foreground',
 } as const;

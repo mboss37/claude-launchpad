@@ -117,7 +117,7 @@ function SectionHeading({
 }) {
   return (
     <div className="max-w-2xl">
-      <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-emerald-400/70">{eyebrow}</p>
+      <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-emerald-700 dark:text-emerald-400/70">{eyebrow}</p>
       <h2 className="mt-3 text-2xl font-semibold tracking-tight text-fd-foreground sm:text-3xl">{title}</h2>
       <p className="mt-3 text-sm leading-6 text-fd-muted-foreground sm:text-base">{description}</p>
     </div>
@@ -143,7 +143,7 @@ function CopyButton({ text }: { text: string }) {
       className="h-8 w-8 rounded-full"
       aria-label="Copy to clipboard"
     >
-      {copied ? <CheckIcon className="h-3.5 w-3.5 text-emerald-400" /> : <CopyIcon className="h-3.5 w-3.5" />}
+      {copied ? <CheckIcon className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" /> : <CopyIcon className="h-3.5 w-3.5" />}
     </Button>
   );
 }
@@ -152,12 +152,12 @@ function InstallBlock({ command, className = '' }: { command: string; className?
   return (
     <div
       className={cn(
-        'inline-flex w-full items-center justify-between gap-3 rounded-2xl border border-emerald-500/20 bg-black/40 px-4 py-3 font-mono text-sm text-fd-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] sm:w-auto',
+        'inline-flex w-full items-center justify-between gap-3 rounded-2xl border border-emerald-500/25 bg-white px-4 py-3 font-mono text-sm text-fd-foreground shadow-[0_10px_30px_rgba(15,23,42,0.06)] dark:bg-black/40 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] sm:w-auto',
         className,
       )}
     >
       <div className="flex min-w-0 items-center gap-2 overflow-hidden">
-        <span className="select-none text-emerald-400">$</span>
+        <span className="select-none text-emerald-600 dark:text-emerald-400">$</span>
         <span className="truncate">{command}</span>
       </div>
       <CopyButton text={command} />
@@ -187,8 +187,8 @@ function CommandCard({
           <Badge variant="outline" className="font-mono tracking-[0.2em]">
             {num}
           </Badge>
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-fd-border bg-black/20 transition-colors group-hover:border-emerald-500/30 group-hover:bg-emerald-500/10">
-            <Icon className="h-4 w-4 text-fd-muted-foreground transition-colors group-hover:text-emerald-300" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-fd-border bg-fd-background/70 transition-colors group-hover:border-emerald-500/30 group-hover:bg-emerald-500/10 dark:bg-black/20">
+            <Icon className="h-4 w-4 text-fd-muted-foreground transition-colors group-hover:text-emerald-700 dark:group-hover:text-emerald-300" />
           </div>
         </div>
         <div>
@@ -204,7 +204,7 @@ function CommandCard({
           href={href}
           className={buttonVariants({
             variant: 'ghost',
-            className: 'h-auto px-0 py-0 text-sm text-fd-foreground hover:bg-transparent hover:text-emerald-300',
+            className: 'h-auto px-0 py-0 text-sm text-fd-foreground hover:bg-transparent hover:text-emerald-700 dark:hover:text-emerald-300',
           })}
         >
           Read docs
@@ -229,14 +229,14 @@ function ScoreCard({
   return (
     <Card
       className={cn(
-        'h-full rounded-2xl bg-black/30 font-mono text-xs',
+        'h-full rounded-2xl bg-white font-mono text-xs shadow-[0_12px_36px_rgba(15,23,42,0.06)] dark:bg-black/30 dark:shadow-none',
         isAfter ? 'border-emerald-500/20' : 'border-fd-border',
       )}
     >
       <CardHeader>
         <div className="flex items-center justify-between gap-4">
           <Badge variant={isAfter ? 'default' : 'outline'}>{isAfter ? 'After --fix' : 'Before'}</Badge>
-          <span className={cn('text-2xl font-semibold tracking-tight', isAfter ? 'text-emerald-300' : 'text-red-300')}>
+          <span className={cn('text-2xl font-semibold tracking-tight', isAfter ? 'text-emerald-700 dark:text-emerald-300' : 'text-red-700 dark:text-red-300')}>
             {score}
           </span>
         </div>
@@ -244,7 +244,7 @@ function ScoreCard({
       <CardContent className="space-y-3">
         {items.map((item) => (
           <div key={item} className="flex items-start gap-3 text-fd-muted-foreground">
-            <span className={cn('mt-0.5 text-sm', isAfter ? 'text-emerald-400' : 'text-red-400')}>{isAfter ? '✓' : '✗'}</span>
+            <span className={cn('mt-0.5 text-sm', isAfter ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400')}>{isAfter ? '✓' : '✗'}</span>
             <span className="leading-5">{item}</span>
           </div>
         ))}
@@ -257,19 +257,19 @@ export default function HomePage() {
   return (
     <div className="relative isolate overflow-hidden">
       <section className="relative">
-        <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,rgba(8,12,14,0.82)_0%,rgba(6,10,12,0.58)_36%,rgba(10,28,22,0.18)_62%,rgba(0,0,0,0)_100%)]" />
+        <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,rgba(16,185,129,0.05)_0%,rgba(255,255,255,0)_60%)] dark:bg-[radial-gradient(ellipse_at_top,rgba(8,12,14,0.82)_0%,rgba(6,10,12,0.58)_36%,rgba(10,28,22,0.18)_62%,rgba(0,0,0,0)_100%)]" />
 
         <PageSection className="pt-12 sm:pt-16 md:pt-24">
           <div className="grid gap-8 sm:gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(340px,420px)] lg:items-start">
             <div className="max-w-3xl">
-              <Badge variant="outline" className="border-emerald-500/20 text-emerald-300">
+              <Badge variant="outline" className="border-emerald-500/30 bg-white/80 text-emerald-700 dark:bg-transparent dark:text-emerald-300">
                 CLI toolkit for Claude Code
               </Badge>
               <h1 className="mt-5 text-3xl font-semibold tracking-tight text-fd-foreground sm:mt-6 sm:text-5xl md:text-6xl">
                 Your Claude Code config
-                <span className="mt-2 block text-fd-muted-foreground">deserves better.</span>
+                <span className="mt-2 block text-fd-foreground/55 dark:text-fd-muted-foreground">deserves better.</span>
               </h1>
-              <p className="mt-5 max-w-2xl text-sm leading-7 text-fd-muted-foreground sm:mt-6 sm:text-lg">
+              <p className="mt-5 max-w-2xl text-sm leading-7 text-fd-foreground/72 dark:text-fd-muted-foreground sm:mt-6 sm:text-lg">
                 From stale and insecure to codebase-aware, hardened, and verified. Four commands.
               </p>
 
@@ -283,10 +283,10 @@ export default function HomePage() {
 
               <div className="mt-8 grid gap-3 sm:mt-10 sm:gap-4 sm:grid-cols-3">
                 {heroStats.map((stat) => (
-                  <Card key={stat.label} className="rounded-xl border-fd-border/70 bg-fd-card/40">
+                  <Card key={stat.label} className="rounded-xl border-fd-border bg-white shadow-[0_10px_24px_rgba(15,23,42,0.05)] dark:bg-fd-card/40 dark:shadow-none">
                     <CardContent className="p-4 sm:p-5">
                       <div className="text-xl font-semibold tracking-tight text-fd-foreground sm:text-2xl">{stat.value}</div>
-                      <p className="mt-2 text-xs leading-5 text-fd-muted-foreground sm:text-sm sm:leading-6">{stat.label}</p>
+                      <p className="mt-2 text-xs leading-5 text-fd-foreground/70 dark:text-fd-muted-foreground sm:text-sm sm:leading-6">{stat.label}</p>
                     </CardContent>
                   </Card>
                 ))}
@@ -294,44 +294,40 @@ export default function HomePage() {
 
               <div className="mt-5 flex flex-wrap gap-2 sm:mt-6">
                 {trustPills.map((pill) => (
-                  <Badge key={pill} variant="secondary" className="border border-fd-border/80 bg-fd-card/40">
+                  <Badge key={pill} variant="secondary" className="border border-fd-border bg-white text-fd-foreground/70 shadow-sm dark:bg-fd-card/40 dark:text-fd-muted-foreground dark:shadow-none">
                     {pill}
                   </Badge>
                 ))}
               </div>
             </div>
 
-            <Card className="overflow-hidden border-emerald-500/20 bg-[linear-gradient(180deg,rgba(16,185,129,0.08),rgba(0,0,0,0))]">
+            <Card className="overflow-hidden border-emerald-500/25 bg-[linear-gradient(180deg,rgba(16,185,129,0.08),rgba(255,255,255,0.92)_36%,rgba(255,255,255,1)_100%)] shadow-[0_18px_48px_rgba(16,24,40,0.08)] dark:bg-[linear-gradient(180deg,rgba(16,185,129,0.08),rgba(0,0,0,0))] dark:shadow-none">
               <CardHeader className="border-b border-fd-border/80 pb-5">
                 <Badge variant="default" className="w-fit">
                   The full pipeline
                 </Badge>
-                <CardTitle className="text-xl">From unchecked config to verified compliance</CardTitle>
-                <CardDescription>
-                  Not just a score, a complete workflow from scaffolding to proof.
-                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 pt-6">
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-xl border border-red-500/15 bg-black/30 p-4">
-                    <div className="font-mono text-[11px] uppercase tracking-[0.22em] text-red-300/80">Typical setup</div>
-                    <div className="mt-3 text-3xl font-semibold tracking-tight text-red-300">31/100</div>
-                    <p className="mt-2 text-sm leading-6 text-fd-muted-foreground">Vague instructions, exposed paths, missing hooks.</p>
+                  <div className="rounded-xl border border-red-500/20 bg-white p-4 shadow-sm dark:bg-black/30 dark:shadow-none">
+                    <div className="font-mono text-[11px] uppercase tracking-[0.22em] text-red-700/80 dark:text-red-300/80">Typical setup</div>
+                    <div className="mt-3 text-3xl font-semibold tracking-tight text-red-700 dark:text-red-300">31/100</div>
+                    <p className="mt-2 text-sm leading-6 text-fd-foreground/72 dark:text-fd-muted-foreground">Vague instructions, exposed paths, missing hooks.</p>
                   </div>
-                  <div className="rounded-xl border border-emerald-500/20 bg-black/30 p-4">
-                    <div className="font-mono text-[11px] uppercase tracking-[0.22em] text-emerald-300/80">Launchpad</div>
-                    <div className="mt-3 text-3xl font-semibold tracking-tight text-emerald-300">91/100</div>
-                    <p className="mt-2 text-sm leading-6 text-fd-muted-foreground">Security rails, workflow hooks, and docs that match the repo.</p>
+                  <div className="rounded-xl border border-emerald-500/25 bg-white p-4 shadow-sm dark:bg-black/30 dark:shadow-none">
+                    <div className="font-mono text-[11px] uppercase tracking-[0.22em] text-emerald-700/80 dark:text-emerald-300/80">Launchpad</div>
+                    <div className="mt-3 text-3xl font-semibold tracking-tight text-emerald-700 dark:text-emerald-300">91/100</div>
+                    <p className="mt-2 text-sm leading-6 text-fd-foreground/72 dark:text-fd-muted-foreground">Security rails, workflow hooks, and docs that match the repo.</p>
                   </div>
                 </div>
 
                 <div className="space-y-3">
                   {improvements.map(({ icon: Icon, label }) => (
-                    <div key={label} className="flex items-start gap-3 rounded-xl border border-fd-border/70 bg-black/20 p-3">
-                      <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-emerald-500/20 bg-emerald-500/10">
-                        <Icon className="h-4 w-4 text-emerald-300" />
+                    <div key={label} className="flex items-start gap-3 rounded-xl border border-fd-border bg-white p-3 shadow-sm dark:bg-black/20 dark:shadow-none">
+                      <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-emerald-500/20 bg-emerald-500/12">
+                        <Icon className="h-4 w-4 text-emerald-700 dark:text-emerald-300" />
                       </div>
-                      <p className="text-sm leading-6 text-fd-muted-foreground">{label}</p>
+                      <p className="text-sm leading-6 text-fd-foreground/72 dark:text-fd-muted-foreground">{label}</p>
                     </div>
                   ))}
                 </div>
@@ -373,7 +369,7 @@ export default function HomePage() {
       </PageSection>
 
       <PageSection className="pt-0">
-        <Card className="border-emerald-500/20 bg-[linear-gradient(135deg,rgba(16,185,129,0.12),rgba(17,24,39,0.7)_55%,rgba(0,0,0,0.75))]">
+        <Card className="border-emerald-500/20 bg-[linear-gradient(135deg,rgba(16,185,129,0.08),rgba(255,255,255,0.92)_40%,rgba(241,245,249,0.98)_100%)] dark:bg-[linear-gradient(135deg,rgba(16,185,129,0.12),rgba(17,24,39,0.7)_55%,rgba(0,0,0,0.75))]">
           <CardHeader className="items-center text-center">
             <CardTitle className="text-2xl sm:text-3xl">Open source. Ready to use.</CardTitle>
             <CardDescription className="max-w-2xl">
