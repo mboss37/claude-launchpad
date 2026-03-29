@@ -27,6 +27,7 @@
 - [x] Submit to DevHunt (paid launch week)
 - [x] Logo created (rocket + terminal brackets)
 - [x] Screenshots prepared (6 screenshots: doctor, --fix, diff, enhance)
+- [ ] Landing page: before/after diff view (CLAUDE.md + settings.json)
 - [ ] Record 10-sec terminal GIF (bad score → --fix → good score)
 - [ ] Add OG image to docs (1200x630, terminal screenshot or GIF frame)
 - [ ] PRs to awesome-claude-code lists (hesreallyhim, rohitg00, travisvn)
