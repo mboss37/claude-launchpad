@@ -1,27 +1,32 @@
 import Link from 'next/link';
+import { RocketIcon, StethoscopeIcon, SparklesIcon, FlaskConicalIcon } from 'lucide-react';
 
 const pipeline = [
   {
     step: 1,
     name: 'init',
+    icon: <RocketIcon className="h-4 w-4" />,
     description: 'Detect your stack. Generate secure config, hooks, permissions, sprint tracking, memory management.',
     href: '/docs/init',
   },
   {
     step: 2,
     name: 'doctor',
+    icon: <StethoscopeIcon className="h-4 w-4" />,
     description: 'Score 0-100. 15 checks across 7 analyzers. Auto-fix with one flag. CI gate. Live watch.',
     href: '/docs/doctor',
   },
   {
     step: 3,
     name: 'enhance',
+    icon: <SparklesIcon className="h-4 w-4" />,
     description: 'Claude reads your codebase and fills in architecture, conventions, and guardrails.',
     href: '/docs/enhance',
   },
   {
     step: 4,
     name: 'eval',
+    icon: <FlaskConicalIcon className="h-4 w-4" />,
     description: '15 scenarios test if Claude actually follows your rules. Security, conventions, workflow.',
     href: '/docs/eval',
   },
@@ -63,12 +68,12 @@ export default function HomePage() {
               className="group flex flex-col rounded-xl border border-fd-border bg-fd-card p-4 transition-colors hover:bg-fd-accent hover:text-fd-accent-foreground"
             >
               <div className="flex items-center gap-2 mb-1.5">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-fd-secondary text-[10px] font-bold text-fd-secondary-foreground">
-                  {step.step}
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-fd-secondary text-fd-secondary-foreground">
+                  {step.icon}
                 </span>
                 <span className="font-mono text-sm font-bold">{step.name}</span>
               </div>
-              <p className="text-xs text-fd-muted-foreground group-hover:text-fd-accent-foreground/70 leading-relaxed">
+              <p className="text-xs text-fd-muted-foreground group-hover:text-fd-accent-foreground/70 leading-relaxed flex-1">
                 {step.description}
               </p>
             </Link>
@@ -76,7 +81,7 @@ export default function HomePage() {
         </div>
       </main>
 
-      {/* Footer pinned to bottom */}
+      {/* Footer */}
       <footer className="container max-w-[1100px] mx-auto border-t border-fd-border py-4 px-4 text-center text-xs text-fd-muted-foreground flex items-center justify-center gap-4">
         <span>MIT License</span>
         <span className="text-fd-border">|</span>
