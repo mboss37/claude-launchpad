@@ -32,7 +32,42 @@ Or run directly without installing:
 npx claude-launchpad
 ```
 
-## Quick Start
+## Recommended Flow
+
+### New project
+
+<Steps>
+  <Step>
+    ### Scaffold
+    ```bash
+    claude-launchpad init
+    ```
+    Generates 6 files: CLAUDE.md, TASKS.md, settings.json (with security, hooks, sandbox), .claudeignore, rules, .gitignore. Scores ~93% out of the box.
+  </Step>
+  <Step>
+    ### Diagnose + fix
+    ```bash
+    claude-launchpad doctor --fix
+    ```
+    Catches anything init missed and auto-fixes it.
+  </Step>
+  <Step>
+    ### Let Claude perfect it
+    ```bash
+    claude-launchpad enhance
+    ```
+    Claude reads your codebase, restructures CLAUDE.md, and fills in architecture, conventions, and guardrails with real content.
+  </Step>
+  <Step>
+    ### Prove it works
+    ```bash
+    claude-launchpad eval
+    ```
+    15 scenarios test if Claude actually follows your rules.
+  </Step>
+</Steps>
+
+### Existing project
 
 <Steps>
   <Step>
@@ -41,26 +76,27 @@ npx claude-launchpad
     cd your-project
     claude-launchpad
     ```
+    A typical unconfigured project scores ~42%.
   </Step>
   <Step>
-    ### Fix everything
+    ### Fix the structure
     ```bash
     claude-launchpad doctor --fix
     ```
+    Adds security rules, hooks, permissions, sandbox, missing CLAUDE.md sections. Jumps to ~86%.
   </Step>
   <Step>
-    ### Let Claude perfect it
+    ### Let Claude clean it up
     ```bash
     claude-launchpad enhance
     ```
-    The fixer appends sections mechanically. Enhance has Claude restructure and complete your CLAUDE.md with real, project-specific content.
+    The fixer appends sections mechanically. Enhance has Claude restructure and rewrite CLAUDE.md into clean, project-specific content.
   </Step>
   <Step>
-    ### Check the result
+    ### Prove it works
     ```bash
-    claude-launchpad
+    claude-launchpad eval
     ```
-    A typical unconfigured project scores ~42%. After `--fix`, it jumps to ~86%. After `enhance`, it's clean and tailored.
   </Step>
 </Steps>
 
