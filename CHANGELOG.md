@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.5.2] — 2026-03-29
+
+### Added
+- `doctor --fix --dry-run` — preview what fixes would be applied without modifying files
+- `pnpm publish:dev` / `pnpm publish:release` scripts for prerelease workflow
+
+### Changed
+- README rewritten based on 4-persona expert review (tech writer, junior dev, DevRel, security engineer)
+- Moved "advisory vs deterministic" pitch to opening paragraph
+- `npx claude-launchpad` as primary CTA (zero-friction)
+- Added "Runs" column (Locally / Via Claude CLI) to command table
+- Removed jargon from init description
+- Added compaction to glossary
+- Removed plugin section (not in marketplace yet)
+- Fixed scenario counts across all docs (15 total: 6+5+4)
+- Dev publish workflow in versioning conventions
+
 ## [0.5.1] — 2026-03-29
 
 ### Added
