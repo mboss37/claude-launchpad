@@ -28,6 +28,7 @@ export default function DefaultSearchDialog(props: SharedProps) {
     type: 'static',
     initOrama,
     locale,
+    url: '/claude-launchpad/api/search',
   });
 
   return (
