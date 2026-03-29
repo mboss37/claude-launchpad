@@ -356,7 +356,7 @@ export default function HomePage() {
               <Badge variant="outline" className="border-(--accent-border) bg-white/80 text-black dark:bg-transparent dark:text-(--accent)">
                 CLI toolkit for Claude Code
               </Badge>
-              <h1 className="mt-5 text-5xl font-bold tracking-tight text-fd-foreground sm:mt-6 sm:text-6xl md:text-7xl">
+              <h1 className="mt-5 text-[2.5rem] font-bold tracking-tight leading-[1.05] text-fd-foreground sm:mt-6 sm:text-6xl md:text-7xl">
                 Your Claude config
                 <span className="mt-2 block text-fd-foreground/55 dark:text-fd-muted-foreground">deserves better.</span>
               </h1>
