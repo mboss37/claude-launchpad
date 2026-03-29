@@ -30,7 +30,7 @@ const steps = [
     name: 'init',
     icon: RocketIcon,
     verb: 'Detect your stack, generate everything',
-    detail: 'Reads your repo. Produces CLAUDE.md, settings.json, hooks, permissions, .claudeignore — tailored to your framework.',
+    detail: 'Reads your repo. Produces CLAUDE.md, settings.json, hooks, permissions, .claudeignore, all tailored to your framework.',
     href: '/docs/init',
   },
   {
@@ -68,10 +68,10 @@ const heroStats = [
 ] as const;
 
 const improvements = [
-  { icon: RocketIcon, label: 'init — scaffolds CLAUDE.md, hooks, permissions, sandbox, sprint tracking from your stack' },
-  { icon: StethoscopeIcon, label: 'doctor --fix — 15 checks, auto-repairs security gaps, credentials, missing config' },
-  { icon: SparklesIcon, label: 'enhance — Claude reads your codebase, restructures CLAUDE.md with real content' },
-  { icon: FlaskConicalIcon, label: 'eval — 15 scenarios prove Claude follows your rules across security and workflow' },
+  { icon: RocketIcon, label: 'init: scaffolds CLAUDE.md, hooks, permissions, sandbox, sprint tracking from your stack' },
+  { icon: StethoscopeIcon, label: 'doctor --fix: 15 checks, auto-repairs security gaps, credentials, missing config' },
+  { icon: SparklesIcon, label: 'enhance: Claude reads your codebase, restructures CLAUDE.md with real content' },
+  { icon: FlaskConicalIcon, label: 'eval: 15 scenarios prove Claude follows your rules across security and workflow' },
 ] as const;
 
 const beforeItems = [
@@ -270,12 +270,12 @@ export default function HomePage() {
                 <span className="mt-2 block text-fd-muted-foreground">deserves better.</span>
               </h1>
               <p className="mt-5 max-w-2xl text-sm leading-7 text-fd-muted-foreground sm:mt-6 sm:text-lg">
-                From stale and insecure to codebase-aware, hardened, and verified — in four commands.
+                From stale and insecure to codebase-aware, hardened, and verified. Four commands.
               </p>
 
               <div className="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:items-center sm:gap-4">
                 <InstallBlock command="npm i -g claude-launchpad" />
-                <Link href="/docs" className={buttonVariants({ size: 'default', className: 'w-full sm:h-11 sm:w-auto sm:px-6' })}>
+                <Link href="/docs" className={buttonVariants({ size: 'default', className: 'w-full rounded-2xl sm:h-[50px] sm:w-auto sm:px-6' })}>
                   Read the docs
                   <ArrowRightIcon className="h-4 w-4" />
                 </Link>
@@ -308,7 +308,7 @@ export default function HomePage() {
                 </Badge>
                 <CardTitle className="text-xl">From unchecked config to verified compliance</CardTitle>
                 <CardDescription>
-                  Not just a score — a complete workflow from scaffolding to proof.
+                  Not just a score, a complete workflow from scaffolding to proof.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 pt-6">
@@ -377,7 +377,7 @@ export default function HomePage() {
           <CardHeader className="items-center text-center">
             <CardTitle className="text-2xl sm:text-3xl">Open source. Ready to use.</CardTitle>
             <CardDescription className="max-w-2xl">
-              Scaffold, diagnose, perfect, and prove — the full pipeline for Claude Code configs.
+              Scaffold, diagnose, perfect, and prove. The full pipeline for Claude Code configs.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-4">
