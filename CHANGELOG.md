@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.5.4] — 2026-03-29
+
+### Added
+- `--fix` now auto-adds SessionStart hook (injects TASKS.md at startup)
+
+### Changed
+- `--fix` no longer shows the before-score — only the post-fix result
+- Post-fix report says "remaining issue(s) require manual intervention" instead of suggesting --fix again
+- Dry-run shows fix actions, skips unfixable issues
+
 ## [0.5.3] — 2026-03-29
 
 ### Changed

@@ -67,6 +67,7 @@ const FIX_TABLE: ReadonlyArray<{ analyzer: string; match: string; fix: FixFn }> 
   { analyzer: "Permissions", match: "Sandbox not enabled", fix: (root) => addSandboxSettings(root) },
   { analyzer: "Permissions", match: ".env is protected by hooks but not in .claudeignore", fix: (root) => addEnvToClaudeignore(root) },
   { analyzer: "Settings", match: "Deprecated includeCoAuthoredBy", fix: (root) => migrateAttribution(root) },
+  { analyzer: "Hooks", match: "SessionStart", fix: (root) => addSessionStartHook(root) },
 ];
 
 async function tryFix(
@@ -198,6 +199,27 @@ async function addPostCompactHook(root: string): Promise<boolean> {
   (settings as Record<string, unknown>).hooks = { ...hooks, PostCompact: postCompact };
   await writeSettingsJson(root, settings);
   log.success("Added PostCompact hook (re-injects TASKS.md after compaction)");
+  return true;
+}
+
+async function addSessionStartHook(root: string): Promise<boolean> {
+  const settings = await readSettingsJson(root);
+  const hooks = (settings.hooks ?? {}) as Record<string, unknown>;
+  const sessionStart = (hooks.SessionStart as Record<string, unknown>[] | undefined) ?? [];
+
+  if (sessionStart.length > 0) return false;
+
+  sessionStart.push({
+    matcher: "startup|resume",
+    hooks: [{
+      type: "command",
+      command: "cat TASKS.md 2>/dev/null; exit 0",
+    }],
+  });
+
+  (settings as Record<string, unknown>).hooks = { ...hooks, SessionStart: sessionStart };
+  await writeSettingsJson(root, settings);
+  log.success("Added SessionStart hook (injects TASKS.md at startup)");
   return true;
 }
 

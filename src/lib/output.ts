@@ -77,7 +77,7 @@ export function printIssue(severity: Severity, _analyzer: string, message: strin
 
 // ─── Report Rendering (shared by doctor + watcher) ───
 
-export function renderDoctorReport(results: ReadonlyArray<AnalyzerResult>): {
+export function renderDoctorReport(results: ReadonlyArray<AnalyzerResult>, options?: { afterFix?: boolean }): {
   overallScore: number;
   actionableCount: number;
 } {
@@ -110,6 +110,10 @@ export function renderDoctorReport(results: ReadonlyArray<AnalyzerResult>): {
   }
 
   log.blank();
-  log.info(`${actionable.length} issue(s). Run ${chalk.bold("--fix")} to auto-repair or ${chalk.bold("--fix --dry-run")} to preview.`);
+  if (options?.afterFix) {
+    log.info(`${actionable.length} remaining issue(s) require manual intervention.`);
+  } else {
+    log.info(`${actionable.length} issue(s). Run ${chalk.bold("--fix")} to auto-repair or ${chalk.bold("--fix --dry-run")} to preview.`);
+  }
   return { overallScore, actionableCount: actionable.length };
 }

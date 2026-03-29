@@ -60,7 +60,11 @@ export function createDoctorCommand(): Command {
         return;
       }
 
-      const { overallScore } = renderDoctorReport(results);
+      // Skip rendering the initial report when --fix is used — only show the post-fix result
+      let overallScore = Math.round(results.reduce((sum, r) => sum + r.score, 0) / results.length);
+      if (!opts.fix) {
+        renderDoctorReport(results);
+      }
 
       // Auto-fix mode
       if (opts.fix) {
@@ -89,7 +93,7 @@ export function createDoctorCommand(): Command {
           log.blank();
           log.step("Applying fixes...");
           log.blank();
-          const { fixed, skipped } = await applyFixes(fixable, opts.path);
+          const { fixed } = await applyFixes(fixable, opts.path);
           log.blank();
           if (fixed > 0) {
             log.success(`Applied ${fixed} fix(es). Re-scanning...`);
@@ -106,11 +110,8 @@ export function createDoctorCommand(): Command {
               analyzePermissions(updatedConfig),
               analyzeMcp(updatedConfig),
             ]);
-            renderDoctorReport(updatedResults);
+            renderDoctorReport(updatedResults, { afterFix: true });
             log.info(`Then run ${chalk.bold("claude-launchpad enhance")} to have Claude restructure and complete your CLAUDE.md.`);
-          }
-          if (skipped > 0) {
-            log.info(`${skipped} issue(s) require manual intervention.`);
           }
         }
       }
