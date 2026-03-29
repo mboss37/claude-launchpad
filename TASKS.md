@@ -21,9 +21,34 @@
 - **Sprint 12**: Smart Defaults — v0.5.1, 4 settings checks, SessionStart hook, --fix re-scan, 99 tests
 - **Sprint 13**: Growth — Fumadocs migration (7 MDX pages, search, OG meta, GitHub Actions deploy), 4-persona docs review, landing page redesign, component-rich docs (Steps, Tabs, Files, Accordions, Cards)
 
+## Current Sprint: Sprint 14 — Launch Campaign
+
+### Week 1 — Foundation
+- [ ] Record 10-sec terminal GIF (bad score → --fix → good score)
+- [ ] Add OG image to docs (1200x630, terminal screenshot or GIF frame)
+- [ ] PRs to awesome-claude-code lists (hesreallyhim, rohitg00, travisvn)
+- [ ] Submit to DevHunt (GitHub PR)
+- [ ] Post in Anthropic Discord #tools channel
+- [ ] Update npm keywords (claude, claude-code, ai, cli, developer-tools)
+
+### Week 2 — Content
+- [ ] Write dev.to article: "Why your CLAUDE.md is probably wrong"
+- [ ] Cross-post to Hashnode
+- [ ] Submit to TLDR newsletter (tldr.tech)
+
+### Week 3 — Big Bang (all on same Tuesday)
+- [ ] Show HN post (Tue 8-10am EST)
+- [ ] Product Hunt launch (prep assets in advance)
+- [ ] X/Twitter thread with GIF + tag @AnthropicAI
+- [ ] r/ClaudeCode post (home base)
+- [ ] r/SideProject post
+
+### Week 4 — Expand
+- [ ] r/ClaudeAI, r/vibecoding, r/commandline, r/opensource, r/coolgithubprojects
+- [ ] Plugin marketplace go-live (waiting on Anthropic review)
+
 ## Upcoming
-- **Sprint 14**: Social media push, OG image, user testimonials, path-scoped rule generation
-- Plugin marketplace go-live (waiting on Anthropic review)
+- **Sprint 15**: User testimonials, path-scoped rule generation, community scenario packs
 
 ## Session Log
 ### 2026-03-29 (session 9)
