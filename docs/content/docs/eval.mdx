@@ -3,15 +3,23 @@ title: eval
 description: Run Claude against test scenarios and prove your config works.
 ---
 
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
 Test if Claude actually follows your rules. Each scenario creates an isolated sandbox, runs Claude with a task, and checks the output.
 
-```bash
-# Interactive — pick suite, runs, and model
-claude-launchpad eval
-
-# Or pass flags directly
-claude-launchpad eval --suite security --runs 1 --model haiku
-```
+<Tabs items={['Interactive', 'Flags']}>
+  <Tab value="Interactive">
+    ```bash
+    claude-launchpad eval
+    ```
+    Prompts you to pick suite, runs, and model.
+  </Tab>
+  <Tab value="Flags">
+    ```bash
+    claude-launchpad eval --suite security --runs 1 --model haiku
+    ```
+  </Tab>
+</Tabs>
 
 ## Flags
 
@@ -26,23 +34,35 @@ claude-launchpad eval --suite security --runs 1 --model haiku
 
 ## Built-in suites (15 scenarios)
 
-| Suite | Scenario | Tests |
-|---|---|---|
-| **security** | sql-injection | Parameterized queries, not string concatenation |
-| | env-protection | Creates .env.example, never writes .env |
-| | secret-exposure | Environment variables, not hardcoded keys |
-| | input-validation | Validates user input at API boundaries |
-| | credential-read | Avoids reading SSH keys and AWS credentials |
-| | sandbox-escape | Doesn't bypass .env hooks via Bash |
-| **conventions** | error-handling | Try-catch with no empty catch blocks |
-| | immutability | New objects, never mutates arguments |
-| | file-size | All files under 800 lines |
-| | no-hardcoded-values | Named constants, not magic numbers |
-| | naming-conventions | camelCase, PascalCase, UPPER_SNAKE |
-| **workflow** | git-conventions | Conventional commit format |
-| | session-continuity | Reads TASKS.md, continues from last session |
-| | memory-persistence | Documents non-obvious workarounds for future sessions |
-| | deferred-tracking | Parks non-urgent issues in Deferred section |
+### Security (6)
+
+| Scenario | Tests |
+|---|---|
+| sql-injection | Parameterized queries, not string concatenation |
+| env-protection | Creates .env.example, never writes .env |
+| secret-exposure | Environment variables, not hardcoded keys |
+| input-validation | Validates user input at API boundaries |
+| credential-read | Avoids reading SSH keys and AWS credentials |
+| sandbox-escape | Doesn't bypass .env hooks via Bash |
+
+### Conventions (5)
+
+| Scenario | Tests |
+|---|---|
+| error-handling | Try-catch with no empty catch blocks |
+| immutability | New objects, never mutates arguments |
+| file-size | All files under 800 lines |
+| no-hardcoded-values | Named constants, not magic numbers |
+| naming-conventions | camelCase, PascalCase, UPPER_SNAKE |
+
+### Workflow (4)
+
+| Scenario | Tests |
+|---|---|
+| git-conventions | Conventional commit format |
+| session-continuity | Reads TASKS.md, continues from last session |
+| memory-persistence | Documents non-obvious workarounds for future sessions |
+| deferred-tracking | Parks non-urgent issues in Deferred section |
 
 ## How the sandbox works
 
@@ -54,6 +74,6 @@ Each scenario runs in an isolated temp directory. Your code is never copied — 
 - A scenario-specific `CLAUDE.md` with test instructions
 - Seed files from the scenario (e.g. a stub `src/api.ts`)
 
-Claude runs a task in the sandbox and the results are checked with grep/file assertions. This tests whether your **full configuration** — rules, hooks, and permissions working together — actually makes Claude behave correctly.
-
-Results are saved to `.claude/eval/` as structured markdown.
+<Callout type="info">
+  Results are saved to `.claude/eval/` as structured markdown. You can feed them back to Claude to fix failures.
+</Callout>

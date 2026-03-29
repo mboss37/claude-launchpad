@@ -3,6 +3,8 @@ title: init
 description: Auto-detect your project and generate Claude Code config from scratch.
 ---
 
+import { File, Folder, Files } from 'fumadocs-ui/components/files';
+
 Detects your project and generates Claude Code config that fits. No templates, no menus — it reads your manifest files and figures it out.
 
 ```bash
@@ -16,17 +18,34 @@ claude-launchpad init
 | `-n, --name` | Project name (auto-detected from directory) |
 | `-y, --yes` | Accept all defaults without prompting |
 
-## What it generates (6 files)
+## What it generates
 
-- **`CLAUDE.md`** — stack, commands, conventions, guardrails, memory management instructions
-- **`TASKS.md`** — sprint tracking, session continuity, deferred issues
-- **`.claude/settings.json`** — `$schema`, credential deny rules (~/.ssh, ~/.aws, ~/.npmrc), sandbox enabled, bypass mode disabled, hooks for .env protection + destructive command blocking + auto-format + SessionStart + PostCompact
-- **`.claude/.gitignore`** — prevents local settings, plans, memory from being committed
-- **`.claudeignore`** — language-specific ignore patterns
-- **`.claude/rules/conventions.md`** — language-specific starter rules
+<Files>
+  <File name="CLAUDE.md" />
+  <File name="TASKS.md" />
+  <Folder name=".claude" defaultOpen>
+    <File name="settings.json" />
+    <File name=".gitignore" />
+    <Folder name="rules">
+      <File name="conventions.md" />
+    </Folder>
+  </Folder>
+  <File name=".claudeignore" />
+</Files>
+
+- **CLAUDE.md** — stack, commands, conventions, guardrails, memory management instructions
+- **TASKS.md** — sprint tracking, session continuity, deferred issues
+- **settings.json** — `$schema`, credential deny rules (~/.ssh, ~/.aws, ~/.npmrc), sandbox enabled, bypass mode disabled, hooks for .env protection + destructive command blocking + auto-format + SessionStart + PostCompact
+- **.gitignore** — prevents local settings, plans, memory from being committed
+- **.claudeignore** — language-specific ignore patterns
+- **conventions.md** — language-specific starter rules
 
 ## Supported stacks
 
 **Languages:** TypeScript, JavaScript, Python, Go, Ruby, Rust, Dart, PHP, Java, Kotlin, Swift, Elixir, C#
 
 **Frameworks:** Next.js, FastAPI, Django, Rails, Laravel, Express, SvelteKit, Angular, NestJS, and 15+ more.
+
+<Callout type="info">
+  After init, run `enhance` to have Claude read your actual codebase and fill in the architecture and guardrails — not boilerplate, real project-specific content.
+</Callout>

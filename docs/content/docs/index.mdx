@@ -3,11 +3,28 @@ title: Getting Started
 description: Install Claude Launchpad and score your Claude Code setup in 10 seconds.
 ---
 
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
 ## Install
 
-```bash
-npm i -g claude-launchpad
-```
+<Tabs items={['npm', 'pnpm', 'yarn']}>
+  <Tab value="npm">
+    ```bash
+    npm i -g claude-launchpad
+    ```
+  </Tab>
+  <Tab value="pnpm">
+    ```bash
+    pnpm add -g claude-launchpad
+    ```
+  </Tab>
+  <Tab value="yarn">
+    ```bash
+    yarn global add claude-launchpad
+    ```
+  </Tab>
+</Tabs>
 
 Or run directly without installing:
 
@@ -15,33 +32,30 @@ Or run directly without installing:
 npx claude-launchpad
 ```
 
-## Two Paths
-
-### Starting a new project?
-
-```bash
-claude-launchpad init
-```
-
-Detects your stack, generates `CLAUDE.md` with your commands and conventions, creates `TASKS.md` for tracking work across sessions, sets up hooks that auto-format code and block dangerous operations, and adds a `.claudeignore` so Claude skips build artifacts.
-
-### Already have a project?
-
-```bash
-claude-launchpad
-```
-
-Scans your Claude Code config, gives you a score out of 100, and tells you exactly what's wrong.
-
 ## Quick Start
 
-```bash
-cd your-project
-npx claude-launchpad            # see your score
-npx claude-launchpad doctor --fix   # fix everything
-```
-
-A typical unconfigured project scores ~42%. After `--fix`, it jumps to ~86%. Run `init` on a fresh project and you start at ~93%.
+<Steps>
+  <Step>
+    ### See your score
+    ```bash
+    cd your-project
+    claude-launchpad
+    ```
+  </Step>
+  <Step>
+    ### Fix everything
+    ```bash
+    claude-launchpad doctor --fix
+    ```
+  </Step>
+  <Step>
+    ### Check the result
+    ```bash
+    claude-launchpad
+    ```
+    A typical unconfigured project scores ~42%. After `--fix`, it jumps to ~86%.
+  </Step>
+</Steps>
 
 ## All Commands
 
@@ -53,3 +67,7 @@ A typical unconfigured project scores ~42%. After `--fix`, it jumps to ~86%. Run
 | `claude-launchpad doctor --watch` | Live score that updates when you save config files | Locally |
 | `claude-launchpad enhance` | Claude reads your code and completes CLAUDE.md | Via Claude CLI |
 | `claude-launchpad eval` | Run Claude against test scenarios, prove config works | Via Claude CLI |
+
+<Callout type="info">
+  Commands marked **Locally** run offline with zero API calls. Commands marked **Via Claude CLI** require Claude Code installed and authenticated.
+</Callout>

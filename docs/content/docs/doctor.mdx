@@ -3,6 +3,8 @@ title: doctor
 description: Scan your Claude Code config, score it 0-100, and auto-fix issues.
 ---
 
+import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
+
 The core of the tool. Runs 7 analyzers against your `.claude/` directory and `CLAUDE.md`.
 
 ```bash
@@ -24,25 +26,39 @@ claude-launchpad doctor
 
 | Analyzer | What it catches |
 |---|---|
-| **Instruction Budget** | Too many instructions in CLAUDE.md — Claude starts ignoring rules past ~150 |
-| **CLAUDE.md Quality** | Missing sections (including Memory & Learnings), vague instructions, hardcoded secrets |
+| **Instruction Budget** | Too many instructions — Claude starts ignoring rules past ~150 |
+| **CLAUDE.md Quality** | Missing sections, vague instructions, hardcoded secrets |
 | **Settings** | No hooks, deprecated attribution, hook timeouts, auto-memory disabled |
 | **Hooks** | Missing auto-format, .env protection, PostCompact, SessionStart |
 | **Rules** | Dead rule files, stale references, empty configs |
-| **Permissions** | Credential exposure (~/.ssh, ~/.aws, ~/.npmrc), blanket Bash, bypass mode, sandbox disabled, .env gap |
+| **Permissions** | Credential exposure, blanket Bash, bypass mode, sandbox disabled, .env gap |
 | **MCP Servers** | Invalid transport configs, missing commands/URLs |
 
 ## What --fix applies
 
-- Credential deny rules (~/.ssh/*, ~/.aws/*, ~/.npmrc)
-- Bypass permissions mode disabled
-- Sandbox enabled with failIfUnavailable
-- .env file protection hook
-- .env added to .claudeignore (defense in depth)
-- Auto-format hook (prettier, gofmt, ruff, etc.)
-- Force-push protection hook
-- PostCompact hook for context re-injection
-- Missing CLAUDE.md sections (Stack, Commands, Architecture, Off-Limits, Session Start, Memory & Learnings)
-- Starter rules file (.claude/rules/conventions.md)
-- .claudeignore with language-specific patterns
-- Attribution migration (includeCoAuthoredBy → attribution object)
+<Accordions type="multiple">
+  <Accordion title="Security">
+    - Credential deny rules (~/.ssh/*, ~/.aws/*, ~/.npmrc)
+    - Bypass permissions mode disabled
+    - Sandbox enabled with failIfUnavailable
+    - .env added to .claudeignore (defense in depth)
+  </Accordion>
+  <Accordion title="Hooks">
+    - .env file protection hook
+    - Auto-format hook (prettier, gofmt, ruff, etc.)
+    - Force-push protection hook
+    - PostCompact hook for context re-injection
+  </Accordion>
+  <Accordion title="CLAUDE.md">
+    - Missing sections: Stack, Commands, Architecture, Off-Limits, Session Start, Memory & Learnings
+    - Attribution migration (includeCoAuthoredBy → attribution object)
+  </Accordion>
+  <Accordion title="Files">
+    - Starter rules file (.claude/rules/conventions.md)
+    - .claudeignore with language-specific patterns
+  </Accordion>
+</Accordions>
+
+<Callout type="warn">
+  Use `--fix --dry-run` to preview changes before applying. This is recommended for projects with existing configurations.
+</Callout>
