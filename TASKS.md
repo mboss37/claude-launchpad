@@ -24,10 +24,12 @@
 ## Current Sprint: Sprint 14 — Launch Campaign
 
 ### Week 1 — Foundation
+- [x] Submit to DevHunt (paid launch week)
+- [x] Logo created (rocket + terminal brackets)
+- [x] Screenshots prepared (6 screenshots: doctor, --fix, diff, enhance)
 - [ ] Record 10-sec terminal GIF (bad score → --fix → good score)
 - [ ] Add OG image to docs (1200x630, terminal screenshot or GIF frame)
 - [ ] PRs to awesome-claude-code lists (hesreallyhim, rohitg00, travisvn)
-- [ ] Submit to DevHunt (GitHub PR)
 - [ ] Post in Anthropic Discord #tools channel
 - [ ] Update npm keywords (claude, claude-code, ai, cli, developer-tools)
 
