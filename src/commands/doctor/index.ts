@@ -100,6 +100,7 @@ export function createDoctorCommand(): Command {
               analyzeMcp(updatedConfig),
             ]);
             renderDoctorReport(updatedResults);
+            log.info("Run `claude-launchpad enhance` to have Claude restructure and complete your CLAUDE.md.");
           }
           if (skipped > 0) {
             log.info(`${skipped} issue(s) require manual intervention.`);
