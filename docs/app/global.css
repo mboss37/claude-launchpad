@@ -2,6 +2,20 @@
 @import 'fumadocs-ui/css/black.css';
 @import 'fumadocs-ui/css/preset.css';
 
+:root {
+  --accent: #000000;
+  --accent-muted: #374151;
+  --accent-border: rgba(0, 0, 0, 0.25);
+  --accent-bg: rgba(0, 0, 0, 0.05);
+}
+
+.dark {
+  --accent: #6ee7b7;
+  --accent-muted: rgba(110, 231, 183, 0.7);
+  --accent-border: rgba(16, 185, 129, 0.35);
+  --accent-bg: rgba(16, 185, 129, 0.1);
+}
+
 html {
   scrollbar-gutter: stable;
 }
