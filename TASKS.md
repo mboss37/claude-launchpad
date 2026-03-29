@@ -15,31 +15,26 @@
 - **Sprint 8**: Polish — v0.3.4, security fix, 5 persona reviews, Tailwind redesign, glossary, suite filtering, eval reports, 58 tests
 - **Sprint 9**: Scale — v0.4.0, enhanced init (6 files, $schema, permissions.deny, destructive cmd blocking, rules), Tailwind docs page, marketplace submissions, Reddit posts
 
-## Current Sprint: Sprint 10 — Refine
+- **Sprint 10**: Refine — v0.4.1-v0.4.3, memory management, PostCompact hook, eval sandbox fix, CHANGELOG, 71 tests
+- **Sprint 11**: Security — v0.5.0, credential deny rules, sandbox, bypass disable, 5 new doctor checks, interactive eval, 91 tests
 
-### In Progress
+## Current Sprint: Sprint 12 — Smart Defaults
 
 ### To Do
-- [ ] eval --compare: compare configs side by side
-- [ ] eval --regression: show which commit degraded compliance
+- [ ] Doctor: deprecated attribution, monorepo excludes, hook timeouts, autoMemory disabled
+- [ ] Init: SessionStart hook, path-scoped rules with `paths:` frontmatter
+- [ ] Enhance: suggest path-scoped rules, sandbox.network.allowedDomains, claudeMdExcludes
+- [ ] Eval: memory-persistence, deferred-tracking scenarios
 - [ ] Plugin marketplace go-live (waiting on Anthropic review)
-- [ ] awesome-claude-code listing (submitted, waiting on validation)
-
-### Done
-- [x] Refactor: tryFix() → FIX_TABLE lookup pattern (-101 lines)
-- [x] Refactor: detectScripts() → LANGUAGE_SCRIPTS config object
-- [x] Tests: detectScripts coverage for all 13 languages (58 → 71 tests)
-- [x] README: add cd instruction, remove Cost column
 
 ## Upcoming
-- **Sprint 11**: Community scenario packs, paid tier exploration
+- **Sprint 13**: Community scenario packs, paid tier exploration
 
 ## Session Log
-### 2026-03-28 (session 5)
-- Security fix v0.3.1 (command injection). 3-agent review. 11 eval scenarios.
-### 2026-03-28 (session 6)
-- v0.3.4. 5 persona reviews. Tailwind redesign. Glossary. Suite filtering. Eval reports.
-### 2026-03-28 (session 7)
-- v0.4.0: enhanced init (6 files, schema, permissions, rules). Tailwind docs page rebuild.
-- 5 marketplace directories researched. awesome-claude-code + Anthropic submitted.
-- Reddit posts drafted, reviewed 3x for AI smell, CLI screenshots for before/after.
+### 2026-03-29 (session 8)
+- v0.4.1-v0.4.3: memory, PostCompact, eval sandbox fix, CHANGELOG, 71 tests.
+- Claude Code source research → FINDINGS.md.
+### 2026-03-29 (session 9)
+- v0.5.0: security hardening — credential deny, sandbox, bypass disable, 5 doctor checks.
+- Interactive eval mode. 2 new scenarios (13 total). buildGradle bug fix. 91 tests.
+- Code review (Opus): addressed M1, M3, L2. README + docs + landing page updated.

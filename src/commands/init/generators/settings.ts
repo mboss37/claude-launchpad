@@ -16,6 +16,11 @@ interface ClaudeSettings {
     readonly deny?: ReadonlyArray<string>;
   };
   readonly hooks?: Record<string, ReadonlyArray<HookGroup>>;
+  readonly disableBypassPermissionsMode?: "disable";
+  readonly sandbox?: {
+    readonly enabled: boolean;
+    readonly failIfUnavailable: boolean;
+  };
 }
 
 /**
@@ -73,9 +78,17 @@ export function generateSettings(detected: DetectedProject): ClaudeSettings {
         "Read(.env)",
         "Read(.env.*)",
         "Read(secrets/**)",
+        "Read(~/.ssh/*)",
+        "Read(~/.aws/*)",
+        "Read(~/.npmrc)",
       ],
     },
     hooks,
+    disableBypassPermissionsMode: "disable",
+    sandbox: {
+      enabled: true,
+      failIfUnavailable: true,
+    },
   };
 }
 

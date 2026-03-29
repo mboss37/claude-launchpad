@@ -81,7 +81,7 @@ The core of the tool. Runs 7 analyzers against your `.claude/` directory and `CL
 | **Settings** | No hooks configured, dangerous tool access without safety nets |
 | **Hooks** | Missing auto-format on save, no .env file protection, no security gates, no PostCompact hook |
 | **Rules** | Dead rule files, stale references, empty configs |
-| **Permissions** | Bash auto-allowed without security hooks, no force-push protection |
+| **Permissions** | Credential file exposure (~/.ssh, ~/.aws, ~/.npmrc), blanket Bash approval, bypass mode unprotected, sandbox disabled, .env gap between hooks and .claudeignore, no force-push protection |
 | **MCP Servers** | Invalid transport configs, missing commands/URLs |
 
 Output looks like this:
@@ -132,7 +132,7 @@ Detects your project and generates Claude Code config that fits. No templates, n
 **What you get (6 files):**
 - `CLAUDE.md` — your stack, commands, conventions, guardrails, memory management instructions
 - `TASKS.md` — sprint tracking, session continuity, deferred issues parking
-- `.claude/settings.json` — `$schema` for IDE autocomplete, `permissions.deny` for security, hooks for .env protection + destructive command blocking + auto-format + PostCompact context re-injection
+- `.claude/settings.json` — `$schema` for IDE autocomplete, `permissions.deny` for credential + secret protection, sandbox enabled, bypass mode disabled, hooks for .env protection + destructive command blocking + auto-format + PostCompact context re-injection
 - `.claude/.gitignore` — prevents local settings and plans from being committed
 - `.claudeignore` — language-specific ignore patterns
 - `.claude/rules/conventions.md` — language-specific starter rules
@@ -154,23 +154,11 @@ Stays under the 120-instruction budget. Overflows detailed content to `.claude/r
 The part nobody else has built. Runs Claude against real test scenarios and scores the results.
 
 ```bash
-# Run only security tests (4 scenarios)
-claude-launchpad eval --suite security
-
-# Run only convention tests (5 scenarios)
-claude-launchpad eval --suite conventions
-
-# Run only workflow tests (2 scenarios)
-claude-launchpad eval --suite workflow
-
-# Run everything (11 scenarios)
+# Interactive mode — pick suite, runs, and model
 claude-launchpad eval
 
-# Use a cheaper model
-claude-launchpad eval --suite security --model haiku
-
-# One run per scenario (fastest)
-claude-launchpad eval --suite security --runs 1
+# Or pass flags directly
+claude-launchpad eval --suite security --runs 1 --model haiku
 ```
 
 Each scenario creates an isolated sandbox with your full Claude Code config (settings.json, rules, hooks, .claudeignore) copied in, runs Claude with a task, and checks if your configuration made Claude follow the rules:
@@ -192,7 +180,7 @@ Results are saved to `.claude/eval/` as structured markdown — you can feed the
 
 | Suite | Scenarios | What it tests |
 |---|---|---|
-| `security` | 4 | SQL injection, .env protection, secret exposure, input validation |
+| `security` | 6 | SQL injection, .env protection, secret exposure, input validation, credential read, sandbox escape |
 | `conventions` | 5 | Error handling, immutability, file size, naming, no hardcoded values |
 | `workflow` | 2 | Git conventions, session continuity |
 
@@ -241,7 +229,7 @@ Then use `/launchpad:doctor`, `/launchpad:init`, `/launchpad:enhance`, `/launchp
 
 **Doctor** reads your files and runs static analysis. No API calls. No network. No cost.
 
-**Init** scans manifest files (package.json, go.mod, pyproject.toml, etc.), detects your stack, and generates 6 files: CLAUDE.md (with memory management instructions), TASKS.md (with deferred issues section), settings.json (with $schema, permissions.deny, hooks including PostCompact for context re-injection), .claude/.gitignore, .claudeignore, and language-specific rules. Formatter hooks use hardcoded safe commands only.
+**Init** scans manifest files (package.json, go.mod, pyproject.toml, etc.), detects your stack, and generates 6 files: CLAUDE.md (with memory management instructions), TASKS.md (with deferred issues section), settings.json (with credential deny rules, sandbox enabled, bypass mode disabled, hooks including PostCompact), .claude/.gitignore, .claudeignore, and language-specific rules. Formatter hooks use hardcoded safe commands only.
 
 **Enhance** spawns `claude "prompt"` as an interactive child process. You see Claude's full UI. No data passes through the tool — it just launches Claude with a task.
 

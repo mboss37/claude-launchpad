@@ -12,13 +12,14 @@ export async function parseClaudeConfig(projectRoot: string): Promise<ClaudeConf
   const root = resolve(projectRoot);
   const claudeDir = join(root, CLAUDE_DIR);
 
-  const [claudeMd, settings, hooks, rules, mcpServers, skills] = await Promise.all([
+  const [claudeMd, settings, hooks, rules, mcpServers, skills, claudeignore] = await Promise.all([
     readClaudeMd(root),
     readSettings(claudeDir),
     readHooks(claudeDir),
     readRules(claudeDir),
     readMcpServers(claudeDir),
     readSkills(claudeDir),
+    readFileOrNull(join(root, ".claudeignore")),
   ]);
 
   const instructionCount = claudeMd
@@ -35,6 +36,8 @@ export async function parseClaudeConfig(projectRoot: string): Promise<ClaudeConf
     rules,
     mcpServers,
     skills,
+    claudeignorePath: claudeignore !== null ? join(root, ".claudeignore") : null,
+    claudeignoreContent: claudeignore,
   };
 }
 

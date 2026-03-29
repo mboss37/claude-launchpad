@@ -13,6 +13,8 @@ function makeConfig(content: string | null): ClaudeConfig {
     rules: [],
     mcpServers: [],
     skills: [],
+    claudeignorePath: null,
+    claudeignoreContent: null,
   };
 }
 

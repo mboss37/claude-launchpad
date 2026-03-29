@@ -43,7 +43,7 @@ body { background: #000; color: #e2e2e2; font-family: 'Geist', sans-serif; }
   <div class="flex items-center gap-3">
     <span class="material-symbols-outlined text-white">rocket_launch</span>
     <a href="/claude-launchpad/" class="text-white text-sm font-bold tracking-tighter">Claude Launchpad</a>
-    <a href="https://github.com/mboss37/claude-launchpad/releases" class="px-1.5 py-0.5 bg-surface-high text-xs font-bold tracking-widest uppercase rounded text-text-dim hover:text-white transition-colors">v0.4.2</a>
+    <a href="https://github.com/mboss37/claude-launchpad/releases" class="px-1.5 py-0.5 bg-surface-high text-xs font-bold tracking-widest uppercase rounded text-text-dim hover:text-white transition-colors">v0.5.0</a>
   </div>
   <nav class="flex items-center gap-1">
     <a class="text-text-dim hover:bg-surface-high transition-colors px-2.5 py-1 rounded text-xs" href="/claude-launchpad/">Home</a>
@@ -100,7 +100,7 @@ body { background: #000; color: #e2e2e2; font-family: 'Geist', sans-serif; }
     <ul class="text-sm text-text-dim space-y-1 list-disc list-inside">
       <li><code class="text-green">CLAUDE.md</code> — stack, commands, conventions, guardrails, memory management instructions</li>
       <li><code class="text-green">TASKS.md</code> — sprint tracking, session continuity, deferred issues</li>
-      <li><code class="text-green">.claude/settings.json</code> — <code>$schema</code> for IDE autocomplete, <code>permissions.deny</code> for security, hooks for .env protection + destructive command blocking + auto-format + PostCompact context re-injection</li>
+      <li><code class="text-green">.claude/settings.json</code> — <code>$schema</code>, credential deny rules (~/.ssh, ~/.aws, ~/.npmrc), sandbox enabled, bypass mode disabled, hooks for .env protection + destructive command blocking + auto-format + PostCompact</li>
       <li><code class="text-green">.claude/.gitignore</code> — prevents local settings, plans, memory from being committed</li>
       <li><code class="text-green">.claudeignore</code> — language-specific ignore patterns</li>
       <li><code class="text-green">.claude/rules/conventions.md</code> — language-specific starter rules</li>
@@ -137,11 +137,15 @@ body { background: #000; color: #e2e2e2; font-family: 'Geist', sans-serif; }
     </div>
     <h3 class="text-sm font-medium text-white mb-2">What --fix applies</h3>
     <ul class="text-sm text-text-dim space-y-1 list-disc list-inside">
+      <li>Credential deny rules (~/.ssh/*, ~/.aws/*, ~/.npmrc)</li>
+      <li>Bypass permissions mode disabled</li>
+      <li>Sandbox enabled with failIfUnavailable</li>
       <li>.env file protection hook (blocks reads and writes)</li>
+      <li>.env added to .claudeignore (defense in depth)</li>
       <li>Auto-format hook (prettier, gofmt, ruff, etc.)</li>
       <li>Force-push protection hook</li>
-      <li>Missing CLAUDE.md sections (Stack, Commands, Architecture, Off-Limits, Session Start, Memory & Learnings)</li>
       <li>PostCompact hook for context re-injection after compaction</li>
+      <li>Missing CLAUDE.md sections (Stack, Commands, Architecture, Off-Limits, Session Start, Memory & Learnings)</li>
       <li>Starter rules file (.claude/rules/conventions.md)</li>
       <li>.claudeignore with language-specific patterns</li>
     </ul>
@@ -169,22 +173,16 @@ body { background: #000; color: #e2e2e2; font-family: 'Geist', sans-serif; }
     <h2 class="text-base font-semibold text-white mb-3 border-l-2 border-white pl-3">eval <span class="text-xs text-yellow bg-yellow/10 px-2 py-0.5 rounded font-bold uppercase tracking-wider ml-2">Uses Claude</span></h2>
     <p class="text-sm text-text-dim mb-3">Test if Claude actually follows your rules.</p>
     <div class="code-block rounded-xl p-4 font-mono text-xs leading-relaxed mb-4">
-      <div class="text-text-muted"># Run all 11 scenarios</div>
+      <div class="text-text-muted"># Interactive — pick suite, runs, and model</div>
       <div><span class="text-green">claude-launchpad</span> eval</div>
-      <div class="text-text-muted mt-2"># Run one suite (faster)</div>
-      <div><span class="text-green">claude-launchpad</span> eval --suite security</div>
-      <div><span class="text-green">claude-launchpad</span> eval --suite conventions</div>
-      <div><span class="text-green">claude-launchpad</span> eval --suite workflow</div>
-      <div class="text-text-muted mt-2"># Cheaper model, single run</div>
-      <div><span class="text-green">claude-launchpad</span> eval --suite security --model haiku --runs 1</div>
-      <div class="text-text-muted mt-2"># Inspect what Claude wrote</div>
-      <div><span class="text-green">claude-launchpad</span> eval --runs 1 --debug</div>
+      <div class="text-text-muted mt-2"># Or pass flags directly</div>
+      <div><span class="text-green">claude-launchpad</span> eval --suite security --runs 1 --model haiku</div>
     </div>
     <div class="bg-surface-low rounded-xl border border-border-dim overflow-hidden mb-4">
       <table class="w-full text-xs">
         <thead><tr class="text-left text-text-muted uppercase text-xs tracking-widest"><th class="p-3 border-b border-border-dim">Flag</th><th class="p-3 border-b border-border-dim">Description</th></tr></thead>
         <tbody>
-          <tr class="hover:bg-white/5"><td class="p-3 border-b border-border-dim font-mono text-green">--suite &lt;name&gt;</td><td class="p-3 border-b border-border-dim text-text-dim">security (4), conventions (5), or workflow (2)</td></tr>
+          <tr class="hover:bg-white/5"><td class="p-3 border-b border-border-dim font-mono text-green">--suite &lt;name&gt;</td><td class="p-3 border-b border-border-dim text-text-dim">security (6), conventions (5), or workflow (2)</td></tr>
           <tr class="hover:bg-white/5"><td class="p-3 border-b border-border-dim font-mono text-green">--model &lt;model&gt;</td><td class="p-3 border-b border-border-dim text-text-dim">haiku, sonnet, or opus</td></tr>
           <tr class="hover:bg-white/5"><td class="p-3 border-b border-border-dim font-mono text-green">--runs &lt;n&gt;</td><td class="p-3 border-b border-border-dim text-text-dim">Runs per scenario (default 3, median score)</td></tr>
           <tr class="hover:bg-white/5"><td class="p-3 border-b border-border-dim font-mono text-green">--debug</td><td class="p-3 border-b border-border-dim text-text-dim">Keep sandbox directories for inspection</td></tr>
@@ -194,7 +192,7 @@ body { background: #000; color: #e2e2e2; font-family: 'Geist', sans-serif; }
       </table>
     </div>
 
-    <h3 class="text-sm font-medium text-white mb-2">Built-in suites (11 scenarios)</h3>
+    <h3 class="text-sm font-medium text-white mb-2">Built-in suites (13 scenarios)</h3>
     <div class="bg-surface-low rounded-xl border border-border-dim overflow-hidden mb-4">
       <table class="w-full text-xs">
         <thead><tr class="text-left text-text-muted uppercase text-xs tracking-widest"><th class="p-3 border-b border-border-dim">Suite</th><th class="p-3 border-b border-border-dim">Scenario</th><th class="p-3 border-b border-border-dim">Tests</th></tr></thead>

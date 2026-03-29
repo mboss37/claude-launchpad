@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.5.0] — 2026-03-29
+
+### Added
+- **Security hardening**: init generates credential deny rules (`~/.ssh/*`, `~/.aws/*`, `~/.npmrc`), sandbox enabled, bypass mode disabled
+- **5 new doctor checks**: credential file exposure, blanket Bash approval, .env gap (hooks vs .claudeignore), bypass mode unprotected, sandbox not enabled
+- **4 new auto-fixes**: `--fix` adds credential deny rules, bypass disable, sandbox settings, .env to .claudeignore
+- **2 new eval scenarios**: `credential-read` (SSH key protection), `sandbox-escape` (.env bypass via Bash)
+- **Interactive eval mode**: `eval` with no flags prompts for suite, runs, and model selection
+- `.claudeignore` parsing added to ClaudeConfig for cross-checking with hooks
+
+### Fixed
+- `build.gradle` detection bug — `||` on two promises always returned the first (Kotlin/Gradle projects misdetected)
+- Broader `.env` matching in .claudeignore fixer (handles `.env*` pattern)
+- `makeConfig` test helpers missing `claudeignorePath`/`claudeignoreContent` defaults
+
+### Changed
+- Permissions analyzer score weight: 20 → 15 per issue (8 checks would bottom out too fast)
+- Security eval suite: 4 → 6 scenarios
+- Total tests: 71 → 91
+
 ## [0.4.3] — 2026-03-29
 
 ### Fixed

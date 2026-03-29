@@ -133,4 +133,94 @@ describe("applyFixes", () => {
     const result = await applyFixes(issues, testDir);
     expect(result.fixed).toBe(3);
   });
+
+  it("adds credential deny rules to settings.json", async () => {
+    const issues: DiagnosticIssue[] = [{
+      analyzer: "Permissions",
+      severity: "high",
+      message: "Credential files not blocked: Read(~/.ssh/*), Read(~/.aws/*), Read(~/.npmrc)",
+      fix: "",
+    }];
+
+    const result = await applyFixes(issues, testDir);
+    expect(result.fixed).toBe(1);
+
+    const settings = JSON.parse(
+      await readFile(join(testDir, ".claude", "settings.json"), "utf-8"),
+    );
+    expect(settings.permissions.deny).toContain("Read(~/.ssh/*)");
+    expect(settings.permissions.deny).toContain("Read(~/.aws/*)");
+    expect(settings.permissions.deny).toContain("Read(~/.npmrc)");
+  });
+
+  it("adds disableBypassPermissionsMode to settings.json", async () => {
+    const issues: DiagnosticIssue[] = [{
+      analyzer: "Permissions",
+      severity: "high",
+      message: "Bypass permissions mode not disabled",
+      fix: "",
+    }];
+
+    const result = await applyFixes(issues, testDir);
+    expect(result.fixed).toBe(1);
+
+    const settings = JSON.parse(
+      await readFile(join(testDir, ".claude", "settings.json"), "utf-8"),
+    );
+    expect(settings.disableBypassPermissionsMode).toBe("disable");
+  });
+
+  it("adds sandbox settings to settings.json", async () => {
+    const issues: DiagnosticIssue[] = [{
+      analyzer: "Permissions",
+      severity: "medium",
+      message: "Sandbox not enabled",
+      fix: "",
+    }];
+
+    const result = await applyFixes(issues, testDir);
+    expect(result.fixed).toBe(1);
+
+    const settings = JSON.parse(
+      await readFile(join(testDir, ".claude", "settings.json"), "utf-8"),
+    );
+    expect(settings.sandbox.enabled).toBe(true);
+    expect(settings.sandbox.failIfUnavailable).toBe(true);
+  });
+
+  it("adds .env to .claudeignore", async () => {
+    await writeFile(join(testDir, ".claudeignore"), "node_modules\ndist\n");
+
+    const issues: DiagnosticIssue[] = [{
+      analyzer: "Permissions",
+      severity: "medium",
+      message: ".env is protected by hooks but not in .claudeignore",
+      fix: "",
+    }];
+
+    const result = await applyFixes(issues, testDir);
+    expect(result.fixed).toBe(1);
+
+    const content = await readFile(join(testDir, ".claudeignore"), "utf-8");
+    expect(content).toContain(".env");
+    expect(content).toContain(".env.*");
+  });
+
+  it("does not duplicate credential deny rules", async () => {
+    await mkdir(join(testDir, ".claude"), { recursive: true });
+    await writeFile(
+      join(testDir, ".claude", "settings.json"),
+      JSON.stringify({ permissions: { deny: ["Read(~/.ssh/*)", "Read(~/.aws/*)", "Read(~/.npmrc)"] } }),
+    );
+
+    const issues: DiagnosticIssue[] = [{
+      analyzer: "Permissions",
+      severity: "high",
+      message: "Credential files not blocked: Read(~/.ssh/*)",
+      fix: "",
+    }];
+
+    const result = await applyFixes(issues, testDir);
+    expect(result.fixed).toBe(0);
+  });
 });

@@ -13,6 +13,8 @@ function makeConfig(hooks: HookConfig[] = []): ClaudeConfig {
     rules: [],
     mcpServers: [],
     skills: [],
+    claudeignorePath: null,
+    claudeignoreContent: null,
   };
 }
 

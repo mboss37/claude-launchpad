@@ -9,7 +9,7 @@ import type { DetectedProject } from "../types/index.js";
 export async function detectProject(root: string): Promise<DetectedProject> {
   const name = basename(root);
 
-  const [pkgJson, goMod, pyProject, gemfile, cargo, pubspec, composerJson, pomXml, buildGradle, packageSwift, mixExs, csproj, lockfiles] = await Promise.all([
+  const [pkgJson, goMod, pyProject, gemfile, cargo, pubspec, composerJson, pomXml, buildGradleGroovy, buildGradleKts, packageSwift, mixExs, csproj, lockfiles] = await Promise.all([
     readJsonOrNull<PackageJson>(join(root, "package.json")),
     fileExists(join(root, "go.mod")),
     readFileOrNull(join(root, "pyproject.toml")),
@@ -18,12 +18,15 @@ export async function detectProject(root: string): Promise<DetectedProject> {
     fileExists(join(root, "pubspec.yaml")),
     readJsonOrNull<ComposerJson>(join(root, "composer.json")),
     fileExists(join(root, "pom.xml")),
-    fileExists(join(root, "build.gradle")) || fileExists(join(root, "build.gradle.kts")),
+    fileExists(join(root, "build.gradle")),
+    fileExists(join(root, "build.gradle.kts")),
     fileExists(join(root, "Package.swift")),
     fileExists(join(root, "mix.exs")),
     globExists(root, "*.csproj"),
     detectLockfiles(root),
   ]);
+
+  const buildGradle = buildGradleGroovy || buildGradleKts;
 
   const manifests: ManifestState = {
     pkgJson, goMod, pyProject, gemfile, cargo, pubspec,

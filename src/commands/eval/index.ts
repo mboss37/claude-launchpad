@@ -1,4 +1,5 @@
 import { Command } from "commander";
+import { select } from "@inquirer/prompts";
 import ora from "ora";
 import chalk from "chalk";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -21,6 +22,37 @@ export function createEvalCommand(): Command {
     .option("--model <model>", "Model to use for eval (e.g., sonnet, haiku, opus)")
     .action(async (opts) => {
       printBanner();
+
+      // Interactive mode when no flags provided
+      const hasFlags = opts.suite || opts.model || opts.runs !== "3" || opts.json || opts.debug;
+      if (!hasFlags) {
+        opts.suite = await select({
+          message: "Suite",
+          choices: [
+            { name: "security (6 scenarios)", value: "security" },
+            { name: "conventions (5 scenarios)", value: "conventions" },
+            { name: "workflow (2 scenarios)", value: "workflow" },
+            { name: "all (13 scenarios)", value: undefined },
+          ],
+        });
+        opts.runs = await select({
+          message: "Runs per scenario",
+          choices: [
+            { name: "1 — fast", value: "1" },
+            { name: "3 — default", value: "3" },
+            { name: "5 — thorough", value: "5" },
+          ],
+        });
+        opts.model = await select({
+          message: "Model",
+          choices: [
+            { name: "haiku — cheapest", value: "haiku" },
+            { name: "sonnet — balanced", value: "sonnet" },
+            { name: "opus — best", value: "opus" },
+          ],
+        });
+        log.blank();
+      }
 
       // Verify Claude CLI is available
       const claudeAvailable = await checkClaudeCli();

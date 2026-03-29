@@ -62,6 +62,10 @@ const FIX_TABLE: ReadonlyArray<{ analyzer: string; match: string; fix: FixFn }> 
   { analyzer: "Quality", match: "Memory", fix: (root) => addClaudeMdSection(root, "## Memory & Learnings", "Use the built-in memory system to persist knowledge across sessions:\n- **Save immediately** when you discover: a non-obvious fix, a gotcha, an external resource, a decision with context that would be lost, or a known issue to fix later\n- **Categories**: `decision` (why X over Y), `gotcha` (non-obvious pitfall), `deferred` (known issue, not urgent), `reference` (where to find things)\n- **Where**: project memory for this repo, global memory for cross-project learnings\n- **Format**: one fact per memory, include date and why — not just what\n- **Prune**: check if a memory on this topic exists before saving — update, don't duplicate\n- Before starting work, check memory for relevant context from previous sessions") },
   { analyzer: "Hooks", match: "PostCompact", fix: (root) => addPostCompactHook(root) },
   { analyzer: "Permissions", match: "force-push", fix: (root) => addForcePushProtection(root) },
+  { analyzer: "Permissions", match: "Credential files not blocked", fix: (root) => addCredentialDenyRules(root) },
+  { analyzer: "Permissions", match: "Bypass permissions mode", fix: (root) => addBypassDisable(root) },
+  { analyzer: "Permissions", match: "Sandbox not enabled", fix: (root) => addSandboxSettings(root) },
+  { analyzer: "Permissions", match: ".env is protected by hooks but not in .claudeignore", fix: (root) => addEnvToClaudeignore(root) },
 ];
 
 async function tryFix(
@@ -193,6 +197,59 @@ async function addPostCompactHook(root: string): Promise<boolean> {
   (settings as Record<string, unknown>).hooks = { ...hooks, PostCompact: postCompact };
   await writeSettingsJson(root, settings);
   log.success("Added PostCompact hook (re-injects TASKS.md after compaction)");
+  return true;
+}
+
+async function addCredentialDenyRules(root: string): Promise<boolean> {
+  const settings = await readSettingsJson(root);
+  const permissions = (settings.permissions ?? {}) as Record<string, unknown>;
+  const deny = (permissions.deny as string[] | undefined) ?? [];
+
+  const toAdd = ["Read(~/.ssh/*)", "Read(~/.aws/*)", "Read(~/.npmrc)"];
+  const missing = toAdd.filter((p) => !deny.includes(p));
+  if (missing.length === 0) return false;
+
+  (settings as Record<string, unknown>).permissions = { ...permissions, deny: [...deny, ...missing] };
+  await writeSettingsJson(root, settings);
+  log.success("Added credential deny rules (SSH, AWS, npm)");
+  return true;
+}
+
+async function addBypassDisable(root: string): Promise<boolean> {
+  const settings = await readSettingsJson(root);
+  if (settings.disableBypassPermissionsMode === "disable") return false;
+
+  (settings as Record<string, unknown>).disableBypassPermissionsMode = "disable";
+  await writeSettingsJson(root, settings);
+  log.success("Added disableBypassPermissionsMode: disable");
+  return true;
+}
+
+async function addSandboxSettings(root: string): Promise<boolean> {
+  const settings = await readSettingsJson(root);
+  const sandbox = settings.sandbox as Record<string, unknown> | undefined;
+  if (sandbox?.enabled === true) return false;
+
+  (settings as Record<string, unknown>).sandbox = { enabled: true, failIfUnavailable: true };
+  await writeSettingsJson(root, settings);
+  log.success("Enabled sandbox with failIfUnavailable");
+  return true;
+}
+
+async function addEnvToClaudeignore(root: string): Promise<boolean> {
+  const ignorePath = join(root, ".claudeignore");
+  let content: string;
+  try {
+    content = await readFile(ignorePath, "utf-8");
+  } catch {
+    return false; // No .claudeignore to modify
+  }
+
+  const lines = content.split("\n").map((l) => l.trim());
+  if (lines.some((l) => l === ".env" || l === ".env.*" || l === ".env*")) return false;
+
+  await writeFile(ignorePath, content.trimEnd() + "\n.env\n.env.*\n");
+  log.success("Added .env to .claudeignore");
   return true;
 }
 

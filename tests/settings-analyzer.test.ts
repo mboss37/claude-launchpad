@@ -13,6 +13,8 @@ function makeConfig(settings: Record<string, unknown> | null = null): ClaudeConf
     rules: [],
     mcpServers: [],
     skills: [],
+    claudeignorePath: null,
+    claudeignoreContent: null,
   };
 }
 

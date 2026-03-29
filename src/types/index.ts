@@ -101,6 +101,8 @@ export interface ClaudeConfig {
   readonly rules: ReadonlyArray<string>;
   readonly mcpServers: ReadonlyArray<McpServerConfig>;
   readonly skills: ReadonlyArray<string>;
+  readonly claudeignorePath: string | null;
+  readonly claudeignoreContent: string | null;
 }
 
 export interface HookConfig {

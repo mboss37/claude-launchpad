@@ -2,27 +2,88 @@ import type { ClaudeConfig, AnalyzerResult, DiagnosticIssue } from "../../../typ
 
 export async function analyzePermissions(config: ClaudeConfig): Promise<AnalyzerResult> {
   const issues: DiagnosticIssue[] = [];
+  const settings = config.settings;
+  const permissions = settings?.permissions as Record<string, unknown> | undefined;
+  const denyList = (permissions?.deny as string[] | undefined) ?? [];
+  const allowList = (permissions?.allow as string[] | undefined) ?? [];
 
-  // Check if Bash is allowed without security hooks
+  // Credential file exposure
+  const credentialPatterns = ["Read(~/.ssh/*)", "Read(~/.aws/*)", "Read(~/.npmrc)"];
+  const missingCreds = credentialPatterns.filter((p) => !denyList.includes(p));
+  if (missingCreds.length > 0) {
+    issues.push({
+      analyzer: "Permissions",
+      severity: "high",
+      message: `Credential files not blocked: ${missingCreds.join(", ")} — Claude can read SSH keys, AWS creds, or npm tokens`,
+      fix: "Add Read(~/.ssh/*), Read(~/.aws/*), Read(~/.npmrc) to permissions.deny",
+    });
+  }
+
+  // Blanket Bash approval
+  const hasBlanketBash = allowList.some((a) => a === "Bash" || (a.startsWith("Bash") && !a.includes("(")));
+  if (hasBlanketBash) {
+    issues.push({
+      analyzer: "Permissions",
+      severity: "high",
+      message: "Bash is blanket-allowed without pattern restriction — all shell commands are auto-approved",
+      fix: "Replace blanket Bash with scoped patterns like Bash(npm test) or remove it",
+    });
+  }
+
+  // Bypass mode unprotected
+  if (settings?.disableBypassPermissionsMode !== "disable") {
+    issues.push({
+      analyzer: "Permissions",
+      severity: "high",
+      message: "Bypass permissions mode not disabled — --dangerously-skip-permissions bypasses all checks",
+      fix: 'Add "disableBypassPermissionsMode": "disable" to settings.json',
+    });
+  }
+
+  // Sandbox not enabled
+  const sandbox = settings?.sandbox as Record<string, unknown> | undefined;
+  if (sandbox?.enabled !== true) {
+    issues.push({
+      analyzer: "Permissions",
+      severity: "medium",
+      message: "Sandbox not enabled — hooks block tool calls but not subprocess access (e.g. cat .env via Bash)",
+      fix: 'Add "sandbox": { "enabled": true, "failIfUnavailable": true } to settings.json',
+    });
+  }
+
+  // .env gap: hooks protect but .claudeignore doesn't
+  const hasEnvHook = config.hooks.some((h) => h.command?.includes(".env"));
+  if (hasEnvHook && config.claudeignoreContent !== null) {
+    const lines = config.claudeignoreContent.split("\n").map((l) => l.trim());
+    const hasEnvInIgnore = lines.some((l) => l === ".env" || l === ".env.*" || l === ".env*");
+    if (!hasEnvInIgnore) {
+      issues.push({
+        analyzer: "Permissions",
+        severity: "medium",
+        message: ".env is protected by hooks but not in .claudeignore — cat .env via Bash bypasses hooks",
+        fix: "Add .env to .claudeignore for defense in depth",
+      });
+    }
+  }
+
+  // Bash auto-allow without security hooks (existing check)
   const hasBashSecurity = config.hooks.some(
     (h) => h.event === "PreToolUse" && (h.matcher?.includes("Bash") || !h.matcher),
   );
-
-  const bashAllowed = config.settings?.allowedTools as string[] | undefined;
+  const bashAllowed = settings?.allowedTools as string[] | undefined;
   const hasBashAutoAllow = bashAllowed?.some((t) =>
     typeof t === "string" && t.toLowerCase().includes("bash"),
   );
-
   if (hasBashAutoAllow && !hasBashSecurity) {
     issues.push({
       analyzer: "Permissions",
       severity: "high",
       message: "Bash is auto-allowed without a security hook — dangerous commands could run unchecked",
-      fix: "Add a PreToolUse hook for Bash that blocks destructive commands (rm -rf, git push --force)",
+      fix: "Add a PreToolUse hook for Bash that blocks destructive commands",
     });
   }
 
-  // Check for force push protection
+  // Force-push protection
   const hasForceProtection = config.hooks.some(
     (h) => h.event === "PreToolUse" && h.command?.includes("force"),
   );
@@ -35,7 +96,7 @@ export async function analyzePermissions(config: ClaudeConfig): Promise<Analyzer
     });
   }
 
-  // Check CLAUDE.md for off-limits section
+  // Off-Limits section in CLAUDE.md
   if (config.claudeMdContent) {
     const hasOffLimits = config.claudeMdContent.includes("## Off-Limits") ||
       config.claudeMdContent.includes("## off-limits");
@@ -49,6 +110,6 @@ export async function analyzePermissions(config: ClaudeConfig): Promise<Analyzer
     }
   }
 
-  const score = Math.max(0, 100 - issues.length * 20);
+  const score = Math.max(0, 100 - issues.length * 15);
   return { name: "Permissions", issues, score };
 }
