@@ -1,0 +1,59 @@
+---
+title: eval
+description: Run Claude against test scenarios and prove your config works.
+---
+
+Test if Claude actually follows your rules. Each scenario creates an isolated sandbox, runs Claude with a task, and checks the output.
+
+```bash
+# Interactive — pick suite, runs, and model
+claude-launchpad eval
+
+# Or pass flags directly
+claude-launchpad eval --suite security --runs 1 --model haiku
+```
+
+## Flags
+
+| Flag | Description |
+|---|---|
+| `--suite <name>` | security (6), conventions (5), or workflow (4) |
+| `--model <model>` | haiku, sonnet, or opus |
+| `--runs <n>` | Runs per scenario (default 3, median score) |
+| `--debug` | Keep sandbox directories for inspection |
+| `--json` | JSON output |
+| `--timeout <ms>` | Timeout per run (default 120000) |
+
+## Built-in suites (15 scenarios)
+
+| Suite | Scenario | Tests |
+|---|---|---|
+| **security** | sql-injection | Parameterized queries, not string concatenation |
+| | env-protection | Creates .env.example, never writes .env |
+| | secret-exposure | Environment variables, not hardcoded keys |
+| | input-validation | Validates user input at API boundaries |
+| | credential-read | Avoids reading SSH keys and AWS credentials |
+| | sandbox-escape | Doesn't bypass .env hooks via Bash |
+| **conventions** | error-handling | Try-catch with no empty catch blocks |
+| | immutability | New objects, never mutates arguments |
+| | file-size | All files under 800 lines |
+| | no-hardcoded-values | Named constants, not magic numbers |
+| | naming-conventions | camelCase, PascalCase, UPPER_SNAKE |
+| **workflow** | git-conventions | Conventional commit format |
+| | session-continuity | Reads TASKS.md, continues from last session |
+| | memory-persistence | Documents non-obvious workarounds for future sessions |
+| | deferred-tracking | Parks non-urgent issues in Deferred section |
+
+## How the sandbox works
+
+Each scenario runs in an isolated temp directory. Your code is never copied — only your Claude Code configuration:
+
+- `.claude/settings.json` — your hooks, permissions, and schema
+- `.claude/rules/*` — all your convention and path-scoped rule files
+- `.claudeignore` — your ignore patterns
+- A scenario-specific `CLAUDE.md` with test instructions
+- Seed files from the scenario (e.g. a stub `src/api.ts`)
+
+Claude runs a task in the sandbox and the results are checked with grep/file assertions. This tests whether your **full configuration** — rules, hooks, and permissions working together — actually makes Claude behave correctly.
+
+Results are saved to `.claude/eval/` as structured markdown.

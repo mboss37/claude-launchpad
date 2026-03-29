@@ -16,7 +16,9 @@
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "pnpm build",
     "publish:dev": "npm version prerelease --preid=dev && npm publish --tag dev",
-    "publish:release": "npm publish"
+    "publish:release": "npm publish",
+    "docs:dev": "cd docs && pnpm dev",
+    "docs:build": "cd docs && pnpm build"
   },
   "keywords": [
     "claude",

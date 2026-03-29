@@ -1,0 +1,48 @@
+---
+title: doctor
+description: Scan your Claude Code config, score it 0-100, and auto-fix issues.
+---
+
+The core of the tool. Runs 7 analyzers against your `.claude/` directory and `CLAUDE.md`.
+
+```bash
+claude-launchpad doctor
+```
+
+## Flags
+
+| Flag | Description |
+|---|---|
+| `--fix` | Auto-fix: hooks, CLAUDE.md sections, rules, .claudeignore, credentials, sandbox |
+| `--fix --dry-run` | Preview what --fix would change without applying |
+| `--watch` | Re-runs every second when config files change |
+| `--min-score <n>` | Exit code 1 if below threshold (for CI) |
+| `--json` | Pure JSON, no banner |
+| `-p, --path <dir>` | Run on a different directory |
+
+## Analyzers
+
+| Analyzer | What it catches |
+|---|---|
+| **Instruction Budget** | Too many instructions in CLAUDE.md — Claude starts ignoring rules past ~150 |
+| **CLAUDE.md Quality** | Missing sections (including Memory & Learnings), vague instructions, hardcoded secrets |
+| **Settings** | No hooks, deprecated attribution, hook timeouts, auto-memory disabled |
+| **Hooks** | Missing auto-format, .env protection, PostCompact, SessionStart |
+| **Rules** | Dead rule files, stale references, empty configs |
+| **Permissions** | Credential exposure (~/.ssh, ~/.aws, ~/.npmrc), blanket Bash, bypass mode, sandbox disabled, .env gap |
+| **MCP Servers** | Invalid transport configs, missing commands/URLs |
+
+## What --fix applies
+
+- Credential deny rules (~/.ssh/*, ~/.aws/*, ~/.npmrc)
+- Bypass permissions mode disabled
+- Sandbox enabled with failIfUnavailable
+- .env file protection hook
+- .env added to .claudeignore (defense in depth)
+- Auto-format hook (prettier, gofmt, ruff, etc.)
+- Force-push protection hook
+- PostCompact hook for context re-injection
+- Missing CLAUDE.md sections (Stack, Commands, Architecture, Off-Limits, Session Start, Memory & Learnings)
+- Starter rules file (.claude/rules/conventions.md)
+- .claudeignore with language-specific patterns
+- Attribution migration (includeCoAuthoredBy → attribution object)

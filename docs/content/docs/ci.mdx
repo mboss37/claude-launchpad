@@ -1,0 +1,23 @@
+---
+title: CI Integration
+description: Block PRs that degrade your Claude Code config quality.
+---
+
+Add this GitHub Action to your repo. Every pull request that touches Claude Code config files will be checked automatically. Score below threshold = PR blocked.
+
+```yaml title=".github/workflows/claude-config.yml"
+name: Claude Code Config Quality
+on:
+  pull_request:
+    paths: ['CLAUDE.md', '.claude/**', '.claudeignore']
+jobs:
+  config-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      - run: npx claude-launchpad@latest doctor --min-score 80 --json
+```
+
+The `--min-score 80` flag returns exit code 1 if the score is below 80, which blocks the PR. The `--json` flag outputs structured JSON for programmatic consumption.

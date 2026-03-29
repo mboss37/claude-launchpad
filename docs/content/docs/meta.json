@@ -1,0 +1,14 @@
+{
+  "pages": [
+    "[Home](/)",
+    "index",
+    "---Commands---",
+    "init",
+    "doctor",
+    "enhance",
+    "eval",
+    "---More---",
+    "ci",
+    "privacy"
+  ]
+}

@@ -1,0 +1,55 @@
+---
+title: Getting Started
+description: Install Claude Launchpad and score your Claude Code setup in 10 seconds.
+---
+
+## Install
+
+```bash
+npm i -g claude-launchpad
+```
+
+Or run directly without installing:
+
+```bash
+npx claude-launchpad
+```
+
+## Two Paths
+
+### Starting a new project?
+
+```bash
+claude-launchpad init
+```
+
+Detects your stack, generates `CLAUDE.md` with your commands and conventions, creates `TASKS.md` for tracking work across sessions, sets up hooks that auto-format code and block dangerous operations, and adds a `.claudeignore` so Claude skips build artifacts.
+
+### Already have a project?
+
+```bash
+claude-launchpad
+```
+
+Scans your Claude Code config, gives you a score out of 100, and tells you exactly what's wrong.
+
+## Quick Start
+
+```bash
+cd your-project
+npx claude-launchpad            # see your score
+npx claude-launchpad doctor --fix   # fix everything
+```
+
+A typical unconfigured project scores ~42%. After `--fix`, it jumps to ~86%. Run `init` on a fresh project and you start at ~93%.
+
+## All Commands
+
+| Command | What it does | Runs |
+|---|---|---|
+| `claude-launchpad init` | Detect stack, generate config, hooks, permissions | Locally |
+| `claude-launchpad` | Score your config 0-100, list issues | Locally |
+| `claude-launchpad doctor --fix` | Auto-fix issues: hooks, rules, sections, .claudeignore | Locally |
+| `claude-launchpad doctor --watch` | Live score that updates when you save config files | Locally |
+| `claude-launchpad enhance` | Claude reads your code and completes CLAUDE.md | Via Claude CLI |
+| `claude-launchpad eval` | Run Claude against test scenarios, prove config works | Via Claude CLI |

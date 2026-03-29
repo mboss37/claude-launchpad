@@ -41,3 +41,9 @@ secrets/
 
 # Internal research
 FINDINGS.md
+
+# Docs build
+docs/.next/
+docs/out/
+docs/.source/
+docs-old/
