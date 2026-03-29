@@ -1,4 +1,5 @@
 import { Command } from "commander";
+import chalk from "chalk";
 import { printBanner, log, renderDoctorReport } from "../../lib/output.js";
 import { parseClaudeConfig } from "../../lib/parser.js";
 import { analyzeBudget } from "./analyzers/budget.js";
@@ -68,14 +69,20 @@ export function createDoctorCommand(): Command {
         if (fixable.length > 0) {
           // Dry-run: preview only
           if (opts.dryRun) {
+            const withFix = fixable.filter((i) => i.fix);
             log.blank();
-            log.step("Dry run — would apply these fixes:");
+            log.step("Dry run — would apply:");
             log.blank();
-            for (const issue of fixable) {
-              log.info(`  Would fix: ${issue.message}`);
+            for (const issue of withFix) {
+              log.info(`  ${issue.fix}`);
             }
+            const skipped = fixable.length - withFix.length;
             log.blank();
-            log.success(`${fixable.length} fix(es) available. Run --fix without --dry-run to apply.`);
+            log.success(`${withFix.length} fix(es) available. Run --fix without --dry-run to apply.`);
+            if (skipped > 0) {
+              log.info(`${skipped} issue(s) require manual intervention.`);
+            }
+            log.info(`Then run ${chalk.bold("claude-launchpad enhance")} to have Claude restructure and complete your CLAUDE.md.`);
             return;
           }
 
@@ -100,7 +107,7 @@ export function createDoctorCommand(): Command {
               analyzeMcp(updatedConfig),
             ]);
             renderDoctorReport(updatedResults);
-            log.info("Run `claude-launchpad enhance` to have Claude restructure and complete your CLAUDE.md.");
+            log.info(`Then run ${chalk.bold("claude-launchpad enhance")} to have Claude restructure and complete your CLAUDE.md.`);
           }
           if (skipped > 0) {
             log.info(`${skipped} issue(s) require manual intervention.`);

@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import type { Severity, AnalyzerResult, DiagnosticIssue } from "../types/index.js";
+import type { Severity, AnalyzerResult } from "../types/index.js";
 
 // ─── Colors ───
 
@@ -64,14 +64,15 @@ function renderBar(pct: number, width: number): string {
 
 // ─── Issues List (replaces table) ───
 
-export function printIssue(severity: Severity, analyzer: string, message: string, fix?: string): void {
-  const tag = colors.severity(severity);
-  console.log(`  ${tag} ${chalk.bold(analyzer)}`);
-  console.log(`    ${message}`);
-  if (fix) {
-    console.log(`    ${chalk.dim("Fix:")} ${chalk.dim(fix)}`);
-  }
-  console.log();
+export function printIssue(severity: Severity, _analyzer: string, message: string): void {
+  const sevLabel: Record<Severity, string> = {
+    critical: chalk.bgRed.white.bold(" CRIT "),
+    high: chalk.red.bold("HIGH"),
+    medium: chalk.yellow("MED "),
+    low: chalk.dim("LOW "),
+    info: chalk.dim("INFO"),
+  };
+  console.log(`   ${sevLabel[severity]}  ${message}`);
 }
 
 // ─── Report Rendering (shared by doctor + watcher) ───
@@ -105,9 +106,10 @@ export function renderDoctorReport(results: ReadonlyArray<AnalyzerResult>): {
   });
 
   for (const issue of sorted) {
-    printIssue(issue.severity, issue.analyzer, issue.message, issue.fix);
+    printIssue(issue.severity, issue.analyzer, issue.message);
   }
 
-  log.info(`${actionable.length} issue(s) found. Fix critical/high first.`);
+  log.blank();
+  log.info(`${actionable.length} issue(s). Run ${chalk.bold("--fix")} to auto-repair or ${chalk.bold("--fix --dry-run")} to preview.`);
   return { overallScore, actionableCount: actionable.length };
 }

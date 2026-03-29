@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.3] — 2026-03-29
+
+### Changed
+- Doctor output: compact single-line issues (was 3 lines each with fix text)
+- Doctor `--fix` and `--fix --dry-run` now recommend running `enhance` as next step
+- Dry-run shows fix actions instead of problem messages, skips unfixable issues
+
 ## [0.5.2] — 2026-03-29
 
 ### Added
