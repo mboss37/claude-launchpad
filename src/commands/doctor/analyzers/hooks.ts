@@ -52,6 +52,17 @@ export async function analyzeHooks(config: ClaudeConfig): Promise<AnalyzerResult
     });
   }
 
+  // Check for PostCompact hook (session continuity)
+  const hasPostCompact = hooks.some((h) => h.event === "PostCompact");
+  if (!hasPostCompact) {
+    issues.push({
+      analyzer: "Hooks",
+      severity: "low",
+      message: "No PostCompact hook — session context is lost when conversation is compacted",
+      fix: "Add a PostCompact hook that re-injects TASKS.md after compaction",
+    });
+  }
+
   const score = Math.max(0, 100 - issues.length * 20);
   return { name: "Hooks", issues, score };
 }

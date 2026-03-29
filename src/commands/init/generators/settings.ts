@@ -50,9 +50,19 @@ export function generateSettings(detected: DetectedProject): ClaudeSettings {
     postToolUse.push(formatHook);
   }
 
+  // PostCompact: re-inject TASKS.md so session continuity survives compaction
+  const postCompact: HookGroup[] = [{
+    matcher: "",
+    hooks: [{
+      type: "command",
+      command: "cat TASKS.md 2>/dev/null; exit 0",
+    }],
+  }];
+
   const hooks: Record<string, ReadonlyArray<HookGroup>> = {};
   if (preToolUse.length > 0) hooks.PreToolUse = preToolUse;
   if (postToolUse.length > 0) hooks.PostToolUse = postToolUse;
+  hooks.PostCompact = postCompact;
 
   return {
     $schema: "https://json.schemastore.org/claude-code-settings.json",

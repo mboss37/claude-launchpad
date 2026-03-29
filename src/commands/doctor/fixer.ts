@@ -59,6 +59,8 @@ const FIX_TABLE: ReadonlyArray<{ analyzer: string; match: string; fix: FixFn }> 
   { analyzer: "Quality", match: "Session Start", fix: (root) => addClaudeMdSection(root, "## Session Start", "- ALWAYS read @TASKS.md first - it tracks progress across sessions\n- Update TASKS.md as you complete work") },
   { analyzer: "Rules", match: "No .claudeignore", fix: (root, detected) => createClaudeignore(root, detected) },
   { analyzer: "Rules", match: "No .claude/rules/", fix: (root) => createStarterRules(root) },
+  { analyzer: "Quality", match: "Memory", fix: (root) => addClaudeMdSection(root, "## Memory & Learnings", "Use the built-in memory system to persist knowledge across sessions:\n- **Save immediately** when you discover: a non-obvious fix, a gotcha, an external resource, a decision with context that would be lost, or a known issue to fix later\n- **Categories**: `decision` (why X over Y), `gotcha` (non-obvious pitfall), `deferred` (known issue, not urgent), `reference` (where to find things)\n- **Where**: project memory for this repo, global memory for cross-project learnings\n- **Format**: one fact per memory, include date and why — not just what\n- **Prune**: check if a memory on this topic exists before saving — update, don't duplicate\n- Before starting work, check memory for relevant context from previous sessions") },
+  { analyzer: "Hooks", match: "PostCompact", fix: (root) => addPostCompactHook(root) },
   { analyzer: "Permissions", match: "force-push", fix: (root) => addForcePushProtection(root) },
 ];
 
@@ -169,6 +171,28 @@ async function addForcePushProtection(root: string): Promise<boolean> {
   (settings as Record<string, unknown>).hooks = { ...hooks, PreToolUse: preToolUse };
   await writeSettingsJson(root, settings);
   log.success("Added force-push protection hook (PreToolUse → Bash)");
+  return true;
+}
+
+async function addPostCompactHook(root: string): Promise<boolean> {
+  const settings = await readSettingsJson(root);
+  const hooks = (settings.hooks ?? {}) as Record<string, unknown>;
+  const postCompact = (hooks.PostCompact as Record<string, unknown>[] | undefined) ?? [];
+
+  const alreadyHas = postCompact.length > 0;
+  if (alreadyHas) return false;
+
+  postCompact.push({
+    matcher: "",
+    hooks: [{
+      type: "command",
+      command: "cat TASKS.md 2>/dev/null; exit 0",
+    }],
+  });
+
+  (settings as Record<string, unknown>).hooks = { ...hooks, PostCompact: postCompact };
+  await writeSettingsJson(root, settings);
+  log.success("Added PostCompact hook (re-injects TASKS.md after compaction)");
   return true;
 }
 

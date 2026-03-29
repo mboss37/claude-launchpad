@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.4.2] — 2026-03-29
+
+### Added
+- `## Memory & Learnings` section in generated CLAUDE.md — teaches Claude when/what/where to save memories
+- `PostCompact` hook in generated settings.json — re-injects TASKS.md after context compaction for session continuity
+- `## Deferred` section in generated TASKS.md — parking lot for known issues not urgent enough for current sprint
+- Doctor now checks for Memory section in CLAUDE.md quality analyzer
+- Doctor now checks for PostCompact hook in hooks analyzer
+- `--fix` auto-adds Memory section and PostCompact hook
+- Enhance prompt now fills in Memory & Learnings section and suggests PostCompact hook for existing projects
+
 ## [0.4.1] — 2026-03-29
 
 ### Changed

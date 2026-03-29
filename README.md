@@ -26,7 +26,7 @@ cd your-project
 claude-launchpad init
 ```
 
-Detects your stack, generates `CLAUDE.md` with your commands and conventions, creates `TASKS.md` for sprint tracking and session continuity, sets up hooks for auto-formatting and `.env` protection, and adds a `.claudeignore` so Claude doesn't waste time reading `node_modules`.
+Detects your stack, generates `CLAUDE.md` with your commands, conventions, and memory management instructions, creates `TASKS.md` for sprint tracking and session continuity, sets up hooks for auto-formatting, `.env` protection, and context re-injection after compaction, and adds a `.claudeignore` so Claude doesn't waste time reading `node_modules`.
 
 Then run `enhance` to have Claude read your codebase and fill in the architecture, conventions, and guardrails with real, project-specific content — not boilerplate.
 
@@ -77,9 +77,9 @@ The core of the tool. Runs 7 analyzers against your `.claude/` directory and `CL
 | Analyzer | What it catches |
 |---|---|
 | **Instruction Budget** | Too many instructions in CLAUDE.md — Claude starts ignoring rules past ~150 |
-| **CLAUDE.md Quality** | Missing sections, vague instructions ("write good code"), hardcoded secrets |
+| **CLAUDE.md Quality** | Missing sections (including Memory & Learnings), vague instructions ("write good code"), hardcoded secrets |
 | **Settings** | No hooks configured, dangerous tool access without safety nets |
-| **Hooks** | Missing auto-format on save, no .env file protection, no security gates |
+| **Hooks** | Missing auto-format on save, no .env file protection, no security gates, no PostCompact hook |
 | **Rules** | Dead rule files, stale references, empty configs |
 | **Permissions** | Bash auto-allowed without security hooks, no force-push protection |
 | **MCP Servers** | Invalid transport configs, missing commands/URLs |
@@ -130,9 +130,9 @@ Detects your project and generates Claude Code config that fits. No templates, n
 **Works with:** TypeScript, JavaScript, Python, Go, Ruby, Rust, Dart, PHP, Java, Kotlin, Swift, Elixir, C# — and detects frameworks (Next.js, FastAPI, Django, Rails, Laravel, Express, SvelteKit, Angular, NestJS, and 15+ more).
 
 **What you get (6 files):**
-- `CLAUDE.md` — your stack, commands, conventions, guardrails
-- `TASKS.md` — sprint tracking and session continuity
-- `.claude/settings.json` — `$schema` for IDE autocomplete, `permissions.deny` for security, hooks for .env protection + destructive command blocking + auto-format
+- `CLAUDE.md` — your stack, commands, conventions, guardrails, memory management instructions
+- `TASKS.md` — sprint tracking, session continuity, deferred issues parking
+- `.claude/settings.json` — `$schema` for IDE autocomplete, `permissions.deny` for security, hooks for .env protection + destructive command blocking + auto-format + PostCompact context re-injection
 - `.claude/.gitignore` — prevents local settings and plans from being committed
 - `.claudeignore` — language-specific ignore patterns
 - `.claude/rules/conventions.md` — language-specific starter rules
@@ -145,7 +145,7 @@ Init detects your stack but can't understand your architecture. Enhance opens Cl
 claude-launchpad enhance
 ```
 
-Claude reads your codebase and updates CLAUDE.md with real content — actual architecture, actual conventions, actual guardrails. Not boilerplate. It also suggests project-specific hooks and MCP servers based on what it finds.
+Claude reads your codebase and updates CLAUDE.md with real content — actual architecture, actual conventions, actual guardrails, and memory management instructions. Not boilerplate. It also suggests project-specific hooks (including PostCompact for session continuity) and MCP servers based on what it finds.
 
 Stays under the 120-instruction budget. Overflows detailed content to `.claude/rules/` files.
 
@@ -241,7 +241,7 @@ Then use `/launchpad:doctor`, `/launchpad:init`, `/launchpad:enhance`, `/launchp
 
 **Doctor** reads your files and runs static analysis. No API calls. No network. No cost.
 
-**Init** scans manifest files (package.json, go.mod, pyproject.toml, etc.), detects your stack, and generates 6 files: CLAUDE.md, TASKS.md, settings.json (with $schema, permissions.deny, and hooks), .claude/.gitignore, .claudeignore, and language-specific rules. Formatter hooks use hardcoded safe commands only.
+**Init** scans manifest files (package.json, go.mod, pyproject.toml, etc.), detects your stack, and generates 6 files: CLAUDE.md (with memory management instructions), TASKS.md (with deferred issues section), settings.json (with $schema, permissions.deny, hooks including PostCompact for context re-injection), .claude/.gitignore, .claudeignore, and language-specific rules. Formatter hooks use hardcoded safe commands only.
 
 **Enhance** spawns `claude "prompt"` as an interactive child process. You see Claude's full UI. No data passes through the tool — it just launches Claude with a task.
 

@@ -23,10 +23,11 @@ describe("analyzeHooks", () => {
     expect(result.issues[0].severity).toBe("medium");
   });
 
-  it("scores 100 with all three hook types present", async () => {
+  it("scores 100 with all hook types present", async () => {
     const result = await analyzeHooks(makeConfig([
       { event: "PostToolUse", type: "command", matcher: "Write|Edit", command: "prettier --write $FILE" },
       { event: "PreToolUse", type: "command", matcher: "Read|Write", command: "check .env files" },
+      { event: "PostCompact", type: "command", matcher: "", command: "cat TASKS.md" },
     ]));
     expect(result.score).toBe(100);
   });

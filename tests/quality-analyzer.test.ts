@@ -29,6 +29,8 @@ describe("analyzeQuality", () => {
 - Monorepo
 ## Off-Limits
 - Never hardcode secrets
+## Memory & Learnings
+- Use built-in memory system
 `;
     const result = await analyzeQuality(makeConfig(content));
     expect(result.score).toBe(100);

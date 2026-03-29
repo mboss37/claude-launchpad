@@ -15,12 +15,13 @@ CLI toolkit that makes Claude Code setups measurably good — diagnose, scaffold
 - Update TASKS.md as you complete work
 
 ## Architecture
-- Three commands: `doctor` (diagnose), `init` (scaffold), `eval` (test configs)
-- `init` generates 6 files: CLAUDE.md, TASKS.md, settings.json ($schema + permissions + hooks), .claude/.gitignore, .claudeignore, rules — 91% score out of the box
-- `doctor` is pure static analysis — no API calls, no cost, works offline
-- `eval` runs Claude headless via Agent SDK against YAML scenarios and scores config quality
+- Four commands: `doctor` (diagnose), `init` (scaffold), `enhance` (AI-improve CLAUDE.md), `eval` (test configs)
+- `doctor` is pure static analysis — no API calls, no cost, works offline; `--fix` auto-repairs issues
+- `init` generates 6 files (CLAUDE.md, TASKS.md, settings.json, .gitignore, .claudeignore, rules) — 91% score out of the box
+- `enhance` spawns Claude headless to rewrite CLAUDE.md based on codebase analysis
+- `eval` runs Claude via Agent SDK against YAML scenarios and scores config quality
 - Distributed as npm package (`npx claude-launchpad`) — users never clone this repo
-- No third-party plugin dependencies — generates its own hooks and settings
+- See `.claude/rules/architecture.md` for full project structure and command flow
 
 ## Commands
 - Dev: `pnpm dev`
@@ -29,61 +30,15 @@ CLI toolkit that makes Claude Code setups measurably good — diagnose, scaffold
 - Type check: `pnpm typecheck`
 - Run locally: `npx tsx src/cli.ts <command>`
 
-## Project Structure
-```
-├── src/
-│   ├── cli.ts                     # Entry point
-│   ├── commands/
-│   │   ├── init/                  # Project scaffolder (auto-detects stack)
-│   │   │   ├── index.ts           # Command + interactive prompts
-│   │   │   └── generators/        # CLAUDE.md, TASKS.md, settings.json generators
-│   │   ├── doctor/                # Config diagnostic engine
-│   │   │   ├── index.ts           # Command + report renderer
-│   │   │   └── analyzers/         # budget, settings, hooks, rules, permissions, mcp
-│   │   └── eval/                  # Config testing engine
-│   │       ├── index.ts           # Command + result renderer
-│   │       ├── schema.ts          # YAML scenario validator
-│   │       ├── loader.ts          # Scenario file loader
-│   │       └── runner.ts          # Headless Claude execution + check evaluation
-│   ├── lib/
-│   │   ├── detect.ts              # Project auto-detection (language, framework, tools)
-│   │   ├── parser.ts              # Parse .claude/ directory structure
-│   │   └── output.ts              # Terminal formatting (colors, tables, score bars)
-│   └── types/index.ts             # All type definitions
-├── scenarios/common/              # Built-in eval scenarios (YAML)
-├── tests/                         # Vitest tests
-└── setup.sh                       # Legacy bash scaffolder (to be removed)
-```
-
 ## Conventions
-- Git: Conventional commits (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`)
+- Conventional commits (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`)
 - Immutable data patterns — never mutate, always return new objects
 - Functions < 50 lines, files < 400 lines
 - Named exports only, no `any` types
 - All errors handled explicitly with user-friendly messages
-
-## Versioning
-- Follow semver: patch (bugfix/refactor), minor (new feature), major (breaking)
-- Before pushing, check if changes warrant a version bump:
-  - If `src/` changed: bump patch in `package.json`, update CHANGELOG.md
-  - If new command/flag added: bump minor
-- CHANGELOG.md is the source of truth for what shipped in each version
-- Format: `## [x.y.z] — YYYY-MM-DD` with Added/Changed/Fixed/Removed sections
-
-## Pre-Commit Checklist
-Before every commit, self-review:
-1. Read back every changed file — look for dead code, unused imports, wrong types
-2. Run `pnpm typecheck && pnpm test:run` — no commit if either fails
-3. Check function lengths (<50 lines) and file lengths (<400 lines)
-4. Verify no `any` types, no mutation, no hardcoded values crept in
-5. After major features: spawn a code review agent to audit the changes
-
-## Parallel Agents
-Always use parallel agents when applicable:
-- Research tasks: spawn multiple agents with different lenses (code audit, feature gaps, competitive analysis)
-- Stress testing: use one Bash call with a shell loop (agents can't run Bash — see memory)
-- Code review: spawn an Explore agent to audit while continuing to build
-- Never spawn agents for sequential/dependent work — only for independent parallel tasks
+- Lookup tables over switch statements (see `tryFix()`, `detectScripts()`)
+- Semver: patch (bugfix), minor (new command/flag), major (breaking)
+- See `.claude/rules/conventions.md` for pre-commit checklist, versioning details, parallel agent rules
 
 ## Off-Limits
 - Never hardcode secrets
@@ -98,3 +53,10 @@ Always use parallel agents when applicable:
 - npm distribution: `npx claude-launchpad` — not a template repo to clone
 - Doctor is the gateway (free, immediate), eval is the differentiator (costs money, measures quality)
 - YAML for eval scenarios: human-readable, community-contributable
+
+## Memory & Learnings
+- Save gotchas, non-obvious decisions, and deferred issues to project memory
+- Save user preferences and workflow patterns to global memory
+- Before creating a new memory, check MEMORY.md for existing entries to update
+- Use absolute dates (not "next week") so memories stay useful across sessions
+- Don't save things derivable from code, git history, or this file

@@ -19,12 +19,14 @@ Sections to fill in or preserve (DO NOT remove any existing section):
 2. **## Architecture** — 3-5 bullet points describing the codebase shape (not a full directory tree)
 3. **## Conventions** — max 8 key patterns. Move detailed rules to .claude/rules/conventions.md
 4. **## Off-Limits** — max 8 guardrails specific to this project
-5. **## Key Decisions** — only decisions that affect how Claude should work in this codebase
-6. **MCP server suggestions** — look at what external services the project uses (databases, APIs, storage). If you spot Postgres, Redis, Stripe, GitHub API, or similar, suggest relevant MCP servers the user could add. Print these as suggestions at the end, not in CLAUDE.md.
+5. **## Memory & Learnings** — max 6 bullets. If missing, add instructions for using the built-in memory system: what to save (gotchas, decisions, deferred issues, references), where (project vs global memory), and the rule to check existing memories before creating duplicates
+6. **## Key Decisions** — only decisions that affect how Claude should work in this codebase
+7. **MCP server suggestions** — look at what external services the project uses (databases, APIs, storage). If you spot Postgres, Redis, Stripe, GitHub API, or similar, suggest relevant MCP servers the user could add. Print these as suggestions at the end, not in CLAUDE.md.
 
 Also review .claude/settings.json hooks:
 - Read the existing hooks in .claude/settings.json
 - If you see project-specific patterns that deserve hooks (e.g., protected directories, test file patterns, migration files), suggest adding them
+- If no PostCompact hook exists, suggest adding one that re-injects TASKS.md after context compaction (critical for session continuity)
 - DO NOT overwrite existing hooks — only add new ones that are specific to this project
 - Print hook suggestions at the end with the exact JSON to add, don't modify settings.json directly
 

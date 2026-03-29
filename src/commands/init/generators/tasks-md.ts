@@ -19,6 +19,9 @@ export function generateTasksMd(options: InitOptions): string {
 
 ### Done
 
+## Deferred
+<!-- Known issues not urgent enough for the current sprint. Include date and reason. -->
+
 ## Next Sprint: Sprint 2 — Core Features
 - [ ] ...
 

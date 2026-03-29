@@ -43,7 +43,7 @@ body { background: #000; color: #e2e2e2; font-family: 'Geist', sans-serif; }
   <div class="flex items-center gap-3">
     <span class="material-symbols-outlined text-white">rocket_launch</span>
     <a href="/claude-launchpad/" class="text-white text-sm font-bold tracking-tighter">Claude Launchpad</a>
-    <a href="https://github.com/mboss37/claude-launchpad/releases" class="px-1.5 py-0.5 bg-surface-high text-xs font-bold tracking-widest uppercase rounded text-text-dim hover:text-white transition-colors">v0.4.0</a>
+    <a href="https://github.com/mboss37/claude-launchpad/releases" class="px-1.5 py-0.5 bg-surface-high text-xs font-bold tracking-widest uppercase rounded text-text-dim hover:text-white transition-colors">v0.4.2</a>
   </div>
   <nav class="flex items-center gap-1">
     <a class="text-text-dim hover:bg-surface-high transition-colors px-2.5 py-1 rounded text-xs" href="/claude-launchpad/">Home</a>
@@ -98,9 +98,9 @@ body { background: #000; color: #e2e2e2; font-family: 'Geist', sans-serif; }
     </div>
     <h3 class="text-sm font-medium text-white mt-4 mb-2">What it generates (6 files)</h3>
     <ul class="text-sm text-text-dim space-y-1 list-disc list-inside">
-      <li><code class="text-green">CLAUDE.md</code> — stack, commands, conventions, guardrails</li>
-      <li><code class="text-green">TASKS.md</code> — sprint tracking and session continuity</li>
-      <li><code class="text-green">.claude/settings.json</code> — <code>$schema</code> for IDE autocomplete, <code>permissions.deny</code> for security, hooks for .env protection + destructive command blocking + auto-format</li>
+      <li><code class="text-green">CLAUDE.md</code> — stack, commands, conventions, guardrails, memory management instructions</li>
+      <li><code class="text-green">TASKS.md</code> — sprint tracking, session continuity, deferred issues</li>
+      <li><code class="text-green">.claude/settings.json</code> — <code>$schema</code> for IDE autocomplete, <code>permissions.deny</code> for security, hooks for .env protection + destructive command blocking + auto-format + PostCompact context re-injection</li>
       <li><code class="text-green">.claude/.gitignore</code> — prevents local settings, plans, memory from being committed</li>
       <li><code class="text-green">.claudeignore</code> — language-specific ignore patterns</li>
       <li><code class="text-green">.claude/rules/conventions.md</code> — language-specific starter rules</li>
@@ -140,7 +140,8 @@ body { background: #000; color: #e2e2e2; font-family: 'Geist', sans-serif; }
       <li>.env file protection hook (blocks reads and writes)</li>
       <li>Auto-format hook (prettier, gofmt, ruff, etc.)</li>
       <li>Force-push protection hook</li>
-      <li>Missing CLAUDE.md sections (Stack, Commands, Architecture, Off-Limits, Session Start)</li>
+      <li>Missing CLAUDE.md sections (Stack, Commands, Architecture, Off-Limits, Session Start, Memory & Learnings)</li>
+      <li>PostCompact hook for context re-injection after compaction</li>
       <li>Starter rules file (.claude/rules/conventions.md)</li>
       <li>.claudeignore with language-specific patterns</li>
     </ul>
@@ -156,9 +157,9 @@ body { background: #000; color: #e2e2e2; font-family: 'Geist', sans-serif; }
     <h3 class="text-sm font-medium text-white mb-2">What it does</h3>
     <ul class="text-sm text-text-dim space-y-1 list-disc list-inside">
       <li>Opens an interactive Claude session with a pre-loaded task</li>
-      <li>Fills in Architecture, Conventions, Off-Limits, Key Decisions</li>
+      <li>Fills in Architecture, Conventions, Off-Limits, Memory & Learnings, Key Decisions</li>
       <li>Stays under 120-instruction budget — overflows to .claude/rules/</li>
-      <li>Suggests project-specific hooks and MCP servers</li>
+      <li>Suggests project-specific hooks (including PostCompact for session continuity) and MCP servers</li>
       <li>You see Claude working in real-time</li>
     </ul>
   </section>

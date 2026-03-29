@@ -6,6 +6,7 @@ const ESSENTIAL_SECTIONS = [
   { pattern: /^##\s+Session Start/m, name: "Session Start", why: "Without this, Claude won't read TASKS.md or maintain continuity" },
   { pattern: /^##\s+Off.?Limits/m, name: "Off-Limits", why: "Without guardrails, Claude has no boundaries beyond defaults" },
   { pattern: /^##\s+(Architecture|Project Structure)/m, name: "Architecture/Structure", why: "Claude makes better decisions when it understands the codebase shape" },
+  { pattern: /^##\s+Memory/m, name: "Memory & Learnings", why: "Without memory instructions, Claude forgets learnings and repeats mistakes across sessions" },
 ] as const;
 
 const VAGUE_PATTERNS = [
