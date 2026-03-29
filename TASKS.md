@@ -54,12 +54,11 @@
 - **Sprint 15**: User testimonials, path-scoped rule generation, community scenario packs
 
 ## Session Log
-### 2026-03-29 (session 9)
-- v0.5.0-v0.5.2: security hardening, interactive eval, --dry-run, 4-persona docs rewrite.
-- 8 releases. 58→99 tests. 11→15 scenarios. 10→15 doctor checks.
 ### 2026-03-29 (session 10)
 - Fumadocs migration: 7 MDX pages, GitHub Actions auto-deploy, search, OG meta.
 - Landing page: provocative hero, 2x2 command cards with icons, footer.
 - Docs: Steps, Tabs, File trees, Accordions, Callouts, navigation Cards.
 ### 2026-03-29 (session 11)
 - Landing page polish: aligned homepage shell with header width, upgraded hero/cards/CTA, added shadcn-style UI primitives for the docs app.
+### 2026-03-29 (session 12)
+- Homepage redesign: more editorial hero, asymmetric command layout, stronger proof board, improved light/dark presentation.

@@ -68,10 +68,26 @@ const heroStats = [
 ] as const;
 
 const improvements = [
-  { icon: RocketIcon, label: 'init: scaffolds CLAUDE.md, hooks, permissions, sandbox, sprint tracking from your stack' },
-  { icon: StethoscopeIcon, label: 'doctor --fix: 15 checks, auto-repairs security gaps, credentials, missing config' },
-  { icon: SparklesIcon, label: 'enhance: Claude reads your codebase, restructures CLAUDE.md with real content' },
-  { icon: FlaskConicalIcon, label: 'eval: 15 scenarios prove Claude follows your rules across security and workflow' },
+  {
+    icon: RocketIcon,
+    name: 'init',
+    label: 'Scaffolds CLAUDE.md, hooks, permissions, sandbox, and sprint tracking from your stack.',
+  },
+  {
+    icon: StethoscopeIcon,
+    name: 'doctor --fix',
+    label: 'Runs 15 checks and auto-repairs security gaps, credentials, and missing config.',
+  },
+  {
+    icon: SparklesIcon,
+    name: 'enhance',
+    label: 'Reads your codebase and rewrites CLAUDE.md with architecture, conventions, and guardrails.',
+  },
+  {
+    icon: FlaskConicalIcon,
+    name: 'eval',
+    label: 'Proves Claude follows your rules with 15 scenarios across security and workflow.',
+  },
 ] as const;
 
 const beforeItems = [
@@ -117,7 +133,7 @@ function SectionHeading({
 }) {
   return (
     <div className="max-w-2xl">
-      <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-black dark:text-[var(--accent)]/70">{eyebrow}</p>
+      <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-black dark:text-(--accent)/70">{eyebrow}</p>
       <h2 className="mt-3 text-2xl font-semibold tracking-tight text-fd-foreground sm:text-3xl">{title}</h2>
       <p className="mt-3 text-sm leading-6 text-fd-muted-foreground sm:text-base">{description}</p>
     </div>
@@ -143,7 +159,7 @@ function CopyButton({ text }: { text: string }) {
       className="h-8 w-8 rounded-full"
       aria-label="Copy to clipboard"
     >
-      {copied ? <CheckIcon className="h-3.5 w-3.5 text-black dark:text-[var(--accent)]" /> : <CopyIcon className="h-3.5 w-3.5" />}
+      {copied ? <CheckIcon className="h-3.5 w-3.5 text-black dark:text-(--accent)" /> : <CopyIcon className="h-3.5 w-3.5" />}
     </Button>
   );
 }
@@ -152,12 +168,12 @@ function InstallBlock({ command, className = '' }: { command: string; className?
   return (
     <div
       className={cn(
-        'inline-flex w-full items-center justify-between gap-3 rounded-2xl border border-black/15 dark:border-[var(--accent-border)] bg-white px-4 py-3 font-mono text-sm text-fd-foreground shadow-[0_10px_30px_rgba(15,23,42,0.06)] dark:bg-black/40 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] sm:w-auto',
+        'inline-flex w-full items-center justify-between gap-3 rounded-2xl border border-black/15 dark:border-(--accent-border) bg-white px-4 py-3 font-mono text-sm text-fd-foreground shadow-[0_10px_30px_rgba(15,23,42,0.06)] dark:bg-black/40 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] sm:w-auto',
         className,
       )}
     >
       <div className="flex min-w-0 items-center gap-2 overflow-hidden">
-        <span className="select-none text-black dark:text-[var(--accent)]">$</span>
+        <span className="select-none text-black dark:text-(--accent)">$</span>
         <span className="truncate">{command}</span>
       </div>
       <CopyButton text={command} />
@@ -165,13 +181,62 @@ function InstallBlock({ command, className = '' }: { command: string; className?
   );
 }
 
-function CommandCard({
+function HeroPanel() {
+  return (
+    <Card className="overflow-hidden border-black/15 dark:border-(--accent-border) bg-[linear-gradient(180deg,rgba(16,185,129,0.08),rgba(255,255,255,0.94)_30%,rgba(255,255,255,1)_100%)] shadow-[0_24px_64px_rgba(16,24,40,0.08)] dark:bg-[linear-gradient(180deg,rgba(16,185,129,0.08),rgba(0,0,0,0))] dark:shadow-none">
+      <CardHeader className="gap-5 border-b border-fd-border/80 pb-5">
+        <div className="flex items-center justify-between gap-4">
+          <Badge variant="default" className="w-fit">
+            The full pipeline
+          </Badge>
+          <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-fd-muted-foreground">31 {'->'} 91</span>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-[0.95fr_1.05fr]">
+          <div className="rounded-2xl border border-red-500/20 bg-white p-4 shadow-sm dark:bg-black/30 dark:shadow-none">
+            <div className="font-mono text-[11px] uppercase tracking-[0.22em] text-red-700/80 dark:text-red-300/80">Typical setup</div>
+            <div className="mt-3 text-4xl font-semibold tracking-tight text-red-700 dark:text-red-300">31/100</div>
+            <p className="mt-2 text-sm leading-6 text-fd-foreground/72 dark:text-fd-muted-foreground">
+              Vague instructions, exposed paths, missing hooks.
+            </p>
+          </div>
+          <div className="rounded-2xl border border-black/15 dark:border-(--accent-border) bg-white p-4 shadow-sm dark:bg-black/30 dark:shadow-none">
+            <div className="font-mono text-[11px] uppercase tracking-[0.22em] text-black/80 dark:text-(--accent)/80">Launchpad</div>
+            <div className="mt-3 text-5xl font-semibold tracking-tight text-black dark:text-(--accent)">91/100</div>
+            <p className="mt-2 text-sm leading-6 text-fd-foreground/72 dark:text-fd-muted-foreground">
+              Security rails, workflow hooks, and docs that match the repo.
+            </p>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-3 pt-6">
+        {improvements.map(({ icon: Icon, label, name }) => (
+          <div
+            key={name}
+            className="grid gap-3 rounded-2xl border border-fd-border bg-white p-3 shadow-sm dark:bg-black/20 dark:shadow-none sm:grid-cols-[36px_minmax(0,1fr)]"
+          >
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-(--accent-border) bg-black/5 dark:bg-(--accent-bg)">
+              <Icon className="h-4 w-4 text-black dark:text-(--accent)" />
+            </div>
+            <div>
+              <div className="font-mono text-[11px] uppercase tracking-[0.18em] text-black/65 dark:text-(--accent)/70">{name}</div>
+              <p className="mt-1 text-sm leading-6 text-fd-foreground/72 dark:text-fd-muted-foreground">{label}</p>
+            </div>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
+
+function CommandStageCard({
   detail,
   href,
   icon: Icon,
   name,
   num,
   verb,
+  className,
+  featured = false,
 }: {
   detail: string;
   href: string;
@@ -179,32 +244,42 @@ function CommandCard({
   name: string;
   num: string;
   verb: string;
+  className?: string;
+  featured?: boolean;
 }) {
   return (
-    <Card className="group h-full border-fd-border/80 bg-fd-card/50 transition-colors hover:border-[var(--accent-border)] hover:bg-fd-card">
-      <CardHeader className="gap-4">
+    <Card
+      className={cn(
+        'group h-full border-fd-border/80 bg-white transition-all hover:-translate-y-0.5 hover:border-(--accent-border) hover:shadow-[0_16px_40px_rgba(16,24,40,0.08)] dark:bg-fd-card/50 dark:hover:bg-fd-card dark:hover:shadow-none',
+        className,
+      )}
+    >
+      <CardHeader className={cn('gap-5', featured ? 'pb-4' : '')}>
         <div className="flex items-center justify-between">
-          <Badge variant="outline" className="font-mono tracking-[0.2em]">
-            {num}
-          </Badge>
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-fd-border bg-fd-background/70 transition-colors group-hover:border-[var(--accent-border)] group-hover:bg-[var(--accent-bg)] dark:bg-black/20">
-            <Icon className="h-4 w-4 text-fd-muted-foreground transition-colors group-hover:text-black dark:group-hover:text-[var(--accent)]" />
+          <div className="flex items-center gap-3">
+            <Badge variant="outline" className="font-mono tracking-[0.2em]">
+              {num}
+            </Badge>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-fd-border bg-fd-background/70 transition-colors group-hover:border-(--accent-border) group-hover:bg-(--accent-bg) dark:bg-black/20">
+              <Icon className="h-4 w-4 text-fd-muted-foreground transition-colors group-hover:text-black dark:group-hover:text-(--accent)" />
+            </div>
           </div>
+          {featured ? <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-fd-muted-foreground">Core</span> : null}
         </div>
-        <div>
-          <CardTitle className="font-mono text-base">{name}</CardTitle>
-          <CardDescription className="mt-2">{verb}</CardDescription>
+        <div className={cn(featured ? 'max-w-sm' : '')}>
+          <CardTitle className={cn('font-mono', featured ? 'text-xl sm:text-2xl' : 'text-base')}>{name}</CardTitle>
+          <CardDescription className={cn('mt-2', featured ? 'text-base leading-7' : '')}>{verb}</CardDescription>
         </div>
       </CardHeader>
-      <CardContent>
-        <p className="text-sm leading-6 text-fd-muted-foreground">{detail}</p>
+      <CardContent className={cn(featured ? 'pb-8' : '')}>
+        <p className={cn('text-sm leading-6 text-fd-muted-foreground', featured ? 'max-w-md text-[15px] leading-7' : '')}>{detail}</p>
       </CardContent>
       <CardFooter>
         <Link
           href={href}
           className={buttonVariants({
             variant: 'ghost',
-            className: 'h-auto px-0 py-0 text-sm text-fd-foreground hover:bg-transparent hover:text-black dark:hover:text-[var(--accent)]',
+            className: 'h-auto px-0 py-0 text-sm text-fd-foreground hover:bg-transparent hover:text-black dark:hover:text-(--accent)',
           })}
         >
           Read docs
@@ -215,41 +290,57 @@ function CommandCard({
   );
 }
 
-function ScoreCard({
-  items,
-  score,
-  tone,
-}: {
-  items: readonly string[];
-  score: string;
-  tone: 'after' | 'before';
-}) {
-  const isAfter = tone === 'after';
-
+function ProofBoard() {
   return (
-    <Card
-      className={cn(
-        'h-full rounded-2xl bg-white font-mono text-xs shadow-[0_12px_36px_rgba(15,23,42,0.06)] dark:bg-black/30 dark:shadow-none',
-        isAfter ? 'border-[var(--accent-border)]' : 'border-fd-border',
-      )}
-    >
-      <CardHeader>
-        <div className="flex items-center justify-between gap-4">
-          <Badge variant={isAfter ? 'default' : 'outline'}>{isAfter ? 'After --fix' : 'Before'}</Badge>
-          <span className={cn('text-2xl font-semibold tracking-tight', isAfter ? 'text-black dark:text-[var(--accent)]' : 'text-red-700 dark:text-red-300')}>
-            {score}
-          </span>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {items.map((item) => (
-          <div key={item} className="flex items-start gap-3 text-fd-muted-foreground">
-            <span className={cn('mt-0.5 text-sm', isAfter ? 'text-black dark:text-[var(--accent)]' : 'text-red-600 dark:text-red-400')}>{isAfter ? '✓' : '✗'}</span>
-            <span className="leading-5">{item}</span>
+    <div className="grid gap-4 lg:grid-cols-[0.82fr_1.18fr]">
+      <Card className="rounded-2xl bg-white font-mono text-xs shadow-[0_12px_36px_rgba(15,23,42,0.06)] dark:bg-black/30 dark:shadow-none">
+        <CardHeader>
+          <div className="flex items-center justify-between gap-4">
+            <Badge variant="outline">Before</Badge>
+            <span className="text-2xl font-semibold tracking-tight text-red-700 dark:text-red-300">31/100</span>
           </div>
-        ))}
-      </CardContent>
-    </Card>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {beforeItems.map((item) => (
+            <div key={item} className="flex items-start gap-3 text-fd-muted-foreground">
+              <span className="mt-0.5 text-sm text-red-600 dark:text-red-400">✗</span>
+              <span className="leading-5">{item}</span>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      <Card className="rounded-2xl border-(--accent-border) bg-white font-mono text-xs shadow-[0_16px_40px_rgba(16,24,40,0.08)] dark:bg-black/30 dark:shadow-none">
+        <CardHeader className="border-b border-fd-border/80 pb-5">
+          <div className="flex items-center justify-between gap-4">
+            <Badge variant="default">After --fix</Badge>
+            <span className="text-3xl font-semibold tracking-tight text-black dark:text-(--accent)">91/100</span>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-3">
+            <div>
+              <div className="text-[11px] uppercase tracking-[0.22em] text-fd-muted-foreground">Hooks</div>
+              <div className="mt-1 text-sm text-fd-foreground">enabled</div>
+            </div>
+            <div>
+              <div className="text-[11px] uppercase tracking-[0.22em] text-fd-muted-foreground">Credentials</div>
+              <div className="mt-1 text-sm text-fd-foreground">blocked</div>
+            </div>
+            <div>
+              <div className="text-[11px] uppercase tracking-[0.22em] text-fd-muted-foreground">Workflow</div>
+              <div className="mt-1 text-sm text-fd-foreground">enforced</div>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="grid gap-3 pt-6 sm:grid-cols-2">
+          {afterItems.map((item) => (
+            <div key={item} className="flex items-start gap-3 rounded-xl border border-fd-border bg-fd-background/70 p-3 dark:bg-black/20">
+              <span className="mt-0.5 text-sm text-black dark:text-(--accent)">✓</span>
+              <span className="leading-5 text-fd-muted-foreground">{item}</span>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
@@ -260,9 +351,9 @@ export default function HomePage() {
         <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,rgba(16,185,129,0.05)_0%,rgba(255,255,255,0)_60%)] dark:bg-[radial-gradient(ellipse_at_top,rgba(8,12,14,0.82)_0%,rgba(6,10,12,0.58)_36%,rgba(10,28,22,0.18)_62%,rgba(0,0,0,0)_100%)]" />
 
         <PageSection className="pt-12 sm:pt-16 md:pt-24">
-          <div className="grid gap-8 sm:gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(340px,420px)] lg:items-start">
+          <div className="grid gap-8 sm:gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(360px,430px)] lg:items-start">
             <div className="max-w-3xl">
-              <Badge variant="outline" className="border-[var(--accent-border)] bg-white/80 text-black dark:bg-transparent dark:text-[var(--accent)]">
+              <Badge variant="outline" className="border-(--accent-border) bg-white/80 text-black dark:bg-transparent dark:text-(--accent)">
                 CLI toolkit for Claude Code
               </Badge>
               <h1 className="mt-5 text-5xl font-bold tracking-tight text-fd-foreground sm:mt-6 sm:text-6xl md:text-7xl">
@@ -301,38 +392,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            <Card className="overflow-hidden border-black/15 dark:border-[var(--accent-border)] bg-[linear-gradient(180deg,rgba(16,185,129,0.08),rgba(255,255,255,0.92)_36%,rgba(255,255,255,1)_100%)] shadow-[0_18px_48px_rgba(16,24,40,0.08)] dark:bg-[linear-gradient(180deg,rgba(16,185,129,0.08),rgba(0,0,0,0))] dark:shadow-none">
-              <CardHeader className="border-b border-fd-border/80 pb-5">
-                <Badge variant="default" className="w-fit">
-                  The full pipeline
-                </Badge>
-              </CardHeader>
-              <CardContent className="space-y-4 pt-6">
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-xl border border-red-500/20 bg-white p-4 shadow-sm dark:bg-black/30 dark:shadow-none">
-                    <div className="font-mono text-[11px] uppercase tracking-[0.22em] text-red-700/80 dark:text-red-300/80">Typical setup</div>
-                    <div className="mt-3 text-3xl font-semibold tracking-tight text-red-700 dark:text-red-300">31/100</div>
-                    <p className="mt-2 text-sm leading-6 text-fd-foreground/72 dark:text-fd-muted-foreground">Vague instructions, exposed paths, missing hooks.</p>
-                  </div>
-                  <div className="rounded-xl border border-black/15 dark:border-[var(--accent-border)] bg-white p-4 shadow-sm dark:bg-black/30 dark:shadow-none">
-                    <div className="font-mono text-[11px] uppercase tracking-[0.22em] text-black/80 dark:text-[var(--accent)]/80">Launchpad</div>
-                    <div className="mt-3 text-3xl font-semibold tracking-tight text-black dark:text-[var(--accent)]">91/100</div>
-                    <p className="mt-2 text-sm leading-6 text-fd-foreground/72 dark:text-fd-muted-foreground">Security rails, workflow hooks, and docs that match the repo.</p>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  {improvements.map(({ icon: Icon, label }) => (
-                    <div key={label} className="flex items-start gap-3 rounded-xl border border-fd-border bg-white p-3 shadow-sm dark:bg-black/20 dark:shadow-none">
-                      <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--accent-border)] bg-black/5 dark:bg-[var(--accent-bg)]">
-                        <Icon className="h-4 w-4 text-black dark:text-[var(--accent)]" />
-                      </div>
-                      <p className="text-sm leading-6 text-fd-foreground/72 dark:text-fd-muted-foreground">{label}</p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <HeroPanel />
           </div>
         </PageSection>
       </section>
@@ -345,32 +405,31 @@ export default function HomePage() {
             description="Start with a clean baseline, diagnose what's weak, improve the instructions, then verify the behavior with real scenarios."
           />
 
-          <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-            {steps.map((step) => (
-              <CommandCard key={step.name} {...step} />
-            ))}
+          <div className="mt-10 grid gap-5 md:grid-cols-12">
+            <CommandStageCard {...steps[0]} featured className="md:col-span-5" />
+            <CommandStageCard {...steps[1]} featured className="md:col-span-7" />
+            <CommandStageCard {...steps[2]} className="md:col-span-6" />
+            <CommandStageCard {...steps[3]} className="md:col-span-6" />
           </div>
         </PageSection>
       </div>
 
       <PageSection>
-        <div className="grid gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-start">
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:items-start">
           <SectionHeading
             eyebrow="Proof, not vibes"
             title="See what actually changes"
             description="Doctor scores your config and --fix repairs the gaps. Then enhance rewrites CLAUDE.md with real content. Then eval proves compliance."
           />
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <ScoreCard tone="before" score="31/100" items={beforeItems} />
-            <ScoreCard tone="after" score="91/100" items={afterItems} />
-          </div>
+          <ProofBoard />
         </div>
       </PageSection>
 
       <PageSection className="pt-0">
-        <Card className="border-[var(--accent-border)] bg-[linear-gradient(135deg,rgba(16,185,129,0.08),rgba(255,255,255,0.92)_40%,rgba(241,245,249,0.98)_100%)] dark:bg-[linear-gradient(135deg,rgba(16,185,129,0.12),rgba(17,24,39,0.7)_55%,rgba(0,0,0,0.75))]">
+        <Card className="border-(--accent-border) bg-[linear-gradient(135deg,rgba(16,185,129,0.08),rgba(255,255,255,0.96)_38%,rgba(241,245,249,0.98)_100%)] dark:bg-[linear-gradient(135deg,rgba(16,185,129,0.12),rgba(17,24,39,0.7)_55%,rgba(0,0,0,0.75))]">
           <CardHeader className="items-center text-center">
+            <Badge variant="default">Ready to run</Badge>
             <CardTitle className="text-2xl sm:text-3xl">Open source. Ready to use.</CardTitle>
             <CardDescription className="max-w-2xl">
               Scaffold, diagnose, perfect, and prove. The full pipeline for Claude Code configs.
