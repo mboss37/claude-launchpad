@@ -5,18 +5,15 @@
 [![GitHub stars](https://img.shields.io/github/stars/mboss37/claude-launchpad?style=flat-square)](https://github.com/mboss37/claude-launchpad)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](https://github.com/mboss37/claude-launchpad/blob/master/LICENSE)
 
-**Everything you need to launch a project with Claude Code — and keep it healthy.**
+**Score your Claude Code setup. Fix what's broken. Prove it works.**
 
-A launchpad isn't just where you start. It's where you prepare, run checks, and make sure everything is ready before you go. Claude Launchpad does exactly that for your Claude Code setup:
-
-- **Launch new projects** with production-ready Claude Code config from day one
-- **Check existing projects** — score your config, find issues, auto-fix them
-- **Prove it works** — run Claude against test scenarios and see if your rules are actually followed
+CLAUDE.md is advisory — Claude follows your rules ~80% of the time. Hooks are deterministic — 100% compliance. But most developers have zero hooks and too many instructions. This tool gives you a number, fixes the gaps, and lets you prove Claude actually follows your config.
 
 ```bash
-npm i -g claude-launchpad
-cd your-project
+npx claude-launchpad
 ```
+
+That's it. Run it in any project with Claude Code. You'll see a score out of 100 and a list of exactly what's wrong. Run `--fix` to auto-repair.
 
 ## Two Paths, One Tool
 
@@ -26,9 +23,9 @@ cd your-project
 claude-launchpad init
 ```
 
-Detects your stack, generates `CLAUDE.md` with your commands, conventions, and memory management instructions, creates `TASKS.md` for sprint tracking and session continuity, sets up hooks for auto-formatting, `.env` protection, and context re-injection after compaction, and adds a `.claudeignore` so Claude doesn't waste time reading `node_modules`.
+Detects your stack, generates `CLAUDE.md` with your commands and conventions, creates `TASKS.md` for tracking work across sessions, sets up hooks that auto-format code and block dangerous operations, and adds a `.claudeignore` so Claude skips `node_modules` and build artifacts.
 
-Then run `enhance` to have Claude read your codebase and fill in the architecture, conventions, and guardrails with real, project-specific content — not boilerplate.
+Then run `enhance` to have Claude read your actual codebase and fill in the architecture and guardrails — not boilerplate, real project-specific content. Requires Claude Code CLI.
 
 ### Already have a project?
 
@@ -40,35 +37,24 @@ Scans your Claude Code config, gives you a score out of 100, and tells you exact
 
 ## All Commands
 
-| Command | What it does |
-|---|---|
-| `claude-launchpad init` | Launch a new project: detects stack, generates config, security rules, hooks, permissions |
-| `claude-launchpad` | Check your config: score it 0-100, list issues |
-| `claude-launchpad doctor --fix` | Auto-fix issues: adds hooks, rules, missing sections, .claudeignore |
-| `claude-launchpad doctor --watch` | Live score that updates when you save config files |
-| `claude-launchpad enhance` | Claude reads your code and completes CLAUDE.md with real content |
-| `claude-launchpad eval --suite security` | Run Claude against test scenarios, prove your config works |
+| Command | What it does | Runs |
+|---|---|---|
+| `claude-launchpad init` | Detect stack, generate config, hooks, permissions | Locally |
+| `claude-launchpad` | Score your config 0-100, list issues | Locally |
+| `claude-launchpad doctor --fix` | Auto-fix issues: hooks, rules, sections, .claudeignore | Locally |
+| `claude-launchpad doctor --watch` | Live score that updates when you save config files | Locally |
+| `claude-launchpad enhance` | Claude reads your code and completes CLAUDE.md | Via Claude CLI |
+| `claude-launchpad eval` | Run Claude against test scenarios, prove config works | Via Claude CLI |
 
 ## Quick Start
 
 ```bash
-# Install
-npm i -g claude-launchpad
-
-# Go to any project with Claude Code
 cd your-project
-
-# See your score
-claude-launchpad
-
-# Fix everything it found
-claude-launchpad doctor --fix
-
-# See your new score
-claude-launchpad
+npx claude-launchpad            # see your score
+npx claude-launchpad doctor --fix   # fix everything
 ```
 
-That takes you from ~42% to ~93% with zero manual work.
+A typical unconfigured project scores ~42%. After `--fix`, it jumps to ~86%. Run `init` on a fresh project and you start at ~93%.
 
 ## The Doctor
 
@@ -217,14 +203,6 @@ jobs:
 
 Score below threshold = exit code 1 = PR blocked.
 
-## Plugin (pending marketplace review)
-
-```bash
-claude plugin install claude-launchpad
-```
-
-Then use `/launchpad:doctor`, `/launchpad:init`, `/launchpad:enhance`, `/launchpad:eval` inside Claude Code. The plugin nudges you to re-check your score when you edit config files.
-
 ## How It Works
 
 **Doctor** reads your files and runs static analysis. No API calls. No network. No cost.
@@ -237,12 +215,7 @@ Then use `/launchpad:doctor`, `/launchpad:init`, `/launchpad:enhance`, `/launchp
 
 ## Why This Exists
 
-- **CLAUDE.md is advisory.** ~80% compliance. Claude might ignore your rules.
-- **Hooks are deterministic.** 100% compliance. But most people have zero hooks.
-- **Instruction budget is real.** Past ~150, compliance drops. Most people don't know they're over.
-- **Nobody measures.** You can't improve what you can't measure.
-
-This tool gives you a number. Fix the issues, re-run, watch the number go up.
+Nobody measures their Claude Code config quality. You write CLAUDE.md, hope Claude follows it, and never verify. This tool gives you a number. Fix the issues, re-run, watch it go up.
 
 ## Glossary
 
@@ -254,6 +227,7 @@ New to Claude Code? Here's what the terms mean:
 | **Hooks** | Shell commands that run automatically when Claude does something. For example: auto-format a file after Claude edits it, or block Claude from reading your `.env` file. They live in `.claude/settings.json`. |
 | **Instruction budget** | CLAUDE.md has a soft limit of ~150 actionable lines. Past that, Claude starts ignoring rules at the bottom. Doctor counts your lines and warns you. |
 | **Rules** | Extra markdown files in `.claude/rules/` that Claude reads alongside CLAUDE.md. Use them to offload detailed conventions so CLAUDE.md stays under budget. |
+| **Compaction** | When a Claude Code conversation gets too long, it compresses older messages to free up space. This can lose context — a PostCompact hook re-injects critical files (like TASKS.md) after compaction. |
 | **MCP Servers** | External tools Claude can connect to (databases, APIs, docs). Configured in `.claude/settings.json`. Most projects don't need them. |
 | **.claudeignore** | Like `.gitignore` but for Claude. Tells Claude which files to skip (node_modules, dist, lockfiles) so it doesn't waste time reading noise. |
 
