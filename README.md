@@ -91,6 +91,7 @@ Output looks like this:
 | Flag | What it does |
 |---|---|
 | `--fix` | Auto-fixes issues: adds hooks, CLAUDE.md sections, rules, .claudeignore |
+| `--fix --dry-run` | Preview what --fix would change without applying |
 | `--watch` | Re-runs every second, updates when you save a config file |
 | `--json` | Pure JSON output, no colors, no banner — for scripts and CI |
 | `--min-score <n>` | Exit code 1 if score is below threshold — use in CI to block bad configs |

@@ -11,8 +11,10 @@
 
 ## Versioning
 - Semver: patch (bugfix/refactor), minor (new feature), major (breaking)
-- If `src/` changed: bump patch in `package.json`, update CHANGELOG.md
-- If new command/flag added: bump minor
+- **Dev workflow**: batch small changes, publish with `pnpm publish:dev` (prerelease tag, doesn't affect "latest")
+- **Release workflow**: when enough changes accumulate, bump version and `pnpm publish:release`
+- Don't bump version after every small change — accumulate under dev tag
+- CHANGELOG: update once per release, not per dev publish
 - CHANGELOG format: `## [x.y.z] — YYYY-MM-DD` with Added/Changed/Fixed/Removed
 
 ## Pre-Commit Checklist

@@ -14,7 +14,9 @@
     "test:run": "vitest run",
     "lint": "eslint src/ --ext .ts",
     "typecheck": "tsc --noEmit",
-    "prepublishOnly": "pnpm build"
+    "prepublishOnly": "pnpm build",
+    "publish:dev": "npm version prerelease --preid=dev && npm publish --tag dev",
+    "publish:release": "npm publish"
   },
   "keywords": [
     "claude",

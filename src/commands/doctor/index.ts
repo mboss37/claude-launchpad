@@ -19,6 +19,7 @@ export function createDoctorCommand(): Command {
     .option("--json", "Output as JSON")
     .option("--min-score <n>", "Exit non-zero if overall score is below this threshold (for CI)")
     .option("--fix", "Auto-apply deterministic fixes for detected issues")
+    .option("--dry-run", "Preview what --fix would change without applying")
     .option("--watch", "Watch for config changes and re-run automatically")
     .action(async (opts) => {
       if (opts.watch) {
@@ -65,6 +66,19 @@ export function createDoctorCommand(): Command {
         const allIssues = results.flatMap((r) => r.issues);
         const fixable = allIssues.filter((i) => i.severity !== "info");
         if (fixable.length > 0) {
+          // Dry-run: preview only
+          if (opts.dryRun) {
+            log.blank();
+            log.step("Dry run — would apply these fixes:");
+            log.blank();
+            for (const issue of fixable) {
+              log.info(`  Would fix: ${issue.message}`);
+            }
+            log.blank();
+            log.success(`${fixable.length} fix(es) available. Run --fix without --dry-run to apply.`);
+            return;
+          }
+
           log.blank();
           log.step("Applying fixes...");
           log.blank();
