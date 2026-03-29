@@ -18,23 +18,18 @@
 - **Sprint 10**: Refine — v0.4.1-v0.4.3, memory management, PostCompact hook, eval sandbox fix, CHANGELOG, 71 tests
 - **Sprint 11**: Security — v0.5.0, credential deny rules, sandbox, bypass disable, 5 new doctor checks, interactive eval, 91 tests
 
-- **Sprint 12**: Smart Defaults — v0.5.0-v0.5.2, security hardening (credential deny, sandbox, bypass), 9 new doctor checks, interactive eval, --dry-run, --fix re-scan, SessionStart hook, 4-persona docs review + rewrite, dev publish workflow, 15 scenarios, 99 tests
-
-## Current Sprint: Sprint 13 — Growth
-
-### To Do
-- [ ] Fumadocs migration (replace GitHub Pages)
-- [ ] Social media push (Reddit, Twitter, Discord, HN)
-- [ ] OG image + Twitter Card meta tags
-- [ ] Plugin marketplace go-live (waiting on Anthropic review)
+- **Sprint 12**: Smart Defaults — v0.5.1, 4 settings checks, SessionStart hook, --fix re-scan, 99 tests
+- **Sprint 13**: Growth — Fumadocs migration (7 MDX pages, search, OG meta, GitHub Actions deploy), 4-persona docs review, landing page redesign, component-rich docs (Steps, Tabs, Files, Accordions, Cards)
 
 ## Upcoming
-- **Sprint 14**: Path-scoped rule generation, community scenario packs, user testimonials
+- **Sprint 14**: Social media push, OG image, user testimonials, path-scoped rule generation
+- Plugin marketplace go-live (waiting on Anthropic review)
 
 ## Session Log
-### 2026-03-29 (session 8)
-- v0.4.1-v0.4.3: memory, PostCompact, eval sandbox fix, CHANGELOG, 71 tests.
 ### 2026-03-29 (session 9)
 - v0.5.0-v0.5.2: security hardening, interactive eval, --dry-run, 4-persona docs rewrite.
-- 6 releases in one session. 58→99 tests. 11→15 scenarios. 10→15 doctor checks.
-- FINDINGS.md research, code review (Opus), dev publish workflow.
+- 8 releases. 58→99 tests. 11→15 scenarios. 10→15 doctor checks.
+### 2026-03-29 (session 10)
+- Fumadocs migration: 7 MDX pages, GitHub Actions auto-deploy, search, OG meta.
+- Landing page: provocative hero, 2x2 command cards with icons, footer.
+- Docs: Steps, Tabs, File trees, Accordions, Callouts, navigation Cards.
