@@ -20,14 +20,16 @@
 ### In Progress
 
 ### To Do
-- [ ] Refactor: tryFix() 73 lines → lookup table pattern
-- [ ] Refactor: detectScripts() 112 lines → config object
 - [ ] eval --compare: compare configs side by side
 - [ ] eval --regression: show which commit degraded compliance
 - [ ] Plugin marketplace go-live (waiting on Anthropic review)
 - [ ] awesome-claude-code listing (submitted, waiting on validation)
 
 ### Done
+- [x] Refactor: tryFix() → FIX_TABLE lookup pattern (-101 lines)
+- [x] Refactor: detectScripts() → LANGUAGE_SCRIPTS config object
+- [x] Tests: detectScripts coverage for all 13 languages (58 → 71 tests)
+- [x] README: add cd instruction, remove Cost column
 
 ## Upcoming
 - **Sprint 11**: Community scenario packs, paid tier exploration

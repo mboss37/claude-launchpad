@@ -62,6 +62,14 @@ CLI toolkit that makes Claude Code setups measurably good — diagnose, scaffold
 - Named exports only, no `any` types
 - All errors handled explicitly with user-friendly messages
 
+## Versioning
+- Follow semver: patch (bugfix/refactor), minor (new feature), major (breaking)
+- Before pushing, check if changes warrant a version bump:
+  - If `src/` changed: bump patch in `package.json`, update CHANGELOG.md
+  - If new command/flag added: bump minor
+- CHANGELOG.md is the source of truth for what shipped in each version
+- Format: `## [x.y.z] — YYYY-MM-DD` with Added/Changed/Fixed/Removed sections
+
 ## Pre-Commit Checklist
 Before every commit, self-review:
 1. Read back every changed file — look for dead code, unused imports, wrong types
