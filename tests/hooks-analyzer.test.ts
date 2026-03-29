@@ -30,6 +30,7 @@ describe("analyzeHooks", () => {
       { event: "PostToolUse", type: "command", matcher: "Write|Edit", command: "prettier --write $FILE" },
       { event: "PreToolUse", type: "command", matcher: "Read|Write", command: "check .env files" },
       { event: "PostCompact", type: "command", matcher: "", command: "cat TASKS.md" },
+      { event: "SessionStart", type: "command", matcher: "startup", command: "cat TASKS.md" },
     ]));
     expect(result.score).toBe(100);
   });

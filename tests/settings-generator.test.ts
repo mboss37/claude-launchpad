@@ -49,4 +49,11 @@ describe("generateSettings", () => {
     const settings = generateSettings(baseProject);
     expect(settings.permissions?.deny).toHaveLength(8);
   });
+
+  it("includes SessionStart hook", () => {
+    const settings = generateSettings(baseProject);
+    const hooks = settings.hooks as Record<string, unknown[]>;
+    expect(hooks.SessionStart).toBeDefined();
+    expect(hooks.SessionStart).toHaveLength(1);
+  });
 });

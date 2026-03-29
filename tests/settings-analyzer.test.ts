@@ -60,4 +60,54 @@ describe("analyzeSettings", () => {
     const result = await analyzeSettings(config);
     expect(result.issues.some((i) => i.message.includes("safety net"))).toBe(false);
   });
+
+  it("flags deprecated includeCoAuthoredBy", async () => {
+    const result = await analyzeSettings(makeConfig({
+      hooks: { PreToolUse: [{}] },
+      includeCoAuthoredBy: false,
+    }));
+    expect(result.issues.some((i) => i.message.includes("Deprecated includeCoAuthoredBy"))).toBe(true);
+  });
+
+  it("does not flag when includeCoAuthoredBy is absent", async () => {
+    const result = await analyzeSettings(makeConfig({
+      hooks: { PreToolUse: [{}] },
+    }));
+    expect(result.issues.some((i) => i.message.includes("Deprecated"))).toBe(false);
+  });
+
+  it("flags hooks without timeout on broad matchers", async () => {
+    const config: ClaudeConfig = {
+      ...makeConfig({ hooks: { PreToolUse: [{}] } }),
+      hooks: [{ event: "PreToolUse", type: "command", matcher: "Bash", command: "echo ok" }],
+    };
+    const result = await analyzeSettings(config);
+    expect(result.issues.some((i) => i.message.includes("without timeout"))).toBe(true);
+  });
+
+  it("does not flag hooks with timeout set", async () => {
+    const config: ClaudeConfig = {
+      ...makeConfig({ hooks: { PreToolUse: [{}] } }),
+      hooks: [{ event: "PreToolUse", type: "command", matcher: "Bash", command: "echo ok", timeout: 10 }],
+    };
+    const result = await analyzeSettings(config);
+    expect(result.issues.some((i) => i.message.includes("without timeout"))).toBe(false);
+  });
+
+  it("flags auto-memory disabled without memory section", async () => {
+    const result = await analyzeSettings(makeConfig({
+      hooks: { PreToolUse: [{}] },
+      autoMemoryEnabled: false,
+    }));
+    expect(result.issues.some((i) => i.message.includes("Auto-memory is disabled"))).toBe(true);
+  });
+
+  it("does not flag auto-memory disabled when CLAUDE.md has Memory section", async () => {
+    const config: ClaudeConfig = {
+      ...makeConfig({ hooks: { PreToolUse: [{}] }, autoMemoryEnabled: false }),
+      claudeMdContent: "# Test\n## Memory & Learnings\n- Save gotchas",
+    };
+    const result = await analyzeSettings(config);
+    expect(result.issues.some((i) => i.message.includes("Auto-memory"))).toBe(false);
+  });
 });

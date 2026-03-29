@@ -27,8 +27,14 @@ Also review .claude/settings.json hooks:
 - Read the existing hooks in .claude/settings.json
 - If you see project-specific patterns that deserve hooks (e.g., protected directories, test file patterns, migration files), suggest adding them
 - If no PostCompact hook exists, suggest adding one that re-injects TASKS.md after context compaction (critical for session continuity)
+- If no SessionStart hook exists, suggest adding one that injects TASKS.md at session startup
 - DO NOT overwrite existing hooks — only add new ones that are specific to this project
 - Print hook suggestions at the end with the exact JSON to add, don't modify settings.json directly
+
+Also check for advanced configuration opportunities:
+- If the project has both app code and tests, suggest creating path-scoped .claude/rules/ files with paths: frontmatter (e.g., test conventions only load when editing test files)
+- If the project uses external APIs (Stripe, GitHub, AWS SDKs, etc.), suggest sandbox.network.allowedDomains to restrict outbound traffic
+- If you detect a monorepo (Turborepo, Lerna, pnpm workspaces, multiple package.json), suggest claudeMdExcludes in settings.json
 
 Rules:
 - Don't remove existing content — only add or improve

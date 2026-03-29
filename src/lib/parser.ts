@@ -113,6 +113,7 @@ async function readHooks(claudeDir: string): Promise<ReadonlyArray<HookConfig>> 
               type: (h.type as HookConfig["type"]) ?? "command",
               matcher,
               command: h.command as string | undefined,
+              timeout: h.timeout as number | undefined,
             });
           }
         } else {
@@ -122,6 +123,7 @@ async function readHooks(claudeDir: string): Promise<ReadonlyArray<HookConfig>> 
             type: (g.type as HookConfig["type"]) ?? "command",
             matcher,
             command: g.command as string | undefined,
+            timeout: g.timeout as number | undefined,
           });
         }
       }

@@ -223,4 +223,28 @@ describe("applyFixes", () => {
     const result = await applyFixes(issues, testDir);
     expect(result.fixed).toBe(0);
   });
+
+  it("migrates includeCoAuthoredBy to attribution object", async () => {
+    await mkdir(join(testDir, ".claude"), { recursive: true });
+    await writeFile(
+      join(testDir, ".claude", "settings.json"),
+      JSON.stringify({ includeCoAuthoredBy: false, hooks: {} }),
+    );
+
+    const issues: DiagnosticIssue[] = [{
+      analyzer: "Settings",
+      severity: "low",
+      message: "Deprecated includeCoAuthoredBy — use attribution object",
+      fix: "",
+    }];
+
+    const result = await applyFixes(issues, testDir);
+    expect(result.fixed).toBe(1);
+
+    const settings = JSON.parse(
+      await readFile(join(testDir, ".claude", "settings.json"), "utf-8"),
+    );
+    expect(settings.attribution).toEqual({ commit: "", pr: "" });
+    expect(settings.includeCoAuthoredBy).toBeUndefined();
+  });
 });

@@ -45,6 +45,52 @@ export async function analyzeSettings(config: ClaudeConfig): Promise<AnalyzerRes
     });
   }
 
+  // Deprecated includeCoAuthoredBy
+  if (config.settings.includeCoAuthoredBy !== undefined) {
+    issues.push({
+      analyzer: "Settings",
+      severity: "low",
+      message: "Deprecated includeCoAuthoredBy — use attribution: { commit: \"\", pr: \"\" } instead",
+      fix: "Replace includeCoAuthoredBy with the attribution object in settings.json",
+    });
+  }
+
+  // Monorepo hint — claudeMdExcludes
+  if (!config.settings.claudeMdExcludes) {
+    issues.push({
+      analyzer: "Settings",
+      severity: "info",
+      message: "No claudeMdExcludes configured — consider adding this if you have a monorepo",
+    });
+  }
+
+  // Hook timeouts on broad matchers
+  const broadMatchers = ["Bash", "Write", "Edit", "Read"];
+  const hooksWithoutTimeout = config.hooks.filter(
+    (h) => !h.timeout && broadMatchers.some((m) => h.matcher?.includes(m)),
+  );
+  if (hooksWithoutTimeout.length > 0) {
+    issues.push({
+      analyzer: "Settings",
+      severity: "low",
+      message: `${hooksWithoutTimeout.length} hook(s) on broad matchers without timeout — defaults to 60s per invocation`,
+      fix: "Add timeout (in seconds) to hooks on Bash, Write, Edit, or Read matchers",
+    });
+  }
+
+  // Auto-memory disabled
+  if (config.settings.autoMemoryEnabled === false) {
+    const hasMemorySection = config.claudeMdContent?.includes("## Memory") ?? false;
+    if (!hasMemorySection) {
+      issues.push({
+        analyzer: "Settings",
+        severity: "medium",
+        message: "Auto-memory is disabled with no manual memory strategy in CLAUDE.md",
+        fix: "Re-enable autoMemoryEnabled or add a ## Memory section to CLAUDE.md",
+      });
+    }
+  }
+
   // Score: deduct for actionable issues only (not info)
   const actionableCount = issues.filter((i) => i.severity !== "info").length;
   const score = Math.max(0, 100 - actionableCount * 20);

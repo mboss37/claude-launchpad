@@ -71,7 +71,21 @@ export function createDoctorCommand(): Command {
           const { fixed, skipped } = await applyFixes(fixable, opts.path);
           log.blank();
           if (fixed > 0) {
-            log.success(`Applied ${fixed} fix(es). Run \`claude-launchpad doctor\` again to see your new score.`);
+            log.success(`Applied ${fixed} fix(es). Re-scanning...`);
+            log.blank();
+
+            // Re-scan to show updated score
+            const updatedConfig = await parseClaudeConfig(opts.path);
+            const updatedResults: AnalyzerResult[] = await Promise.all([
+              analyzeBudget(updatedConfig),
+              analyzeQuality(updatedConfig),
+              analyzeSettings(updatedConfig),
+              analyzeHooks(updatedConfig),
+              analyzeRules(updatedConfig),
+              analyzePermissions(updatedConfig),
+              analyzeMcp(updatedConfig),
+            ]);
+            renderDoctorReport(updatedResults);
           }
           if (skipped > 0) {
             log.info(`${skipped} issue(s) require manual intervention.`);

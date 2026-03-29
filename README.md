@@ -182,7 +182,7 @@ Results are saved to `.claude/eval/` as structured markdown — you can feed the
 |---|---|---|
 | `security` | 6 | SQL injection, .env protection, secret exposure, input validation, credential read, sandbox escape |
 | `conventions` | 5 | Error handling, immutability, file size, naming, no hardcoded values |
-| `workflow` | 2 | Git conventions, session continuity |
+| `workflow` | 4 | Git conventions, session continuity, memory persistence, deferred tracking |
 
 **All eval flags:**
 

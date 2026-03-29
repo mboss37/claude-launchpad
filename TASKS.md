@@ -18,17 +18,11 @@
 - **Sprint 10**: Refine — v0.4.1-v0.4.3, memory management, PostCompact hook, eval sandbox fix, CHANGELOG, 71 tests
 - **Sprint 11**: Security — v0.5.0, credential deny rules, sandbox, bypass disable, 5 new doctor checks, interactive eval, 91 tests
 
-## Current Sprint: Sprint 12 — Smart Defaults
-
-### To Do
-- [ ] Doctor: deprecated attribution, monorepo excludes, hook timeouts, autoMemory disabled
-- [ ] Init: SessionStart hook, path-scoped rules with `paths:` frontmatter
-- [ ] Enhance: suggest path-scoped rules, sandbox.network.allowedDomains, claudeMdExcludes
-- [ ] Eval: memory-persistence, deferred-tracking scenarios
-- [ ] Plugin marketplace go-live (waiting on Anthropic review)
+- **Sprint 12**: Smart Defaults — v0.5.1, 4 new settings checks, SessionStart hook, enhance suggestions, 2 workflow scenarios, --fix re-scan, 99 tests
 
 ## Upcoming
-- **Sprint 13**: Community scenario packs, paid tier exploration
+- **Sprint 13**: Path-scoped rule generation in init, community scenario packs, paid tier exploration
+- Plugin marketplace go-live (waiting on Anthropic review)
 
 ## Session Log
 ### 2026-03-29 (session 8)

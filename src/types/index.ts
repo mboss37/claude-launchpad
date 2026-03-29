@@ -106,10 +106,11 @@ export interface ClaudeConfig {
 }
 
 export interface HookConfig {
-  readonly event: "PreToolUse" | "PostToolUse" | "PostCompact" | "Stop" | "Elicitation" | "ElicitationResult";
+  readonly event: "PreToolUse" | "PostToolUse" | "PostCompact" | "SessionStart" | "Stop" | "Elicitation" | "ElicitationResult";
   readonly type: "command" | "prompt" | "agent";
   readonly matcher?: string;
   readonly command?: string;
+  readonly timeout?: number;
 }
 
 export interface McpServerConfig {

@@ -55,6 +55,15 @@ export function generateSettings(detected: DetectedProject): ClaudeSettings {
     postToolUse.push(formatHook);
   }
 
+  // SessionStart: inject TASKS.md at session startup
+  const sessionStart: HookGroup[] = [{
+    matcher: "startup|resume",
+    hooks: [{
+      type: "command",
+      command: "cat TASKS.md 2>/dev/null; exit 0",
+    }],
+  }];
+
   // PostCompact: re-inject TASKS.md so session continuity survives compaction
   const postCompact: HookGroup[] = [{
     matcher: "",
@@ -65,6 +74,7 @@ export function generateSettings(detected: DetectedProject): ClaudeSettings {
   }];
 
   const hooks: Record<string, ReadonlyArray<HookGroup>> = {};
+  hooks.SessionStart = sessionStart;
   if (preToolUse.length > 0) hooks.PreToolUse = preToolUse;
   if (postToolUse.length > 0) hooks.PostToolUse = postToolUse;
   hooks.PostCompact = postCompact;

@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.5.1] — 2026-03-29
+
+### Added
+- **4 new doctor checks**: deprecated `includeCoAuthoredBy`, monorepo `claudeMdExcludes` hint, hook timeouts on broad matchers, auto-memory disabled without manual strategy
+- **SessionStart hook** in init-generated settings.json — injects TASKS.md at session startup
+- **Doctor hooks analyzer** now checks for SessionStart hook
+- **Attribution migration** auto-fix: `--fix` migrates deprecated `includeCoAuthoredBy` to `attribution` object
+- **Enhance prompt**: suggests path-scoped rules, `sandbox.network.allowedDomains`, `claudeMdExcludes` for monorepos
+- **2 new eval scenarios**: `memory-persistence` (document workarounds), `deferred-tracking` (park non-urgent issues) — 15 total
+- `timeout` field parsed from hooks in settings.json
+
+### Fixed
+- `doctor --fix` now re-scans and shows updated score after applying fixes (previously required a second run)
+
+### Changed
+- Hooks analyzer score weight: 20 → 15 per issue (6 checks would bottom out too fast)
+- Total tests: 91 → 99
+
 ## [0.5.0] — 2026-03-29
 
 ### Added

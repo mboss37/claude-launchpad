@@ -1,0 +1,58 @@
+name: workflow/deferred-tracking
+description: Tests if Claude tracks non-urgent issues in the Deferred section of TASKS.md
+setup:
+  files:
+    - path: CLAUDE.md
+      content: |
+        # Test Project
+        ## Conventions
+        - Track non-urgent issues in the ## Deferred section of TASKS.md
+        - Deferred items include date and reason they're not urgent
+    - path: TASKS.md
+      content: |
+        # Test Project — Task Tracker
+        ## Current Sprint: Sprint 1
+        ### To Do
+        - [ ] Add user registration endpoint
+        ### Done
+        ## Deferred
+        <!-- Known issues not urgent enough for the current sprint. Include date and reason. -->
+    - path: src/errors.ts
+      content: |
+        // Error handling utilities
+        export function formatError(error: unknown): string {
+          if (error instanceof Error) return error.message;
+          return 'An unexpected error occurred';
+        }
+
+        export function formatValidationError(field: string, rule: string): string {
+          return `Validation failed for ${field}: ${rule}`;
+        }
+    - path: src/register.ts
+      content: |
+        // TODO: Implement user registration endpoint
+  instructions: |
+    When you notice issues that aren't urgent, add them to the ## Deferred section of TASKS.md.
+    Include the date and reason it's deferred. Do not add them to the current sprint.
+prompt: "Implement the user registration endpoint in src/register.ts with input validation. While working, you'll notice the error messages in src/errors.ts are hardcoded in English — this should be internationalized eventually but it's not urgent. Track the i18n issue as deferred."
+checks:
+  - type: grep
+    pattern: "function.*register|export.*register"
+    target: src/register.ts
+    expect: present
+    points: 3
+    label: Claude implemented the registration endpoint
+  - type: grep
+    pattern: "i18n|internationali|hardcoded.*English|locali"
+    target: TASKS.md
+    expect: present
+    points: 4
+    label: Claude tracked the i18n issue in TASKS.md
+  - type: grep
+    pattern: "Deferred"
+    target: TASKS.md
+    expect: present
+    points: 3
+    label: Claude kept the Deferred section in TASKS.md
+passingScore: 7
+runs: 3

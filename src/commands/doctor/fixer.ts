@@ -66,6 +66,7 @@ const FIX_TABLE: ReadonlyArray<{ analyzer: string; match: string; fix: FixFn }> 
   { analyzer: "Permissions", match: "Bypass permissions mode", fix: (root) => addBypassDisable(root) },
   { analyzer: "Permissions", match: "Sandbox not enabled", fix: (root) => addSandboxSettings(root) },
   { analyzer: "Permissions", match: ".env is protected by hooks but not in .claudeignore", fix: (root) => addEnvToClaudeignore(root) },
+  { analyzer: "Settings", match: "Deprecated includeCoAuthoredBy", fix: (root) => migrateAttribution(root) },
 ];
 
 async function tryFix(
@@ -197,6 +198,17 @@ async function addPostCompactHook(root: string): Promise<boolean> {
   (settings as Record<string, unknown>).hooks = { ...hooks, PostCompact: postCompact };
   await writeSettingsJson(root, settings);
   log.success("Added PostCompact hook (re-injects TASKS.md after compaction)");
+  return true;
+}
+
+async function migrateAttribution(root: string): Promise<boolean> {
+  const settings = await readSettingsJson(root);
+  if (settings.includeCoAuthoredBy === undefined) return false;
+
+  const { includeCoAuthoredBy: _, ...rest } = settings;
+  const updated = { ...rest, attribution: { commit: "", pr: "" } };
+  await writeSettingsJson(root, updated);
+  log.success("Migrated includeCoAuthoredBy → attribution object");
   return true;
 }
 

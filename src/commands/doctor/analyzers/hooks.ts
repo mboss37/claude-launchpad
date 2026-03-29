@@ -63,6 +63,17 @@ export async function analyzeHooks(config: ClaudeConfig): Promise<AnalyzerResult
     });
   }
 
-  const score = Math.max(0, 100 - issues.length * 20);
+  // Check for SessionStart hook
+  const hasSessionStart = hooks.some((h) => h.event === "SessionStart");
+  if (!hasSessionStart) {
+    issues.push({
+      analyzer: "Hooks",
+      severity: "low",
+      message: "No SessionStart hook — session starts without project context loaded",
+      fix: "Add a SessionStart hook that injects TASKS.md at startup",
+    });
+  }
+
+  const score = Math.max(0, 100 - issues.length * 15);
   return { name: "Hooks", issues, score };
 }

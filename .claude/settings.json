@@ -33,6 +33,29 @@
           }
         ]
       }
+    ],
+    "PostCompact": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cat TASKS.md 2>/dev/null; exit 0"
+          }
+        ]
+      }
     ]
+  },
+  "permissions": {
+    "deny": [
+      "Read(~/.ssh/*)",
+      "Read(~/.aws/*)",
+      "Read(~/.npmrc)"
+    ]
+  },
+  "disableBypassPermissionsMode": "disable",
+  "sandbox": {
+    "enabled": true,
+    "failIfUnavailable": true
   }
 }
