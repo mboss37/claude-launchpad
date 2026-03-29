@@ -1,4 +1,4 @@
-import { mkdir, writeFile, readFile, readdir, rm } from "node:fs/promises";
+import { mkdir, writeFile, readFile, readdir, rm, cp, access } from "node:fs/promises";
 import { join, dirname } from "node:path";
 import { tmpdir } from "node:os";
 import { randomUUID } from "node:crypto";
@@ -31,7 +31,7 @@ export async function runScenario(
   const sandboxDir = join(tmpdir(), `claude-eval-${randomUUID()}`);
 
   try {
-    await setupSandbox(sandboxDir, scenario);
+    await setupSandbox(sandboxDir, scenario, options.projectRoot);
     await runClaudeInSandbox(sandboxDir, scenario.prompt, options.timeout, options.model);
     return await scoreResults(scenario, sandboxDir);
   } finally {
@@ -63,15 +63,24 @@ export async function runScenarioWithRetries(
 
 // ─── Sandbox Setup ───
 
-async function setupSandbox(sandboxDir: string, scenario: EvalScenario): Promise<void> {
+async function setupSandbox(
+  sandboxDir: string,
+  scenario: EvalScenario,
+  projectRoot: string,
+): Promise<void> {
   await mkdir(sandboxDir, { recursive: true });
 
+  // Write scenario seed files
   for (const file of scenario.setup.files) {
     const filePath = join(sandboxDir, file.path);
     await mkdir(dirname(filePath), { recursive: true });
     await writeFile(filePath, file.content);
   }
 
+  // Copy user's full config surface into sandbox
+  await copyProjectConfig(sandboxDir, projectRoot);
+
+  // Write scenario CLAUDE.md (after config copy so it takes precedence)
   if (scenario.setup.instructions) {
     await writeFile(
       join(sandboxDir, "CLAUDE.md"),
@@ -86,6 +95,43 @@ async function setupSandbox(sandboxDir: string, scenario: EvalScenario): Promise
     "-c", "user.email=eval@test",
     "commit", "-q", "-m", "eval setup",
   ], { cwd: sandboxDir });
+}
+
+/**
+ * Copy the user's .claude/ config (settings, rules, hooks) and .claudeignore
+ * into the sandbox so eval tests the full configuration surface.
+ */
+async function copyProjectConfig(sandboxDir: string, projectRoot: string): Promise<void> {
+  const claudeDir = join(projectRoot, ".claude");
+  const sandboxClaudeDir = join(sandboxDir, ".claude");
+
+  // Copy .claude/settings.json (hooks, permissions, schema)
+  const settingsPath = join(claudeDir, "settings.json");
+  if (await fileExistsSafe(settingsPath)) {
+    await mkdir(sandboxClaudeDir, { recursive: true });
+    await cp(settingsPath, join(sandboxClaudeDir, "settings.json"));
+  }
+
+  // Copy .claude/rules/ (all convention and path-scoped rule files)
+  const rulesDir = join(claudeDir, "rules");
+  if (await fileExistsSafe(rulesDir)) {
+    await cp(rulesDir, join(sandboxClaudeDir, "rules"), { recursive: true });
+  }
+
+  // Copy .claudeignore
+  const ignorePath = join(projectRoot, ".claudeignore");
+  if (await fileExistsSafe(ignorePath)) {
+    await cp(ignorePath, join(sandboxDir, ".claudeignore"));
+  }
+}
+
+async function fileExistsSafe(path: string): Promise<boolean> {
+  try {
+    await access(path);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 // ─── Claude Execution ───

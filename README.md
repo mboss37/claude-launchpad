@@ -173,7 +173,7 @@ claude-launchpad eval --suite security --model haiku
 claude-launchpad eval --suite security --runs 1
 ```
 
-Each scenario creates an isolated sandbox, runs Claude with a task, and checks if Claude followed the rules:
+Each scenario creates an isolated sandbox with your full Claude Code config (settings.json, rules, hooks, .claudeignore) copied in, runs Claude with a task, and checks if your configuration made Claude follow the rules:
 
 ```
   ✓ security/sql-injection            10/10  PASS
@@ -245,7 +245,7 @@ Then use `/launchpad:doctor`, `/launchpad:init`, `/launchpad:enhance`, `/launchp
 
 **Enhance** spawns `claude "prompt"` as an interactive child process. You see Claude's full UI. No data passes through the tool — it just launches Claude with a task.
 
-**Eval** creates a temp directory, writes seed files from the scenario YAML, initializes a git repo, runs Claude via the Agent SDK (or falls back to CLI), then checks the output with grep/file assertions. Sandbox is cleaned up after (or preserved with `--debug`).
+**Eval** creates a temp directory, copies your full `.claude/` config (settings.json, rules, hooks, permissions) and `.claudeignore` into it, writes seed files from the scenario YAML, initializes a git repo, runs Claude via the Agent SDK (or falls back to CLI), then checks the output with grep/file assertions. Your code is never copied — only your Claude Code configuration. Sandbox is cleaned up after (or preserved with `--debug`).
 
 ## Why This Exists
 

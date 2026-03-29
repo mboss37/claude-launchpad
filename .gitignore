@@ -38,3 +38,6 @@ supabase/.temp/
 *.key
 secrets/
 .sfdx/
+
+# Internal research
+FINDINGS.md

@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.3] — 2026-03-29
+
+### Fixed
+- Eval sandbox now copies user's full `.claude/` config (settings.json, rules, hooks, permissions) and `.claudeignore` — previously only a bare CLAUDE.md from the scenario was used, making eval test Claude itself rather than the user's configuration
+
+### Changed
+- Updated README and docs to explain how eval sandbox works (config copied, code not copied)
+
 ## [0.4.2] — 2026-03-29
 
 ### Added

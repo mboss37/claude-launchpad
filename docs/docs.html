@@ -213,7 +213,18 @@ body { background: #000; color: #e2e2e2; font-family: 'Geist', sans-serif; }
         </tbody>
       </table>
     </div>
-    <p class="text-sm text-text-dim">Results are saved to <code class="text-green">.claude/eval/</code> as structured markdown. Feed them back to Claude to fix failures.</p>
+    <p class="text-sm text-text-dim mb-4">Results are saved to <code class="text-green">.claude/eval/</code> as structured markdown. Feed them back to Claude to fix failures.</p>
+
+    <h3 class="text-sm font-medium text-white mb-2">How the sandbox works</h3>
+    <p class="text-sm text-text-dim mb-2">Each scenario runs in an isolated temp directory. Your code is never copied — only your Claude Code configuration:</p>
+    <ul class="text-sm text-text-dim space-y-1 list-disc list-inside mb-2">
+      <li><code class="text-green">.claude/settings.json</code> — your hooks, permissions, and schema</li>
+      <li><code class="text-green">.claude/rules/*</code> — all your convention and path-scoped rule files</li>
+      <li><code class="text-green">.claudeignore</code> — your ignore patterns</li>
+      <li>A scenario-specific <code class="text-green">CLAUDE.md</code> with test instructions</li>
+      <li>Seed files from the scenario (e.g. a stub <code class="text-green">src/api.ts</code>)</li>
+    </ul>
+    <p class="text-sm text-text-dim">Claude runs a task in the sandbox and the results are checked with grep/file assertions. This tests whether your <strong>full configuration</strong> — rules, hooks, and permissions working together — actually makes Claude behave correctly.</p>
   </section>
 
   <!-- Plugin -->
