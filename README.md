@@ -15,6 +15,7 @@ A launchpad isn't just where you start. It's where you prepare, run checks, and 
 
 ```bash
 npm i -g claude-launchpad
+cd your-project
 ```
 
 ## Two Paths, One Tool
@@ -39,14 +40,14 @@ Scans your Claude Code config, gives you a score out of 100, and tells you exact
 
 ## All Commands
 
-| Command | What it does | Cost |
-|---|---|---|
-| `claude-launchpad init` | Launch a new project: detects stack, generates config, security rules, hooks, permissions | Free |
-| `claude-launchpad` | Check your config: score it 0-100, list issues | Free |
-| `claude-launchpad doctor --fix` | Auto-fix issues: adds hooks, rules, missing sections, .claudeignore | Free |
-| `claude-launchpad doctor --watch` | Live score that updates when you save config files | Free |
-| `claude-launchpad enhance` | Claude reads your code and completes CLAUDE.md with real content | Uses Claude |
-| `claude-launchpad eval --suite security` | Run Claude against test scenarios, prove your config works | Uses Claude |
+| Command | What it does |
+|---|---|
+| `claude-launchpad init` | Launch a new project: detects stack, generates config, security rules, hooks, permissions |
+| `claude-launchpad` | Check your config: score it 0-100, list issues |
+| `claude-launchpad doctor --fix` | Auto-fix issues: adds hooks, rules, missing sections, .claudeignore |
+| `claude-launchpad doctor --watch` | Live score that updates when you save config files |
+| `claude-launchpad enhance` | Claude reads your code and completes CLAUDE.md with real content |
+| `claude-launchpad eval --suite security` | Run Claude against test scenarios, prove your config works |
 
 ## Quick Start
 

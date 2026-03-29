@@ -34,79 +34,43 @@ export async function applyFixes(
   return { fixed, skipped };
 }
 
+// Fix lookup table: [analyzer, message substring] → fix function
+type FixFn = (root: string, detected: DetectedProject) => Promise<boolean>;
+
+const FIX_TABLE: ReadonlyArray<{ analyzer: string; match: string; fix: FixFn }> = [
+  { analyzer: "Hooks", match: "No hooks configured", fix: async (root, detected) => {
+    const a = await addEnvProtectionHook(root);
+    const b = await addAutoFormatHook(root, detected);
+    const c = await addForcePushProtection(root);
+    return a || b || c;
+  }},
+  { analyzer: "Hooks", match: ".env file protection", fix: (root) => addEnvProtectionHook(root) },
+  { analyzer: "Hooks", match: "auto-format", fix: (root, detected) => addAutoFormatHook(root, detected) },
+  { analyzer: "Hooks", match: "No PreToolUse", fix: (root) => addEnvProtectionHook(root) },
+  { analyzer: "Quality", match: "Architecture", fix: (root) => addClaudeMdSection(root, "## Architecture", "<!-- TODO: Describe your codebase structure. Run `claude-launchpad enhance` to auto-fill this. -->") },
+  { analyzer: "Quality", match: "Off-Limits", fix: (root) => addClaudeMdSection(root, "## Off-Limits", "- Never hardcode secrets - use environment variables\n- Never write to `.env` files\n- Never expose internal error details in API responses") },
+  { analyzer: "Quality", match: "Commands", fix: (root) => addClaudeMdSection(root, "## Commands", "<!-- TODO: Add your dev/build/test commands -->") },
+  { analyzer: "Quality", match: "Stack", fix: (root, detected) => {
+    const content = detected.language
+      ? `- **Language**: ${detected.language}${detected.framework ? `\n- **Framework**: ${detected.framework}` : ""}${detected.packageManager ? `\n- **Package Manager**: ${detected.packageManager}` : ""}`
+      : "<!-- TODO: Define your tech stack -->";
+    return addClaudeMdSection(root, "## Stack", content);
+  }},
+  { analyzer: "Quality", match: "Session Start", fix: (root) => addClaudeMdSection(root, "## Session Start", "- ALWAYS read @TASKS.md first - it tracks progress across sessions\n- Update TASKS.md as you complete work") },
+  { analyzer: "Rules", match: "No .claudeignore", fix: (root, detected) => createClaudeignore(root, detected) },
+  { analyzer: "Rules", match: "No .claude/rules/", fix: (root) => createStarterRules(root) },
+  { analyzer: "Permissions", match: "force-push", fix: (root) => addForcePushProtection(root) },
+];
+
 async function tryFix(
   issue: DiagnosticIssue,
   root: string,
   detected: DetectedProject,
 ): Promise<boolean> {
-  // ─── Hooks: No hooks at all (create settings.json from scratch) ───
-  if (issue.analyzer === "Hooks" && issue.message.includes("No hooks configured")) {
-    const a = await addEnvProtectionHook(root);
-    const b = await addAutoFormatHook(root, detected);
-    const c = await addForcePushProtection(root);
-    return a || b || c;
-  }
-
-  // ─── Hooks: No .env protection ───
-  if (issue.analyzer === "Hooks" && issue.message.includes(".env file protection")) {
-    return addEnvProtectionHook(root);
-  }
-
-  // ─── Hooks: No auto-format ───
-  if (issue.analyzer === "Hooks" && issue.message.includes("auto-format")) {
-    return addAutoFormatHook(root, detected);
-  }
-
-  // ─── Hooks: No PreToolUse ───
-  if (issue.analyzer === "Hooks" && issue.message.includes("No PreToolUse")) {
-    return addEnvProtectionHook(root);
-  }
-
-  // ─── Quality: Missing Architecture section ───
-  if (issue.analyzer === "Quality" && issue.message.includes("Architecture")) {
-    return addClaudeMdSection(root, "## Architecture", "<!-- TODO: Describe your codebase structure. Run `claude-launchpad enhance` to auto-fill this. -->");
-  }
-
-  // ─── Quality: Missing Off-Limits section ───
-  if (issue.analyzer === "Quality" && issue.message.includes("Off-Limits")) {
-    return addClaudeMdSection(root, "## Off-Limits", "- Never hardcode secrets — use environment variables\n- Never write to `.env` files\n- Never expose internal error details in API responses");
-  }
-
-  // ─── Quality: Missing Commands section ───
-  if (issue.analyzer === "Quality" && issue.message.includes("Commands")) {
-    return addClaudeMdSection(root, "## Commands", "<!-- TODO: Add your dev/build/test commands -->");
-  }
-
-  // ─── Quality: Missing Stack section ───
-  if (issue.analyzer === "Quality" && issue.message.includes("Stack")) {
-    const stackContent = detected.language
-      ? `- **Language**: ${detected.language}${detected.framework ? `\n- **Framework**: ${detected.framework}` : ""}${detected.packageManager ? `\n- **Package Manager**: ${detected.packageManager}` : ""}`
-      : "<!-- TODO: Define your tech stack -->";
-    return addClaudeMdSection(root, "## Stack", stackContent);
-  }
-
-  // ─── Quality: Missing Session Start ───
-  if (issue.analyzer === "Quality" && issue.message.includes("Session Start")) {
-    return addClaudeMdSection(root, "## Session Start", "- ALWAYS read @TASKS.md first — it tracks progress across sessions\n- Update TASKS.md as you complete work");
-  }
-
-  // ─── Rules: No .claudeignore ───
-  if (issue.analyzer === "Rules" && issue.message.includes("No .claudeignore")) {
-    return createClaudeignore(root, detected);
-  }
-
-  // ─── Rules: No rules files ───
-  if (issue.analyzer === "Rules" && issue.message.includes("No .claude/rules/")) {
-    return createStarterRules(root);
-  }
-
-  // ─── Permissions: No force-push protection ───
-  if (issue.analyzer === "Permissions" && issue.message.includes("force-push")) {
-    return addForcePushProtection(root);
-  }
-
-  // Can't auto-fix this one
-  return false;
+  const entry = FIX_TABLE.find(
+    (e) => e.analyzer === issue.analyzer && issue.message.includes(e.match),
+  );
+  return entry ? entry.fix(root, detected) : false;
 }
 
 // ─── Fix Implementations ───

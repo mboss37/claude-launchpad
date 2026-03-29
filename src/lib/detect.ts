@@ -185,6 +185,19 @@ interface DetectedScripts {
   buildCommand: string | null;
 }
 
+// Language → default scripts config
+const LANGUAGE_SCRIPTS: Record<string, DetectedScripts> = {
+  Go:     { devCommand: "go run .",         buildCommand: "go build .",   testCommand: "go test ./...", lintCommand: "golangci-lint run",       formatCommand: "gofmt -w ." },
+  Ruby:   { devCommand: "bin/dev",          buildCommand: null,           testCommand: "bin/rails test", lintCommand: "bin/rubocop",            formatCommand: null },
+  PHP:    { devCommand: "php artisan serve", buildCommand: null,          testCommand: "php artisan test", lintCommand: "vendor/bin/phpstan analyse", formatCommand: "vendor/bin/pint" },
+  Rust:   { devCommand: "cargo run",        buildCommand: "cargo build",  testCommand: "cargo test",   lintCommand: "cargo clippy",             formatCommand: "cargo fmt" },
+  Java:   { devCommand: null,               buildCommand: "mvn package",  testCommand: "mvn test",     lintCommand: null,                       formatCommand: null },
+  Kotlin: { devCommand: null,               buildCommand: "mvn package",  testCommand: "mvn test",     lintCommand: null,                       formatCommand: null },
+  Swift:  { devCommand: null,               buildCommand: "swift build",  testCommand: "swift test",   lintCommand: "swiftlint",                formatCommand: "swift-format format -r ." },
+  Elixir: { devCommand: "mix phx.server",   buildCommand: "mix compile",  testCommand: "mix test",     lintCommand: "mix credo",                formatCommand: "mix format" },
+  "C#":   { devCommand: "dotnet run",       buildCommand: "dotnet build", testCommand: "dotnet test",  lintCommand: null,                       formatCommand: "dotnet format" },
+};
+
 function detectScripts(m: {
   pkgJson: PackageJson | null;
   pyProject: string | null;
@@ -193,107 +206,28 @@ function detectScripts(m: {
   composerJson: ComposerJson | null;
   language: string | null;
 }): DetectedScripts {
-  const scripts = m.pkgJson?.scripts ?? {};
-
+  // JS/TS: read from package.json scripts
   if (m.pkgJson) {
+    const scripts = m.pkgJson.scripts ?? {};
+    const run = pmRun(m.pkgJson);
     return {
-      devCommand: scripts.dev ? `${pmRun(m.pkgJson)} dev` : null,
-      buildCommand: scripts.build ? `${pmRun(m.pkgJson)} build` : null,
-      testCommand: scripts.test ? `${pmRun(m.pkgJson)} test` : null,
-      lintCommand: scripts.lint ? `${pmRun(m.pkgJson)} lint` : null,
-      formatCommand: scripts.format ? `${pmRun(m.pkgJson)} format` : null,
+      devCommand: scripts.dev ? `${run} dev` : null,
+      buildCommand: scripts.build ? `${run} build` : null,
+      testCommand: scripts.test ? `${run} test` : null,
+      lintCommand: scripts.lint ? `${run} lint` : null,
+      formatCommand: scripts.format ? `${run} format` : null,
     };
   }
 
-  if (m.language === "Go") {
-    return {
-      devCommand: "go run .",
-      buildCommand: "go build .",
-      testCommand: "go test ./...",
-      lintCommand: "golangci-lint run",
-      formatCommand: "gofmt -w .",
-    };
-  }
-
+  // Python: runner depends on uv vs pip
   if (m.language === "Python") {
-    const runner = m.pyProject?.includes("[tool.uv]") ? "uv run" : "python -m";
-    return {
-      devCommand: null,
-      buildCommand: null,
-      testCommand: `${runner} pytest`,
-      lintCommand: `${runner} ruff check .`,
-      formatCommand: `${runner} ruff format .`,
-    };
+    const r = m.pyProject?.includes("[tool.uv]") ? "uv run" : "python -m";
+    return { devCommand: null, buildCommand: null, testCommand: `${r} pytest`, lintCommand: `${r} ruff check .`, formatCommand: `${r} ruff format .` };
   }
 
-  if (m.gemfile) {
-    return {
-      devCommand: "bin/dev",
-      buildCommand: null,
-      testCommand: "bin/rails test",
-      lintCommand: "bin/rubocop",
-      formatCommand: null,
-    };
-  }
-
-  if (m.language === "PHP") {
-    return {
-      devCommand: "php artisan serve",
-      buildCommand: null,
-      testCommand: "php artisan test",
-      lintCommand: "vendor/bin/phpstan analyse",
-      formatCommand: "vendor/bin/pint",
-    };
-  }
-
-  if (m.language === "Rust") {
-    return {
-      devCommand: "cargo run",
-      buildCommand: "cargo build",
-      testCommand: "cargo test",
-      lintCommand: "cargo clippy",
-      formatCommand: "cargo fmt",
-    };
-  }
-
-  if (m.language === "Java" || m.language === "Kotlin") {
-    return {
-      devCommand: null,
-      buildCommand: "mvn package",
-      testCommand: "mvn test",
-      lintCommand: null,
-      formatCommand: null,
-    };
-  }
-
-  if (m.language === "Swift") {
-    return {
-      devCommand: null,
-      buildCommand: "swift build",
-      testCommand: "swift test",
-      lintCommand: "swiftlint",
-      formatCommand: "swift-format format -r .",
-    };
-  }
-
-  if (m.language === "Elixir") {
-    return {
-      devCommand: "mix phx.server",
-      buildCommand: "mix compile",
-      testCommand: "mix test",
-      lintCommand: "mix credo",
-      formatCommand: "mix format",
-    };
-  }
-
-  if (m.language === "C#") {
-    return {
-      devCommand: "dotnet run",
-      buildCommand: "dotnet build",
-      testCommand: "dotnet test",
-      lintCommand: null,
-      formatCommand: "dotnet format",
-    };
+  // Everything else: lookup table
+  if (m.language && LANGUAGE_SCRIPTS[m.language]) {
+    return LANGUAGE_SCRIPTS[m.language];
   }
 
   return { devCommand: null, buildCommand: null, testCommand: null, lintCommand: null, formatCommand: null };
