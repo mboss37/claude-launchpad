@@ -9,6 +9,10 @@ export function baseOptions(): BaseLayoutProps {
     githubUrl: `https://github.com/${gitConfig.user}/${gitConfig.repo}`,
     links: [
       {
+        text: 'Changelog',
+        url: '/docs/changelog',
+      },
+      {
         type: 'icon',
         label: 'npm',
         icon: (

@@ -1,0 +1,138 @@
+---
+title: Changelog
+description: Release history for Claude Launchpad.
+---
+
+## [0.6.0] - 2026-03-30
+
+### Added
+- Sprint review hook: PostToolUse hook detects sprint completion in TASKS.md and nudges a quality check before committing
+- Sprint Reviews section in generated CLAUDE.md
+- "When to re-run" sections in doctor, enhance, and eval docs
+- "Run once" / "Run anytime" labels on landing page command cards
+- "Keep your config healthy" guide in Getting Started docs
+
+## [0.5.4] - 2026-03-29
+
+### Added
+- `--fix` now auto-adds SessionStart hook (injects TASKS.md at startup)
+
+### Changed
+- `--fix` no longer shows the before-score - only the post-fix result
+- Post-fix report says "remaining issue(s) require manual intervention" instead of suggesting --fix again
+- Dry-run shows fix actions, skips unfixable issues
+
+## [0.5.3] - 2026-03-29
+
+### Changed
+- Doctor output: compact single-line issues (was 3 lines each with fix text)
+- Doctor `--fix` and `--fix --dry-run` now recommend running `enhance` as next step
+- Dry-run shows fix actions instead of problem messages, skips unfixable issues
+
+## [0.5.2] - 2026-03-29
+
+### Added
+- `doctor --fix --dry-run` - preview what fixes would be applied without modifying files
+- `pnpm publish:dev` / `pnpm publish:release` scripts for prerelease workflow
+
+### Changed
+- README rewritten based on 4-persona expert review (tech writer, junior dev, DevRel, security engineer)
+- `npx claude-launchpad` as primary CTA (zero-friction)
+- Added "Runs" column (Locally / Via Claude CLI) to command table
+
+## [0.5.1] - 2026-03-29
+
+### Added
+- 4 new doctor checks: deprecated `includeCoAuthoredBy`, monorepo `claudeMdExcludes` hint, hook timeouts on broad matchers, auto-memory disabled without manual strategy
+- SessionStart hook in init-generated settings.json - injects TASKS.md at session startup
+- Attribution migration auto-fix: `--fix` migrates deprecated `includeCoAuthoredBy` to `attribution` object
+- Enhance prompt: suggests path-scoped rules, `sandbox.network.allowedDomains`, `claudeMdExcludes` for monorepos
+- 2 new eval scenarios: `memory-persistence`, `deferred-tracking` - 15 total
+
+### Fixed
+- `doctor --fix` now re-scans and shows updated score after applying fixes
+
+### Changed
+- Hooks analyzer score weight: 20 to 15 per issue
+- Total tests: 91 to 99
+
+## [0.5.0] - 2026-03-29
+
+### Added
+- Security hardening: init generates credential deny rules (`~/.ssh/*`, `~/.aws/*`, `~/.npmrc`), sandbox enabled, bypass mode disabled
+- 5 new doctor checks: credential file exposure, blanket Bash approval, .env gap, bypass mode unprotected, sandbox not enabled
+- 4 new auto-fixes: credential deny rules, bypass disable, sandbox settings, .env to .claudeignore
+- 2 new eval scenarios: `credential-read`, `sandbox-escape`
+- Interactive eval mode: `eval` with no flags prompts for suite, runs, and model
+
+### Fixed
+- `build.gradle` detection bug - `||` on two promises always returned the first
+- Broader `.env` matching in .claudeignore fixer
+
+### Changed
+- Permissions analyzer score weight: 20 to 15 per issue
+- Security eval suite: 4 to 6 scenarios
+- Total tests: 71 to 91
+
+## [0.4.3] - 2026-03-29
+
+### Fixed
+- Eval sandbox now copies user's full `.claude/` config (settings.json, rules, hooks, permissions) and `.claudeignore`
+
+## [0.4.2] - 2026-03-29
+
+### Added
+- Memory & Learnings section in generated CLAUDE.md
+- PostCompact hook in generated settings.json
+- Deferred section in generated TASKS.md
+- Doctor checks for Memory section and PostCompact hook
+- `--fix` auto-adds Memory section and PostCompact hook
+
+## [0.4.1] - 2026-03-29
+
+### Changed
+- Refactored `tryFix()` from 73-line if/else chain to `FIX_TABLE` lookup pattern
+- Refactored `detectScripts()` from 112-line if/else chain to `LANGUAGE_SCRIPTS` config object
+
+### Added
+- 13 new tests for `detectScripts()` (58 to 71 tests)
+
+## [0.4.0] - 2026-03-28
+
+### Added
+- Enhanced `init`: generates 6 files (CLAUDE.md, TASKS.md, settings.json, .gitignore, .claudeignore, conventions.md)
+- `settings.json` includes `$schema` for IDE autocomplete, `permissions.deny` for security
+- Destructive command blocking hooks
+- Language-specific starter rules (13 languages)
+
+## [0.3.4] - 2026-03-28
+
+### Fixed
+- Security: command injection in hook generation (SAFE_FORMATTERS dict)
+
+### Added
+- Suite filtering for eval
+- Eval report output to `.claude/eval/`
+
+## [0.3.0] - 2026-03-28
+
+### Added
+- `doctor --watch`: polling-based live score updates
+- `.claudeignore` generation in `--fix`
+- `enhance` budget cap (120 lines)
+- Tech Stack section in generated CLAUDE.md
+
+## [0.2.2] - 2026-03-28
+
+### Added
+- Plugin submitted to marketplace
+- Docs page, privacy policy
+- 50 tests, 60KB package size
+
+## [0.1.0] - 2026-03-28
+
+### Added
+- Initial npm publish
+- `init`, `doctor`, `enhance`, `eval` commands
+- 7 analyzers, 7 eval scenarios
+- Stress tested across 8 stacks
