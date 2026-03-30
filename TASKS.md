@@ -55,6 +55,10 @@
 - [ ] r/ClaudeAI, r/vibecoding, r/commandline, r/opensource, r/coolgithubprojects
 - [ ] Plugin marketplace go-live (waiting on Anthropic review)
 
+### Memory Feature
+- [ ] Finalize standalone memory tool (SQLite + MCP + decay model + web UI)
+- [ ] Architecture review: integrate into launchpad or ship as extension
+
 ## Upcoming
 - **Sprint 15**: User testimonials, path-scoped rule generation, community scenario packs
 
