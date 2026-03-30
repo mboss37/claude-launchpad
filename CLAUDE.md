@@ -30,6 +30,14 @@ CLI toolkit that makes Claude Code setups measurably good — diagnose, scaffold
 - Type check: `pnpm typecheck`
 - Run locally: `npx tsx src/cli.ts <command>`
 
+## Sprint Reviews
+When all tasks in the current sprint are complete, do a quick quality check before committing:
+- Scan changed files for dead code, debug logs, and TODO hacks
+- Run tests and type-checker if available
+- Check for convention violations and hardcoded values
+- Fix any issues, then commit
+- Skip if the sprint was trivial (docs, config-only changes)
+
 ## Conventions
 - Conventional commits (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`)
 - Immutable data patterns — never mutate, always return new objects

@@ -35,10 +35,21 @@ claude-launchpad init
 
 - **CLAUDE.md** — stack, commands, conventions, guardrails, memory management instructions
 - **TASKS.md** — sprint tracking, session continuity, deferred issues
-- **settings.json** — `$schema`, credential deny rules (~/.ssh, ~/.aws, ~/.npmrc), sandbox enabled, bypass mode disabled, hooks for .env protection + destructive command blocking + auto-format + SessionStart + PostCompact
+- **settings.json** — `$schema`, credential deny rules (~/.ssh, ~/.aws, ~/.npmrc), sandbox enabled, bypass mode disabled, hooks for .env protection + destructive command blocking + auto-format + sprint review + SessionStart + PostCompact
 - **.gitignore** — prevents local settings, plans, memory from being committed
 - **.claudeignore** — language-specific ignore patterns
 - **conventions.md** — language-specific starter rules
+
+## Sprint review hook
+
+Init generates a PostToolUse hook that watches for edits to TASKS.md. When all tasks in the current sprint are checked off, it nudges Claude to do a quick quality check before committing:
+
+- Scans for unchecked `- [ ]` items under `## Current Sprint`
+- When zero remain and at least one `- [x]` exists, outputs a review nudge
+- Claude decides whether to act on it or skip if the changes are trivial
+- Works across long sessions with multiple sprints, even after context compaction
+
+The nudge is a suggestion, not a gate. Claude can ignore it for docs-only or config-only changes.
 
 ## Supported stacks
 

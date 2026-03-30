@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.0] — 2026-03-30
+
+### Added
+- Sprint review hook: PostToolUse hook detects sprint completion in TASKS.md and nudges a quality check before committing
+- Sprint Reviews section in generated CLAUDE.md
+- "When to re-run" sections in doctor, enhance, and eval docs
+- "Run once" / "Run anytime" labels on landing page command cards
+- "Keep your config healthy" guide in Getting Started docs
+
 ## [0.5.4] — 2026-03-29
 
 ### Added

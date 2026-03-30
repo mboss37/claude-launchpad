@@ -23,6 +23,11 @@
 
 ## Current Sprint: Sprint 14 — Launch Campaign
 
+### Features
+- [x] Sprint review hook — PostToolUse hook detects sprint completion in TASKS.md, nudges code review
+- [x] Sprint review CLAUDE.md section — quality check protocol for sprint boundaries
+- [x] Sprint review validation — manual testing on secondary project
+
 ### Week 1 — Foundation
 - [x] Submit to DevHunt (paid launch week)
 - [x] Logo created (rocket + terminal brackets)
