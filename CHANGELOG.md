@@ -1,140 +1,117 @@
 # Changelog
 
-## [0.6.0] — 2026-03-30
+## [0.6.0] - 2026-03-30
 
 ### Added
 - Sprint review hook: PostToolUse hook detects sprint completion in TASKS.md and nudges a quality check before committing
 - Sprint Reviews section in generated CLAUDE.md
-- "When to re-run" sections in doctor, enhance, and eval docs
-- "Run once" / "Run anytime" labels on landing page command cards
-- "Keep your config healthy" guide in Getting Started docs
 
-## [0.5.4] — 2026-03-29
+## [0.5.4] - 2026-03-29
 
 ### Added
 - `--fix` now auto-adds SessionStart hook (injects TASKS.md at startup)
 
 ### Changed
-- `--fix` no longer shows the before-score — only the post-fix result
+- `--fix` no longer shows the before-score - only the post-fix result
 - Post-fix report says "remaining issue(s) require manual intervention" instead of suggesting --fix again
 - Dry-run shows fix actions, skips unfixable issues
 
-## [0.5.3] — 2026-03-29
+## [0.5.3] - 2026-03-29
 
 ### Changed
 - Doctor output: compact single-line issues (was 3 lines each with fix text)
 - Doctor `--fix` and `--fix --dry-run` now recommend running `enhance` as next step
 - Dry-run shows fix actions instead of problem messages, skips unfixable issues
 
-## [0.5.2] — 2026-03-29
+## [0.5.2] - 2026-03-29
 
 ### Added
-- `doctor --fix --dry-run` — preview what fixes would be applied without modifying files
+- `doctor --fix --dry-run` - preview what fixes would be applied without modifying files
 - `pnpm publish:dev` / `pnpm publish:release` scripts for prerelease workflow
 
-### Changed
-- README rewritten based on 4-persona expert review (tech writer, junior dev, DevRel, security engineer)
-- Moved "advisory vs deterministic" pitch to opening paragraph
-- `npx claude-launchpad` as primary CTA (zero-friction)
-- Added "Runs" column (Locally / Via Claude CLI) to command table
-- Removed jargon from init description
-- Added compaction to glossary
-- Removed plugin section (not in marketplace yet)
-- Fixed scenario counts across all docs (15 total: 6+5+4)
-- Dev publish workflow in versioning conventions
-
-## [0.5.1] — 2026-03-29
+## [0.5.1] - 2026-03-29
 
 ### Added
-- **4 new doctor checks**: deprecated `includeCoAuthoredBy`, monorepo `claudeMdExcludes` hint, hook timeouts on broad matchers, auto-memory disabled without manual strategy
-- **SessionStart hook** in init-generated settings.json — injects TASKS.md at session startup
-- **Doctor hooks analyzer** now checks for SessionStart hook
-- **Attribution migration** auto-fix: `--fix` migrates deprecated `includeCoAuthoredBy` to `attribution` object
-- **Enhance prompt**: suggests path-scoped rules, `sandbox.network.allowedDomains`, `claudeMdExcludes` for monorepos
-- **2 new eval scenarios**: `memory-persistence` (document workarounds), `deferred-tracking` (park non-urgent issues) — 15 total
+- 4 new doctor checks: deprecated `includeCoAuthoredBy`, monorepo `claudeMdExcludes` hint, hook timeouts on broad matchers, auto-memory disabled without manual strategy
+- SessionStart hook in init-generated settings.json - injects TASKS.md at session startup
+- Doctor hooks analyzer now checks for SessionStart hook
+- Attribution migration auto-fix: `--fix` migrates deprecated `includeCoAuthoredBy` to `attribution` object
+- Enhance prompt: suggests path-scoped rules, `sandbox.network.allowedDomains`, `claudeMdExcludes` for monorepos
+- 2 new eval scenarios: `memory-persistence`, `deferred-tracking` - 15 total
 - `timeout` field parsed from hooks in settings.json
 
 ### Fixed
 - `doctor --fix` now re-scans and shows updated score after applying fixes (previously required a second run)
 
 ### Changed
-- Hooks analyzer score weight: 20 → 15 per issue (6 checks would bottom out too fast)
-- Total tests: 91 → 99
+- Hooks analyzer score weight: 20 to 15 per issue (6 checks would bottom out too fast)
+- Total tests: 91 to 99
 
-## [0.5.0] — 2026-03-29
+## [0.5.0] - 2026-03-29
 
 ### Added
-- **Security hardening**: init generates credential deny rules (`~/.ssh/*`, `~/.aws/*`, `~/.npmrc`), sandbox enabled, bypass mode disabled
-- **5 new doctor checks**: credential file exposure, blanket Bash approval, .env gap (hooks vs .claudeignore), bypass mode unprotected, sandbox not enabled
-- **4 new auto-fixes**: `--fix` adds credential deny rules, bypass disable, sandbox settings, .env to .claudeignore
-- **2 new eval scenarios**: `credential-read` (SSH key protection), `sandbox-escape` (.env bypass via Bash)
-- **Interactive eval mode**: `eval` with no flags prompts for suite, runs, and model selection
+- Security hardening: init generates credential deny rules (`~/.ssh/*`, `~/.aws/*`, `~/.npmrc`), sandbox enabled, bypass mode disabled
+- 5 new doctor checks: credential file exposure, blanket Bash approval, .env gap (hooks vs .claudeignore), bypass mode unprotected, sandbox not enabled
+- 4 new auto-fixes: `--fix` adds credential deny rules, bypass disable, sandbox settings, .env to .claudeignore
+- 2 new eval scenarios: `credential-read` (SSH key protection), `sandbox-escape` (.env bypass via Bash)
+- Interactive eval mode: `eval` with no flags prompts for suite, runs, and model selection
 - `.claudeignore` parsing added to ClaudeConfig for cross-checking with hooks
 
 ### Fixed
-- `build.gradle` detection bug — `||` on two promises always returned the first (Kotlin/Gradle projects misdetected)
+- `build.gradle` detection bug - `||` on two promises always returned the first (Kotlin/Gradle projects misdetected)
 - Broader `.env` matching in .claudeignore fixer (handles `.env*` pattern)
 - `makeConfig` test helpers missing `claudeignorePath`/`claudeignoreContent` defaults
 
 ### Changed
-- Permissions analyzer score weight: 20 → 15 per issue (8 checks would bottom out too fast)
-- Security eval suite: 4 → 6 scenarios
-- Total tests: 71 → 91
+- Permissions analyzer score weight: 20 to 15 per issue (8 checks would bottom out too fast)
+- Security eval suite: 4 to 6 scenarios
+- Total tests: 71 to 91
 
-## [0.4.3] — 2026-03-29
+## [0.4.3] - 2026-03-29
 
 ### Fixed
-- Eval sandbox now copies user's full `.claude/` config (settings.json, rules, hooks, permissions) and `.claudeignore` — previously only a bare CLAUDE.md from the scenario was used, making eval test Claude itself rather than the user's configuration
+- Eval sandbox now copies user's full `.claude/` config (settings.json, rules, hooks, permissions) and `.claudeignore` - previously only a bare CLAUDE.md from the scenario was used
 
-### Changed
-- Updated README and docs to explain how eval sandbox works (config copied, code not copied)
-
-## [0.4.2] — 2026-03-29
+## [0.4.2] - 2026-03-29
 
 ### Added
-- `## Memory & Learnings` section in generated CLAUDE.md — teaches Claude when/what/where to save memories
-- `PostCompact` hook in generated settings.json — re-injects TASKS.md after context compaction for session continuity
-- `## Deferred` section in generated TASKS.md — parking lot for known issues not urgent enough for current sprint
-- Doctor now checks for Memory section in CLAUDE.md quality analyzer
-- Doctor now checks for PostCompact hook in hooks analyzer
+- Memory & Learnings section in generated CLAUDE.md
+- PostCompact hook in generated settings.json - re-injects TASKS.md after context compaction
+- Deferred section in generated TASKS.md
+- Doctor checks for Memory section and PostCompact hook
 - `--fix` auto-adds Memory section and PostCompact hook
-- Enhance prompt now fills in Memory & Learnings section and suggests PostCompact hook for existing projects
+- Enhance prompt now suggests PostCompact hook for existing projects
 
-## [0.4.1] — 2026-03-29
+## [0.4.1] - 2026-03-29
 
 ### Changed
 - Refactored `tryFix()` from 73-line if/else chain to `FIX_TABLE` lookup pattern
 - Refactored `detectScripts()` from 112-line if/else chain to `LANGUAGE_SCRIPTS` config object
-- README: added `cd your-project` to install instructions, removed Cost column from command table
 
 ### Added
-- 13 new tests for `detectScripts()` covering all supported languages (58 → 71 tests)
+- 13 new tests for `detectScripts()` covering all supported languages (58 to 71 tests)
 
-## [0.4.0] — 2026-03-28
+## [0.4.0] - 2026-03-28
 
 ### Added
-- Enhanced `init`: generates 6 files (CLAUDE.md, TASKS.md, settings.json, .claude/.gitignore, .claudeignore, .claude/rules/conventions.md)
-- `settings.json` now includes `$schema` for IDE autocomplete, `permissions.deny` for security
+- Enhanced `init`: generates 6 files (CLAUDE.md, TASKS.md, settings.json, .gitignore, .claudeignore, conventions.md)
+- `settings.json` includes `$schema` for IDE autocomplete, `permissions.deny` for security
 - Destructive command blocking hooks (force-push, reset --hard, rm -rf)
 - Language-specific starter rules (13 languages)
-- Tailwind docs page rebuild
 
 ### Changed
 - Init detects 20+ frameworks from manifest files + lockfiles
 
-## [0.3.4] — 2026-03-28
+## [0.3.4] - 2026-03-28
 
 ### Fixed
 - Security: command injection in hook generation (SAFE_FORMATTERS dict)
 
 ### Added
-- 5 persona reviews incorporated
-- Tailwind redesign for landing page
-- Glossary in README
 - Suite filtering for eval
 - Eval report output to `.claude/eval/`
 
-## [0.3.0] — 2026-03-28
+## [0.3.0] - 2026-03-28
 
 ### Added
 - `doctor --watch`: polling-based live score updates
@@ -142,14 +119,13 @@
 - `enhance` budget cap (120 lines)
 - Tech Stack section in generated CLAUDE.md
 
-## [0.2.2] — 2026-03-28
+## [0.2.2] - 2026-03-28
 
 ### Added
 - Plugin submitted to marketplace
-- Docs page, privacy policy
 - 50 tests, 60KB package size
 
-## [0.1.0] — 2026-03-28
+## [0.1.0] - 2026-03-28
 
 ### Added
 - Initial npm publish
