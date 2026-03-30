@@ -119,7 +119,7 @@ Detects your project and generates Claude Code config that fits. No templates, n
 **What you get (6 files):**
 - `CLAUDE.md` — your stack, commands, conventions, guardrails, memory management instructions
 - `TASKS.md` — sprint tracking, session continuity, deferred issues parking
-- `.claude/settings.json` — `$schema` for IDE autocomplete, `permissions.deny` for credential + secret protection, sandbox enabled, bypass mode disabled, hooks for .env protection + destructive command blocking + auto-format + PostCompact context re-injection
+- `.claude/settings.json` — `$schema` for IDE autocomplete, `permissions.deny` for credential + secret protection, sandbox enabled, bypass mode disabled, hooks for .env protection + destructive command blocking + auto-format + sprint review + PostCompact context re-injection
 - `.claude/.gitignore` — prevents local settings and plans from being committed
 - `.claudeignore` — language-specific ignore patterns
 - `.claude/rules/conventions.md` — language-specific starter rules
@@ -208,7 +208,7 @@ Score below threshold = exit code 1 = PR blocked.
 
 **Doctor** reads your files and runs static analysis. No API calls. No network. No cost.
 
-**Init** scans manifest files (package.json, go.mod, pyproject.toml, etc.), detects your stack, and generates 6 files: CLAUDE.md (with memory management instructions), TASKS.md (with deferred issues section), settings.json (with credential deny rules, sandbox enabled, bypass mode disabled, hooks including PostCompact), .claude/.gitignore, .claudeignore, and language-specific rules. Formatter hooks use hardcoded safe commands only.
+**Init** scans manifest files (package.json, go.mod, pyproject.toml, etc.), detects your stack, and generates 6 files: CLAUDE.md (with sprint reviews and memory management), TASKS.md (with deferred issues section), settings.json (with credential deny rules, sandbox enabled, bypass mode disabled, hooks including sprint review and PostCompact), .claude/.gitignore, .claudeignore, and language-specific rules. Formatter hooks use hardcoded safe commands only.
 
 **Enhance** spawns `claude "prompt"` as an interactive child process. You see Claude's full UI. No data passes through the tool — it just launches Claude with a task.
 
