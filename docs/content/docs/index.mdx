@@ -100,6 +100,20 @@ npx claude-launchpad
   </Step>
 </Steps>
 
+## Keep your config healthy
+
+`init` runs once. The other three are designed to run again as your project evolves.
+
+| When | Run |
+|---|---|
+| Added dependencies, changed frameworks, modified hooks | `doctor --fix` |
+| Major refactor, new modules, CLAUDE.md feels stale | `enhance` |
+| Before a release, after config changes, Claude ignoring rules | `eval` |
+
+<Callout type="info">
+  Your codebase changes. Your config should keep up. Run `doctor` periodically. If the score drops, `--fix` and `enhance` bring it back.
+</Callout>
+
 ## All Commands
 
 | Command | What it does | Runs |

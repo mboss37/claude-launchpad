@@ -11,6 +11,7 @@ import {
   StethoscopeIcon,
   SparklesIcon,
   FlaskConicalIcon,
+  RefreshCwIcon,
   type LucideIcon,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -33,6 +34,7 @@ const steps = [
     verb: 'Detect your stack, generate everything',
     detail: 'Reads your repo. Produces CLAUDE.md, settings.json, hooks, permissions, .claudeignore, all tailored to your framework.',
     href: '/docs/init',
+    iterative: false,
   },
   {
     num: '02',
@@ -41,6 +43,7 @@ const steps = [
     verb: 'Find what\'s broken, fix it automatically',
     detail: '15 checks across security, hooks, permissions, and config quality. Auto-repairs what it can. Shows your score.',
     href: '/docs/doctor',
+    iterative: true,
   },
   {
     num: '03',
@@ -49,6 +52,7 @@ const steps = [
     verb: 'Let Claude rewrite your own instructions',
     detail: 'Spawns Claude to analyze your codebase and restructure CLAUDE.md with real architecture, conventions, and guardrails.',
     href: '/docs/enhance',
+    iterative: true,
   },
   {
     num: '04',
@@ -57,6 +61,7 @@ const steps = [
     verb: 'Prove Claude actually follows your rules',
     detail: '15 scenarios test your config against real tasks. Security, conventions, workflow. You get a score, not a feeling.',
     href: '/docs/eval',
+    iterative: true,
   },
 ] as const;
 
@@ -66,6 +71,26 @@ const heroStats = [
   { value: '4', label: 'commands: init, doctor, enhance, eval' },
   { value: '15', label: 'eval scenarios across security + workflow' },
   { value: '13', label: 'languages auto-detected from your stack' },
+] as const;
+
+const beforeItems = [
+  'No hooks configured',
+  'Credentials exposed (~/.ssh, ~/.aws)',
+  'No .claudeignore',
+  'Bypass mode unprotected',
+  'Sandbox disabled',
+  'No Off-Limits section',
+  'No memory instructions',
+] as const;
+
+const afterItems = [
+  'Hooks: .env protection, format, force-push',
+  'Credentials blocked (SSH, AWS, npm)',
+  '.claudeignore configured',
+  'Bypass mode disabled',
+  'Sandbox enabled',
+  'Off-Limits + Memory sections',
+  'SessionStart + PostCompact hooks',
 ] as const;
 
 const improvements = [
@@ -89,26 +114,6 @@ const improvements = [
     name: 'eval',
     label: 'Proves Claude follows your rules with 15 scenarios across security and workflow.',
   },
-] as const;
-
-const beforeItems = [
-  'No hooks configured',
-  'Credentials exposed (~/.ssh, ~/.aws)',
-  'No .claudeignore',
-  'Bypass mode unprotected',
-  'Sandbox disabled',
-  'No Off-Limits section',
-  'No memory instructions',
-] as const;
-
-const afterItems = [
-  'Hooks: .env protection, format, force-push',
-  'Credentials blocked (SSH, AWS, npm)',
-  '.claudeignore configured',
-  'Bypass mode disabled',
-  'Sandbox enabled',
-  'Off-Limits + Memory sections',
-  'SessionStart + PostCompact hooks',
 ] as const;
 
 const shellClassName = 'mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8';
@@ -241,6 +246,7 @@ function CommandStageCard({
   detail,
   href,
   icon: Icon,
+  iterative,
   name,
   num,
   verb,
@@ -250,6 +256,7 @@ function CommandStageCard({
   detail: string;
   href: string;
   icon: LucideIcon;
+  iterative: boolean;
   name: string;
   num: string;
   verb: string;
@@ -283,7 +290,7 @@ function CommandStageCard({
       <CardContent className={cn(featured ? 'pb-8' : '')}>
         <p className={cn('text-sm leading-6 text-fd-muted-foreground', featured ? 'max-w-md text-[15px] leading-7' : '')}>{detail}</p>
       </CardContent>
-      <CardFooter>
+      <CardFooter className="justify-between">
         <Link
           href={href}
           className={buttonVariants({
@@ -294,6 +301,9 @@ function CommandStageCard({
           Read docs
           <ArrowRightIcon className="h-4 w-4" />
         </Link>
+        <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-fd-muted-foreground">
+          {iterative ? <><RefreshCwIcon className="h-3 w-3" /> Run anytime</> : 'Run once'}
+        </span>
       </CardFooter>
     </Card>
   );

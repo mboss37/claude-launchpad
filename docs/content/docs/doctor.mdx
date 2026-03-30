@@ -67,6 +67,18 @@ claude-launchpad doctor
   After `--fix`, run `enhance` to have Claude restructure your CLAUDE.md. The fixer appends sections mechanically — enhance rewrites them into clean, project-specific content.
 </Callout>
 
+## When to re-run
+
+Doctor isn't a one-time setup tool. It's a health check. Re-run it when:
+
+- You add or remove dependencies
+- You change frameworks or build tools
+- You modify hooks, permissions, or settings manually
+- Your score drops after an `enhance` or manual CLAUDE.md edit
+- Before a release, to catch config drift
+
+Use `--watch` during active config editing to see your score update in real-time.
+
 ## Next
 
 <Cards>

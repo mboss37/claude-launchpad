@@ -29,6 +29,18 @@ Enhance spawns `claude "prompt"` as an interactive child process. You see Claude
 
 CLAUDE.md has a soft limit of ~150 actionable lines. Past that, Claude starts ignoring rules at the bottom. Doctor warns at 150. Enhance targets 120 to leave headroom, and moves detailed content to `.claude/rules/` files.
 
+## When to re-run
+
+CLAUDE.md gets stale as your codebase changes. Re-run enhance when:
+
+- You've done a major refactor or added new modules
+- Your architecture has shifted (new services, changed patterns)
+- Claude keeps making wrong assumptions about your codebase
+- Doctor shows your CLAUDE.md sections are missing or incomplete
+- It's been a few sprints and the instructions no longer match reality
+
+Each run rewrites CLAUDE.md from scratch based on the current codebase, so it won't accumulate stale content.
+
 ## Next
 
 <Cards>
