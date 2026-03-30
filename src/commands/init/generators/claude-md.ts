@@ -41,6 +41,15 @@ export function generateClaudeMd(options: InitOptions, detected: DetectedProject
 - Check the Session Log at the bottom of TASKS.md for where we left off
 - Update TASKS.md as you complete work`);
 
+  // Sprint Reviews
+  sections.push("", `## Sprint Reviews
+When all tasks in the current sprint are complete, do a quick quality check before committing:
+- Scan changed files for dead code, debug logs, and TODO hacks
+- Run tests and type-checker if available
+- Check for convention violations and hardcoded values
+- Fix any issues, then commit
+- Skip if the sprint was trivial (docs, config-only changes)`);
+
   // Conventions
   sections.push("", `## Conventions
 - Git: Conventional commits (\`feat:\`, \`fix:\`, \`docs:\`, \`refactor:\`, \`test:\`, \`chore:\`)`);

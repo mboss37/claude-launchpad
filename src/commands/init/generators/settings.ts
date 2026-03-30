@@ -55,6 +55,15 @@ export function generateSettings(detected: DetectedProject): ClaudeSettings {
     postToolUse.push(formatHook);
   }
 
+  // Sprint review: nudge when all current sprint tasks are complete
+  postToolUse.push({
+    matcher: "Edit|Write",
+    hooks: [{
+      type: "command",
+      command: "echo \"$TOOL_INPUT_FILE_PATH\" | grep -q TASKS.md || exit 0; section=$(sed -n '/^## Current Sprint/,/^## /p' TASKS.md 2>/dev/null); [ -z \"$section\" ] && exit 0; unchecked=$(echo \"$section\" | grep -cF '- [ ]' || true); checked=$(echo \"$section\" | grep -cF '- [x]' || true); [ \"$unchecked\" -eq 0 ] && [ \"$checked\" -gt 0 ] && echo 'Sprint complete — all current tasks done. Consider a quick quality check before committing: scan for dead code, debug artifacts, TODO hacks, and convention violations. Run tests if available. Skip if trivial.'; exit 0",
+    }],
+  });
+
   // SessionStart: inject TASKS.md at session startup
   const sessionStart: HookGroup[] = [{
     matcher: "startup|resume",

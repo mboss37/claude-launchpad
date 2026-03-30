@@ -6,6 +6,7 @@ import {
   ArrowRightIcon,
   CheckIcon,
   CopyIcon,
+  PackageIcon,
   RocketIcon,
   StethoscopeIcon,
   SparklesIcon,
@@ -133,7 +134,7 @@ function SectionHeading({
 }) {
   return (
     <div className="max-w-2xl">
-      <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-black dark:text-(--accent)/70">{eyebrow}</p>
+      <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-black dark:text-white/70">{eyebrow}</p>
       <h2 className="mt-3 text-2xl font-semibold tracking-tight text-fd-foreground sm:text-3xl">{title}</h2>
       <p className="mt-3 text-sm leading-6 text-fd-muted-foreground sm:text-base">{description}</p>
     </div>
@@ -159,7 +160,7 @@ function CopyButton({ text }: { text: string }) {
       className="h-8 w-8 rounded-full"
       aria-label="Copy to clipboard"
     >
-      {copied ? <CheckIcon className="h-3.5 w-3.5 text-black dark:text-(--accent)" /> : <CopyIcon className="h-3.5 w-3.5" />}
+      {copied ? <CheckIcon className="h-3.5 w-3.5 text-black dark:text-white" /> : <CopyIcon className="h-3.5 w-3.5" />}
     </Button>
   );
 }
@@ -168,12 +169,12 @@ function InstallBlock({ command, className = '' }: { command: string; className?
   return (
     <div
       className={cn(
-        'inline-flex w-full items-center justify-between gap-3 rounded-2xl border border-black/15 dark:border-(--accent-border) bg-white px-4 py-3 font-mono text-sm text-fd-foreground shadow-[0_10px_30px_rgba(15,23,42,0.06)] dark:bg-black/40 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] sm:w-auto',
+        'inline-flex h-10 w-full items-center justify-between gap-2 rounded-2xl border border-black/15 dark:border-white/10 bg-white px-3 font-mono text-[13px] text-fd-foreground shadow-[0_10px_30px_rgba(15,23,42,0.06)] dark:bg-black/40 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] sm:h-auto sm:w-auto sm:gap-3 sm:px-4 sm:py-3 sm:text-sm',
         className,
       )}
     >
       <div className="flex min-w-0 items-center gap-2 overflow-hidden">
-        <span className="select-none text-black dark:text-(--accent)">$</span>
+        <span className="select-none text-black dark:text-white">$</span>
         <span className="truncate">{command}</span>
       </div>
       <CopyButton text={command} />
@@ -181,27 +182,35 @@ function InstallBlock({ command, className = '' }: { command: string; className?
   );
 }
 
+function GitHubMarkIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className={className}>
+      <path d="M12 .5A11.5 11.5 0 0 0 .5 12.2c0 5.2 3.3 9.6 7.8 11.1.6.1.8-.3.8-.6v-2.1c-3.2.7-3.9-1.4-3.9-1.4-.5-1.4-1.3-1.8-1.3-1.8-1.1-.8.1-.8.1-.8 1.2.1 1.9 1.3 1.9 1.3 1.1 2 2.9 1.4 3.6 1.1.1-.8.4-1.4.8-1.7-2.5-.3-5.2-1.3-5.2-5.8 0-1.3.5-2.3 1.2-3.2-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.2 1.2a10.8 10.8 0 0 1 5.8 0c2.2-1.5 3.2-1.2 3.2-1.2.6 1.6.2 2.8.1 3.1.8.9 1.2 2 1.2 3.2 0 4.5-2.7 5.5-5.3 5.8.4.3.8 1 .8 2.1v3.1c0 .3.2.7.8.6a11.7 11.7 0 0 0 7.8-11.1A11.5 11.5 0 0 0 12 .5Z" />
+    </svg>
+  );
+}
+
 function HeroPanel() {
   return (
-    <Card className="overflow-hidden border-black/15 dark:border-(--accent-border) bg-[linear-gradient(180deg,rgba(16,185,129,0.08),rgba(255,255,255,0.94)_30%,rgba(255,255,255,1)_100%)] shadow-[0_24px_64px_rgba(16,24,40,0.08)] dark:bg-[linear-gradient(180deg,rgba(16,185,129,0.08),rgba(0,0,0,0))] dark:shadow-none">
+    <Card className="overflow-hidden border-black/15 dark:border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.04),rgba(255,255,255,0.94)_30%,rgba(255,255,255,1)_100%)] shadow-[0_24px_64px_rgba(16,24,40,0.08)] dark:bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(0,0,0,0))] dark:shadow-none">
       <CardHeader className="gap-5 border-b border-fd-border/80 pb-5">
         <div className="flex items-center justify-between gap-4">
-          <Badge variant="default" className="w-fit">
+          <Badge variant="default" className="w-fit bg-black text-white dark:bg-white dark:text-black">
             The full pipeline
           </Badge>
           <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-fd-muted-foreground">31 {'->'} 91</span>
         </div>
         <div className="grid gap-3 sm:grid-cols-[0.95fr_1.05fr]">
-          <div className="rounded-2xl border border-red-500/20 bg-white p-4 shadow-sm dark:bg-black/30 dark:shadow-none">
-            <div className="font-mono text-[11px] uppercase tracking-[0.22em] text-red-700/80 dark:text-red-300/80">Typical setup</div>
-            <div className="mt-3 text-4xl font-semibold tracking-tight text-red-700 dark:text-red-300">31/100</div>
+          <div className="rounded-2xl border border-fd-border bg-white p-4 shadow-sm dark:bg-black/30 dark:shadow-none">
+            <div className="font-mono text-[11px] uppercase tracking-[0.22em] text-fd-muted-foreground">Typical setup</div>
+            <div className="mt-3 text-4xl font-semibold tracking-tight text-fd-muted-foreground">31/100</div>
             <p className="mt-2 text-sm leading-6 text-fd-foreground/72 dark:text-fd-muted-foreground">
               Vague instructions, exposed paths, missing hooks.
             </p>
           </div>
-          <div className="rounded-2xl border border-black/15 dark:border-(--accent-border) bg-white p-4 shadow-sm dark:bg-black/30 dark:shadow-none">
-            <div className="font-mono text-[11px] uppercase tracking-[0.22em] text-black/80 dark:text-(--accent)/80">Launchpad</div>
-            <div className="mt-3 text-5xl font-semibold tracking-tight text-black dark:text-(--accent)">91/100</div>
+          <div className="rounded-2xl border border-black/15 dark:border-white/10 bg-white p-4 shadow-sm dark:bg-black/30 dark:shadow-none">
+            <div className="font-mono text-[11px] uppercase tracking-[0.22em] text-black/80 dark:text-white/80">Launchpad</div>
+            <div className="mt-3 text-5xl font-semibold tracking-tight text-black dark:text-white">91/100</div>
             <p className="mt-2 text-sm leading-6 text-fd-foreground/72 dark:text-fd-muted-foreground">
               Security rails, workflow hooks, and docs that match the repo.
             </p>
@@ -214,11 +223,11 @@ function HeroPanel() {
             key={name}
             className="grid gap-3 rounded-2xl border border-fd-border bg-white p-3 shadow-sm dark:bg-black/20 dark:shadow-none sm:grid-cols-[36px_minmax(0,1fr)]"
           >
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-(--accent-border) bg-black/5 dark:bg-(--accent-bg)">
-              <Icon className="h-4 w-4 text-black dark:text-(--accent)" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-fd-border bg-black/5 dark:bg-white/5">
+              <Icon className="h-4 w-4 text-black dark:text-white" />
             </div>
             <div>
-              <div className="font-mono text-[11px] uppercase tracking-[0.18em] text-black/65 dark:text-(--accent)/70">{name}</div>
+              <div className="font-mono text-[11px] uppercase tracking-[0.18em] text-black/65 dark:text-white/70">{name}</div>
               <p className="mt-1 text-sm leading-6 text-fd-foreground/72 dark:text-fd-muted-foreground">{label}</p>
             </div>
           </div>
@@ -250,7 +259,7 @@ function CommandStageCard({
   return (
     <Card
       className={cn(
-        'group h-full border-fd-border/80 bg-white transition-all hover:-translate-y-0.5 hover:border-(--accent-border) hover:shadow-[0_16px_40px_rgba(16,24,40,0.08)] dark:bg-fd-card/50 dark:hover:bg-fd-card dark:hover:shadow-none',
+        'group h-full border-fd-border/80 bg-white transition-all hover:-translate-y-0.5 hover:border-black/20 hover:shadow-[0_16px_40px_rgba(16,24,40,0.08)] dark:bg-fd-card/50 dark:hover:border-white/15 dark:hover:bg-fd-card dark:hover:shadow-none',
         className,
       )}
     >
@@ -260,8 +269,8 @@ function CommandStageCard({
             <Badge variant="outline" className="font-mono tracking-[0.2em]">
               {num}
             </Badge>
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-fd-border bg-fd-background/70 transition-colors group-hover:border-(--accent-border) group-hover:bg-(--accent-bg) dark:bg-black/20">
-              <Icon className="h-4 w-4 text-fd-muted-foreground transition-colors group-hover:text-black dark:group-hover:text-(--accent)" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-fd-border bg-fd-background/70 transition-colors group-hover:border-black/20 group-hover:bg-black/5 dark:bg-black/20 dark:group-hover:border-white/15 dark:group-hover:bg-white/5">
+              <Icon className="h-4 w-4 text-fd-muted-foreground transition-colors group-hover:text-black dark:group-hover:text-white" />
             </div>
           </div>
           {featured ? <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-fd-muted-foreground">Core</span> : null}
@@ -279,7 +288,7 @@ function CommandStageCard({
           href={href}
           className={buttonVariants({
             variant: 'ghost',
-            className: 'h-auto px-0 py-0 text-sm text-fd-foreground hover:bg-transparent hover:text-black dark:hover:text-(--accent)',
+            className: 'h-auto px-0 py-0 text-sm text-fd-foreground hover:bg-transparent hover:text-black dark:hover:text-white',
           })}
         >
           Read docs
@@ -297,24 +306,24 @@ function ProofBoard() {
         <CardHeader>
           <div className="flex items-center justify-between gap-4">
             <Badge variant="outline">Before</Badge>
-            <span className="text-2xl font-semibold tracking-tight text-red-700 dark:text-red-300">31/100</span>
+            <span className="text-2xl font-semibold tracking-tight text-fd-muted-foreground">31/100</span>
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
           {beforeItems.map((item) => (
             <div key={item} className="flex items-start gap-3 text-fd-muted-foreground">
-              <span className="mt-0.5 text-sm text-red-600 dark:text-red-400">✗</span>
+              <span className="mt-0.5 text-sm text-fd-muted-foreground">✗</span>
               <span className="leading-5">{item}</span>
             </div>
           ))}
         </CardContent>
       </Card>
 
-      <Card className="rounded-2xl border-(--accent-border) bg-white font-mono text-xs shadow-[0_16px_40px_rgba(16,24,40,0.08)] dark:bg-black/30 dark:shadow-none">
+      <Card className="rounded-2xl border-black/15 dark:border-white/10 bg-white font-mono text-xs shadow-[0_16px_40px_rgba(16,24,40,0.08)] dark:bg-black/30 dark:shadow-none">
         <CardHeader className="border-b border-fd-border/80 pb-5">
           <div className="flex items-center justify-between gap-4">
-            <Badge variant="default">After --fix</Badge>
-            <span className="text-3xl font-semibold tracking-tight text-black dark:text-(--accent)">91/100</span>
+            <Badge variant="default" className="bg-black text-white dark:bg-white dark:text-black">After --fix</Badge>
+            <span className="text-3xl font-semibold tracking-tight text-black dark:text-white">91/100</span>
           </div>
           <div className="grid gap-2 sm:grid-cols-3">
             <div>
@@ -334,7 +343,7 @@ function ProofBoard() {
         <CardContent className="grid gap-3 pt-6 sm:grid-cols-2">
           {afterItems.map((item) => (
             <div key={item} className="flex items-start gap-3 rounded-xl border border-fd-border bg-fd-background/70 p-3 dark:bg-black/20">
-              <span className="mt-0.5 text-sm text-black dark:text-(--accent)">✓</span>
+              <span className="mt-0.5 text-sm text-black dark:text-white">✓</span>
               <span className="leading-5 text-fd-muted-foreground">{item}</span>
             </div>
           ))}
@@ -348,36 +357,58 @@ export default function HomePage() {
   return (
     <div className="relative isolate overflow-hidden">
       <section className="relative">
-        <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,rgba(16,185,129,0.05)_0%,rgba(255,255,255,0)_60%)] dark:bg-[radial-gradient(ellipse_at_top,rgba(8,12,14,0.82)_0%,rgba(6,10,12,0.58)_36%,rgba(10,28,22,0.18)_62%,rgba(0,0,0,0)_100%)]" />
+        <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,rgba(15,23,42,0.04)_0%,rgba(255,255,255,0)_60%)] dark:bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.05)_0%,rgba(0,0,0,0)_62%)]" />
 
         <PageSection className="pt-12 sm:pt-16 md:pt-24">
           <div className="grid gap-8 sm:gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(360px,430px)] lg:items-start">
             <div className="max-w-3xl">
-              <Badge variant="outline" className="border-(--accent-border) bg-white/80 text-black dark:bg-transparent dark:text-(--accent)">
+              <Badge variant="outline" className="border-black/15 bg-white/80 px-2.5 py-0.5 text-[10px] tracking-[0.18em] text-black dark:border-white/10 dark:bg-transparent dark:text-white sm:px-3 sm:py-1 sm:text-[11px] sm:tracking-[0.22em]">
                 CLI toolkit for Claude Code
               </Badge>
-              <h1 className="mt-5 text-[2.5rem] font-bold tracking-tight leading-[1.05] text-fd-foreground sm:mt-6 sm:text-6xl md:text-7xl">
+              <h1 className="mt-4 text-[2.35rem] font-bold leading-[1.04] tracking-tight text-fd-foreground sm:mt-6 sm:text-6xl md:text-7xl">
                 Your Claude config
                 <span className="mt-2 block text-fd-foreground/55 dark:text-fd-muted-foreground">deserves better.</span>
               </h1>
-              <p className="mt-5 max-w-2xl text-sm leading-7 text-fd-foreground/72 dark:text-fd-muted-foreground sm:mt-6 sm:text-lg">
+              <p className="mt-4 max-w-2xl text-[15px] leading-7 text-fd-foreground/78 dark:text-fd-muted-foreground sm:mt-6 sm:text-lg">
                 From stale and insecure to codebase-aware, hardened, and verified. Four commands.
               </p>
 
-              <div className="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:items-center sm:gap-4">
-                <InstallBlock command="npm i -g claude-launchpad" />
-                <Link href="/docs" className={buttonVariants({ size: 'default', className: 'w-full rounded-2xl sm:h-[50px] sm:w-auto sm:px-6' })}>
-                  Read the docs
+              <div className="mt-6 flex items-center gap-2 sm:mt-8 sm:gap-4">
+                <div className="flex items-center gap-2 sm:hidden">
+                  <a
+                    href="https://github.com/mboss37/claude-launchpad"
+                    aria-label="Open GitHub repository"
+                    className={buttonVariants({ variant: 'outline', size: 'icon', className: 'h-10 w-10 rounded-xl' })}
+                  >
+                    <GitHubMarkIcon className="h-4 w-4" />
+                  </a>
+                  <a
+                    href="https://www.npmjs.com/package/claude-launchpad"
+                    aria-label="Open npm package"
+                    className={buttonVariants({ variant: 'outline', size: 'icon', className: 'h-10 w-10 rounded-xl' })}
+                  >
+                    <PackageIcon className="h-4 w-4" />
+                  </a>
+                </div>
+                <InstallBlock command="npm i -g claude-launchpad" className="hidden min-w-0 flex-1 sm:inline-flex sm:flex-none" />
+                <Link href="/docs" className={buttonVariants({ size: 'default', className: 'h-10 shrink-0 gap-1 rounded-xl px-3.5 text-[13px] font-semibold sm:h-[50px] sm:gap-2 sm:rounded-2xl sm:px-6 sm:text-sm sm:font-medium' })}>
+                  Docs
                   <ArrowRightIcon className="h-4 w-4" />
                 </Link>
               </div>
 
-              <div className="mt-8 grid gap-3 sm:mt-10 sm:gap-4 sm:grid-cols-3">
-                {heroStats.map((stat) => (
-                  <Card key={stat.label} className="rounded-xl border-fd-border bg-white shadow-[0_10px_24px_rgba(15,23,42,0.05)] dark:bg-fd-card/40 dark:shadow-none">
+              <div className="mt-7 grid grid-cols-2 gap-2.5 sm:mt-10 sm:gap-4 sm:grid-cols-3">
+                {heroStats.map((stat, index) => (
+                  <Card
+                    key={stat.label}
+                    className={cn(
+                      'rounded-xl border-fd-border bg-white shadow-[0_10px_24px_rgba(15,23,42,0.05)] dark:bg-fd-card/40 dark:shadow-none',
+                      index === 2 ? 'col-span-2 sm:col-span-1' : '',
+                    )}
+                  >
                     <CardContent className="p-4 sm:p-5">
                       <div className="text-xl font-semibold tracking-tight text-fd-foreground sm:text-2xl">{stat.value}</div>
-                      <p className="mt-2 text-xs leading-5 text-fd-foreground/70 dark:text-fd-muted-foreground sm:text-sm sm:leading-6">{stat.label}</p>
+                      <p className="mt-1.5 text-[11px] leading-5 text-fd-foreground/72 dark:text-fd-muted-foreground sm:mt-2 sm:text-sm sm:leading-6">{stat.label}</p>
                     </CardContent>
                   </Card>
                 ))}
@@ -427,9 +458,9 @@ export default function HomePage() {
       </PageSection>
 
       <PageSection className="pt-0">
-        <Card className="border-(--accent-border) bg-[linear-gradient(135deg,rgba(16,185,129,0.08),rgba(255,255,255,0.96)_38%,rgba(241,245,249,0.98)_100%)] dark:bg-[linear-gradient(135deg,rgba(16,185,129,0.12),rgba(17,24,39,0.7)_55%,rgba(0,0,0,0.75))]">
+        <Card className="border-black/15 dark:border-white/10 bg-[linear-gradient(135deg,rgba(15,23,42,0.04),rgba(255,255,255,0.96)_38%,rgba(241,245,249,0.98)_100%)] dark:bg-[linear-gradient(135deg,rgba(255,255,255,0.04),rgba(17,24,39,0.7)_55%,rgba(0,0,0,0.75))]">
           <CardHeader className="items-center text-center">
-            <Badge variant="default">Ready to run</Badge>
+            <Badge variant="default" className="bg-black text-white dark:bg-white dark:text-black">Ready to run</Badge>
             <CardTitle className="text-2xl sm:text-3xl">Open source. Ready to use.</CardTitle>
             <CardDescription className="max-w-2xl">
               Scaffold, diagnose, perfect, and prove. The full pipeline for Claude Code configs.
