@@ -67,3 +67,7 @@
 - Landing page polish: aligned homepage shell with header width, upgraded hero/cards/CTA, added shadcn-style UI primitives for the docs app.
 ### 2026-03-29 (session 12)
 - Homepage redesign: more editorial hero, asymmetric command layout, stronger proof board, improved light/dark presentation.
+### 2026-03-30 (session 13)
+- Sprint review hook (PostToolUse + CLAUDE.md section), v0.6.0 published.
+- Landing page: "Run once"/"Run anytime" labels, removed redundant command repetition.
+- Docs: "When to re-run" sections, changelog page + header nav link, cleaned CHANGELOG.
