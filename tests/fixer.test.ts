@@ -224,6 +224,43 @@ describe("applyFixes", () => {
     expect(result.fixed).toBe(0);
   });
 
+  it("creates /lp-enhance skill when missing", async () => {
+    const issues: DiagnosticIssue[] = [{
+      analyzer: "Rules",
+      severity: "low",
+      message: "No /lp-enhance skill found",
+      fix: "",
+    }];
+
+    const result = await applyFixes(issues, testDir);
+    expect(result.fixed).toBe(1);
+
+    const content = await readFile(
+      join(testDir, ".claude", "skills", "lp-enhance", "SKILL.md"),
+      "utf-8",
+    );
+    expect(content).toContain("lp-enhance");
+    expect(content).toContain("Budget Rule");
+  });
+
+  it("does not duplicate /lp-enhance skill", async () => {
+    await mkdir(join(testDir, ".claude", "skills", "lp-enhance"), { recursive: true });
+    await writeFile(
+      join(testDir, ".claude", "skills", "lp-enhance", "SKILL.md"),
+      "# existing skill",
+    );
+
+    const issues: DiagnosticIssue[] = [{
+      analyzer: "Rules",
+      severity: "low",
+      message: "No /lp-enhance skill found",
+      fix: "",
+    }];
+
+    const result = await applyFixes(issues, testDir);
+    expect(result.fixed).toBe(0);
+  });
+
   it("migrates includeCoAuthoredBy to attribution object", async () => {
     await mkdir(join(testDir, ".claude"), { recursive: true });
     await writeFile(

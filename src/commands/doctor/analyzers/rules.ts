@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { basename, join, dirname } from "node:path";
+import { homedir } from "node:os";
 import { fileExists } from "../../../lib/fs-utils.js";
 import type { ClaudeConfig, AnalyzerResult, DiagnosticIssue } from "../../../types/index.js";
 
@@ -15,6 +16,21 @@ export async function analyzeRules(config: ClaudeConfig): Promise<AnalyzerResult
       severity: "low",
       message: "No .claudeignore found — Claude may read noise files (node_modules, dist, lockfiles)",
       fix: "Run `claude-launchpad init` or `doctor --fix` to generate one",
+    });
+  }
+
+  // Check for /lp-enhance skill (new skills/ format or legacy commands/ format)
+  const hasSkillInProject = config.skills.some((s) =>
+    basename(s) === "SKILL.md" && s.includes("lp-enhance") || basename(s) === "lp-enhance.md",
+  );
+  const hasSkillGlobal = await fileExists(join(homedir(), ".claude", "skills", "lp-enhance", "SKILL.md"))
+    || await fileExists(join(homedir(), ".claude", "commands", "lp-enhance.md"));
+  if (!hasSkillInProject && !hasSkillGlobal) {
+    issues.push({
+      analyzer: "Rules",
+      severity: "low",
+      message: "No /lp-enhance skill found — use it inside Claude Code to AI-complete your CLAUDE.md",
+      fix: "Run `claude-launchpad init` or `doctor --fix` to generate the skill",
     });
   }
 

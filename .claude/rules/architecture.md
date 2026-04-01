@@ -7,12 +7,10 @@
 │   ├── commands/
 │   │   ├── init/                  # Project scaffolder (auto-detects stack)
 │   │   │   ├── index.ts           # Command + interactive prompts
-│   │   │   └── generators/        # CLAUDE.md, TASKS.md, settings.json generators
+│   │   │   └── generators/        # CLAUDE.md, TASKS.md, settings.json, skill generators
 │   │   ├── doctor/                # Config diagnostic engine
 │   │   │   ├── index.ts           # Command + report renderer
 │   │   │   └── analyzers/         # budget, settings, hooks, rules, permissions, mcp
-│   │   ├── enhance/               # AI-powered CLAUDE.md improver (spawns Claude headless)
-│   │   │   └── index.ts           # Command + prompt template
 │   │   └── eval/                  # Config testing engine
 │   │       ├── index.ts           # Command + result renderer
 │   │       ├── schema.ts          # YAML scenario validator
@@ -30,8 +28,8 @@
 
 ## Command Flow
 - `doctor` → analyzers scan `.claude/` → score + report → optional `--fix`
-- `init` → detect stack → prompt user → generate 6 files → report score
-- `enhance` → spawn Claude headless → AI rewrites CLAUDE.md → diff shown
+- `init` → detect stack → prompt user → generate 7 files (incl. lp-enhance skill) → report score
+- `/lp-enhance` → skill runs in Claude Code session → AI rewrites CLAUDE.md → suggests hooks + MCP
 - `eval` → load YAML scenarios → run Claude via Agent SDK → score checks → report
 
 ## Key Boundaries

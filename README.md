@@ -25,7 +25,7 @@ claude-launchpad init
 
 Detects your stack, generates `CLAUDE.md` with your commands and conventions, creates `TASKS.md` for tracking work across sessions, sets up hooks that auto-format code and block dangerous operations, and adds a `.claudeignore` so Claude skips `node_modules` and build artifacts.
 
-Then run `enhance` to have Claude read your actual codebase and fill in the architecture and guardrails — not boilerplate, real project-specific content. Requires Claude Code CLI.
+Then use `/lp-enhance` inside Claude Code to have Claude read your actual codebase and fill in the architecture and guardrails — not boilerplate, real project-specific content.
 
 ### Already have a project?
 
@@ -43,7 +43,7 @@ Scans your Claude Code config, gives you a score out of 100, and tells you exact
 | `claude-launchpad` | Score your config 0-100, list issues | Locally |
 | `claude-launchpad doctor --fix` | Auto-fix issues: hooks, rules, sections, .claudeignore | Locally |
 | `claude-launchpad doctor --watch` | Live score that updates when you save config files | Locally |
-| `claude-launchpad enhance` | Claude reads your code and completes CLAUDE.md | Via Claude CLI |
+| `/lp-enhance` (skill) | Claude reads your code and completes CLAUDE.md | Inside Claude Code |
 | `claude-launchpad eval` | Run Claude against test scenarios, prove config works | Via Claude CLI |
 
 ## Quick Start
@@ -116,25 +116,26 @@ Detects your project and generates Claude Code config that fits. No templates, n
 
 **Works with:** TypeScript, JavaScript, Python, Go, Ruby, Rust, Dart, PHP, Java, Kotlin, Swift, Elixir, C# — and detects frameworks (Next.js, FastAPI, Django, Rails, Laravel, Express, SvelteKit, Angular, NestJS, and 15+ more).
 
-**What you get (6 files):**
+**What you get (7 files):**
 - `CLAUDE.md` — your stack, commands, conventions, guardrails, memory management instructions
 - `TASKS.md` — sprint tracking, session continuity, deferred issues parking
 - `.claude/settings.json` — `$schema` for IDE autocomplete, `permissions.deny` for credential + secret protection, sandbox enabled, bypass mode disabled, hooks for .env protection + destructive command blocking + auto-format + sprint review + PostCompact context re-injection
 - `.claude/.gitignore` — prevents local settings and plans from being committed
 - `.claudeignore` — language-specific ignore patterns
+- `.claude/skills/lp-enhance/SKILL.md` — AI-powered CLAUDE.md improver skill (global or project scope)
 - `.claude/rules/conventions.md` — language-specific starter rules
 
 ## Enhance
 
-Init detects your stack but can't understand your architecture. Enhance opens Claude to read your actual code and fill in the details.
+Init detects your stack but can't understand your architecture. The `/lp-enhance` skill runs inside your Claude Code session to read your actual code and fill in the details.
 
-```bash
-claude-launchpad enhance
+```
+/lp-enhance
 ```
 
-Claude reads your codebase and updates CLAUDE.md with real content — actual architecture, actual conventions, actual guardrails, and memory management instructions. Not boilerplate. It also suggests project-specific hooks (including PostCompact for session continuity) and MCP servers based on what it finds.
+Installed as a skill during `init` (you pick global or project scope). Claude reads your codebase and updates CLAUDE.md with real content - actual architecture, actual conventions, actual guardrails, and memory management instructions. Not boilerplate. It also suggests project-specific hooks (including PostCompact for session continuity) and MCP servers based on what it finds.
 
-Stays under the 120-instruction budget. Overflows detailed content to `.claude/rules/` files.
+Stays under the 120-instruction budget. Overflows detailed content to `.claude/rules/` files. If the skill is missing, `doctor --fix` will create it.
 
 ## Eval
 
@@ -210,7 +211,7 @@ Score below threshold = exit code 1 = PR blocked.
 
 **Init** scans manifest files (package.json, go.mod, pyproject.toml, etc.), detects your stack, and generates 6 files: CLAUDE.md (with sprint reviews and memory management), TASKS.md (with deferred issues section), settings.json (with credential deny rules, sandbox enabled, bypass mode disabled, hooks including sprint review and PostCompact), .claude/.gitignore, .claudeignore, and language-specific rules. Formatter hooks use hardcoded safe commands only.
 
-**Enhance** spawns `claude "prompt"` as an interactive child process. You see Claude's full UI. No data passes through the tool — it just launches Claude with a task.
+**Enhance** is a `/lp-enhance` skill installed during `init`. It runs inside your active Claude Code session - no separate process, no overhead. Claude already has your codebase context, so it produces better results than an external command.
 
 **Eval** creates a temp directory, copies your full `.claude/` config (settings.json, rules, hooks, permissions) and `.claudeignore` into it, writes seed files from the scenario YAML, initializes a git repo, runs Claude via the Agent SDK (or falls back to CLI), then checks the output with grep/file assertions. Your code is never copied — only your Claude Code configuration. Sandbox is cleaned up after (or preserved with `--debug`).
 

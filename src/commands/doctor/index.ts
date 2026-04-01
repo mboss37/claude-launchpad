@@ -86,7 +86,7 @@ export function createDoctorCommand(): Command {
             if (skipped > 0) {
               log.info(`${skipped} issue(s) require manual intervention.`);
             }
-            log.info(`Then run ${chalk.bold("claude-launchpad enhance")} to have Claude restructure and complete your CLAUDE.md.`);
+            log.info(`Then use ${chalk.bold("/lp-enhance")} inside Claude Code to have Claude restructure and complete your CLAUDE.md.`);
             return;
           }
 
@@ -111,7 +111,7 @@ export function createDoctorCommand(): Command {
               analyzeMcp(updatedConfig),
             ]);
             renderDoctorReport(updatedResults, { afterFix: true });
-            log.info(`Then run ${chalk.bold("claude-launchpad enhance")} to have Claude restructure and complete your CLAUDE.md.`);
+            log.info(`Then use ${chalk.bold("/lp-enhance")} inside Claude Code to have Claude restructure and complete your CLAUDE.md.`);
           }
         }
       }

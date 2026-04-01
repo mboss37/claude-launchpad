@@ -1,45 +1,45 @@
 ---
-title: enhance
-description: Claude reads your codebase and completes CLAUDE.md with real content.
+title: lp-enhance
+description: AI-powered CLAUDE.md improver - runs as a /lp-enhance skill inside Claude Code.
 ---
 
-Init detects your stack but can't understand your architecture. Enhance opens Claude to read your actual code and fill in the details.
+Init detects your stack but can't understand your architecture. The `/lp-enhance` skill runs inside your Claude Code session to read your actual code and fill in the details.
 
-```bash
-claude-launchpad enhance
+```
+/lp-enhance
 ```
 
-Requires Claude Code CLI installed and authenticated.
+## Installation
+
+The skill is installed during `init` - you choose global or project scope:
+
+- **Project scope** (`.claude/skills/lp-enhance/SKILL.md`) - available in this project only
+- **Global scope** (`~/.claude/skills/lp-enhance/SKILL.md`) - available in all projects
+
+If missing, `doctor --fix` creates it at project scope.
 
 ## What it does
 
-- Opens an interactive Claude session with a pre-loaded task
 - Fills in Architecture, Conventions, Off-Limits, Memory & Learnings, Key Decisions
-- Stays under the 120-instruction budget — overflows detailed content to `.claude/rules/`
+- Stays under the 120-instruction budget - overflows detailed content to `.claude/rules/`
 - Suggests project-specific hooks (including SessionStart and PostCompact)
 - Suggests path-scoped rules, sandbox network domains, and monorepo excludes
 - Suggests MCP servers based on detected external services
-- You see Claude working in real-time
-
-## How it works
-
-Enhance spawns `claude "prompt"` as an interactive child process. You see Claude's full UI. No data passes through the tool — it just launches Claude with a task.
+- Runs inside your session - Claude already has your codebase context
 
 ## Instruction budget
 
-CLAUDE.md has a soft limit of ~150 actionable lines. Past that, Claude starts ignoring rules at the bottom. Doctor warns at 150. Enhance targets 120 to leave headroom, and moves detailed content to `.claude/rules/` files.
+CLAUDE.md has a soft limit of ~150 actionable lines. Past that, Claude starts ignoring rules at the bottom. Doctor warns at 150. The skill targets 120 to leave headroom, and moves detailed content to `.claude/rules/` files.
 
 ## When to re-run
 
-CLAUDE.md gets stale as your codebase changes. Re-run enhance when:
+CLAUDE.md gets stale as your codebase changes. Re-run `/lp-enhance` when:
 
 - You've done a major refactor or added new modules
 - Your architecture has shifted (new services, changed patterns)
 - Claude keeps making wrong assumptions about your codebase
 - Doctor shows your CLAUDE.md sections are missing or incomplete
 - It's been a few sprints and the instructions no longer match reality
-
-Each run rewrites CLAUDE.md from scratch based on the current codebase, so it won't accumulate stale content.
 
 ## Next
 

@@ -26,6 +26,11 @@ claude-launchpad init
   <Folder name=".claude" defaultOpen>
     <File name="settings.json" />
     <File name=".gitignore" />
+    <Folder name="skills">
+      <Folder name="lp-enhance">
+        <File name="SKILL.md" />
+      </Folder>
+    </Folder>
     <Folder name="rules">
       <File name="conventions.md" />
     </Folder>
@@ -38,6 +43,7 @@ claude-launchpad init
 - **settings.json** — `$schema`, credential deny rules (~/.ssh, ~/.aws, ~/.npmrc), sandbox enabled, bypass mode disabled, hooks for .env protection + destructive command blocking + auto-format + sprint review + SessionStart + PostCompact
 - **.gitignore** — prevents local settings, plans, memory from being committed
 - **.claudeignore** — language-specific ignore patterns
+- **lp-enhance skill** — AI-powered CLAUDE.md improver (`.claude/skills/lp-enhance/SKILL.md`). Project scope keeps it in your repo; global scope makes it available in all projects.
 - **conventions.md** — language-specific starter rules
 
 ## Sprint review hook
@@ -58,7 +64,7 @@ The nudge is a suggestion, not a gate. Claude can ignore it for docs-only or con
 **Frameworks:** Next.js, FastAPI, Django, Rails, Laravel, Express, SvelteKit, Angular, NestJS, and 15+ more.
 
 <Callout type="info">
-  After init, run `enhance` to have Claude read your actual codebase and fill in the architecture and guardrails — not boilerplate, real project-specific content.
+  After init, use `/lp-enhance` inside Claude Code to have Claude read your actual codebase and fill in the architecture and guardrails - not boilerplate, real project-specific content.
 </Callout>
 
 ## Next

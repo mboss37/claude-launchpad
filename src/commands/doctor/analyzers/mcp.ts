@@ -9,7 +9,7 @@ export async function analyzeMcp(config: ClaudeConfig): Promise<AnalyzerResult> 
     issues.push({
       analyzer: "MCP",
       severity: "info",
-      message: "No MCP servers configured. Run `claude-launchpad enhance` to get stack-specific recommendations.",
+      message: "No MCP servers configured. Use `/lp-enhance` in Claude Code to get stack-specific recommendations.",
     });
     return { name: "MCP Servers", issues, score: 50 };
   }

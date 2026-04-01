@@ -1,6 +1,7 @@
 import { Command } from "commander";
-import { input, confirm } from "@inquirer/prompts";
+import { input, confirm, select } from "@inquirer/prompts";
 import { writeFile, mkdir, readFile } from "node:fs/promises";
+import { homedir } from "node:os";
 import { join } from "node:path";
 import { printBanner, log } from "../../lib/output.js";
 import { fileExists } from "../../lib/fs-utils.js";
@@ -10,6 +11,7 @@ import { generateClaudeMd } from "./generators/claude-md.js";
 import { generateTasksMd } from "./generators/tasks-md.js";
 import { generateSettings } from "./generators/settings.js";
 import { generateClaudeignore } from "./generators/claudeignore.js";
+import { generateEnhanceSkill } from "./generators/skill-enhance.js";
 
 export function createInitCommand(): Command {
   return new Command("init")
@@ -56,16 +58,17 @@ export function createInitCommand(): Command {
         });
         if (!overwrite) {
           log.info("Keeping existing CLAUDE.md");
+          await createEnhanceSkillPrompt(root, false);
           log.step("Tip: run `claude-launchpad doctor` to check your existing config");
           return;
         }
       }
 
-      await scaffold(root, options, detected);
+      await scaffold(root, options, detected, opts.yes);
     });
 }
 
-async function scaffold(root: string, options: InitOptions, detected: DetectedProject): Promise<void> {
+async function scaffold(root: string, options: InitOptions, detected: DetectedProject, skipPrompts: boolean): Promise<void> {
   log.step("Generating configuration...");
 
   const claudeMd = generateClaudeMd(options, detected);
@@ -123,8 +126,12 @@ async function scaffold(root: string, options: InitOptions, detected: DetectedPr
   if (!hasClaudeignore) log.success("Generated .claudeignore");
   if (!hasRules) log.success("Generated .claude/rules/conventions.md");
 
+  // Offer to create the /lp-enhance skill
+  await createEnhanceSkillPrompt(root, skipPrompts);
+
   log.blank();
   log.success("Done! Run `claude` to start.");
+  log.info("Use `/lp-enhance` inside Claude Code to have AI complete your CLAUDE.md.");
   log.info("Run `claude-launchpad doctor` to check your config quality.");
   log.blank();
 }
@@ -163,6 +170,36 @@ function generateStarterRules(detected: DetectedProject): string {
   return lines.join("\n");
 }
 
+
+async function createEnhanceSkillPrompt(root: string, skipPrompts: boolean): Promise<void> {
+  const projectPath = join(root, ".claude", "skills", "lp-enhance", "SKILL.md");
+  const globalPath = join(homedir(), ".claude", "skills", "lp-enhance", "SKILL.md");
+  // Also check legacy commands/ location
+  const legacyProject = join(root, ".claude", "commands", "lp-enhance.md");
+  const legacyGlobal = join(homedir(), ".claude", "commands", "lp-enhance.md");
+
+  if (await fileExists(projectPath) || await fileExists(globalPath)
+    || await fileExists(legacyProject) || await fileExists(legacyGlobal)) return;
+
+  const scope = skipPrompts ? "project" : await select({
+    message: "Install /lp-enhance skill (AI-powered CLAUDE.md improver):",
+    choices: [
+      { value: "project", name: "Project scope (.claude/skills/)" },
+      { value: "global", name: "Global scope (~/.claude/skills/)" },
+      { value: "skip", name: "Skip" },
+    ],
+  });
+
+  if (scope === "skip") return;
+
+  const targetDir = scope === "global"
+    ? join(homedir(), ".claude", "skills", "lp-enhance")
+    : join(root, ".claude", "skills", "lp-enhance");
+
+  await mkdir(targetDir, { recursive: true });
+  await writeFile(join(targetDir, "SKILL.md"), generateEnhanceSkill());
+  log.success(`Generated /lp-enhance skill (${scope} scope)`);
+}
 
 async function mergeSettings(
   existingPath: string,

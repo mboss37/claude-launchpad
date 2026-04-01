@@ -15,10 +15,10 @@ CLI toolkit that makes Claude Code setups measurably good — diagnose, scaffold
 - Update TASKS.md as you complete work
 
 ## Architecture
-- Four commands: `doctor` (diagnose), `init` (scaffold), `enhance` (AI-improve CLAUDE.md), `eval` (test configs)
+- Three CLI commands: `doctor` (diagnose), `init` (scaffold), `eval` (test configs)
+- `/lp-enhance` skill: AI-powered CLAUDE.md improver, runs inside Claude Code session (installed by init)
 - `doctor` is pure static analysis — no API calls, no cost, works offline; `--fix` auto-repairs issues
-- `init` generates 6 files (CLAUDE.md, TASKS.md, settings.json, .gitignore, .claudeignore, rules) — 91% score out of the box
-- `enhance` spawns Claude headless to rewrite CLAUDE.md based on codebase analysis
+- `init` generates 7 files (CLAUDE.md, TASKS.md, settings.json, .gitignore, .claudeignore, rules, lp-enhance skill)
 - `eval` runs Claude via Agent SDK against YAML scenarios and scores config quality
 - Distributed as npm package (`npx claude-launchpad`) — users never clone this repo
 - See `.claude/rules/architecture.md` for full project structure and command flow

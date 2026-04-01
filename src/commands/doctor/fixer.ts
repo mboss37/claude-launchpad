@@ -1,8 +1,11 @@
 import { readFile, writeFile, mkdir, access } from "node:fs/promises";
 import { join } from "node:path";
+import { homedir } from "node:os";
 import { log } from "../../lib/output.js";
+import { fileExists } from "../../lib/fs-utils.js";
 import { detectProject } from "../../lib/detect.js";
 import { generateClaudeignore } from "../init/generators/claudeignore.js";
+import { generateEnhanceSkill } from "../init/generators/skill-enhance.js";
 import type { DiagnosticIssue, DetectedProject } from "../../types/index.js";
 
 interface FixResult {
@@ -47,7 +50,7 @@ const FIX_TABLE: ReadonlyArray<{ analyzer: string; match: string; fix: FixFn }> 
   { analyzer: "Hooks", match: ".env file protection", fix: (root) => addEnvProtectionHook(root) },
   { analyzer: "Hooks", match: "auto-format", fix: (root, detected) => addAutoFormatHook(root, detected) },
   { analyzer: "Hooks", match: "No PreToolUse", fix: (root) => addEnvProtectionHook(root) },
-  { analyzer: "Quality", match: "Architecture", fix: (root) => addClaudeMdSection(root, "## Architecture", "<!-- TODO: Describe your codebase structure. Run `claude-launchpad enhance` to auto-fill this. -->") },
+  { analyzer: "Quality", match: "Architecture", fix: (root) => addClaudeMdSection(root, "## Architecture", "<!-- TODO: Describe your codebase structure. Run `/lp-enhance` to auto-fill this. -->") },
   { analyzer: "Quality", match: "Off-Limits", fix: (root) => addClaudeMdSection(root, "## Off-Limits", "- Never hardcode secrets - use environment variables\n- Never write to `.env` files\n- Never expose internal error details in API responses") },
   { analyzer: "Quality", match: "Commands", fix: (root) => addClaudeMdSection(root, "## Commands", "<!-- TODO: Add your dev/build/test commands -->") },
   { analyzer: "Quality", match: "Stack", fix: (root, detected) => {
@@ -66,6 +69,7 @@ const FIX_TABLE: ReadonlyArray<{ analyzer: string; match: string; fix: FixFn }> 
   { analyzer: "Permissions", match: "Bypass permissions mode", fix: (root) => addBypassDisable(root) },
   { analyzer: "Permissions", match: "Sandbox not enabled", fix: (root) => addSandboxSettings(root) },
   { analyzer: "Permissions", match: ".env is protected by hooks but not in .claudeignore", fix: (root) => addEnvToClaudeignore(root) },
+  { analyzer: "Rules", match: "No /lp-enhance skill", fix: (root) => createEnhanceSkill(root) },
   { analyzer: "Settings", match: "Deprecated includeCoAuthoredBy", fix: (root) => migrateAttribution(root) },
   { analyzer: "Hooks", match: "SessionStart", fix: (root) => addSessionStartHook(root) },
 ];
@@ -349,6 +353,23 @@ async function createStarterRules(root: string): Promise<boolean> {
   );
 
   log.success("Created .claude/rules/conventions.md with starter rules");
+  return true;
+}
+
+async function createEnhanceSkill(root: string): Promise<boolean> {
+  const skillDir = join(root, ".claude", "skills", "lp-enhance");
+  const skillPath = join(skillDir, "SKILL.md");
+  const globalPath = join(homedir(), ".claude", "skills", "lp-enhance", "SKILL.md");
+  // Also check legacy commands/ location
+  const legacyProject = join(root, ".claude", "commands", "lp-enhance.md");
+  const legacyGlobal = join(homedir(), ".claude", "commands", "lp-enhance.md");
+
+  if (await fileExists(skillPath) || await fileExists(globalPath)
+    || await fileExists(legacyProject) || await fileExists(legacyGlobal)) return false;
+
+  await mkdir(skillDir, { recursive: true });
+  await writeFile(skillPath, generateEnhanceSkill());
+  log.success("Generated /lp-enhance skill (.claude/skills/lp-enhance/)");
   return true;
 }
 

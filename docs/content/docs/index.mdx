@@ -42,7 +42,7 @@ npx claude-launchpad
     ```bash
     claude-launchpad init
     ```
-    Generates 6 files: CLAUDE.md, TASKS.md, settings.json (with security, hooks, sandbox), .claudeignore, rules, .gitignore. Scores ~93% out of the box.
+    Generates 7 files: CLAUDE.md, TASKS.md, settings.json (with security, hooks, sandbox), .claudeignore, rules, .gitignore, and the `/lp-enhance` skill. Scores ~93% out of the box.
   </Step>
   <Step>
     ### Diagnose + fix
@@ -53,10 +53,10 @@ npx claude-launchpad
   </Step>
   <Step>
     ### Let Claude perfect it
-    ```bash
-    claude-launchpad enhance
     ```
-    Claude reads your codebase, restructures CLAUDE.md, and fills in architecture, conventions, and guardrails with real content.
+    /lp-enhance
+    ```
+    Inside Claude Code, run the skill. Claude reads your codebase, restructures CLAUDE.md, and fills in architecture, conventions, and guardrails with real content.
   </Step>
   <Step>
     ### Prove it works
@@ -83,14 +83,14 @@ npx claude-launchpad
     ```bash
     claude-launchpad doctor --fix
     ```
-    Adds security rules, hooks, permissions, sandbox, missing CLAUDE.md sections. Jumps to ~86%.
+    Adds security rules, hooks, permissions, sandbox, missing CLAUDE.md sections, and the `/lp-enhance` skill. Jumps to ~86%.
   </Step>
   <Step>
     ### Let Claude clean it up
-    ```bash
-    claude-launchpad enhance
     ```
-    The fixer appends sections mechanically. Enhance has Claude restructure and rewrite CLAUDE.md into clean, project-specific content.
+    /lp-enhance
+    ```
+    Inside Claude Code, type `/lp-enhance`. The fixer appends sections mechanically - the skill has Claude restructure and rewrite CLAUDE.md into clean, project-specific content.
   </Step>
   <Step>
     ### Prove it works
@@ -107,11 +107,11 @@ npx claude-launchpad
 | When | Run |
 |---|---|
 | Added dependencies, changed frameworks, modified hooks | `doctor --fix` |
-| Major refactor, new modules, CLAUDE.md feels stale | `enhance` |
+| Major refactor, new modules, CLAUDE.md feels stale | `/lp-enhance` |
 | Before a release, after config changes, Claude ignoring rules | `eval` |
 
 <Callout type="info">
-  Your codebase changes. Your config should keep up. Run `doctor` periodically. If the score drops, `--fix` and `enhance` bring it back.
+  Your codebase changes. Your config should keep up. Run `doctor` periodically. If the score drops, `--fix` and `/lp-enhance` bring it back.
 </Callout>
 
 ## All Commands
@@ -122,7 +122,7 @@ npx claude-launchpad
 | `claude-launchpad` | Score your config 0-100, list issues | Locally |
 | `claude-launchpad doctor --fix` | Auto-fix issues: hooks, rules, sections, .claudeignore | Locally |
 | `claude-launchpad doctor --watch` | Live score that updates when you save config files | Locally |
-| `claude-launchpad enhance` | Claude reads your code and completes CLAUDE.md | Via Claude CLI |
+| `/lp-enhance` (skill) | Claude reads your code and completes CLAUDE.md | Inside Claude Code |
 | `claude-launchpad eval` | Run Claude against test scenarios, prove config works | Via Claude CLI |
 
 <Callout type="info">

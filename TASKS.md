@@ -56,8 +56,11 @@
 - [ ] Plugin marketplace go-live (waiting on Anthropic review)
 
 ### Memory Feature
-- [ ] Finalize standalone memory tool (SQLite + MCP + decay model + web UI)
-- [ ] Architecture review: integrate into launchpad or ship as extension
+- [x] Finalize standalone memory tool (SQLite + MCP + decay model + web UI)
+- [x] Architecture review: integrate into launchpad as optional `memory` command
+- [ ] Integrate agentic-memory into launchpad (lazy-loaded, optional subcommand)
+- [ ] Add `memory` to doctor checks (detect if installed, report health)
+- [ ] Create /lp-memory-setup skill (guided installation)
 
 ## Upcoming
 - **Sprint 15**: User testimonials, path-scoped rule generation, community scenario packs

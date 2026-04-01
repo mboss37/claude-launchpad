@@ -3,7 +3,6 @@ import { join } from "node:path";
 import { createInitCommand } from "./commands/init/index.js";
 import { createDoctorCommand } from "./commands/doctor/index.js";
 import { createEvalCommand } from "./commands/eval/index.js";
-import { createEnhanceCommand } from "./commands/enhance/index.js";
 import { printBanner, log } from "./lib/output.js";
 import { fileExists } from "./lib/fs-utils.js";
 
@@ -25,6 +24,7 @@ const program = new Command()
       log.blank();
       log.step("Run `claude-launchpad init` to set up your project");
       log.step("Run `claude-launchpad doctor` to diagnose an existing config");
+      log.step("Use `/lp-enhance` skill inside Claude Code to AI-complete your CLAUDE.md");
       log.step("Run `claude-launchpad eval` to test your config quality");
       log.blank();
     }
@@ -32,7 +32,6 @@ const program = new Command()
 
 program.addCommand(createInitCommand());
 program.addCommand(createDoctorCommand());
-program.addCommand(createEnhanceCommand());
 program.addCommand(createEvalCommand());
 
 program.parse();
