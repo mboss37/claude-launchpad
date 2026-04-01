@@ -11,7 +11,7 @@ import {
   StethoscopeIcon,
   SparklesIcon,
   FlaskConicalIcon,
-  RefreshCwIcon,
+  BrainIcon,
   type LucideIcon,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -34,25 +34,25 @@ const steps = [
     verb: 'Detect your stack, generate everything',
     detail: 'Reads your repo. Produces CLAUDE.md, settings.json, hooks, permissions, .claudeignore, all tailored to your framework.',
     href: '/docs/init',
-    iterative: false,
+    tag: 'CLI',
   },
   {
     num: '02',
-    name: 'doctor --fix',
+    name: 'doctor',
     icon: StethoscopeIcon,
     verb: 'Find what\'s broken, fix it automatically',
     detail: '15 checks across security, hooks, permissions, and config quality. Auto-repairs what it can. Shows your score.',
     href: '/docs/doctor',
-    iterative: true,
+    tag: 'CLI',
   },
   {
     num: '03',
-    name: 'enhance',
+    name: '/lp-enhance',
     icon: SparklesIcon,
     verb: 'Let Claude rewrite your own instructions',
-    detail: 'Spawns Claude to analyze your codebase and restructure CLAUDE.md with real architecture, conventions, and guardrails.',
+    detail: 'Runs inside Claude Code. Analyzes your codebase and restructures CLAUDE.md with real architecture, conventions, and guardrails.',
     href: '/docs/enhance',
-    iterative: true,
+    tag: 'Skill',
   },
   {
     num: '04',
@@ -61,14 +61,23 @@ const steps = [
     verb: 'Prove Claude actually follows your rules',
     detail: '15 scenarios test your config against real tasks. Security, conventions, workflow. You get a score, not a feeling.',
     href: '/docs/eval',
-    iterative: true,
+    tag: 'CLI',
+  },
+  {
+    num: '05',
+    name: 'memory',
+    icon: BrainIcon,
+    verb: 'Persistent intelligent memory across sessions',
+    detail: 'Decay-based memory system with SQLite, FTS5 search, and 7 MCP tools. Memories fade naturally. Context is auto-injected.',
+    href: '/docs/memory',
+    tag: 'CLI',
   },
 ] as const;
 
 const trustPills = ['Open source', 'MIT licensed'] as const;
 
 const heroStats = [
-  { value: '4', label: 'commands: init, doctor, enhance, eval' },
+  { value: '5', label: 'commands: init, doctor, enhance, eval, memory' },
   { value: '15', label: 'eval scenarios across security + workflow' },
   { value: '13', label: 'languages auto-detected from your stack' },
 ] as const;
@@ -101,7 +110,7 @@ const improvements = [
   },
   {
     icon: StethoscopeIcon,
-    name: 'doctor --fix',
+    name: 'doctor',
     label: 'Runs 15 checks and auto-repairs security gaps, credentials, and missing config.',
   },
   {
@@ -113,6 +122,11 @@ const improvements = [
     icon: FlaskConicalIcon,
     name: 'eval',
     label: 'Proves Claude follows your rules with 15 scenarios across security and workflow.',
+  },
+  {
+    icon: BrainIcon,
+    name: 'memory',
+    label: 'Persistent memory with decay model. Context auto-injected, facts auto-extracted.',
   },
 ] as const;
 
@@ -197,7 +211,7 @@ function GitHubMarkIcon({ className }: { className?: string }) {
 
 function HeroPanel() {
   return (
-    <Card className="overflow-hidden border-black/15 dark:border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.04),rgba(255,255,255,0.94)_30%,rgba(255,255,255,1)_100%)] shadow-[0_24px_64px_rgba(16,24,40,0.08)] dark:bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(0,0,0,0))] dark:shadow-none">
+    <Card className="flex flex-col overflow-hidden border-black/15 dark:border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.04),rgba(255,255,255,0.94)_30%,rgba(255,255,255,1)_100%)] shadow-[0_24px_64px_rgba(16,24,40,0.08)] dark:bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(0,0,0,0))] dark:shadow-none">
       <CardHeader className="gap-5 border-b border-fd-border/80 pb-5">
         <div className="flex items-center justify-between gap-4">
           <Badge variant="default" className="w-fit bg-black text-white dark:bg-white dark:text-black">
@@ -222,21 +236,18 @@ function HeroPanel() {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-3 pt-6">
-        {improvements.map(({ icon: Icon, label, name }) => (
-          <div
-            key={name}
-            className="grid gap-3 rounded-2xl border border-fd-border bg-white p-3 shadow-sm dark:bg-black/20 dark:shadow-none sm:grid-cols-[36px_minmax(0,1fr)]"
-          >
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-fd-border bg-black/5 dark:bg-white/5">
-              <Icon className="h-4 w-4 text-black dark:text-white" />
+      <CardContent className="flex flex-1 items-center pt-5 pb-5">
+        <div className="grid w-full grid-cols-3 gap-2">
+          {improvements.map(({ icon: Icon, name }) => (
+            <div
+              key={name}
+              className="flex items-center justify-center gap-2 rounded-xl border border-fd-border bg-white px-3 py-2.5 dark:bg-black/20"
+            >
+              <Icon className="h-4 w-4 shrink-0 text-black/60 dark:text-white/60" />
+              <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-black/60 dark:text-white/60">{name}</span>
             </div>
-            <div>
-              <div className="font-mono text-[11px] uppercase tracking-[0.18em] text-black/65 dark:text-white/70">{name}</div>
-              <p className="mt-1 text-sm leading-6 text-fd-foreground/72 dark:text-fd-muted-foreground">{label}</p>
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </CardContent>
     </Card>
   );
@@ -246,7 +257,7 @@ function CommandStageCard({
   detail,
   href,
   icon: Icon,
-  iterative,
+  tag,
   name,
   num,
   verb,
@@ -256,7 +267,7 @@ function CommandStageCard({
   detail: string;
   href: string;
   icon: LucideIcon;
-  iterative: boolean;
+  tag: string;
   name: string;
   num: string;
   verb: string;
@@ -280,7 +291,7 @@ function CommandStageCard({
               <Icon className="h-4 w-4 text-fd-muted-foreground transition-colors group-hover:text-black dark:group-hover:text-white" />
             </div>
           </div>
-          {featured ? <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-fd-muted-foreground">Core</span> : null}
+          {null}
         </div>
         <div className={cn(featured ? 'max-w-sm' : '')}>
           <CardTitle className={cn('font-mono', featured ? 'text-xl sm:text-2xl' : 'text-base')}>{name}</CardTitle>
@@ -302,7 +313,7 @@ function CommandStageCard({
           <ArrowRightIcon className="h-4 w-4" />
         </Link>
         <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-fd-muted-foreground">
-          {iterative ? <><RefreshCwIcon className="h-3 w-3" /> Run anytime</> : 'Run once'}
+          {tag}
         </span>
       </CardFooter>
     </Card>
@@ -370,7 +381,7 @@ export default function HomePage() {
         <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,rgba(15,23,42,0.04)_0%,rgba(255,255,255,0)_60%)] dark:bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.05)_0%,rgba(0,0,0,0)_62%)]" />
 
         <PageSection className="pt-12 sm:pt-16 md:pt-24">
-          <div className="grid gap-8 sm:gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(360px,430px)] lg:items-start">
+          <div className="grid gap-8 sm:gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(360px,430px)] lg:items-stretch">
             <div className="max-w-3xl">
               <Badge variant="outline" className="border-black/15 bg-white/80 px-2.5 py-0.5 text-[10px] tracking-[0.18em] text-black dark:border-white/10 dark:bg-transparent dark:text-white sm:px-3 sm:py-1 sm:text-[11px] sm:tracking-[0.22em]">
                 CLI toolkit for Claude Code
@@ -380,7 +391,7 @@ export default function HomePage() {
                 <span className="mt-2 block text-fd-foreground/55 dark:text-fd-muted-foreground">deserves better.</span>
               </h1>
               <p className="mt-4 max-w-2xl text-[15px] leading-7 text-fd-foreground/78 dark:text-fd-muted-foreground sm:mt-6 sm:text-lg">
-                From stale and insecure to codebase-aware, hardened, and verified. Four commands.
+                From stale and insecure to codebase-aware, hardened, and verified. Five commands.
               </p>
 
               <div className="mt-6 flex items-center gap-2 sm:mt-8 sm:gap-4">
@@ -442,15 +453,16 @@ export default function HomePage() {
         <PageSection>
           <SectionHeading
             eyebrow="Recommended flow"
-            title="Four commands. One configuration you can trust."
-            description="Start with a clean baseline, diagnose what's weak, improve the instructions, then verify the behavior with real scenarios."
+            title="Five commands. One configuration you can trust."
+            description="Start with a clean baseline, diagnose what's weak, improve the instructions, verify the behavior, and remember what works."
           />
 
           <div className="mt-10 grid gap-5 md:grid-cols-12">
             <CommandStageCard {...steps[0]} featured className="md:col-span-5" />
             <CommandStageCard {...steps[1]} featured className="md:col-span-7" />
-            <CommandStageCard {...steps[2]} className="md:col-span-6" />
-            <CommandStageCard {...steps[3]} className="md:col-span-6" />
+            <CommandStageCard {...steps[2]} className="md:col-span-4" />
+            <CommandStageCard {...steps[3]} className="md:col-span-4" />
+            <CommandStageCard {...steps[4]} className="md:col-span-4" />
           </div>
         </PageSection>
       </div>

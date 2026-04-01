@@ -1,7 +1,7 @@
 {
   "name": "claude-launchpad",
   "version": "0.7.0",
-  "description": "CLI toolkit that makes Claude Code setups measurably good — scaffold, diagnose, evaluate",
+  "description": "CLI toolkit that makes Claude Code setups measurably good - scaffold, diagnose, evaluate, remember",
   "type": "module",
   "bin": {
     "claude-launchpad": "./dist/cli.js"
@@ -27,7 +27,10 @@
     "developer-tools",
     "cli",
     "config",
-    "diagnostics"
+    "diagnostics",
+    "memory",
+    "persistent-memory",
+    "mcp"
   ],
   "author": "mboss37",
   "license": "MIT",

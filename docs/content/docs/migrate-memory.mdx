@@ -1,0 +1,40 @@
+---
+title: /lp-migrate-memory
+description: Migrate legacy Claude Code auto-memory files into agentic-memory.
+---
+
+Skill that ports your existing `~/.claude/projects/*/memory/*.md` files into the agentic-memory system. Installed automatically when you run `claude-launchpad memory`.
+
+```
+/lp-migrate-memory
+```
+
+## When to use
+
+After installing memory on a project that already has built-in Claude Code memories. The skill reads legacy files, deduplicates against existing memories, and stores them with appropriate types and importance.
+
+## What it does
+
+1. Finds legacy memory files matching your project path in `~/.claude/projects/*/memory/`
+2. Parses YAML frontmatter (name, description, type) and body content
+3. Checks for duplicates via `memory_search` before storing
+4. Maps legacy types to memory types:
+   - `user` -> semantic (importance 0.7)
+   - `feedback` -> semantic (importance 0.8)
+   - `project` -> semantic (importance 0.6)
+   - `reference` -> semantic (importance 0.5)
+5. Reports what was migrated, skipped, or failed
+
+## Important
+
+- Does NOT delete original files - you verify and clean up manually
+- Skips `MEMORY.md` index files (not actual memories)
+- Skips content that's purely code-derived (belongs in CLAUDE.md, not memory)
+- Low-value memories will naturally decay over time
+
+## Next
+
+<Cards>
+  <Card title="memory" description="Set up the memory system" href="/docs/memory" />
+  <Card title="lp-enhance" description="AI-improve CLAUDE.md with memory guidance" href="/docs/enhance" />
+</Cards>

@@ -73,7 +73,7 @@ async function getFileSnapshot(projectRoot: string): Promise<string> {
 
 async function runAndDisplay(projectRoot: string): Promise<void> {
   console.log("\x1b[36m\x1b[1m  Claude Launchpad\x1b[0m");
-  console.log("\x1b[2m  Scaffold · Diagnose · Evaluate\x1b[0m");
+  console.log("\x1b[2m  Scaffold · Diagnose · Evaluate · Remember\x1b[0m");
   log.blank();
 
   const config = await parseClaudeConfig(projectRoot);

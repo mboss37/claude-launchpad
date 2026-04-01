@@ -124,9 +124,11 @@ npx claude-launchpad
 | `claude-launchpad doctor --watch` | Live score that updates when you save config files | Locally |
 | `/lp-enhance` (skill) | Claude reads your code and completes CLAUDE.md | Inside Claude Code |
 | `claude-launchpad eval` | Run Claude against test scenarios, prove config works | Via Claude CLI |
+| `claude-launchpad memory` | Set up persistent memory with decay model and MCP tools | Locally |
+| `claude-launchpad memory --dashboard` | TUI dashboard for memory visualization | Locally |
 
 <Callout type="info">
-  Commands marked **Locally** run offline with zero API calls. Commands marked **Via Claude CLI** require Claude Code installed and authenticated.
+  Commands marked **Locally** run offline with zero API calls. Commands marked **Via Claude CLI** require Claude Code installed and authenticated. Memory is optional - install only if you want persistent context across sessions.
 </Callout>
 
 ## Next Steps
@@ -136,4 +138,5 @@ npx claude-launchpad
   <Card title="doctor" description="Score your config and auto-fix issues" href="/docs/doctor" />
   <Card title="enhance" description="Let Claude perfect your CLAUDE.md" href="/docs/enhance" />
   <Card title="eval" description="Prove Claude follows your rules" href="/docs/eval" />
+  <Card title="memory" description="Persistent intelligent memory across sessions" href="/docs/memory" />
 </Cards>

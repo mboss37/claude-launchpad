@@ -45,6 +45,8 @@ Scans your Claude Code config, gives you a score out of 100, and tells you exact
 | `claude-launchpad doctor --watch` | Live score that updates when you save config files | Locally |
 | `/lp-enhance` (skill) | Claude reads your code and completes CLAUDE.md | Inside Claude Code |
 | `claude-launchpad eval` | Run Claude against test scenarios, prove config works | Via Claude CLI |
+| `claude-launchpad memory` | Set up persistent memory with decay model and MCP tools | Locally |
+| `claude-launchpad memory --dashboard` | TUI dashboard for memory visualization | Locally |
 
 ## Quick Start
 
@@ -137,6 +139,26 @@ Installed as a skill during `init` (you pick global or project scope). Claude re
 
 Stays under the 120-instruction budget. Overflows detailed content to `.claude/rules/` files. If the skill is missing, `doctor --fix` will create it.
 
+## Memory
+
+Optional persistent memory system that replaces Claude Code's built-in flat-file memory with intelligent, decay-based retrieval.
+
+```bash
+claude-launchpad memory
+```
+
+Interactive setup - asks before changing anything. Installs a SQLite database, hooks for automatic context injection, and 7 MCP tools.
+
+**What it does:**
+- **SessionStart hook** automatically injects relevant memories at the start of each session
+- **Stop hook** extracts facts from the conversation transcript when you're done
+- **Decay model** - memories fade naturally based on type (episodic: 60 days, semantic: 1 year, procedural: 2 years)
+- **Multi-signal scoring** - retrieval ranked by text match, importance, recency, access frequency, and git context
+- **Project-scoped** - memories are partitioned per project, no cross-contamination
+- **TUI dashboard** (`--dashboard`) for visualization with vim navigation, filtering, and search
+
+No cloud. No sync. Everything stays in `~/.agentic-memory/memory.db`.
+
 ## Eval
 
 The part nobody else has built. Runs Claude against real test scenarios and scores the results.
@@ -209,7 +231,7 @@ Score below threshold = exit code 1 = PR blocked.
 
 **Doctor** reads your files and runs static analysis. No API calls. No network. No cost.
 
-**Init** scans manifest files (package.json, go.mod, pyproject.toml, etc.), detects your stack, and generates 6 files: CLAUDE.md (with sprint reviews and memory management), TASKS.md (with deferred issues section), settings.json (with credential deny rules, sandbox enabled, bypass mode disabled, hooks including sprint review and PostCompact), .claude/.gitignore, .claudeignore, and language-specific rules. Formatter hooks use hardcoded safe commands only.
+**Init** scans manifest files (package.json, go.mod, pyproject.toml, etc.), detects your stack, and generates 7 files: CLAUDE.md (with sprint reviews and memory management), TASKS.md (with deferred issues section), settings.json (with credential deny rules, sandbox enabled, bypass mode disabled, hooks including sprint review and PostCompact), .claude/.gitignore, .claudeignore, /lp-enhance skill, and language-specific rules. Formatter hooks use hardcoded safe commands only.
 
 **Enhance** is a `/lp-enhance` skill installed during `init`. It runs inside your active Claude Code session - no separate process, no overhead. Claude already has your codebase context, so it produces better results than an external command.
 
@@ -235,7 +257,7 @@ New to Claude Code? Here's what the terms mean:
 
 ## Privacy
 
-No telemetry. No analytics. No data sent anywhere. Doctor, init, and fix are fully offline. Enhance and eval run through your local Claude CLI — no data passes through this tool. [Full privacy policy](https://mboss37.github.io/claude-launchpad/privacy.html).
+No telemetry. No analytics. No data sent anywhere. Doctor, init, and fix are fully offline. Memory stores data locally at `~/.agentic-memory/` - no cloud sync. Enhance and eval run through your local Claude CLI - no data passes through this tool. [Full privacy policy](https://mboss37.github.io/claude-launchpad/privacy.html).
 
 ## License
 

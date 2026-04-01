@@ -1,0 +1,90 @@
+---
+title: memory
+description: Persistent intelligent memory system for Claude Code sessions with decay-based retrieval.
+---
+
+Optional command that replaces Claude Code's built-in flat-file memory with an intelligent, decay-based system backed by SQLite.
+
+```bash
+claude-launchpad memory
+```
+
+Interactive setup - asks before changing anything.
+
+## What it installs
+
+- SQLite database at `~/.agentic-memory/` (shared across projects, scoped per project internally)
+- SessionStart hook that injects relevant memories at session start
+- Stop hook that extracts facts from the conversation transcript
+- 7 MCP tools for storing, searching, and managing memories
+- Memory guidance section in CLAUDE.md
+- `/lp-migrate-memory` skill for porting legacy auto-memory files
+
+## How it works
+
+Memories decay naturally based on their type:
+
+| Type | Half-life | What it stores |
+|---|---|---|
+| **working** | Session only | Scratch notes, cleared each session |
+| **episodic** | 60 days | Specific events - bugs fixed, decisions made |
+| **semantic** | 1 year | Facts - architecture, API contracts, conventions |
+| **procedural** | 2 years | How-to knowledge - build, deploy, commands |
+| **pattern** | 6 months | Recurring issues, common solutions |
+
+Retrieval uses multi-signal scoring:
+- Text match (BM25 via FTS5) - 35%
+- Importance (user-assigned) - 20%
+- Recency (exponential decay) - 20%
+- Git context (branch + file overlap) - 15%
+- Access frequency - 10%
+
+## MCP tools
+
+| Tool | What it does |
+|---|---|
+| `memory_store` | Save a memory with type, importance, and tags |
+| `memory_search` | Search by keyword with ranked results |
+| `memory_recent` | Load recent context-matched memories |
+| `memory_forget` | Soft-delete (decay) or hard-delete a memory |
+| `memory_relate` | Create typed relations between memories |
+| `memory_stats` | Count, types, DB size, top-injected |
+| `memory_update` | Modify a memory while preserving access history |
+
+## Dashboard
+
+```bash
+claude-launchpad memory --dashboard
+```
+
+TUI with vim navigation:
+- `j`/`k` - navigate memory list
+- `[`/`]` - switch projects
+- `/` - search
+- `1`-`5` - filter by type (0 = all)
+- `l` - cycle lifespan filter (healthy/fading/stale)
+- `s` - cycle sort mode
+- `p` - project picker
+- `?` - help
+
+## Migrating from built-in memory
+
+After installing, use `/lp-migrate-memory` inside Claude Code. It reads your legacy `~/.claude/projects/*/memory/*.md` files, deduplicates, and stores them with appropriate types and importance.
+
+## Doctor integration
+
+When memory is detected, `doctor` adds a Memory analyzer that checks:
+- MCP server registered
+- SessionStart and Stop hooks configured
+- Built-in auto-memory disabled
+- CLAUDE.md guidance present
+- MCP tool permissions set
+
+`doctor --fix` auto-repairs missing permissions and auto-memory settings.
+
+## Next
+
+<Cards>
+  <Card title="doctor" description="Check your full config health including memory" href="/docs/doctor" />
+  <Card title="lp-enhance" description="AI-improve your CLAUDE.md with memory guidance" href="/docs/enhance" />
+</Cards>
