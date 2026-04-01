@@ -1,7 +1,7 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-  entry: ["src/cli.ts"],
+  entry: ["src/cli.ts", "src/commands/memory/server.ts"],
   format: ["esm"],
   target: "node22",
   outDir: "dist",
@@ -11,5 +11,13 @@ export default defineConfig({
   banner: {
     js: "#!/usr/bin/env node",
   },
-  external: ["@anthropic-ai/claude-agent-sdk"],
+  external: [
+    "@anthropic-ai/claude-agent-sdk",
+    "better-sqlite3",
+    "sqlite-vec",
+    "@modelcontextprotocol/sdk",
+    "zod",
+    "blessed",
+    "blessed-contrib",
+  ],
 });

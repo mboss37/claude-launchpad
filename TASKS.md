@@ -58,23 +58,22 @@
 ### Memory Feature
 - [x] Finalize standalone memory tool (SQLite + MCP + decay model + web UI)
 - [x] Architecture review: integrate into launchpad as optional `memory` command
-- [ ] Integrate agentic-memory into launchpad (lazy-loaded, optional subcommand)
-- [ ] Add `memory` to doctor checks (detect if installed, report health)
-- [ ] Create /lp-memory-setup skill (guided installation)
+- [x] Integrate agentic-memory into launchpad (lazy-loaded, optional subcommand)
+- [x] Add `memory` to doctor checks (detect if installed, report health)
+- [ ] TUI dashboard (blessed) for `--dashboard` flag
+- [ ] Update docs site with memory command documentation
 
 ## Upcoming
 - **Sprint 15**: User testimonials, path-scoped rule generation, community scenario packs
 
 ## Session Log
-### 2026-03-29 (session 10)
-- Fumadocs migration: 7 MDX pages, GitHub Actions auto-deploy, search, OG meta.
-- Landing page: provocative hero, 2x2 command cards with icons, footer.
-- Docs: Steps, Tabs, File trees, Accordions, Callouts, navigation Cards.
-### 2026-03-29 (session 11)
-- Landing page polish: aligned homepage shell with header width, upgraded hero/cards/CTA, added shadcn-style UI primitives for the docs app.
 ### 2026-03-29 (session 12)
 - Homepage redesign: more editorial hero, asymmetric command layout, stronger proof board, improved light/dark presentation.
 ### 2026-03-30 (session 13)
 - Sprint review hook (PostToolUse + CLAUDE.md section), v0.6.0 published.
 - Landing page: "Run once"/"Run anytime" labels, removed redundant command repetition.
 - Docs: "When to re-run" sections, changelog page + header nav link, cleaned CHANGELOG.
+### 2026-04-01 (session 14)
+- Replaced enhance CLI with /lp-enhance skill (init scope picker, doctor detection).
+- Integrated agentic-memory as optional `memory` command (265 tests, lazy-loaded native deps).
+- Simplified memory UX: smart default (install prompt or stats), --dashboard, hidden plumbing.

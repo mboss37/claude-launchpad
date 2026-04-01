@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { createInitCommand } from "./commands/init/index.js";
 import { createDoctorCommand } from "./commands/doctor/index.js";
 import { createEvalCommand } from "./commands/eval/index.js";
+import { createMemoryCommand } from "./commands/memory/index.js";
 import { printBanner, log } from "./lib/output.js";
 import { fileExists } from "./lib/fs-utils.js";
 
@@ -33,5 +34,6 @@ const program = new Command()
 program.addCommand(createInitCommand());
 program.addCommand(createDoctorCommand());
 program.addCommand(createEvalCommand());
+program.addCommand(createMemoryCommand());
 
 program.parse();

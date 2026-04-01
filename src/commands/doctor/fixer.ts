@@ -6,6 +6,7 @@ import { fileExists } from "../../lib/fs-utils.js";
 import { detectProject } from "../../lib/detect.js";
 import { generateClaudeignore } from "../init/generators/claudeignore.js";
 import { generateEnhanceSkill } from "../init/generators/skill-enhance.js";
+import { readSettingsJson, writeSettingsJson } from "../../lib/settings.js";
 import type { DiagnosticIssue, DetectedProject } from "../../types/index.js";
 
 interface FixResult {
@@ -72,6 +73,9 @@ const FIX_TABLE: ReadonlyArray<{ analyzer: string; match: string; fix: FixFn }> 
   { analyzer: "Rules", match: "No /lp-enhance skill", fix: (root) => createEnhanceSkill(root) },
   { analyzer: "Settings", match: "Deprecated includeCoAuthoredBy", fix: (root) => migrateAttribution(root) },
   { analyzer: "Hooks", match: "SessionStart", fix: (root) => addSessionStartHook(root) },
+  { analyzer: "Memory", match: "autoMemoryEnabled not disabled", fix: (root) => disableAutoMemory(root) },
+  { analyzer: "Memory", match: "MCP tool permission", fix: (root) => addMemoryToolPermissions(root) },
+  { analyzer: "Memory", match: "CLAUDE.md missing memory guidance", fix: (root) => addClaudeMdSection(root, "## Memory", "Use agentic-memory to persist knowledge across sessions:\n- Memories are automatically injected at session start and extracted at session end\n- Save non-obvious decisions, gotchas, and deferred issues\n- Check memory for relevant context before starting work") },
 ];
 
 async function tryFix(
@@ -356,6 +360,40 @@ async function createStarterRules(root: string): Promise<boolean> {
   return true;
 }
 
+async function disableAutoMemory(root: string): Promise<boolean> {
+  const settings = await readSettingsJson(root);
+  if (settings.autoMemoryEnabled === false) return false;
+
+  (settings as Record<string, unknown>).autoMemoryEnabled = false;
+  await writeSettingsJson(root, settings);
+  log.success("Set autoMemoryEnabled: false (prevents conflict with agentic-memory)");
+  return true;
+}
+
+async function addMemoryToolPermissions(root: string): Promise<boolean> {
+  const settings = await readSettingsJson(root);
+  const permissions = (settings.permissions ?? {}) as Record<string, unknown>;
+  const allow = (permissions.allow as string[] | undefined) ?? [];
+
+  const tools = [
+    "mcp__agentic-memory__memory_store",
+    "mcp__agentic-memory__memory_search",
+    "mcp__agentic-memory__memory_recent",
+    "mcp__agentic-memory__memory_forget",
+    "mcp__agentic-memory__memory_relate",
+    "mcp__agentic-memory__memory_stats",
+    "mcp__agentic-memory__memory_update",
+  ];
+
+  const missing = tools.filter((t) => !allow.includes(t));
+  if (missing.length === 0) return false;
+
+  (settings as Record<string, unknown>).permissions = { ...permissions, allow: [...allow, ...missing] };
+  await writeSettingsJson(root, settings);
+  log.success("Added agentic-memory MCP tool permissions to allowedTools");
+  return true;
+}
+
 async function createEnhanceSkill(root: string): Promise<boolean> {
   const skillDir = join(root, ".claude", "skills", "lp-enhance");
   const skillPath = join(skillDir, "SKILL.md");
@@ -373,20 +411,3 @@ async function createEnhanceSkill(root: string): Promise<boolean> {
   return true;
 }
 
-// ─── Settings JSON helpers ───
-
-async function readSettingsJson(root: string): Promise<Record<string, unknown>> {
-  const path = join(root, ".claude", "settings.json");
-  try {
-    const content = await readFile(path, "utf-8");
-    return JSON.parse(content) as Record<string, unknown>;
-  } catch {
-    return {};
-  }
-}
-
-async function writeSettingsJson(root: string, settings: Record<string, unknown>): Promise<void> {
-  const dir = join(root, ".claude");
-  await mkdir(dir, { recursive: true });
-  await writeFile(join(dir, "settings.json"), JSON.stringify(settings, null, 2) + "\n");
-}

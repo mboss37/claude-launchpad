@@ -9,6 +9,7 @@ import { analyzeRules } from "./analyzers/rules.js";
 import { analyzePermissions } from "./analyzers/permissions.js";
 import { analyzeMcp } from "./analyzers/mcp.js";
 import { analyzeQuality } from "./analyzers/quality.js";
+import { analyzeMemory } from "./analyzers/memory.js";
 import { applyFixes } from "./fixer.js";
 import { watchConfig } from "./watcher.js";
 import type { AnalyzerResult } from "../../types/index.js";
@@ -51,6 +52,11 @@ export function createDoctorCommand(): Command {
         analyzePermissions(config),
         analyzeMcp(config),
       ]);
+
+      const memoryResult = await analyzeMemory(config);
+      if (memoryResult) {
+        results.push(memoryResult);
+      }
 
       if (opts.json) {
         const overallScore = Math.round(
@@ -110,6 +116,11 @@ export function createDoctorCommand(): Command {
               analyzePermissions(updatedConfig),
               analyzeMcp(updatedConfig),
             ]);
+
+            const updatedMemoryResult = await analyzeMemory(updatedConfig);
+            if (updatedMemoryResult) {
+              updatedResults.push(updatedMemoryResult);
+            }
             renderDoctorReport(updatedResults, { afterFix: true });
             log.info(`Then use ${chalk.bold("/lp-enhance")} inside Claude Code to have Claude restructure and complete your CLAUDE.md.`);
           }

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { mkdir, writeFile, readFile } from "node:fs/promises";
+import { mkdir, writeFile, readFile, access } from "node:fs/promises";
 import { join } from "node:path";
-import { tmpdir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import { randomUUID } from "node:crypto";
 import { applyFixes } from "../src/commands/doctor/fixer.js";
 import type { DiagnosticIssue } from "../src/types/index.js";
@@ -225,6 +225,12 @@ describe("applyFixes", () => {
   });
 
   it("creates /lp-enhance skill when missing", async () => {
+    // Skip if global skill exists (fixer correctly skips when global is present)
+    const globalSkill = join(homedir(), ".claude", "skills", "lp-enhance", "SKILL.md");
+    let hasGlobal = false;
+    try { await access(globalSkill); hasGlobal = true; } catch { /* missing */ }
+    if (hasGlobal) return;
+
     const issues: DiagnosticIssue[] = [{
       analyzer: "Rules",
       severity: "low",

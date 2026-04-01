@@ -43,7 +43,7 @@ export const log = {
 export function printBanner(): void {
   log.blank();
   console.log(chalk.cyan.bold("  Claude Launchpad"));
-  console.log(chalk.dim("  Scaffold · Diagnose · Evaluate"));
+  console.log(chalk.dim("  Scaffold · Diagnose · Evaluate · Remember"));
   log.blank();
 }
 

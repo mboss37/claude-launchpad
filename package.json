@@ -1,6 +1,6 @@
 {
   "name": "claude-launchpad",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "CLI toolkit that makes Claude Code setups measurably good — scaffold, diagnose, evaluate",
   "type": "module",
   "bin": {
@@ -52,13 +52,23 @@
     "yaml": "^2.8.3"
   },
   "optionalDependencies": {
-    "@anthropic-ai/claude-agent-sdk": "^0.2.86"
+    "@anthropic-ai/claude-agent-sdk": "^0.2.86",
+    "better-sqlite3": "^11.8.0",
+    "sqlite-vec": "^0.1.6",
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "zod": "^3.24.0"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
     "@types/node": "^25.5.0",
     "tsup": "^8.5.1",
     "tsx": "^4.21.0",
     "typescript": "^6.0.2",
     "vitest": "^4.1.2"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3"
+    ]
   }
 }

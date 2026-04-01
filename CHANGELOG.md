@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.7.0] - 2026-04-01
+
+### Added
+- `memory` command - persistent, intelligent memory system for Claude Code sessions
+  - SQLite-backed with FTS5 full-text search
+  - Neuroscience-inspired decay model (episodic, semantic, procedural, pattern types)
+  - 7 MCP tools (store, search, recent, forget, relate, stats, update)
+  - SessionStart hook auto-injects relevant context, Stop hook extracts facts
+  - Interactive install with confirmation prompt
+  - `--dashboard` flag for memory statistics
+- Doctor memory analyzer - detects memory config issues when installed
+- Doctor `--fix` auto-repairs: disables auto-memory, adds MCP tool permissions, injects CLAUDE.md guidance
+
+### Changed
+- `enhance` CLI command replaced with `/lp-enhance` skill (runs inside Claude Code session)
+  - Installed during `init` with global/project scope picker
+  - Doctor detects missing skill, `--fix` creates it
+  - Uses `.claude/skills/lp-enhance/SKILL.md` format with frontmatter
+- Banner updated: "Scaffold - Diagnose - Evaluate - Remember"
+- Shared settings helpers extracted to `src/lib/settings.ts`
+
+### Removed
+- `enhance` CLI command (replaced by `/lp-enhance` skill)
+
 ## [0.6.0] - 2026-03-30
 
 ### Added
