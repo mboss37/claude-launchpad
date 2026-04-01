@@ -61,7 +61,12 @@
 - [x] Integrate agentic-memory into launchpad (lazy-loaded, optional subcommand)
 - [x] Add `memory` to doctor checks (detect if installed, report health)
 - [x] TUI dashboard (blessed) for `--dashboard` flag
-- [ ] Update docs site with memory command documentation
+- [x] Update docs site with memory command documentation
+- [ ] Landing page design polish (hero height alignment, card grid consistency)
+- [ ] Review all docs pages for consistency (cross-check CLI vs skill references)
+- [ ] Publish v0.7.0-dev to npm, test MCP server via npx
+- [ ] Re-register MCP server with npx path after publish
+- [ ] Final QA pass: test full flow on clean project (init -> doctor -> memory -> /lp-enhance)
 
 ## Upcoming
 - **Sprint 15**: User testimonials, path-scoped rule generation, community scenario packs
