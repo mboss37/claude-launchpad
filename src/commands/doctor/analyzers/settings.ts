@@ -64,19 +64,6 @@ export async function analyzeSettings(config: ClaudeConfig): Promise<AnalyzerRes
     });
   }
 
-  // Hook timeouts on broad matchers
-  const broadMatchers = ["Bash", "Write", "Edit", "Read"];
-  const hooksWithoutTimeout = config.hooks.filter(
-    (h) => !h.timeout && broadMatchers.some((m) => h.matcher?.includes(m)),
-  );
-  if (hooksWithoutTimeout.length > 0) {
-    issues.push({
-      analyzer: "Settings",
-      severity: "low",
-      message: `${hooksWithoutTimeout.length} hook(s) on broad matchers without timeout — defaults to 60s per invocation`,
-      fix: "Add timeout (in seconds) to hooks on Bash, Write, Edit, or Read matchers",
-    });
-  }
 
   // Auto-memory disabled
   if (config.settings.autoMemoryEnabled === false) {

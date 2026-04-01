@@ -60,7 +60,7 @@
 - [x] Architecture review: integrate into launchpad as optional `memory` command
 - [x] Integrate agentic-memory into launchpad (lazy-loaded, optional subcommand)
 - [x] Add `memory` to doctor checks (detect if installed, report health)
-- [ ] TUI dashboard (blessed) for `--dashboard` flag
+- [x] TUI dashboard (blessed) for `--dashboard` flag
 - [ ] Update docs site with memory command documentation
 
 ## Upcoming

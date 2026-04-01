@@ -18,6 +18,5 @@ export default defineConfig({
     "@modelcontextprotocol/sdk",
     "zod",
     "blessed",
-    "blessed-contrib",
   ],
 });

@@ -1,13 +1,23 @@
-import { existsSync } from "node:fs";
-import { homedir } from "node:os";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Command } from "commander";
 import { confirm } from "@inquirer/prompts";
 import { log } from "../../lib/output.js";
 
 function isMemoryInstalled(): boolean {
-  const dbPath = join(homedir(), ".agentic-memory", "memory.db");
-  return existsSync(dbPath);
+  try {
+    const settingsPath = join(process.cwd(), ".claude", "settings.json");
+    const settings = JSON.parse(readFileSync(settingsPath, "utf-8")) as Record<string, unknown>;
+    const hooks = settings.hooks as Record<string, unknown[]> | undefined;
+    if (!hooks) return false;
+    const sessionStart = hooks.SessionStart as Record<string, unknown>[] | undefined;
+    return sessionStart?.some((h) => {
+      const inner = h.hooks as Record<string, unknown>[] | undefined;
+      return inner?.some((ih) => String(ih.command ?? "").includes("memory context"));
+    }) ?? false;
+  } catch {
+    return false;
+  }
 }
 
 export function createMemoryCommand(): Command {
@@ -20,20 +30,20 @@ export function createMemoryCommand(): Command {
           log.error("Memory system is not installed. Run `claude-launchpad memory` first.");
           return;
         }
-        const { runStats } = await import("./subcommands/stats.js");
-        await runStats({});
+        const { startTui } = await import("./dashboard/tui.js");
+        await startTui();
         return;
       }
 
       // Smart default: install or show stats
       if (!isMemoryInstalled()) {
         log.blank();
-        log.step("Memory system is not set up.");
+        log.step("Agentic memory is not set up for this project.");
         log.blank();
-        log.info("This will:");
-        log.info("  - Create a SQLite database at ~/.agentic-memory/");
+        log.info("This will (skipping what's already in place):");
+        log.info("  - Set up SQLite database at ~/.agentic-memory/");
         log.info("  - Add SessionStart + Stop hooks to .claude/settings.json");
-        log.info("  - Register the MCP server with Claude Code");
+        log.info("  - Register the MCP server with Claude Code (global)");
         log.info("  - Add memory guidance to CLAUDE.md");
         log.blank();
 

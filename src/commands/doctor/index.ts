@@ -76,7 +76,10 @@ export function createDoctorCommand(): Command {
       if (opts.fix) {
         const allIssues = results.flatMap((r) => r.issues);
         const fixable = allIssues.filter((i) => i.severity !== "info");
-        if (fixable.length > 0) {
+        if (fixable.length === 0) {
+          renderDoctorReport(results);
+          log.success("Nothing to fix.");
+        } else if (fixable.length > 0) {
           // Dry-run: preview only
           if (opts.dryRun) {
             const withFix = fixable.filter((i) => i.fix);

@@ -56,6 +56,7 @@ export async function runInstall(opts: InstallOpts): Promise<void> {
 
   log.blank();
   log.success('Memory system installed.');
+  log.info('Restart your Claude Code session for the MCP server to connect.');
   log.blank();
 }
 
@@ -152,7 +153,7 @@ function addToolPermissions(settings: Record<string, unknown>): void {
 function registerMcpServer(): boolean {
   try {
     execSync(
-      'claude mcp add agentic-memory -- npx claude-launchpad memory serve',
+      'claude mcp add --scope user agentic-memory -- npx claude-launchpad memory serve',
       { stdio: 'pipe', timeout: 10000 },
     );
     return true;
@@ -191,7 +192,7 @@ function injectClaudeMdGuidance(projectDir: string): boolean {
 }
 
 const MIGRATE_MEMORY_SKILL = `---
-name: migrate-memory
+name: lp-migrate-memory
 description: Migrate legacy Claude Code auto-memory files (~/.claude/projects/*/memory/*.md) into agentic-memory. Use when setting up agentic-memory on a project that already has built-in memories.
 allowed-tools: Read, Glob, Grep, mcp__agentic-memory__memory_store, mcp__agentic-memory__memory_search
 ---
@@ -236,7 +237,7 @@ Migrate memory files from Claude Code's built-in auto-memory system into agentic
 `;
 
 const SKILLS: Readonly<Record<string, string>> = {
-  'migrate-memory': MIGRATE_MEMORY_SKILL,
+  'lp-migrate-memory': MIGRATE_MEMORY_SKILL,
 };
 
 function installSkills(projectDir: string): number {

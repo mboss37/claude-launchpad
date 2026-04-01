@@ -59,3 +59,9 @@ export async function startServer(deps?: Partial<ServerDeps>): Promise<void> {
   process.on('SIGINT', () => void shutdown());
   process.on('SIGTERM', () => void shutdown());
 }
+
+// Auto-start when invoked directly as MCP server entry point
+startServer().catch((err) => {
+  process.stderr.write(`[agentic-memory] ${err}\n`);
+  process.exit(1);
+});
