@@ -62,11 +62,13 @@
 - [x] Add `memory` to doctor checks (detect if installed, report health)
 - [x] TUI dashboard (blessed) for `--dashboard` flag
 - [x] Update docs site with memory command documentation
-- [ ] Landing page design polish (hero height alignment, card grid consistency)
+- [x] Landing page design polish (hero height alignment, card grid consistency)
 - [x] Review all docs pages for consistency (cross-check CLI vs skill references)
-- [ ] Publish v0.7.0-dev to npm, test MCP server via npx
-- [ ] Re-register MCP server with npx path after publish
+- [x] Publish v0.7.0-dev to npm, test MCP server via npx
+- [x] Re-register MCP server with npx path after publish
 - [ ] Final QA pass: test full flow on clean project (init -> doctor -> memory -> /lp-enhance)
+- [ ] Upgrade zod 3 to zod 4 (fixes claude-agent-sdk peer dep warning)
+- [ ] Defer better-sqlite3 compilation to `memory install` (avoid slow install for non-memory users)
 
 ## Upcoming
 - **Sprint 15**: User testimonials, path-scoped rule generation, community scenario packs
