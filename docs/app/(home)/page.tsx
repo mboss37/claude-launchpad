@@ -241,13 +241,15 @@ export default function HomePage() {
 
           <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
             <InstallBlock command="npm i -g claude-launchpad" className="w-full sm:w-auto" />
-            <Link href="/docs" className={buttonVariants({ className: 'h-11 shrink-0 whitespace-nowrap rounded-xl px-4' })}>
-              Open quickstart
-              <ArrowRightIcon className="h-4 w-4" />
-            </Link>
-            <a href="https://www.npmjs.com/package/claude-launchpad" className={buttonVariants({ variant: 'outline', className: 'h-11 shrink-0 whitespace-nowrap rounded-xl px-4' })}>
-              View npm package
-            </a>
+            <div className="grid grid-cols-2 gap-2 sm:contents">
+              <Link href="/docs" className={buttonVariants({ className: 'h-11 shrink-0 whitespace-nowrap rounded-xl px-4' })}>
+                Open quickstart
+                <ArrowRightIcon className="h-4 w-4" />
+              </Link>
+              <a href="https://www.npmjs.com/package/claude-launchpad" className={buttonVariants({ variant: 'outline', className: 'h-11 shrink-0 whitespace-nowrap rounded-xl px-4' })}>
+                View npm package
+              </a>
+            </div>
           </div>
         </div>
 
