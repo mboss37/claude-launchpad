@@ -26,6 +26,8 @@ Test if Claude actually follows your rules. Each scenario creates an isolated sa
 | Flag | Description |
 |---|---|
 | `--suite <name>` | security (6), conventions (5), or workflow (4) |
+| `-p, --path <dir>` | Project root to evaluate (defaults to current directory) |
+| `--scenarios <path>` | Use a custom scenarios directory instead of built-in suites |
 | `--model <model>` | haiku, sonnet, or opus |
 | `--runs <n>` | Runs per scenario (default 3, median score) |
 | `--debug` | Keep sandbox directories for inspection |
@@ -88,7 +90,7 @@ Eval proves your config works, not just that it exists. Re-run when:
 - When Claude starts ignoring conventions or security rules
 - After onboarding new team members who may have modified the config
 
-Pair eval with CI (`--min-score`) to catch regressions automatically.
+Use `doctor --min-score <n>` in CI to gate config quality; `eval` itself has no `--min-score` flag.
 
 ## Next
 

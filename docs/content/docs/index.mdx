@@ -32,6 +32,8 @@ Or run directly without installing:
 npx claude-launchpad
 ```
 
+Claude Launchpad has 4 CLI commands (`init`, `doctor`, `eval`, `memory`) and 2 skills (`/lp-enhance`, `/lp-migrate-memory`). Memory is optional.
+
 ## Recommended Flow
 
 ### New project
@@ -42,7 +44,7 @@ npx claude-launchpad
     ```bash
     claude-launchpad init
     ```
-    Generates 7 files: CLAUDE.md, TASKS.md, settings.json (with security, hooks, sandbox), .claudeignore, rules, .gitignore, and the `/lp-enhance` skill. Scores ~93% out of the box.
+    Generates baseline config files in-project (`CLAUDE.md`, `TASKS.md`, `.claude/settings.json`) and creates `.claudeignore`, `.claude/.gitignore`, and `.claude/rules/conventions.md` when missing. It also offers `/lp-enhance` install (project/global/skip) when not already installed.
   </Step>
   <Step>
     ### Diagnose + fix
@@ -83,7 +85,7 @@ npx claude-launchpad
     ```bash
     claude-launchpad doctor --fix
     ```
-    Adds security rules, hooks, permissions, sandbox, missing CLAUDE.md sections, and the `/lp-enhance` skill. Jumps to ~86%.
+    Adds missing hooks/rules/sections, security defaults, and creates `/lp-enhance` only when no project/global/legacy install already exists. Jumps to ~86%.
   </Step>
   <Step>
     ### Let Claude clean it up
@@ -102,19 +104,22 @@ npx claude-launchpad
 
 ## Keep your config healthy
 
-`init` runs once. The other three are designed to run again as your project evolves.
+`init` runs once. `doctor`, `/lp-enhance`, and `eval` are designed for repeat use as your project evolves. `memory` is optional and can be installed whenever you want persistent context.
 
 | When | Run |
 |---|---|
 | Added dependencies, changed frameworks, modified hooks | `doctor --fix` |
 | Major refactor, new modules, CLAUDE.md feels stale | `/lp-enhance` |
 | Before a release, after config changes, Claude ignoring rules | `eval` |
+| You want cross-session memory with local SQLite + MCP tools | `memory` |
 
 <Callout type="info">
   Your codebase changes. Your config should keep up. Run `doctor` periodically. If the score drops, `--fix` and `/lp-enhance` bring it back.
 </Callout>
 
-## All Commands
+## Command Map (details in each command page)
+
+Use this as a quick map; each command page covers full flags and workflows.
 
 | Command | What it does | Runs |
 |---|---|---|
@@ -124,7 +129,7 @@ npx claude-launchpad
 | `claude-launchpad doctor --watch` | Live score that updates when you save config files | Locally |
 | `/lp-enhance` (skill) | Claude reads your code and completes CLAUDE.md | Inside Claude Code |
 | `claude-launchpad eval` | Run Claude against test scenarios, prove config works | Via Claude CLI |
-| `claude-launchpad memory` | Set up persistent memory with decay model and MCP tools | Locally |
+| `claude-launchpad memory` | Set up persistent memory, MCP tools, and `/lp-migrate-memory` skill | Locally |
 | `claude-launchpad memory --dashboard` | TUI dashboard for memory visualization | Locally |
 
 <Callout type="info">

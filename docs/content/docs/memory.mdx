@@ -11,6 +11,21 @@ claude-launchpad memory
 
 Interactive setup - asks before changing anything.
 
+## Flags
+
+| Flag | Description |
+|---|---|
+| `--dashboard` | Open the interactive memory TUI dashboard |
+
+## Default behavior
+
+Running `claude-launchpad memory` without flags uses a smart default:
+
+- If memory is not installed, it starts the interactive installer
+- If memory is already installed, it shows memory stats
+
+`claude-launchpad memory --dashboard` requires memory to be installed first.
+
 ## What it installs
 
 - SQLite database at `~/.agentic-memory/` (shared across projects, scoped per project internally)
@@ -19,6 +34,7 @@ Interactive setup - asks before changing anything.
 - 7 MCP tools for storing, searching, and managing memories
 - Memory guidance section in CLAUDE.md
 - `/lp-migrate-memory` skill for porting legacy auto-memory files
+- Global MCP server registration via `claude mcp add --scope user`. If auto-registration fails, run manually: `claude mcp add --scope user agentic-memory -- npx claude-launchpad memory serve`
 
 ## How it works
 
@@ -86,5 +102,5 @@ When memory is detected, `doctor` adds a Memory analyzer that checks:
 
 <Cards>
   <Card title="doctor" description="Check your full config health including memory" href="/docs/doctor" />
-  <Card title="lp-enhance" description="AI-improve your CLAUDE.md with memory guidance" href="/docs/enhance" />
+  <Card title="/lp-enhance" description="AI-improve your CLAUDE.md with memory guidance" href="/docs/enhance" />
 </Cards>

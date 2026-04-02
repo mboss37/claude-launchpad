@@ -24,15 +24,22 @@ export function createEvalCommand(): Command {
       printBanner();
 
       // Interactive mode when no flags provided
-      const hasFlags = opts.suite || opts.model || opts.runs !== "3" || opts.json || opts.debug;
+      const hasFlags = opts.suite
+        || opts.model
+        || opts.runs !== "3"
+        || opts.timeout !== "120000"
+        || opts.path !== process.cwd()
+        || Boolean(opts.scenarios)
+        || opts.json
+        || opts.debug;
       if (!hasFlags) {
         opts.suite = await select({
           message: "Suite",
           choices: [
             { name: "security (6 scenarios)", value: "security" },
             { name: "conventions (5 scenarios)", value: "conventions" },
-            { name: "workflow (2 scenarios)", value: "workflow" },
-            { name: "all (13 scenarios)", value: undefined },
+            { name: "workflow (4 scenarios)", value: "workflow" },
+            { name: "all (15 scenarios)", value: undefined },
           ],
         });
         opts.runs = await select({

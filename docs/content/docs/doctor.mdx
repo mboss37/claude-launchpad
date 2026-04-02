@@ -5,7 +5,7 @@ description: Scan your Claude Code config, score it 0-100, and auto-fix issues.
 
 import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
 
-The core of the tool. Runs 7 analyzers against your `.claude/` directory and `CLAUDE.md`.
+The core of the tool. Runs 7 analyzers against your `.claude/` directory and `CLAUDE.md`. An 8th (Memory) is added automatically when agentic-memory is detected.
 
 ```bash
 claude-launchpad doctor
@@ -57,7 +57,7 @@ claude-launchpad doctor
   <Accordion title="Files">
     - Starter rules file (.claude/rules/conventions.md)
     - .claudeignore with language-specific patterns
-    - /lp-enhance skill (.claude/skills/lp-enhance/SKILL.md)
+    - `/lp-enhance` skill at project scope, only if no project/global/legacy install exists
   </Accordion>
 </Accordions>
 

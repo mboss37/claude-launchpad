@@ -63,7 +63,7 @@
 - [x] TUI dashboard (blessed) for `--dashboard` flag
 - [x] Update docs site with memory command documentation
 - [ ] Landing page design polish (hero height alignment, card grid consistency)
-- [ ] Review all docs pages for consistency (cross-check CLI vs skill references)
+- [x] Review all docs pages for consistency (cross-check CLI vs skill references)
 - [ ] Publish v0.7.0-dev to npm, test MCP server via npx
 - [ ] Re-register MCP server with npx path after publish
 - [ ] Final QA pass: test full flow on clean project (init -> doctor -> memory -> /lp-enhance)
@@ -72,8 +72,6 @@
 - **Sprint 15**: User testimonials, path-scoped rule generation, community scenario packs
 
 ## Session Log
-### 2026-03-29 (session 12)
-- Homepage redesign: more editorial hero, asymmetric command layout, stronger proof board, improved light/dark presentation.
 ### 2026-03-30 (session 13)
 - Sprint review hook (PostToolUse + CLAUDE.md section), v0.6.0 published.
 - Landing page: "Run once"/"Run anytime" labels, removed redundant command repetition.
@@ -82,3 +80,11 @@
 - Replaced enhance CLI with /lp-enhance skill (init scope picker, doctor detection).
 - Integrated agentic-memory as optional `memory` command (265 tests, lazy-loaded native deps).
 - Simplified memory UX: smart default (install prompt or stats), --dashboard, hidden plumbing.
+### 2026-04-02 (session 15)
+- Updated landing + docs sequence so core flow is `init -> doctor -> /lp-enhance -> eval`, with memory clearly optional.
+- Aligned docs + README with built command model and conditional behavior (`/lp-enhance` install conditions, memory skill injection, eval/doctor flag accuracy).
+- Fixed eval UX mismatches: interactive suite labels now match shipped scenarios, and any non-default eval flag now skips interactive prompts.
+### 2026-04-02 (session 16)
+- Ran UX/UI + content specialist audits for landing page clarity, spacing density, and CTA hierarchy.
+- Redesigned homepage flow to emphasize 4 core commands and moved memory into a distinct optional add-on block.
+- Improved CTA path (install + quickstart), tightened section spacing, and simplified copy for first-time comprehension.

@@ -15,6 +15,8 @@ npx claude-launchpad
 
 That's it. Run it in any project with Claude Code. You'll see a score out of 100 and a list of exactly what's wrong. Run `--fix` to auto-repair.
 
+Claude Launchpad has 4 CLI commands (`init`, `doctor`, `eval`, `memory`) plus 1 in-session skill (`/lp-enhance`). Memory is optional.
+
 ## Two Paths, One Tool
 
 ### Starting a new project?
@@ -33,19 +35,19 @@ Then use `/lp-enhance` inside Claude Code to have Claude read your actual codeba
 claude-launchpad
 ```
 
-Scans your Claude Code config, gives you a score out of 100, and tells you exactly what's wrong. Run `--fix` to auto-apply fixes. Run `--watch` to see the score update live as you edit. Run `eval` to prove your config actually makes Claude behave.
+Scans your Claude Code config, gives you a score out of 100, and tells you exactly what's wrong. Run `doctor --fix` to auto-apply deterministic fixes, then run `/lp-enhance` inside Claude Code to rewrite CLAUDE.md with project-specific guidance, then run `eval` to prove behavior.
 
-## All Commands
+## Command Model
 
 | Command | What it does | Runs |
 |---|---|---|
 | `claude-launchpad init` | Detect stack, generate config, hooks, permissions | Locally |
-| `claude-launchpad` | Score your config 0-100, list issues | Locally |
+| `claude-launchpad` | Default entrypoint (routes to doctor when config exists) | Locally |
 | `claude-launchpad doctor --fix` | Auto-fix issues: hooks, rules, sections, .claudeignore | Locally |
 | `claude-launchpad doctor --watch` | Live score that updates when you save config files | Locally |
 | `/lp-enhance` (skill) | Claude reads your code and completes CLAUDE.md | Inside Claude Code |
 | `claude-launchpad eval` | Run Claude against test scenarios, prove config works | Via Claude CLI |
-| `claude-launchpad memory` | Set up persistent memory with decay model and MCP tools | Locally |
+| `claude-launchpad memory` | Optional memory setup (or stats) + installs `/lp-migrate-memory` skill | Locally |
 | `claude-launchpad memory --dashboard` | TUI dashboard for memory visualization | Locally |
 
 ## Quick Start
@@ -60,7 +62,7 @@ A typical unconfigured project scores ~42%. After `--fix`, it jumps to ~86%. Run
 
 ## The Doctor
 
-The core of the tool. Runs 7 analyzers against your `.claude/` directory and `CLAUDE.md`:
+The core of the tool. Runs 7 core analyzers against your `.claude/` directory and `CLAUDE.md` (plus an optional Memory analyzer when agentic memory is detected):
 
 | Analyzer | What it catches |
 |---|---|
@@ -118,14 +120,10 @@ Detects your project and generates Claude Code config that fits. No templates, n
 
 **Works with:** TypeScript, JavaScript, Python, Go, Ruby, Rust, Dart, PHP, Java, Kotlin, Swift, Elixir, C# — and detects frameworks (Next.js, FastAPI, Django, Rails, Laravel, Express, SvelteKit, Angular, NestJS, and 15+ more).
 
-**What you get (7 files):**
-- `CLAUDE.md` — your stack, commands, conventions, guardrails, memory management instructions
-- `TASKS.md` — sprint tracking, session continuity, deferred issues parking
-- `.claude/settings.json` — `$schema` for IDE autocomplete, `permissions.deny` for credential + secret protection, sandbox enabled, bypass mode disabled, hooks for .env protection + destructive command blocking + auto-format + sprint review + PostCompact context re-injection
-- `.claude/.gitignore` — prevents local settings and plans from being committed
-- `.claudeignore` — language-specific ignore patterns
-- `.claude/skills/lp-enhance/SKILL.md` — AI-powered CLAUDE.md improver skill (global or project scope)
-- `.claude/rules/conventions.md` — language-specific starter rules
+**What init writes:**
+- Always writes: `CLAUDE.md`, `TASKS.md`, `.claude/settings.json`
+- Creates when missing: `.claude/.gitignore`, `.claudeignore`, `.claude/rules/conventions.md`
+- Offers `/lp-enhance` install (project/global/skip) only when no project/global/legacy install already exists
 
 ## Enhance
 
@@ -148,6 +146,7 @@ claude-launchpad memory
 ```
 
 Interactive setup - asks before changing anything. Installs a SQLite database, hooks for automatic context injection, and 7 MCP tools.
+It also installs the `/lp-migrate-memory` skill to help migrate legacy built-in memory files.
 
 **What it does:**
 - **SessionStart hook** automatically injects relevant memories at the start of each session
@@ -158,6 +157,16 @@ Interactive setup - asks before changing anything. Installs a SQLite database, h
 - **TUI dashboard** (`--dashboard`) for visualization with vim navigation, filtering, and search
 
 No cloud. No sync. Everything stays in `~/.agentic-memory/memory.db`.
+
+**Memory flags:**
+
+| Flag | What it does |
+|---|---|
+| `--dashboard` | Opens the interactive TUI dashboard |
+
+Default behavior of `claude-launchpad memory`:
+- If memory is not installed, it runs interactive install
+- If memory is installed, it shows memory stats
 
 ## Eval
 
@@ -199,6 +208,8 @@ Results are saved to `.claude/eval/` as structured markdown — you can feed the
 | Flag | What it does |
 |---|---|
 | `--suite <name>` | Run one suite: `security`, `conventions`, or `workflow` |
+| `-p, --path <dir>` | Project root to evaluate (defaults to current directory) |
+| `--scenarios <path>` | Use a custom scenarios directory |
 | `--model <model>` | Model to use: `haiku`, `sonnet`, `opus` |
 | `--runs <n>` | Runs per scenario (default 3, median score used) |
 | `--debug` | Keep sandbox directories so you can inspect what Claude wrote |

@@ -18,7 +18,11 @@ claude-launchpad init
 | `-n, --name` | Project name (auto-detected from directory) |
 | `-y, --yes` | Accept all defaults without prompting |
 
-## What it generates
+With `--yes`, `/lp-enhance` installation defaults to project scope (unless already installed).
+
+## What it writes
+
+Always writes these files, and creates additional files only when they do not already exist:
 
 <Files>
   <File name="CLAUDE.md" />
@@ -26,11 +30,6 @@ claude-launchpad init
   <Folder name=".claude" defaultOpen>
     <File name="settings.json" />
     <File name=".gitignore" />
-    <Folder name="skills">
-      <Folder name="lp-enhance">
-        <File name="SKILL.md" />
-      </Folder>
-    </Folder>
     <Folder name="rules">
       <File name="conventions.md" />
     </Folder>
@@ -43,7 +42,7 @@ claude-launchpad init
 - **settings.json** — `$schema`, credential deny rules (~/.ssh, ~/.aws, ~/.npmrc), sandbox enabled, bypass mode disabled, hooks for .env protection + destructive command blocking + auto-format + sprint review + SessionStart + PostCompact
 - **.gitignore** — prevents local settings, plans, memory from being committed
 - **.claudeignore** — language-specific ignore patterns
-- **lp-enhance skill** — AI-powered CLAUDE.md improver (`.claude/skills/lp-enhance/SKILL.md`). Project scope keeps it in your repo; global scope makes it available in all projects.
+- **lp-enhance skill** — AI-powered CLAUDE.md improver. Installed during init in either project scope (`.claude/skills/lp-enhance/SKILL.md`) or global scope (`~/.claude/skills/lp-enhance/SKILL.md`) when not already present.
 - **conventions.md** — language-specific starter rules
 
 ## Sprint review hook
