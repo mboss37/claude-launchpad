@@ -53,6 +53,37 @@
           }
         ]
       }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cat TASKS.md 2>/dev/null; exit 0"
+          }
+        ]
+      },
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx claude-launchpad memory context --json 2>/dev/null; exit 0"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx claude-launchpad memory extract 2>/dev/null; exit 0",
+            "async": true
+          }
+        ]
+      }
     ]
   },
   "permissions": {
@@ -60,11 +91,21 @@
       "Read(~/.ssh/*)",
       "Read(~/.aws/*)",
       "Read(~/.npmrc)"
+    ],
+    "allow": [
+      "mcp__agentic-memory__memory_store",
+      "mcp__agentic-memory__memory_search",
+      "mcp__agentic-memory__memory_recent",
+      "mcp__agentic-memory__memory_forget",
+      "mcp__agentic-memory__memory_relate",
+      "mcp__agentic-memory__memory_stats",
+      "mcp__agentic-memory__memory_update"
     ]
   },
   "disableBypassPermissionsMode": "disable",
   "sandbox": {
     "enabled": true,
     "failIfUnavailable": true
-  }
+  },
+  "autoMemoryEnabled": false
 }
