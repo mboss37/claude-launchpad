@@ -242,7 +242,7 @@ export default function HomePage() {
 
           <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
             <InstallBlock command="npm i -g claude-launchpad" className="w-full sm:w-auto" />
-            <div className="grid grid-cols-1 gap-2 min-[420px]:grid-cols-2 sm:contents">
+            <div className="grid w-full grid-cols-1 gap-2 min-[420px]:grid-cols-2 sm:contents">
               <Link href="/docs" className={buttonVariants({ className: 'h-11 shrink-0 whitespace-nowrap rounded-xl px-4' })}>
                 Open quickstart
                 <ArrowRightIcon className="h-4 w-4" />
@@ -326,7 +326,7 @@ export default function HomePage() {
           <SectionHeading
             eyebrow="Optional add-on"
             title="Persistent memory across sessions"
-            description="Memories decay naturally based on type. Context is auto-injected at session start, facts auto-extracted when you're done. No cloud, no sync - local SQLite only."
+            description="Built-in memory stores flat files that never forget. Agentic memory works like the human brain - short-term memories fade, long-term knowledge persists. Ranked retrieval, automatic context injection, and project isolation. Local SQLite, no cloud."
           />
 
           <div className="mt-8 grid gap-4 lg:grid-cols-[0.35fr_0.65fr] lg:items-stretch">
@@ -338,12 +338,12 @@ export default function HomePage() {
                 </div>
                 <p className="mt-3 text-sm text-fd-muted-foreground">Interactive setup - asks before changing anything.</p>
                 <div className="mt-4 space-y-2 text-sm text-fd-muted-foreground">
-                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> SQLite + FTS5 full-text search</div>
-                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> 7 MCP tools for Claude</div>
                   <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Decay model (60d / 1y / 2y by type)</div>
+                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> FTS5 search + multi-signal ranking</div>
+                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> 7 MCP tools for Claude</div>
+                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Auto-inject context, auto-extract facts</div>
+                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Project-scoped, no cross-contamination</div>
                   <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> TUI dashboard with vim navigation</div>
-                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Auto-inject context at session start</div>
-                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Auto-extract facts when session ends</div>
                 </div>
               </div>
               <div className="mt-5">
@@ -362,33 +362,33 @@ export default function HomePage() {
                 </div>
                 <div className="mt-1 flex gap-4">
                   <div className="flex-1 min-w-0">
-                    <pre className="text-cyan-500/40">{`── Memories ────────────────────────────────`}</pre>
-                    <pre>{` `}<span className="text-green-400/90">▸</span>{` `}<span className="text-fd-foreground font-bold">Never rush irreversible…</span>{`  `}<span className="text-cyan-400/70">SEMA</span>{` `}<span className="text-green-400/80">90%</span>{` `}<span className="text-blue-400/60">acc:6</span></pre>
-                    <pre className="text-fd-muted-foreground">{`   Push back hard on bad…    `}<span className="text-cyan-400/50">SEMA</span>{` `}<span className="text-green-400/60">80%</span>{` `}<span className="text-blue-400/40">acc:2</span></pre>
-                    <pre className="text-fd-muted-foreground">{`   CHANGELOG is CLI-only     `}<span className="text-cyan-400/50">SEMA</span>{` `}<span className="text-green-400/60">80%</span>{` `}<span className="text-blue-400/40">acc:4</span></pre>
-                    <pre className="text-fd-muted-foreground">{`   Command order - canoni…   `}<span className="text-cyan-400/50">SEMA</span>{` `}<span className="text-green-400/60">80%</span>{` `}<span className="text-blue-400/40">acc:8</span></pre>
-                    <pre className="text-fd-muted-foreground">{`   No em dashes in docs      `}<span className="text-cyan-400/50">SEMA</span>{` `}<span className="text-yellow-400/60">70%</span>{` `}<span className="text-blue-400/40">acc:0</span></pre>
-                    <pre className="text-fd-muted-foreground">{`   Architecture decisions    `}<span className="text-cyan-400/50">SEMA</span>{` `}<span className="text-yellow-400/50">60%</span>{` `}<span className="text-blue-400/40">acc:2</span></pre>
-                    <pre className="text-fd-muted-foreground">{`   Eval engine design        `}<span className="text-cyan-400/50">SEMA</span>{` `}<span className="text-yellow-400/50">60%</span>{` `}<span className="text-blue-400/40">acc:0</span></pre>
-                    <pre className="text-fd-muted-foreground">{`   Agent permissions         `}<span className="text-cyan-400/50">SEMA</span>{` `}<span className="text-yellow-400/60">70%</span>{` `}<span className="text-blue-400/40">acc:4</span></pre>
-                    <pre className="text-fd-muted-foreground">{`   Read before judging       `}<span className="text-cyan-400/50">SEMA</span>{` `}<span className="text-yellow-400/60">70%</span>{` `}<span className="text-blue-400/40">acc:0</span></pre>
+                    <pre className="text-cyan-500/25">{`── Memories ────────────────────────────────`}</pre>
+                    <pre>{` `}<span className="text-green-400/50">▸</span>{` `}<span className="text-fd-foreground font-bold">Never rush irreversible…</span>{`  `}<span className="text-cyan-400/40">SEMA</span>{` `}<span className="text-green-400/25">90%</span>{` `}<span className="text-blue-400/30">acc:6</span></pre>
+                    <pre className="text-fd-muted-foreground">{`   Push back hard on bad…    `}<span className="text-cyan-400/30">SEMA</span>{` `}<span className="text-green-400/30">80%</span>{` `}<span className="text-blue-400/20">acc:2</span></pre>
+                    <pre className="text-fd-muted-foreground">{`   CHANGELOG is CLI-only     `}<span className="text-cyan-400/30">SEMA</span>{` `}<span className="text-green-400/30">80%</span>{` `}<span className="text-blue-400/20">acc:4</span></pre>
+                    <pre className="text-fd-muted-foreground">{`   Command order - canoni…   `}<span className="text-cyan-400/30">SEMA</span>{` `}<span className="text-green-400/30">80%</span>{` `}<span className="text-blue-400/20">acc:8</span></pre>
+                    <pre className="text-fd-muted-foreground">{`   No em dashes in docs      `}<span className="text-cyan-400/30">SEMA</span>{` `}<span className="text-yellow-400/30">70%</span>{` `}<span className="text-blue-400/20">acc:0</span></pre>
+                    <pre className="text-fd-muted-foreground">{`   Architecture decisions    `}<span className="text-cyan-400/30">SEMA</span>{` `}<span className="text-yellow-400/25">60%</span>{` `}<span className="text-blue-400/20">acc:2</span></pre>
+                    <pre className="text-fd-muted-foreground">{`   Eval engine design        `}<span className="text-cyan-400/30">SEMA</span>{` `}<span className="text-yellow-400/25">60%</span>{` `}<span className="text-blue-400/20">acc:0</span></pre>
+                    <pre className="text-fd-muted-foreground">{`   Agent permissions         `}<span className="text-cyan-400/30">SEMA</span>{` `}<span className="text-yellow-400/30">70%</span>{` `}<span className="text-blue-400/20">acc:4</span></pre>
+                    <pre className="text-fd-muted-foreground">{`   Read before judging       `}<span className="text-cyan-400/30">SEMA</span>{` `}<span className="text-yellow-400/30">70%</span>{` `}<span className="text-blue-400/20">acc:0</span></pre>
                   </div>
                   <div className="shrink-0">
-                    <pre className="text-purple-400/40">{`── Projects ────────────`}</pre>
+                    <pre className="text-purple-400/25">{`── Projects ────────────`}</pre>
                     <pre className="text-fd-muted-foreground">{`  All projects    28 mem`}</pre>
-                    <pre className="text-yellow-300/90">{`> my-app          14 mem`}</pre>
+                    <pre className="text-yellow-300/50">{`> my-app          14 mem`}</pre>
                     <pre className="text-fd-muted-foreground">{`  api-server       8 mem`}</pre>
                     <pre className="text-fd-muted-foreground">{`  shared-lib       6 mem`}</pre>
-                    <pre className="text-blue-400/40">{`── Detail ──────────────`}</pre>
+                    <pre className="text-blue-400/20">{`── Detail ──────────────`}</pre>
                     <pre className="text-fd-foreground font-bold">{`Never rush irreversible`}</pre>
-                    <pre className="text-fd-muted-foreground">{`Type: `}<span className="text-cyan-400/70">semantic</span></pre>
-                    <pre className="text-fd-muted-foreground">{`Health:  `}<span className="text-green-400/70">████████</span><span className="text-fd-muted-foreground/30">░░</span>{` 100%`}</pre>
-                    <pre className="text-fd-muted-foreground">{`Import:  `}<span className="text-green-400/70">█████████</span><span className="text-fd-muted-foreground/30">░</span>{` 0.90`}</pre>
+                    <pre className="text-fd-muted-foreground">{`Type: `}<span className="text-cyan-400/40">semantic</span></pre>
+                    <pre className="text-fd-muted-foreground">{`Health:  `}<span className="text-green-400/35">████████</span><span className="text-fd-muted-foreground/30">░░</span>{` 100%`}</pre>
+                    <pre className="text-fd-muted-foreground">{`Import:  `}<span className="text-green-400/35">█████████</span><span className="text-fd-muted-foreground/30">░</span>{` 0.90`}</pre>
                   </div>
                 </div>
                 <div className="mt-1 flex justify-between text-fd-muted-foreground/30">
                   <span>28 memories | 4 relations | 1.7MB</span>
-                  <span><span className="text-green-400/40">healthy:24</span> <span className="text-yellow-400/40">fading:3</span> <span className="text-red-400/40">stale:1</span></span>
+                  <span><span className="text-green-400/25">healthy:24</span> <span className="text-yellow-400/20">fading:3</span> <span className="text-red-400/20">stale:1</span></span>
                 </div>
               </div>
             </TerminalPanel>
@@ -406,9 +406,9 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="flex flex-col gap-2 sm:items-end">
-              <InstallBlock command="npm i -g claude-launchpad" className="w-full sm:w-auto" />
-              <div className="flex flex-col gap-2 sm:flex-row">
+            <div className="flex flex-col gap-2">
+              <InstallBlock command="npm i -g claude-launchpad" className="w-full" />
+              <div className="grid grid-cols-2 gap-2">
                 <Link href="/docs" className={buttonVariants({ className: 'h-11 whitespace-nowrap rounded-xl px-4' })}>
                   Open docs
                   <ArrowRightIcon className="h-4 w-4" />
