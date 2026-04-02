@@ -30,17 +30,24 @@ const newProjectSteps = [
     href: '/docs/init',
   },
   {
+    icon: RocketIcon,
+    prefix: '#',
+    command: 'Build your project',
+    detail: 'Write code, add dependencies, shape the architecture.',
+    href: '/docs/init',
+  },
+  {
     icon: SparklesIcon,
     prefix: '>',
     command: '/lp-enhance',
-    detail: 'Rewrite CLAUDE.md from the actual codebase context.',
+    detail: 'Claude reads your code and completes CLAUDE.md with real conventions and guardrails.',
     href: '/docs/enhance',
   },
   {
     icon: FlaskConicalIcon,
     prefix: '$',
     command: 'claude-launchpad eval',
-    detail: 'Verify behavior before you trust the configuration.',
+    detail: 'Run scenarios to verify Claude actually follows your rules.',
     href: '/docs/eval',
   },
 ] as const;
@@ -50,28 +57,28 @@ const existingProjectSteps = [
     icon: StethoscopeIcon,
     prefix: '$',
     command: 'claude-launchpad',
-    detail: 'Open with doctor automatically when config already exists.',
+    detail: 'Runs doctor automatically when config already exists.',
     href: '/docs/doctor',
   },
   {
     icon: StethoscopeIcon,
     prefix: '$',
     command: 'claude-launchpad doctor --fix',
-    detail: 'Apply deterministic fixes for hooks, permissions, and gaps.',
+    detail: 'Auto-repair hooks, permissions, and missing sections.',
     href: '/docs/doctor',
   },
   {
     icon: SparklesIcon,
     prefix: '>',
     command: '/lp-enhance',
-    detail: 'Refine CLAUDE.md with repo-specific architecture and rules.',
+    detail: 'Claude reads your code and completes CLAUDE.md with real conventions and guardrails.',
     href: '/docs/enhance',
   },
   {
     icon: FlaskConicalIcon,
     prefix: '$',
     command: 'claude-launchpad eval',
-    detail: 'Run scenarios to confirm the config actually behaves.',
+    detail: 'Run scenarios to verify Claude actually follows your rules.',
     href: '/docs/eval',
   },
 ] as const;
@@ -94,14 +101,8 @@ const afterOutcomes = [
   'CLAUDE.md hardened',
 ] as const;
 
-const proofStats = [
-  { value: '4', label: 'core commands' },
-  { value: '1', label: 'in-session skill' },
-  { value: '15', label: 'eval scenarios' },
-] as const;
-
 function PageSection({ children, className }: { children: ReactNode; className?: string }) {
-  return <section className={cn(shellClassName, 'py-10 sm:py-12 md:py-14', className)}>{children}</section>;
+  return <section className={cn(shellClassName, 'py-8 sm:py-10 md:py-14', className)}>{children}</section>;
 }
 
 function CopyButton({ text }: { text: string }) {
@@ -241,7 +242,7 @@ export default function HomePage() {
 
           <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
             <InstallBlock command="npm i -g claude-launchpad" className="w-full sm:w-auto" />
-            <div className="grid grid-cols-2 gap-2 sm:contents">
+            <div className="grid grid-cols-1 gap-2 min-[420px]:grid-cols-2 sm:contents">
               <Link href="/docs" className={buttonVariants({ className: 'h-11 shrink-0 whitespace-nowrap rounded-xl px-4' })}>
                 Open quickstart
                 <ArrowRightIcon className="h-4 w-4" />
@@ -280,7 +281,7 @@ export default function HomePage() {
             description="The goal is not prettier docs. The goal is a configuration that enforces behavior, blocks obvious mistakes, and can be validated."
           />
 
-          <div className="mt-8 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="mt-8">
             <TerminalPanel
               title="before vs after"
               aside={<span className="font-mono text-[11px] uppercase tracking-[0.2em] text-fd-muted-foreground">31 {'->'} 91</span>}
@@ -306,7 +307,7 @@ export default function HomePage() {
                     <Badge>After --fix</Badge>
                     <span className="text-2xl font-semibold">91/100</span>
                   </div>
-                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                  <div className="mt-3 grid gap-2 md:grid-cols-2">
                     {afterOutcomes.map((item) => (
                       <div key={item} className="rounded-lg border border-fd-border bg-fd-card px-3 py-2.5 text-sm text-fd-muted-foreground">
                         ✓ {item}
@@ -316,31 +317,78 @@ export default function HomePage() {
                 </div>
               </div>
             </TerminalPanel>
+          </div>
+        </PageSection>
+      </div>
 
-            <TerminalPanel title="core model" aside={<Badge variant="secondary">memory optional</Badge>}>
-              <div className="grid grid-cols-3 gap-2">
-                {proofStats.map((stat) => (
-                  <div key={stat.label} className="rounded-lg border border-fd-border bg-fd-background/34 px-3 py-3">
-                    <div className="text-[2rem] font-semibold leading-none tracking-tight">{stat.value}</div>
-                    <p className="mt-1.5 text-[10px] leading-4 text-fd-muted-foreground">{stat.label}</p>
-                  </div>
-                ))}
+      <div className="border-y border-fd-border/80 bg-fd-card/22">
+        <PageSection>
+          <SectionHeading
+            eyebrow="Optional add-on"
+            title="Persistent memory across sessions"
+            description="Memories decay naturally based on type. Context is auto-injected at session start, facts auto-extracted when you're done. No cloud, no sync - local SQLite only."
+          />
+
+          <div className="mt-8 grid gap-4 lg:grid-cols-[0.35fr_0.65fr] lg:items-stretch">
+            <div className="flex flex-col justify-between rounded-xl border border-fd-border bg-fd-card/95 p-5">
+              <div>
+                <div className="flex items-center gap-2">
+                  <BrainIcon className="h-5 w-5 text-fd-muted-foreground" />
+                  <span className="font-mono text-sm font-medium">claude-launchpad memory</span>
+                </div>
+                <p className="mt-3 text-sm text-fd-muted-foreground">Interactive setup - asks before changing anything.</p>
+                <div className="mt-4 space-y-2 text-sm text-fd-muted-foreground">
+                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> SQLite + FTS5 full-text search</div>
+                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> 7 MCP tools for Claude</div>
+                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Decay model (60d / 1y / 2y by type)</div>
+                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> TUI dashboard with vim navigation</div>
+                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Auto-inject context at session start</div>
+                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Auto-extract facts when session ends</div>
+                </div>
               </div>
+              <div className="mt-5">
+                <Link href="/docs/memory" className={buttonVariants({ variant: 'outline', className: 'w-full rounded-lg' })}>
+                  Read docs
+                  <ArrowRightIcon className="h-4 w-4" />
+                </Link>
+              </div>
+            </div>
 
-              <div className="mt-3 rounded-xl border border-dashed border-fd-border bg-fd-background/26 px-3 py-3">
-                <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-fd-border bg-fd-card">
-                    <BrainIcon className="h-4 w-4 text-fd-muted-foreground" />
+            <TerminalPanel title="memory --dashboard" className="hidden sm:block">
+              <div className="text-[11px] leading-[1.5] lg:text-[13px] xl:text-[14px]">
+                <div className="flex justify-between text-fd-foreground/70">
+                  <span>cockpit [project:my-app | sort:importance]</span>
+                  <span className="text-fd-muted-foreground/40">[/]=search [p]=projects [1-5]=type</span>
+                </div>
+                <div className="mt-1 flex gap-4">
+                  <div className="flex-1 min-w-0">
+                    <pre className="text-cyan-500/40">{`── Memories ────────────────────────────────`}</pre>
+                    <pre>{` `}<span className="text-green-400/90">▸</span>{` `}<span className="text-fd-foreground font-bold">Never rush irreversible…</span>{`  `}<span className="text-cyan-400/70">SEMA</span>{` `}<span className="text-green-400/80">90%</span>{` `}<span className="text-blue-400/60">acc:6</span></pre>
+                    <pre className="text-fd-muted-foreground">{`   Push back hard on bad…    `}<span className="text-cyan-400/50">SEMA</span>{` `}<span className="text-green-400/60">80%</span>{` `}<span className="text-blue-400/40">acc:2</span></pre>
+                    <pre className="text-fd-muted-foreground">{`   CHANGELOG is CLI-only     `}<span className="text-cyan-400/50">SEMA</span>{` `}<span className="text-green-400/60">80%</span>{` `}<span className="text-blue-400/40">acc:4</span></pre>
+                    <pre className="text-fd-muted-foreground">{`   Command order - canoni…   `}<span className="text-cyan-400/50">SEMA</span>{` `}<span className="text-green-400/60">80%</span>{` `}<span className="text-blue-400/40">acc:8</span></pre>
+                    <pre className="text-fd-muted-foreground">{`   No em dashes in docs      `}<span className="text-cyan-400/50">SEMA</span>{` `}<span className="text-yellow-400/60">70%</span>{` `}<span className="text-blue-400/40">acc:0</span></pre>
+                    <pre className="text-fd-muted-foreground">{`   Architecture decisions    `}<span className="text-cyan-400/50">SEMA</span>{` `}<span className="text-yellow-400/50">60%</span>{` `}<span className="text-blue-400/40">acc:2</span></pre>
+                    <pre className="text-fd-muted-foreground">{`   Eval engine design        `}<span className="text-cyan-400/50">SEMA</span>{` `}<span className="text-yellow-400/50">60%</span>{` `}<span className="text-blue-400/40">acc:0</span></pre>
+                    <pre className="text-fd-muted-foreground">{`   Agent permissions         `}<span className="text-cyan-400/50">SEMA</span>{` `}<span className="text-yellow-400/60">70%</span>{` `}<span className="text-blue-400/40">acc:4</span></pre>
+                    <pre className="text-fd-muted-foreground">{`   Read before judging       `}<span className="text-cyan-400/50">SEMA</span>{` `}<span className="text-yellow-400/60">70%</span>{` `}<span className="text-blue-400/40">acc:0</span></pre>
                   </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-sm">claude-launchpad memory</span>
-                      <Badge variant="outline" className="text-[10px]">optional</Badge>
-                    </div>
-                    <p className="mt-1.5 text-sm leading-6 text-fd-muted-foreground">
-                      Add later if you want SQLite-backed cross-session memory, hooks, MCP integration, and `/lp-migrate-memory`.
-                    </p>
+                  <div className="shrink-0">
+                    <pre className="text-purple-400/40">{`── Projects ────────────`}</pre>
+                    <pre className="text-fd-muted-foreground">{`  All projects    28 mem`}</pre>
+                    <pre className="text-yellow-300/90">{`> my-app          14 mem`}</pre>
+                    <pre className="text-fd-muted-foreground">{`  api-server       8 mem`}</pre>
+                    <pre className="text-fd-muted-foreground">{`  shared-lib       6 mem`}</pre>
+                    <pre className="text-blue-400/40">{`── Detail ──────────────`}</pre>
+                    <pre className="text-fd-foreground font-bold">{`Never rush irreversible`}</pre>
+                    <pre className="text-fd-muted-foreground">{`Type: `}<span className="text-cyan-400/70">semantic</span></pre>
+                    <pre className="text-fd-muted-foreground">{`Health:  `}<span className="text-green-400/70">████████</span><span className="text-fd-muted-foreground/30">░░</span>{` 100%`}</pre>
+                    <pre className="text-fd-muted-foreground">{`Import:  `}<span className="text-green-400/70">█████████</span><span className="text-fd-muted-foreground/30">░</span>{` 0.90`}</pre>
                   </div>
+                </div>
+                <div className="mt-1 flex justify-between text-fd-muted-foreground/30">
+                  <span>28 memories | 4 relations | 1.7MB</span>
+                  <span><span className="text-green-400/40">healthy:24</span> <span className="text-yellow-400/40">fading:3</span> <span className="text-red-400/40">stale:1</span></span>
                 </div>
               </div>
             </TerminalPanel>

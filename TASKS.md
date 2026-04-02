@@ -69,6 +69,7 @@
 - [ ] Final QA pass: test full flow on clean project (init -> doctor -> memory -> /lp-enhance)
 - [ ] Upgrade zod 3 to zod 4 (fixes claude-agent-sdk peer dep warning)
 - [ ] Defer better-sqlite3 compilation to `memory install` (avoid slow install for non-memory users)
+- [ ] Memory cleanup UX: dashboard delete keybinding (`d` + confirm), bulk purge by project (`memory --purge <project>`), and prune command for dead/stale memories
 
 ## Upcoming
 - **Sprint 15**: User testimonials, path-scoped rule generation, community scenario packs
