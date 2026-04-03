@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.7.7] - 2026-04-03
+
+### Changed
+- Memory install now injects "STORE IMMEDIATELY" guidance into CLAUDE.md - prompts proactive memory storage instead of relying only on auto-extraction
+
 ## [0.7.6] - 2026-04-03
 
 ### Fixed

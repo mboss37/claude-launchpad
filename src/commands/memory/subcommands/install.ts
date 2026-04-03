@@ -173,6 +173,7 @@ This project uses **agentic-memory** for persistent memory across sessions.
 - Use \`memory_search\` to find specific memories by keyword
 - Use \`memory_store\` to save decisions, gotchas, and learnings worth remembering
 - Use \`memory_stats\` to check memory health
+- **STORE IMMEDIATELY** when: a dependency strategy changes, an architecture decision is made, a convention is established, a bug pattern is discovered, or a feature is killed/added. Don't wait for session end - the Stop hook only catches obvious patterns.
 `;
 
 function injectClaudeMdGuidance(projectDir: string): boolean {
