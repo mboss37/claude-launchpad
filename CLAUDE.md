@@ -14,6 +14,11 @@ CLI toolkit that makes Claude Code setups measurably good — diagnose, scaffold
 - ALWAYS read @TASKS.md first — it tracks progress across sessions
 - Update TASKS.md as you complete work
 
+## Backlog
+- When a feature is discussed but deferred, add it to `.claude/BACKLOG.md` immediately
+- Never leave future ideas only in TASKS.md or conversation — they get lost
+- BACKLOG.md is the single source of truth for parked features
+
 ## Architecture
 - Four CLI commands: `init` (scaffold), `doctor` (diagnose), `eval` (test configs), `memory` (optional persistent memory)
 - Two skills: `/lp-enhance` (AI-powered CLAUDE.md improver), `/lp-migrate-memory` (legacy memory migration)

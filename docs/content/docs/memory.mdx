@@ -3,13 +3,13 @@ title: memory
 description: Persistent intelligent memory system for Claude Code sessions with decay-based retrieval.
 ---
 
-Optional command that replaces Claude Code's built-in flat-file memory with an intelligent, decay-based system backed by SQLite.
+Optional command that gives Claude Code a real memory. Instead of flat markdown files that grow forever, memories are stored in SQLite, scored by relevance, and injected into each session based on what actually matters right now.
 
 ```bash
 claude-launchpad memory
 ```
 
-Interactive setup - asks before changing anything.
+Running without flags starts an interactive setup that walks you through installation.
 
 ## Prerequisites
 
@@ -44,11 +44,17 @@ Running `claude-launchpad memory` without flags uses a smart default:
 - 7 MCP tools for storing, searching, and managing memories
 - Memory guidance section in CLAUDE.md
 - `/lp-migrate-memory` skill for porting legacy auto-memory files
-- Global MCP server registration via `claude mcp add --scope user`. If auto-registration fails, run manually: `claude mcp add --scope user agentic-memory -- npx claude-launchpad memory serve`
+- Global MCP server registration via `claude mcp add --scope user`
+
+If auto-registration fails, run the command manually:
+
+```bash
+claude mcp add --scope user agentic-memory -- npx claude-launchpad memory serve
+```
 
 ## How it works
 
-Memories decay naturally based on their type:
+Each memory has a type that controls how long it stays relevant. Short-lived events fade in weeks; core knowledge persists for years.
 
 | Type | Half-life | What it stores |
 |---|---|---|
@@ -58,8 +64,37 @@ Memories decay naturally based on their type:
 | **procedural** | 2 years | How-to knowledge - build, deploy, commands |
 | **pattern** | 6 months | Recurring issues, common solutions |
 
-Retrieval uses multi-signal scoring:
-- Text match (BM25 via FTS5) - 35%
+### Session injection
+
+At session start, the SessionStart hook decides which memories Claude actually needs. It scores every candidate memory across six signals, assigns a presentation tier, and packs them into a token budget (default 2000 tokens). High-value memories get full content; lower-value ones get summaries or just titles.
+
+| Tier | What Claude sees | When used |
+|---|---|---|
+| **Full** | Complete content (up to 500 chars) + tags | Top-scored memories (score > 0.6) |
+| **Summary** | Title + first 150 chars | Mid-scored (score > 0.35) |
+| **Index** | Title + type only | Lower-scored but still relevant |
+
+When the token budget runs low, the algorithm demotes memories to cheaper tiers rather than dropping them entirely. A memory that would normally get full content might appear as a summary instead, fitting more knowledge into the same budget.
+
+**Scoring signals:**
+
+| Signal | Weight | What it measures |
+|---|---|---|
+| Context relevance | 30% | Git branch + file overlap with stored context |
+| Value signal | 25% | Access-to-injection ratio (searched often = valuable, injected but ignored = noise) |
+| Importance | 20% | User-assigned or auto-calculated importance score |
+| Recency | 15% | How recently updated, scaled by type (episodic: 7-day half-life, procedural: 90-day half-life) |
+| Type bonus | 5% | Procedural and pattern knowledge prioritized over episodic events |
+| Noise penalty | 5% | Penalizes memories injected many times without being accessed |
+
+### Self-tuning
+
+The algorithm learns from usage without any configuration. When Claude searches for a memory, that memory rises in rank for future sessions. When a memory gets injected repeatedly but Claude never references it, the noise penalty kicks in and it gradually stops appearing. This feedback loop runs through the value signal and noise penalty: no ML, no manual tuning.
+
+### Search scoring
+
+When Claude explicitly searches for memories (via the `memory_search` tool), results use a different scoring formula optimized for keyword relevance:
+- Text match (full-text search with relevance ranking) - 35%
 - Importance (user-assigned) - 20%
 - Recency (exponential decay) - 20%
 - Git context (branch + file overlap) - 15%
@@ -83,7 +118,9 @@ Retrieval uses multi-signal scoring:
 claude-launchpad memory --dashboard
 ```
 
-TUI with vim navigation:
+Terminal-based memory browser. Shows all stored memories with their type, importance, decay status, and project scope.
+
+Keybindings:
 - `j`/`k` - navigate memory list
 - `[`/`]` - switch projects
 - `/` - search

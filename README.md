@@ -148,10 +148,10 @@ claude-launchpad memory
 Requires native deps first: `npm install better-sqlite3 sqlite-vec` (the CLI will prompt you if missing). Interactive setup - asks before changing anything. Installs a SQLite database, hooks for automatic context injection, and 7 MCP tools.
 
 **What it does:**
-- **SessionStart hook** automatically injects relevant memories at the start of each session
+- **Smart session injection** - each session starts with the most relevant memories, ranked by 6 signals (context, value, importance, recency, type, noise) and packed into a 2000-token budget across three tiers (full content / summary / title-only)
 - **Stop hook** extracts facts from the conversation transcript when you're done
 - **Decay model** - memories fade naturally based on type (episodic: 60 days, semantic: 1 year, procedural: 2 years)
-- **Multi-signal scoring** - retrieval ranked by text match, importance, recency, access frequency, and git context
+- **Self-tuning retrieval** - memories Claude actively searches for rise in rank; memories injected but never used gradually stop appearing
 - **Project-scoped** - memories are partitioned per project, no cross-contamination
 - **TUI dashboard** (`--dashboard`) for visualization with vim navigation, filtering, and search
 

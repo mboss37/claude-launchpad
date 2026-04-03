@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.9.0] — 2026-04-03
+
+### Added
+- Smart memory injection algorithm (InjectionService) replaces binary full/graph mode
+  - 6-signal scoring: context relevance, value signal (access/injection ratio), importance, type-aware recency, type bonus, noise penalty
+  - 3 presentation tiers: full content, summary, index (title-only)
+  - Token-budget packing (default 2000 tokens) with automatic tier demotion
+  - Self-tuning: memories Claude searches for rise in rank, ignored ones fade out
+  - Cold start handling: injects all when below 5 memories
+  - 12 new tests for injection scoring, tiers, and budget
+- Backlog system (.claude/BACKLOG.md) for parking deferred features
+
+### Fixed
+- incrementInjection was never called (injection count permanently 0 for all memories)
+- incrementAccess was incorrectly called during injection (inflated access counts)
+- Token budget (2000 tokens) now enforced (was using arbitrary count-based limit of 10)
+
+### Changed
+- Memory docs rewritten: session injection, self-tuning, and search scoring as distinct sections
+- Landing page memory section: brain-inspired copy, improved bullet points
+- README memory section: smart injection and self-tuning bullets
+- Removed duplicate changelog link from docs nav
+
 ## [0.8.3] — 2026-04-03
 
 ### Added

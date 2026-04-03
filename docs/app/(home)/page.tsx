@@ -215,7 +215,7 @@ function SectionHeading({
   description: string;
 }) {
   return (
-    <div className="max-w-2xl">
+    <div>
       <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-fd-muted-foreground">{eyebrow}</p>
       <h2 className="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">{title}</h2>
       <p className="mt-3 text-sm leading-6 text-fd-muted-foreground sm:text-base">{description}</p>
@@ -326,7 +326,7 @@ export default function HomePage() {
           <SectionHeading
             eyebrow="Optional add-on"
             title="Persistent memory across sessions"
-            description="Built-in memory stores flat files that never forget. Agentic memory works like the human brain - short-term memories fade, long-term knowledge persists. Ranked retrieval, automatic context injection, and project isolation. Local SQLite, no cloud."
+            description="Built-in memory is a flat file that grows forever. This replaces it with a brain-inspired system where knowledge decays at different rates, relevant context is auto-injected each session, and the whole thing self-tunes based on what Claude actually reaches for."
           />
 
           <div className="mt-8 grid gap-4 lg:grid-cols-[0.35fr_0.65fr] lg:items-stretch">
@@ -338,10 +338,10 @@ export default function HomePage() {
                 </div>
                 <p className="mt-3 text-sm text-fd-muted-foreground">Interactive setup - asks before changing anything.</p>
                 <div className="mt-4 space-y-2 text-sm text-fd-muted-foreground">
-                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Decay model (60d / 1y / 2y by type)</div>
-                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> FTS5 search + multi-signal ranking</div>
-                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> 7 MCP tools for Claude</div>
-                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Auto-inject context, auto-extract facts</div>
+                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Unused knowledge fades, useful knowledge rises</div>
+                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Best memories injected at session start — no prompt needed</div>
+                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> 7 MCP tools for Claude to read and write memories</div>
+                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Facts auto-extracted from every session</div>
                   <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Project-scoped, no cross-contamination</div>
                   <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> TUI dashboard with vim navigation</div>
                 </div>
