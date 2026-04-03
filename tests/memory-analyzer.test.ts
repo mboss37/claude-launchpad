@@ -75,11 +75,11 @@ describe("analyzeMemory", () => {
     expect(result).not.toBeNull();
   });
 
-  it("flags missing MCP server as high severity", async () => {
+  it("does not flag MCP server (registered globally, not in project settings)", async () => {
     const result = await analyzeMemory(makeConfig({ hooks: [sessionStartHook, stopHook] }));
     expect(result!.issues.some(
-      (i) => i.severity === "high" && i.message.includes("MCP server not found"),
-    )).toBe(true);
+      (i) => i.message.includes("MCP server not found"),
+    )).toBe(false);
   });
 
   it("flags missing SessionStart hook as high severity", async () => {

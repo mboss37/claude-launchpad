@@ -27,18 +27,7 @@ export async function analyzeMemory(config: ClaudeConfig): Promise<AnalyzerResul
 
   const issues: DiagnosticIssue[] = [];
 
-  // 1. MCP server configured
-  const hasMcpServer = config.mcpServers.some((s) => s.name === "agentic-memory");
-  if (!hasMcpServer) {
-    issues.push({
-      analyzer: "Memory",
-      severity: "high",
-      message: "agentic-memory MCP server not found in mcpServers",
-      fix: "Add agentic-memory to mcpServers in .claude/settings.json",
-    });
-  }
-
-  // 2. SessionStart hook with memory context
+  // 1. SessionStart hook with memory context
   const hasSessionStart = config.hooks.some(
     (h) => h.event === "SessionStart" && h.command?.includes("memory context"),
   );

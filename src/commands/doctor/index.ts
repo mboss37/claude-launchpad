@@ -107,26 +107,26 @@ export function createDoctorCommand(): Command {
           if (fixed > 0) {
             log.success(`Applied ${fixed} fix(es). Re-scanning...`);
             log.blank();
-
-            // Re-scan to show updated score
-            const updatedConfig = await parseClaudeConfig(opts.path);
-            const updatedResults: AnalyzerResult[] = await Promise.all([
-              analyzeBudget(updatedConfig),
-              analyzeQuality(updatedConfig),
-              analyzeSettings(updatedConfig),
-              analyzeHooks(updatedConfig),
-              analyzeRules(updatedConfig),
-              analyzePermissions(updatedConfig),
-              analyzeMcp(updatedConfig),
-            ]);
-
-            const updatedMemoryResult = await analyzeMemory(updatedConfig);
-            if (updatedMemoryResult) {
-              updatedResults.push(updatedMemoryResult);
-            }
-            renderDoctorReport(updatedResults, { afterFix: true });
-            log.info(`Then use ${chalk.bold("/lp-enhance")} inside Claude Code to have Claude restructure and complete your CLAUDE.md.`);
           }
+
+          // Always re-scan and show report after --fix attempt
+          const updatedConfig = await parseClaudeConfig(opts.path);
+          const updatedResults: AnalyzerResult[] = await Promise.all([
+            analyzeBudget(updatedConfig),
+            analyzeQuality(updatedConfig),
+            analyzeSettings(updatedConfig),
+            analyzeHooks(updatedConfig),
+            analyzeRules(updatedConfig),
+            analyzePermissions(updatedConfig),
+            analyzeMcp(updatedConfig),
+          ]);
+
+          const updatedMemoryResult = await analyzeMemory(updatedConfig);
+          if (updatedMemoryResult) {
+            updatedResults.push(updatedMemoryResult);
+          }
+          renderDoctorReport(updatedResults, { afterFix: true });
+          log.info(`Then use ${chalk.bold("/lp-enhance")} inside Claude Code to have Claude restructure and complete your CLAUDE.md.`);
         }
       }
 
