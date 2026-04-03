@@ -122,7 +122,7 @@ export class RetrievalService {
 
     const all = [...contextMatched, ...recent, ...related];
     for (const entry of all) {
-      this.#deps.memoryRepo.incrementAccess(entry.result.memory.id);
+      this.#deps.memoryRepo.incrementInjection(entry.result.memory.id);
     }
     return all;
   }

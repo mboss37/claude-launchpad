@@ -26,14 +26,16 @@
 ## Upcoming: Sprint 15 — Smart Injection + Polish
 
 ### Smart Memory Injection (priority)
-- [ ] Phase 0: Fix incrementInjection bug (never called, injection count permanently 0)
-- [ ] Phase 0: Fix incrementAccess called during injection (should only be on explicit search)
-- [ ] Phase 1: Create injection-service.ts (unified scoring, MMR diversity, token-budget packing)
-- [ ] Phase 2: Rewrite context.ts to use InjectionService (replace loadSessionContext + binary mode)
-- [ ] Phase 3: Add config constants (INJECTION_WEIGHTS, TYPE_MULTIPLIERS, RECENCY_HALF_LIFE, MMR lambda)
-- [ ] Phase 3: Three presentation tiers (full/summary/index) replace binary full/graph
-- [ ] Phase 3: Exploration slots (1/8 reserved for discovery, self-correcting feedback)
-- [ ] Phase 3: Tests for scoring, MMR selection, token allocation, tier assignment
+- [x] Phase 0: Fix incrementInjection bug (never called, injection count permanently 0)
+- [x] Phase 0: Fix incrementAccess called during injection (should only be on explicit search)
+- [x] Phase 1: Create injection-service.ts (unified scoring, token-budget packing)
+- [x] Phase 2: Rewrite context.ts to use InjectionService (replace loadSessionContext + binary mode)
+- [x] Phase 3: Add config constants (INJECTION_WEIGHTS, TYPE_MULTIPLIERS, RECENCY_HALF_LIFE)
+- [x] Phase 3: Three presentation tiers (full/summary/index) replace binary full/graph
+- [x] Phase 3: 12 tests for scoring, token allocation, tier assignment
+- [ ] Phase 4: MMR diversity selection (avoid injecting 5 memories on same topic)
+- [ ] Phase 4: Exploration slots (1/8 reserved for discovery)
+- [ ] Clean up duplicate memories in DB from migration
 
 ### Memory UX
 - [ ] Dashboard delete keybinding (`d` + confirm)

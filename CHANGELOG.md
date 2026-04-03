@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.8.3] — 2026-04-03
+
+### Added
+- Smart memory injection algorithm (InjectionService) replaces binary full/graph mode
+  - Unified scoring: context relevance, value signal (access/injection ratio), importance, recency, type bonus, noise penalty
+  - Three presentation tiers (full/summary/index) with token-budget packing
+  - Type-specific recency half-lives (episodic 7d, semantic 30d, procedural 90d)
+  - Cold start handling: injects all when below 5 memories
+  - 12 new tests for injection scoring, tiers, and budget
+
+### Fixed
+- incrementInjection was never called (injection count permanently 0)
+- incrementAccess was called during injection (inflated access counts, should only trigger on explicit search)
+- Token budget (2000 tokens) now enforced (was using count-based limit)
+
 ## [0.8.2] — 2026-04-03
 
 ### Fixed

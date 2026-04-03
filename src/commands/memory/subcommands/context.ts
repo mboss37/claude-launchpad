@@ -1,20 +1,17 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { RetrievalService } from '../services/retrieval-service.js';
 import { DecayService } from '../services/decay-service.js';
 import { ConsolidationService } from '../services/consolidation-service.js';
+import { InjectionService } from '../services/injection-service.js';
 import { detectProject } from '../utils/project.js';
+import { getGitContext } from '../utils/git-context.js';
 import { initStorage } from './init-storage.js';
-import type { MemoryType } from '../types.js';
 
 interface ContextOpts {
   readonly json?: boolean;
-  readonly type?: string;
-  readonly limit?: number;
   readonly dbPath?: string;
 }
 
-const FULL_INJECT_THRESHOLD = 10;
 const CONSOLIDATION_FILE = '.last-consolidation';
 
 function shouldConsolidate(dataDir: string, intervalDays: number): boolean {
@@ -62,95 +59,22 @@ export async function runContext(opts: ContextOpts): Promise<void> {
       process.stderr.write(`[agentic-memory] maintenance error: ${err instanceof Error ? err.message : err}\n`);
     }
 
-    const retrievalService = new RetrievalService({
+    const project = detectProject(process.cwd());
+    const gitContext = getGitContext();
+
+    const injectionService = new InjectionService({
       memoryRepo: ctx.memoryRepo,
       relationRepo: ctx.relationRepo,
-      searchRepo: ctx.searchRepo,
+      gitContext: gitContext ?? undefined,
     });
 
-    const project = detectProject(process.cwd());
-    const totalCount = ctx.memoryRepo.count(project ?? undefined);
+    const result = injectionService.selectForInjection(
+      ctx.config.injectionBudget,
+      project ?? undefined,
+    );
 
-    const results = retrievalService.loadSessionContext({
-      limit: opts.limit ?? FULL_INJECT_THRESHOLD,
-      project: project ?? undefined,
-      type: opts.type as MemoryType | undefined,
-    });
-
-    if (results.length === 0) {
-      write('No memories found for this project.');
-      return;
-    }
-
-    const useGraph = totalCount > FULL_INJECT_THRESHOLD;
-
-    if (opts.json) {
-      write('# Agentic Memory - Session Context');
-      if (useGraph) {
-        write(`${totalCount} memories stored. Showing index only - use memory_search to get full content.\n`);
-        const graph = results.map(r => formatGraphEntry(r));
-        write(JSON.stringify({ mode: 'graph', totalMemories: totalCount, memories: graph }, null, 2));
-      } else {
-        write('The following memories were loaded from previous sessions. Treat these as known facts.');
-        write('When the user asks about something covered here, answer from these memories directly.\n');
-        const sections = {
-          contextMatched: results.filter(r => r.section === 'context').map(formatFullEntry),
-          recent: results.filter(r => r.section === 'recent').map(formatFullEntry),
-          related: results.filter(r => r.section === 'related').map(formatFullEntry),
-        };
-        write(JSON.stringify({ mode: 'full', ...sections }, null, 2));
-      }
-    } else {
-      write(`agentic-memory - Session context (${results.length}/${totalCount} memories)\n`);
-      for (const r of results) {
-        const m = r.result.memory;
-        write(`  ${m.title ?? '(untitled)'} [${m.type}] - ${m.content.slice(0, 100)}${m.content.length > 100 ? '...' : ''}`);
-      }
-    }
+    write(injectionService.formatInjection(result));
   } finally {
     ctx.close();
   }
-}
-
-interface ContextEntry {
-  readonly section: string;
-  readonly result: {
-    readonly memory: {
-      readonly id: string;
-      readonly type: string;
-      readonly title: string | null;
-      readonly content: string;
-      readonly importance: number;
-      readonly tags: readonly string[];
-      readonly createdAt: string;
-    };
-    readonly score: number;
-    readonly explanation: string;
-  };
-}
-
-function formatFullEntry(entry: ContextEntry) {
-  const m = entry.result.memory;
-  return {
-    id: m.id,
-    type: m.type,
-    title: m.title,
-    content: m.content.slice(0, 500),
-    importance: m.importance,
-    tags: m.tags,
-    score: Math.round(entry.result.score * 100) / 100,
-    createdAt: m.createdAt,
-  };
-}
-
-function formatGraphEntry(entry: ContextEntry) {
-  const m = entry.result.memory;
-  return {
-    id: m.id,
-    type: m.type,
-    title: m.title,
-    importance: m.importance,
-    tags: m.tags,
-    section: entry.section,
-  };
 }

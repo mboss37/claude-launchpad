@@ -463,17 +463,18 @@ describe('loadSessionContext', () => {
     expect(ids.length).toBe(uniqueIds.size);
   });
 
-  it('should increment access count on returned memories', () => {
+  it('should increment injection count (not access) on returned memories', () => {
     const service = new RetrievalService({ memoryRepo, relationRepo, searchRepo });
     const mem = memoryRepo.create(
-      { type: 'semantic', content: 'Track access', tags: [], importance: 0.5, source: 'manual' },
+      { type: 'semantic', content: 'Track injection', tags: [], importance: 0.5, source: 'manual' },
       null,
     );
 
     service.loadSessionContext({ limit: 10 });
 
     const updated = memoryRepo.getById(mem.id);
-    expect(updated!.accessCount).toBeGreaterThan(0);
+    expect(updated!.injectionCount).toBeGreaterThan(0);
+    expect(updated!.accessCount).toBe(0);
   });
 });
 

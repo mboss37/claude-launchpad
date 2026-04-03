@@ -57,6 +57,37 @@ export const SCORING_WEIGHTS = {
   context: 0.15,
 } as const;
 
+// ── Injection Algorithm Constants ──────────────────────────────
+
+export const INJECTION_WEIGHTS = {
+  context: 0.30,
+  value: 0.25,
+  importance: 0.20,
+  recency: 0.15,
+  typeBonus: 0.05,
+  noise: 0.05,
+} as const;
+
+export const TYPE_INJECTION_BONUS: Record<string, number> = {
+  procedural: 1.0,
+  pattern: 0.8,
+  semantic: 0.6,
+  episodic: 0.3,
+  working: 0.0,
+};
+
+export const RECENCY_HALF_LIFE: Record<string, number> = {
+  working: 1,
+  episodic: 7,
+  pattern: 14,
+  semantic: 30,
+  procedural: 90,
+};
+
+export const INJECTION_MIN_SCORE = 0.25;
+export const INJECTION_COLD_START_THRESHOLD = 5;
+export const INJECTION_HEADER_TOKENS = 50;
+
 // ── Config Loader ─────────────────────────────────────────────
 
 export function resolveDataDir(dataDir: string): string {
