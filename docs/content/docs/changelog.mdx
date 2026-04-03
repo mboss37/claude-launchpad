@@ -3,6 +3,23 @@ title: Changelog
 description: Release history for Claude Launchpad.
 ---
 
+## [0.8.1] - 2026-04-03
+
+### Fixed
+- Removed MCP server check from doctor memory analyzer (registered globally, not in project settings)
+- Fixed `doctor --fix` hanging when no fixes could be applied
+
+## [0.8.0] - 2026-04-03
+
+### Changed
+- Memory is fully optional - doctor no longer flags missing Memory section for non-memory users
+- `init` no longer generates Memory section in CLAUDE.md
+- `/lp-enhance` only suggests Memory guidance if memory is already configured
+- Dev/release publish workflow
+
+### Fixed
+- MCP server registration: removed stray `--` from `claude mcp add`
+
 ## [0.7.8] - 2026-04-03
 
 ### Fixed

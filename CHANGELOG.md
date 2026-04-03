@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.1] — 2026-04-03
+
+### Fixed
+- Removed MCP server check from doctor memory analyzer (registered globally, not in project settings)
+- Fixed `doctor --fix` hanging when no fixes could be applied
+- Always re-scan and render report after `--fix` attempt
+
 ## [0.8.0] — 2026-04-03
 
 ### Changed
