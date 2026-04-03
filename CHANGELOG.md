@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.9] — 2026-04-03
+
+### Fixed
+- MCP server registration: removed stray `--` from `claude mcp add` command that caused broken registrations
+- Removed accidental self-dependency in package.json
+
 ## [0.7.8] - 2026-04-03
 
 ### Fixed

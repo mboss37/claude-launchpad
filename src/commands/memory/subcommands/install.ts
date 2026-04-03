@@ -180,7 +180,7 @@ async function ensureNativeDeps(): Promise<void> {
 function registerMcpServer(): boolean {
   try {
     execSync(
-      'claude mcp add --scope user agentic-memory -- npx claude-launchpad memory serve',
+      'claude mcp add --scope user agentic-memory npx claude-launchpad memory serve',
       { stdio: 'pipe', timeout: 10000 },
     );
     return true;
