@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.6] - 2026-04-03
+
+### Fixed
+- Moved blessed to optionalDependencies - fixes dashboard crash on global install
+- Simplified dependency strategy: native deps (better-sqlite3, sqlite-vec) stay dev-only, everything else is optional
+
 ## [0.7.4] - 2026-04-03
 
 ### Fixed
