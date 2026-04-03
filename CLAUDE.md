@@ -1,6 +1,6 @@
 # Claude Launchpad
 
-CLI toolkit that makes Claude Code setups measurably good — diagnose, scaffold, evaluate.
+CLI toolkit that makes Claude Code setups measurably good — diagnose, scaffold, evaluate, remember.
 
 ## Stack
 - **Language**: TypeScript (strict mode)
@@ -8,18 +8,21 @@ CLI toolkit that makes Claude Code setups measurably good — diagnose, scaffold
 - **CLI**: Commander.js + @inquirer/prompts
 - **Testing**: Vitest
 - **Package Manager**: pnpm
-- **Build**: tsup (single-file CLI bundle)
+- **Build**: tsup (two entry points: cli.ts + memory/server.ts)
 
 ## Session Start
 - ALWAYS read @TASKS.md first — it tracks progress across sessions
 - Update TASKS.md as you complete work
 
 ## Architecture
-- Three CLI commands: `doctor` (diagnose), `init` (scaffold), `eval` (test configs)
-- `/lp-enhance` skill: AI-powered CLAUDE.md improver, runs inside Claude Code session (installed by init)
+- Four CLI commands: `init` (scaffold), `doctor` (diagnose), `eval` (test configs), `memory` (optional persistent memory)
+- Two skills: `/lp-enhance` (AI-powered CLAUDE.md improver), `/lp-migrate-memory` (legacy memory migration)
 - `doctor` is pure static analysis — no API calls, no cost, works offline; `--fix` auto-repairs issues
 - `init` generates 7 files (CLAUDE.md, TASKS.md, settings.json, .gitignore, .claudeignore, rules, lp-enhance skill)
-- `eval` runs Claude via Agent SDK against YAML scenarios and scores config quality
+- `eval` runs Claude via Agent SDK (falls back to Claude CLI if SDK not installed)
+- `memory` is optional — SQLite + FTS5 + decay model + 7 MCP tools + TUI dashboard
+- Memory native deps (better-sqlite3, sqlite-vec) are NOT bundled — user installs when setting up memory
+- Memory pure-JS deps (zod, @modelcontextprotocol/sdk, blessed) are optionalDependencies — always installed
 - Distributed as npm package (`npx claude-launchpad`) — users never clone this repo
 - See `.claude/rules/architecture.md` for full project structure and command flow
 
@@ -70,6 +73,8 @@ If no (docs-only, landing page, TASKS.md): commit normally, no version bump
 - npm distribution: `npx claude-launchpad` — not a template repo to clone
 - Doctor is the gateway (free, immediate), eval is the differentiator (costs money, measures quality)
 - YAML for eval scenarios: human-readable, community-contributable
+- Memory is optional: native deps deferred to user install, pure-JS deps in optionalDependencies
+- Plugin system killed: CLI is the product, no marketplace dependency
 
 ## Memory & Learnings
 - Save gotchas, non-obvious decisions, and deferred issues to project memory
