@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.8.0] — 2026-04-03
+
+### Changed
+- Memory is now fully optional — `doctor` no longer flags missing Memory section for non-memory users
+- `init` no longer generates `## Memory & Learnings` section in CLAUDE.md
+- `/lp-enhance` skill only suggests Memory guidance if memory is already configured
+- `doctor --fix` no longer injects Memory section into non-memory projects
+- Dev/release publish workflow: `pnpm publish:dev` for prereleases, `pnpm publish:release` for stable
+
+### Fixed
+- MCP server registration: removed stray `--` from `claude mcp add` that caused broken registrations
+- Native deps (better-sqlite3, sqlite-vec) resolve from user's local `node_modules`, fixing memory command with global CLI install
+- `cwdRequire` evaluated lazily with fallback to CLI's own resolution chain
+
 ## [0.7.9] — 2026-04-03
 
 ### Fixed
