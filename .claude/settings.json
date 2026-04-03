@@ -29,7 +29,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo \"$TOOL_INPUT_COMMAND\" | grep -qE 'npm publish' && echo 'Published to npm. Don\\'t forget: create a GitHub release with gh release create v<version>' ; exit 0"
+            "command": "echo \"$TOOL_INPUT_COMMAND\" | grep -qE 'npm publish' && echo \"Published to npm. Remember to create a GitHub release with gh release create v<version>\"; exit 0"
           }
         ]
       },
