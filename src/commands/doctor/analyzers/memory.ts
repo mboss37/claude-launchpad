@@ -10,7 +10,7 @@ const MEMORY_MCP_TOOLS = [
   "mcp__agentic-memory__memory_update",
 ] as const;
 
-function hasMemoryIndicators(config: ClaudeConfig): boolean {
+export function hasMemoryIndicators(config: ClaudeConfig): boolean {
   const hasMcpServer = config.mcpServers.some((s) => s.name === "agentic-memory");
   const hasHookRef = config.hooks.some(
     (h) => h.command?.includes("memory context") || h.command?.includes("memory extract"),

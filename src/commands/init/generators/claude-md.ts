@@ -60,16 +60,6 @@ When all tasks in the current sprint are complete, do a quick quality check befo
 - Never write to \`.env\` files
 - Never expose internal error details in API responses`);
 
-  // Memory & Learnings
-  sections.push("", `## Memory & Learnings
-Use the built-in memory system to persist knowledge across sessions:
-- **Save immediately** when you discover: a non-obvious fix, a gotcha, an external resource, a decision with context that would be lost, or a known issue to fix later
-- **Categories**: \`decision\` (why X over Y), \`gotcha\` (non-obvious pitfall), \`deferred\` (known issue, not urgent), \`reference\` (where to find things)
-- **Where**: project memory for this repo, global memory for cross-project learnings
-- **Format**: one fact per memory, include date and why — not just what
-- **Prune**: check if a memory on this topic exists before saving — update, don't duplicate
-- Before starting work, check memory for relevant context from previous sessions`);
-
   // Key Decisions
   sections.push("", `## Key Decisions
 <!-- Record architectural decisions as you make them -->`);

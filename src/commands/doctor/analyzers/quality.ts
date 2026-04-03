@@ -1,13 +1,15 @@
 import type { ClaudeConfig, AnalyzerResult, DiagnosticIssue } from "../../../types/index.js";
+import { hasMemoryIndicators } from "./memory.js";
 
-const ESSENTIAL_SECTIONS = [
+const BASE_SECTIONS = [
   { pattern: /^##\s+(Tech )?Stack/m, name: "Stack", why: "Claude performs worse without knowing the tech stack" },
   { pattern: /^##\s+Commands/m, name: "Commands", why: "Claude guesses wrong without explicit dev/build/test commands" },
   { pattern: /^##\s+Session Start/m, name: "Session Start", why: "Without this, Claude won't read TASKS.md or maintain continuity" },
   { pattern: /^##\s+Off.?Limits/m, name: "Off-Limits", why: "Without guardrails, Claude has no boundaries beyond defaults" },
   { pattern: /^##\s+(Architecture|Project Structure)/m, name: "Architecture/Structure", why: "Claude makes better decisions when it understands the codebase shape" },
-  { pattern: /^##\s+Memory/m, name: "Memory & Learnings", why: "Without memory instructions, Claude forgets learnings and repeats mistakes across sessions" },
 ] as const;
+
+const MEMORY_SECTION = { pattern: /^##\s+Memory/m, name: "Memory & Learnings", why: "Without memory instructions, Claude forgets learnings and repeats mistakes across sessions" } as const;
 
 const VAGUE_PATTERNS = [
   { pattern: /write (good|clean|quality|nice) code/i, label: "write good code" },
@@ -37,9 +39,12 @@ export async function analyzeQuality(config: ClaudeConfig): Promise<AnalyzerResu
     return { name: "CLAUDE.md Quality", issues, score: 0 };
   }
 
-  // Check essential sections
+  // Check essential sections (Memory only checked if memory is installed)
+  const sections = hasMemoryIndicators(config)
+    ? [...BASE_SECTIONS, MEMORY_SECTION]
+    : [...BASE_SECTIONS];
   let sectionsFound = 0;
-  for (const section of ESSENTIAL_SECTIONS) {
+  for (const section of sections) {
     if (section.pattern.test(content)) {
       sectionsFound++;
     } else {

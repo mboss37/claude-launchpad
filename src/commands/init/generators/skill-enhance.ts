@@ -27,7 +27,7 @@ CLAUDE.md must stay UNDER 120 lines of actionable content (not counting headings
 2. **## Architecture** - 3-5 bullet points describing the codebase shape (not a full directory tree)
 3. **## Conventions** - max 8 key patterns. Move detailed rules to .claude/rules/conventions.md
 4. **## Off-Limits** - max 8 guardrails specific to this project
-5. **## Memory & Learnings** - max 6 bullets. If missing, add instructions for using the built-in memory system: what to save (gotchas, decisions, deferred issues, references), where (project vs global memory), and the rule to check existing memories before creating duplicates
+5. **## Memory & Learnings** - ONLY if the project already has a ## Memory section or agentic-memory is configured in .claude/settings.json. If present, keep to max 6 bullets. If the project does NOT use memory, do NOT add this section
 6. **## Key Decisions** - only decisions that affect how Claude should work in this codebase
 7. **MCP server suggestions** - look at what external services the project uses (databases, APIs, storage). If you spot Postgres, Redis, Stripe, GitHub API, or similar, suggest relevant MCP servers. Print as suggestions at the end, not in CLAUDE.md.
 
