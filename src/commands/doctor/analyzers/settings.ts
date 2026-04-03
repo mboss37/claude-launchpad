@@ -24,16 +24,6 @@ export async function analyzeSettings(config: ClaudeConfig): Promise<AnalyzerRes
     });
   }
 
-  // Plugins are optional — info only, doesn't affect score
-  const plugins = config.settings.enabledPlugins as Record<string, boolean> | undefined;
-  if (!plugins || Object.keys(plugins).length === 0) {
-    issues.push({
-      analyzer: "Settings",
-      severity: "info",
-      message: "No plugins enabled — plugins are optional but can add capabilities",
-    });
-  }
-
   // Permission rules — only flag if allowedTools is set without security hooks
   const allowedTools = config.settings.allowedTools as string[] | undefined;
   if (allowedTools && allowedTools.length > 0 && config.hooks.length === 0) {

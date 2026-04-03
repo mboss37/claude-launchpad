@@ -50,7 +50,7 @@ When all tasks in the current sprint are complete, do a quick quality check befo
 
 ## Off-Limits
 - Never hardcode secrets
-- Never add third-party plugin dependencies (ECC, etc.) — self-contained
+- Never add third-party dependencies without justification — self-contained
 - Never require API keys for `doctor` — it must be free and offline
 - Never hardcode stack-specific logic — auto-detect or stay generic
 - Never add dependencies without justification — CLI must stay fast (<2s startup)

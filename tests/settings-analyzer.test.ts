@@ -37,14 +37,6 @@ describe("analyzeSettings", () => {
     expect(result.issues.some((i) => i.severity === "medium" && i.message.includes("hooks"))).toBe(true);
   });
 
-  it("plugins missing is info severity (does not affect score)", async () => {
-    const result = await analyzeSettings(makeConfig({
-      hooks: { PreToolUse: [{}] },
-    }));
-    const pluginIssue = result.issues.find((i) => i.message.includes("plugin"));
-    expect(pluginIssue?.severity).toBe("info");
-  });
-
   it("flags allowedTools without parsed hooks as dangerous", async () => {
     // config.hooks is the parsed array — empty means no hooks detected
     const config = makeConfig({ allowedTools: ["Bash", "Write"] });

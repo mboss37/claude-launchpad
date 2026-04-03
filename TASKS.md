@@ -53,7 +53,6 @@
 
 ### Week 4 — Expand
 - [ ] r/ClaudeAI, r/vibecoding, r/commandline, r/opensource, r/coolgithubprojects
-- [ ] Plugin marketplace go-live (waiting on Anthropic review)
 
 ### Memory Feature
 - [x] Finalize standalone memory tool (SQLite + MCP + decay model + web UI)
