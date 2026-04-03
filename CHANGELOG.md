@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.8.2] — 2026-04-03
+
+### Fixed
+- Memory analyzer now correctly reads `permissions.allow` instead of nonexistent `allowedTools` field
+- Memory score shows 100% when all permissions are configured
+
 ## [0.8.1] — 2026-04-03
 
 ### Fixed
