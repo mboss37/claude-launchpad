@@ -9,13 +9,20 @@
 - Validate input at system boundaries
 - Use lookup tables / config objects over switch statements (see `tryFix()`, `detectScripts()`)
 
-## Versioning
+## Versioning & Publishing
 - Semver: patch (bugfix/refactor), minor (new feature), major (breaking)
-- **Dev workflow**: batch small changes, publish with `pnpm publish:dev` (prerelease tag, doesn't affect "latest")
-- **Release workflow**: when enough changes accumulate, bump version and `pnpm publish:release`
-- Don't bump version after every small change — accumulate under dev tag
-- CHANGELOG: update once per release, not per dev publish
-- CHANGELOG format: `## [x.y.z] — YYYY-MM-DD` with Added/Changed/Fixed/Removed
+- **NEVER bump version on every commit.** Accumulate changes under a dev prerelease tag.
+- **Dev publish** (during development):
+  1. Do NOT bump version in package.json or cli.ts — the script handles it
+  2. Run `pnpm publish:dev` — auto-bumps to `x.y.z-dev.N`, publishes under `dev` tag (not `latest`)
+  3. Commit the version bump: `git add package.json src/cli.ts && git commit -m "chore: dev publish"`
+  4. No changelog, no GitHub release, no git tag
+- **Release publish** (when enough changes accumulate):
+  1. Bump version in package.json AND src/cli.ts to the next clean semver (e.g. `0.8.0`)
+  2. Update CHANGELOG.md (format: `## [x.y.z] — YYYY-MM-DD` with Added/Changed/Fixed/Removed)
+  3. Commit, push, then `pnpm publish:release`
+  4. Create git tag + GitHub release: `git tag v<version> && git push origin v<version> && gh release create v<version>`
+- Docs-only / non-src changes: commit normally, no version bump, no publish
 
 ## Pre-Commit Checklist
 1. Read back every changed file — dead code, unused imports, wrong types

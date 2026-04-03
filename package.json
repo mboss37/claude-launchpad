@@ -15,7 +15,7 @@
     "lint": "eslint src/ --ext .ts",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "pnpm build",
-    "publish:dev": "npm version prerelease --preid=dev && npm publish --tag dev",
+    "publish:dev": "npm version prerelease --preid=dev --no-git-tag-version && node scripts/sync-version.mjs && npm publish --tag dev",
     "publish:release": "npm publish",
     "docs:dev": "cd docs && pnpm dev",
     "docs:build": "cd docs && pnpm build"

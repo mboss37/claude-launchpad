@@ -52,13 +52,11 @@ When all tasks in the current sprint are complete, do a quick quality check befo
 - See `.claude/rules/conventions.md` for pre-commit checklist, versioning details, parallel agent rules
 
 ## Release Checklist
-Before every commit, ask: does this change affect the published npm package?
-If yes (any change to src/, package.json deps, tsup.config.ts):
-1. Bump version in package.json AND src/cli.ts
-2. Update CHANGELOG.md and docs/content/docs/changelog.mdx
-3. Commit, push, then prompt user to publish (`pnpm build && npm publish`)
-4. After publish: create GitHub release (`gh release create v<version>`)
-If no (docs-only, landing page, TASKS.md): commit normally, no version bump
+**NEVER bump version on every commit.** Use the dev/release publish workflow:
+- **During dev**: commit freely, no version bump. When ready to test: `pnpm publish:dev` (publishes under `dev` tag, not `latest`)
+- **For release**: bump version in package.json + src/cli.ts, update CHANGELOG.md, commit, push, `pnpm publish:release`, then `git tag v<version> && git push origin v<version> && gh release create v<version>`
+- **Non-src changes** (docs, TASKS.md): commit normally, no publish
+- See `.claude/rules/conventions.md` for full details
 
 ## Off-Limits
 - Never hardcode secrets
