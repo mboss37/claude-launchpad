@@ -1,6 +1,6 @@
 {
   "name": "claude-launchpad",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "description": "CLI toolkit that makes Claude Code setups measurably good - scaffold, diagnose, evaluate, remember",
   "type": "module",
   "bin": {
@@ -60,12 +60,12 @@
     "zod": "^4.0.0"
   },
   "devDependencies": {
-    "@types/blessed": "^0.1.25",
     "@types/better-sqlite3": "^7.6.12",
+    "@types/blessed": "^0.1.25",
     "@types/node": "^25.5.0",
-    "better-sqlite3": "^11.8.0",
+    "better-sqlite3": "^11.10.0",
     "blessed": "^0.1.81",
-    "sqlite-vec": "^0.1.6",
+    "sqlite-vec": "^0.1.9",
     "tsup": "^8.5.1",
     "tsx": "^4.21.0",
     "typescript": "^6.0.2",

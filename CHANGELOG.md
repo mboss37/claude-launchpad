@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.3] — 2026-04-03
+
+### Fixed
+- Native deps (better-sqlite3, sqlite-vec) now resolve from user's local `node_modules`, fixing `memory` command when CLI is installed globally via npx/npm -g
+- `cwdRequire` evaluated lazily (was captured at import time, breaking MCP server and early imports)
+- Added fallback to CLI's own resolution chain for long-lived MCP server process
+
 ## [0.7.2] - 2026-04-03
 
 ### Fixed

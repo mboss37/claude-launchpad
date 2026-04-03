@@ -1,20 +1,23 @@
-import Database from 'better-sqlite3';
-import * as sqliteVec from 'sqlite-vec';
+import type DatabaseConstructor from 'better-sqlite3';
 import { resolveDataDir } from '../config.js';
 import { mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
+import { cwdRequire } from '../utils/require-deps.js';
 
 export interface DatabaseOptions {
   readonly dbPath?: string;    // full path override (e.g. ':memory:' for tests)
   readonly dataDir?: string;   // resolved data dir (default ~/.agentic-memory)
 }
 
-export function createDatabase(options: DatabaseOptions = {}): Database.Database {
+export function createDatabase(options: DatabaseOptions = {}): DatabaseConstructor.Database {
   const dbPath = options.dbPath ?? resolveDbPath(options.dataDir);
 
   if (dbPath !== ':memory:') {
     mkdirSync(dirname(dbPath), { recursive: true });
   }
+
+  const Database = cwdRequire('better-sqlite3') as typeof DatabaseConstructor;
+  const sqliteVec = cwdRequire('sqlite-vec') as { load: (db: DatabaseConstructor.Database) => void };
 
   const db = new Database(dbPath);
 
@@ -34,7 +37,7 @@ export function createDatabase(options: DatabaseOptions = {}): Database.Database
   return db;
 }
 
-export function closeDatabase(db: Database.Database): void {
+export function closeDatabase(db: DatabaseConstructor.Database): void {
   try {
     db.pragma('wal_checkpoint(TRUNCATE)');
   } catch {

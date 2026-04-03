@@ -1,4 +1,20 @@
+import { createRequire } from "node:module";
+import { join } from "node:path";
 import { log } from "../../../lib/output.js";
+
+/**
+ * Require that resolves native deps from cwd's node_modules first,
+ * falling back to the CLI's own resolution (global install).
+ * Evaluated lazily so process.cwd() is captured at call time, not import time.
+ */
+export function cwdRequire(id: string): unknown {
+  const localRequire = createRequire(join(process.cwd(), "node_modules"));
+  try {
+    return localRequire(id);
+  } catch {
+    return require(id);
+  }
+}
 
 /**
  * Check if memory native dependencies are available.
@@ -7,7 +23,7 @@ import { log } from "../../../lib/output.js";
  */
 export async function requireMemoryDeps(): Promise<boolean> {
   try {
-    await import("better-sqlite3");
+    cwdRequire("better-sqlite3");
     return true;
   } catch {
     log.blank();
