@@ -145,8 +145,7 @@ Optional persistent memory system that replaces Claude Code's built-in flat-file
 claude-launchpad memory
 ```
 
-Interactive setup - asks before changing anything. Installs a SQLite database, hooks for automatic context injection, and 7 MCP tools.
-It also installs the `/lp-migrate-memory` skill to help migrate legacy built-in memory files.
+Requires native deps first: `npm install better-sqlite3 sqlite-vec` (the CLI will prompt you if missing). Interactive setup - asks before changing anything. Installs a SQLite database, hooks for automatic context injection, and 7 MCP tools.
 
 **What it does:**
 - **SessionStart hook** automatically injects relevant memories at the start of each session

@@ -3,11 +3,19 @@ title: Changelog
 description: Release history for Claude Launchpad.
 ---
 
+## [0.7.4] - 2026-04-03
+
+### Fixed
+- Zero-dependency install - removed all optional deps (agent-sdk, MCP sdk, zod, native modules)
+- npm install now pulls only 5 lightweight packages with zero warnings
+- Eval falls back to Claude CLI when agent-sdk is missing
+- Memory shows clear install prompt for native deps when needed
+
 ## [0.7.2] - 2026-04-03
 
 ### Fixed
-- Upgraded zod 3 to zod 4 - fixes peer dependency warning with claude-agent-sdk and boolean coercion in memory_forget tool
-- Deferred better-sqlite3/sqlite-vec/blessed to dev-only - `npm install` no longer compiles native modules. Users install them separately when setting up memory
+- Upgraded zod 3 to zod 4 - fixes peer dependency warning with claude-agent-sdk
+- Deferred better-sqlite3/sqlite-vec/blessed to dev-only
 
 ## [0.7.0] - 2026-04-01
 

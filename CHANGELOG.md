@@ -1,11 +1,19 @@
 # Changelog
 
-## [0.7.3] — 2026-04-03
+## [0.7.4] - 2026-04-03
 
 ### Fixed
-- Native deps (better-sqlite3, sqlite-vec) now resolve from user's local `node_modules`, fixing `memory` command when CLI is installed globally via npx/npm -g
-- `cwdRequire` evaluated lazily (was captured at import time, breaking MCP server and early imports)
-- Added fallback to CLI's own resolution chain for long-lived MCP server process
+- Removed all optional dependencies from npm install - only 5 lightweight deps remain
+- claude-agent-sdk, @modelcontextprotocol/sdk, zod moved to dev-only
+- Eval falls back to Claude CLI when agent-sdk is missing
+- Memory shows clear install prompt for native deps
+- Zero warnings, fast install (was ~26s with native compilation)
+
+## [0.7.3] - 2026-04-03
+
+### Fixed
+- Native deps (better-sqlite3, sqlite-vec) now resolve from user's local node_modules
+- cwdRequire evaluated lazily for MCP server compatibility
 
 ## [0.7.2] - 2026-04-03
 
