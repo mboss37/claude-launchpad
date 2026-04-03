@@ -30,9 +30,8 @@ export function createMemoryCommand(): Command {
           log.error("Memory system is not installed. Run `claude-launchpad memory` first.");
           return;
         }
-        const { requireMemoryDeps, requireDashboardDeps } = await import("./utils/require-deps.js");
+        const { requireMemoryDeps } = await import("./utils/require-deps.js");
         await requireMemoryDeps();
-        await requireDashboardDeps();
         const { startTui } = await import("./dashboard/tui.js");
         await startTui();
         return;

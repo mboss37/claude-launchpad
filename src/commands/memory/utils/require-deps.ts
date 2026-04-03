@@ -40,21 +40,3 @@ export async function requireMemoryDeps(): Promise<boolean> {
   }
 }
 
-/**
- * Check if dashboard dependencies (blessed) are available.
- */
-export async function requireDashboardDeps(): Promise<boolean> {
-  try {
-    cwdRequire("blessed");
-    return true;
-  } catch {
-    log.blank();
-    log.error("Dashboard requires the blessed package.");
-    log.blank();
-    log.info("Run this to install it:");
-    log.blank();
-    log.step("  npm install -g blessed");
-    log.blank();
-    process.exit(1);
-  }
-}
