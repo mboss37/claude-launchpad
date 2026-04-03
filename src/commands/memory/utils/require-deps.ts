@@ -1,19 +1,30 @@
 import { createRequire } from "node:module";
+import { execSync } from "node:child_process";
 import { join } from "node:path";
 import { log } from "../../../lib/output.js";
 
 /**
- * Require that resolves native deps from cwd's node_modules first,
- * falling back to the CLI's own resolution (global install).
- * Evaluated lazily so process.cwd() is captured at call time, not import time.
+ * Require that resolves native deps from multiple locations:
+ * 1. cwd's node_modules (local project install)
+ * 2. Global node_modules (npm install -g)
+ * 3. CLI's own resolution chain (fallback)
  */
 export function cwdRequire(id: string): unknown {
+  // Try local project first
   const localRequire = createRequire(join(process.cwd(), "node_modules"));
   try {
     return localRequire(id);
-  } catch {
-    return require(id);
-  }
+  } catch { /* not in local */ }
+
+  // Try global node_modules
+  try {
+    const globalPrefix = execSync("npm config get prefix", { encoding: "utf-8" }).trim();
+    const globalRequire = createRequire(join(globalPrefix, "lib", "node_modules"));
+    return globalRequire(id);
+  } catch { /* not in global */ }
+
+  // Last resort: CLI's own resolution
+  return require(id);
 }
 
 /**
@@ -31,7 +42,7 @@ export async function requireMemoryDeps(): Promise<boolean> {
     log.blank();
     log.info("Run this to install them:");
     log.blank();
-    log.step("  npm install better-sqlite3 sqlite-vec");
+    log.step("  npm install -g better-sqlite3 sqlite-vec");
     log.blank();
     log.info("This requires a C++ compiler (Xcode on macOS, build-essential on Linux).");
     log.info("After installing, run `claude-launchpad memory` again.");

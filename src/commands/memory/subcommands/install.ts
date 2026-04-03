@@ -12,12 +12,12 @@ interface InstallOpts {
 }
 
 export async function runInstall(opts: InstallOpts): Promise<void> {
-  const { requireMemoryDeps } = await import('../utils/require-deps.js');
-  await requireMemoryDeps();
-
   log.blank();
   log.step('Memory system - install');
   log.blank();
+
+  // Step 0: Ensure native deps are installed globally
+  await ensureNativeDeps();
 
   const config = loadConfig(opts.dbPath ? { dataDir: opts.dbPath } : undefined);
   const dataDir = resolveDataDir(config.dataDir);
@@ -150,6 +150,30 @@ function addToolPermissions(settings: Record<string, unknown>): void {
     permissions['allow'] = allowList;
     settings['permissions'] = permissions;
     log.info(`Auto-allowed ${added} MCP tools`);
+  }
+}
+
+async function ensureNativeDeps(): Promise<void> {
+  const { cwdRequire } = await import('../utils/require-deps.js');
+  try {
+    cwdRequire('better-sqlite3');
+    return;
+  } catch {
+    // Not installed — install globally
+  }
+
+  log.step('Installing native dependencies (better-sqlite3, sqlite-vec)...');
+  try {
+    execSync('npm install -g better-sqlite3 sqlite-vec', { stdio: 'pipe', timeout: 120000 });
+    log.success('Native dependencies installed globally');
+  } catch {
+    log.error('Failed to install native dependencies automatically.');
+    log.blank();
+    log.info('Install manually:');
+    log.step('  npm install -g better-sqlite3 sqlite-vec');
+    log.blank();
+    log.info('This requires a C++ compiler (Xcode on macOS, build-essential on Linux).');
+    process.exit(1);
   }
 }
 

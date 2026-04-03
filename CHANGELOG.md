@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.8] - 2026-04-03
+
+### Fixed
+- cwdRequire now checks global node_modules (npm install -g) - fixes memory commands failing after global dep install
+- Memory install auto-installs native deps globally if missing
+- Error messages now suggest `npm install -g` instead of local install
+
 ## [0.7.7] - 2026-04-03
 
 ### Changed
