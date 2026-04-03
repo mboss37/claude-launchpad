@@ -12,6 +12,9 @@ interface InstallOpts {
 }
 
 export async function runInstall(opts: InstallOpts): Promise<void> {
+  const { requireMemoryDeps } = await import('../utils/require-deps.js');
+  await requireMemoryDeps();
+
   log.blank();
   log.step('Memory system - install');
   log.blank();

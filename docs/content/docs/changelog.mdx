@@ -3,6 +3,12 @@ title: Changelog
 description: Release history for Claude Launchpad.
 ---
 
+## [0.7.2] - 2026-04-03
+
+### Fixed
+- Upgraded zod 3 to zod 4 - fixes peer dependency warning with claude-agent-sdk and boolean coercion in memory_forget tool
+- Deferred better-sqlite3/sqlite-vec/blessed to dev-only - `npm install` no longer compiles native modules. Users install them separately when setting up memory
+
 ## [0.7.0] - 2026-04-01
 
 ### Added

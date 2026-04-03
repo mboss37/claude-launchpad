@@ -15,6 +15,8 @@ function formatBytes(bytes: number): string {
 }
 
 export async function runStats(opts: StatsOpts): Promise<void> {
+  const { requireMemoryDeps } = await import('../utils/require-deps.js');
+  await requireMemoryDeps();
   const ctx = initStorage(opts.dbPath);
 
   try {
