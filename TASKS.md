@@ -23,15 +23,26 @@
 
 - **Sprint 14**: Memory — v0.7.5, /lp-enhance skill, agentic-memory integrated (262 tests), TUI dashboard, brain-inspired decay, zero-dep install, plugin removed, landing page redesign
 
-## Upcoming: Sprint 15
+## Upcoming: Sprint 15 — Smart Injection + Polish
 
-- [ ] Memory cleanup UX: dashboard delete keybinding (`d` + confirm), bulk purge by project (`memory --purge <project>`), and prune command for dead/stale memories
+### Smart Memory Injection (priority)
+- [ ] Phase 0: Fix incrementInjection bug (never called, injection count permanently 0)
+- [ ] Phase 0: Fix incrementAccess called during injection (should only be on explicit search)
+- [ ] Phase 1: Create injection-service.ts (unified scoring, MMR diversity, token-budget packing)
+- [ ] Phase 2: Rewrite context.ts to use InjectionService (replace loadSessionContext + binary mode)
+- [ ] Phase 3: Add config constants (INJECTION_WEIGHTS, TYPE_MULTIPLIERS, RECENCY_HALF_LIFE, MMR lambda)
+- [ ] Phase 3: Three presentation tiers (full/summary/index) replace binary full/graph
+- [ ] Phase 3: Exploration slots (1/8 reserved for discovery, self-correcting feedback)
+- [ ] Phase 3: Tests for scoring, MMR selection, token allocation, tier assignment
+
+### Memory UX
+- [ ] Dashboard delete keybinding (`d` + confirm)
+- [ ] Bulk purge by project (`memory --purge <project>`)
+
+### Launch Campaign
 - [ ] Landing page: before/after diff view (CLAUDE.md + settings.json)
 - [ ] Record 10-sec terminal GIF (bad score → --fix → good score)
-- [ ] Add OG image to docs (1200x630, terminal screenshot or GIF frame)
-- [ ] PRs to awesome-claude-code lists (hesreallyhim, rohitg00, travisvn)
-- [ ] Post in Anthropic Discord #tools channel
-- [ ] Write dev.to article: "Why your CLAUDE.md is probably wrong"
+- [ ] PRs to awesome-claude-code lists
 - [ ] Show HN post + Product Hunt launch
 
 ## Session Log
