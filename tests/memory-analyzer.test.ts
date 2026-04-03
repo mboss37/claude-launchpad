@@ -152,7 +152,7 @@ describe("analyzeMemory", () => {
   it("flags missing MCP tool permissions as low severity", async () => {
     const result = await analyzeMemory(makeConfig({
       mcpServers: [memoryServer],
-      settings: { allowedTools: [] },
+      settings: { permissions: { allow: [] } },
     }));
     expect(result!.issues.some(
       (i) => i.severity === "low" && i.message.includes("tool permission"),
@@ -162,7 +162,7 @@ describe("analyzeMemory", () => {
   it("does not flag when all MCP tools are in allowedTools", async () => {
     const result = await analyzeMemory(makeConfig({
       mcpServers: [memoryServer],
-      settings: { allowedTools: ALL_TOOLS },
+      settings: { permissions: { allow: ALL_TOOLS } },
     }));
     expect(result!.issues.some(
       (i) => i.message.includes("tool permission"),
@@ -173,7 +173,7 @@ describe("analyzeMemory", () => {
     const result = await analyzeMemory(makeConfig({
       mcpServers: [memoryServer],
       hooks: [sessionStartHook, stopHook],
-      settings: { autoMemoryEnabled: false, allowedTools: ALL_TOOLS },
+      settings: { autoMemoryEnabled: false, permissions: { allow: ALL_TOOLS } },
       claudeMdContent: "# Test\n## Memory\nUse agentic-memory",
     }));
     expect(result!.score).toBe(100);

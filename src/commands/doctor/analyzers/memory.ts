@@ -77,7 +77,8 @@ export async function analyzeMemory(config: ClaudeConfig): Promise<AnalyzerResul
   }
 
   // 6. MCP tool permissions
-  const allowList = (config.settings?.allowedTools as string[] | undefined) ?? [];
+  const permissions = (config.settings?.permissions as Record<string, unknown> | undefined) ?? {};
+  const allowList = (permissions.allow as string[] | undefined) ?? [];
   const missingTools = MEMORY_MCP_TOOLS.filter((t) => !allowList.includes(t));
   if (missingTools.length > 0) {
     issues.push({
