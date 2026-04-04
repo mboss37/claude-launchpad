@@ -241,7 +241,7 @@ Score below threshold = exit code 1 = PR blocked.
 
 **Doctor** reads your files and runs static analysis. No API calls. No network. No cost.
 
-**Init** scans manifest files (package.json, go.mod, pyproject.toml, etc.), detects your stack, and generates 7 files: CLAUDE.md (with sprint reviews and memory management), TASKS.md (with deferred issues section), settings.json (with credential deny rules, sandbox enabled, bypass mode disabled, hooks including sprint review and PostCompact), .claude/.gitignore, .claudeignore, /lp-enhance skill, and language-specific rules. Formatter hooks use hardcoded safe commands only.
+**Init** scans manifest files (package.json, go.mod, pyproject.toml, etc.), detects your stack, and generates 8 files: CLAUDE.md (with sprint reviews and backlog management), TASKS.md (with deferred issues section), BACKLOG.md (priority-tiered feature parking), settings.json (with credential deny rules, sandbox enabled, bypass mode disabled, hooks including sprint review and PostCompact), .claude/.gitignore, .claudeignore, /lp-enhance skill, and language-specific rules. Formatter hooks use hardcoded safe commands only.
 
 **Enhance** is a `/lp-enhance` skill installed during `init`. It runs inside your active Claude Code session - no separate process, no overhead. Claude already has your codebase context, so it produces better results than an external command.
 

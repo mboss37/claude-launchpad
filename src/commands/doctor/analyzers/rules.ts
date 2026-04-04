@@ -7,8 +7,20 @@ import type { ClaudeConfig, AnalyzerResult, DiagnosticIssue } from "../../../typ
 export async function analyzeRules(config: ClaudeConfig): Promise<AnalyzerResult> {
   const issues: DiagnosticIssue[] = [];
 
-  // Check for .claudeignore
   const projectRoot = config.claudeMdPath ? dirname(config.claudeMdPath) : process.cwd();
+
+  // Check for BACKLOG.md
+  const hasBacklog = await fileExists(join(projectRoot, "BACKLOG.md"));
+  if (!hasBacklog) {
+    issues.push({
+      analyzer: "Rules",
+      severity: "low",
+      message: "No BACKLOG.md found — deferred features get lost in conversation history",
+      fix: "Run `claude-launchpad init` or `doctor --fix` to generate one",
+    });
+  }
+
+  // Check for .claudeignore
   const hasClaudeignore = await fileExists(join(projectRoot, ".claudeignore"));
   if (!hasClaudeignore) {
     issues.push({

@@ -39,7 +39,12 @@ export function generateClaudeMd(options: InitOptions, detected: DetectedProject
   sections.push("", `## Session Start
 - ALWAYS read @TASKS.md first — it tracks progress across sessions
 - Check the Session Log at the bottom of TASKS.md for where we left off
-- Update TASKS.md as you complete work`);
+- Update TASKS.md as you complete work
+
+## Backlog
+- When a feature is discussed but deferred, add it to BACKLOG.md immediately
+- Never leave future ideas only in TASKS.md or conversation — they get lost
+- BACKLOG.md is the single source of truth for parked features`);
 
   // Sprint Reviews
   sections.push("", `## Sprint Reviews

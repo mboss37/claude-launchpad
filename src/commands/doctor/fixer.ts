@@ -61,6 +61,7 @@ const FIX_TABLE: ReadonlyArray<{ analyzer: string; match: string; fix: FixFn }> 
     return addClaudeMdSection(root, "## Stack", content);
   }},
   { analyzer: "Quality", match: "Session Start", fix: (root) => addClaudeMdSection(root, "## Session Start", "- ALWAYS read @TASKS.md first - it tracks progress across sessions\n- Update TASKS.md as you complete work") },
+  { analyzer: "Rules", match: "No BACKLOG.md", fix: (root) => createBacklogMd(root) },
   { analyzer: "Rules", match: "No .claudeignore", fix: (root, detected) => createClaudeignore(root, detected) },
   { analyzer: "Rules", match: "No .claude/rules/", fix: (root) => createStarterRules(root) },
   { analyzer: "Hooks", match: "PostCompact", fix: (root) => addPostCompactHook(root) },
@@ -315,6 +316,25 @@ async function addClaudeMdSection(root: string, heading: string, content: string
 
   await writeFile(claudeMdPath, updated);
   log.success(`Added "${heading}" section to CLAUDE.md`);
+  return true;
+}
+
+async function createBacklogMd(root: string): Promise<boolean> {
+  const backlogPath = join(root, "BACKLOG.md");
+  try {
+    await access(backlogPath);
+    return false;
+  } catch {
+    // Create it
+  }
+
+  const name = root.split("/").pop() ?? "Project";
+  await writeFile(backlogPath, `# ${name} — Backlog
+
+> Features discussed but deferred. Pick up when relevant.
+> Priority: P0 = next sprint, P1 = soon, P2 = when relevant.
+`);
+  log.success("Generated BACKLOG.md");
   return true;
 }
 

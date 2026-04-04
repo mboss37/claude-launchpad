@@ -12,6 +12,7 @@ import { generateTasksMd } from "./generators/tasks-md.js";
 import { generateSettings } from "./generators/settings.js";
 import { generateClaudeignore } from "./generators/claudeignore.js";
 import { generateEnhanceSkill } from "./generators/skill-enhance.js";
+import { generateBacklogMd } from "./generators/backlog.js";
 
 export function createInitCommand(): Command {
   return new Command("init")
@@ -73,6 +74,7 @@ async function scaffold(root: string, options: InitOptions, detected: DetectedPr
 
   const claudeMd = generateClaudeMd(options, detected);
   const tasksMd = generateTasksMd(options);
+  const backlogMd = generateBacklogMd(options);
   const settings = generateSettings(detected);
   const claudeignore = generateClaudeignore(detected);
 
@@ -83,6 +85,8 @@ async function scaffold(root: string, options: InitOptions, detected: DetectedPr
   const mergedSettings = await mergeSettings(settingsPath, settings as unknown as Record<string, unknown>);
 
   // Only generate files that don't exist yet
+  const backlogPath = join(root, "BACKLOG.md");
+  const hasBacklog = await fileExists(backlogPath);
   const claudeignorePath = join(root, ".claudeignore");
   const hasClaudeignore = await fileExists(claudeignorePath);
   const claudeGitignorePath = join(root, ".claude", ".gitignore");
@@ -95,6 +99,10 @@ async function scaffold(root: string, options: InitOptions, detected: DetectedPr
     writeFile(join(root, "TASKS.md"), tasksMd),
     writeFile(settingsPath, JSON.stringify(mergedSettings, null, 2) + "\n"),
   ];
+
+  if (!hasBacklog) {
+    writes.push(writeFile(backlogPath, backlogMd));
+  }
 
   if (!hasClaudeignore) {
     writes.push(writeFile(claudeignorePath, claudeignore));
@@ -121,6 +129,7 @@ async function scaffold(root: string, options: InitOptions, detected: DetectedPr
 
   log.success("Generated CLAUDE.md");
   log.success("Generated TASKS.md");
+  if (!hasBacklog) log.success("Generated BACKLOG.md");
   log.success("Generated .claude/settings.json (schema, permissions, hooks)");
   if (!hasClaudeGitignore) log.success("Generated .claude/.gitignore");
   if (!hasClaudeignore) log.success("Generated .claudeignore");

@@ -15,7 +15,7 @@ CLI toolkit that makes Claude Code setups measurably good — diagnose, scaffold
 - Update TASKS.md as you complete work
 
 ## Backlog
-- When a feature is discussed but deferred, add it to `.claude/BACKLOG.md` immediately
+- When a feature is discussed but deferred, add it to `BACKLOG.md` immediately
 - Never leave future ideas only in TASKS.md or conversation — they get lost
 - BACKLOG.md is the single source of truth for parked features
 
@@ -23,7 +23,7 @@ CLI toolkit that makes Claude Code setups measurably good — diagnose, scaffold
 - Four CLI commands: `init` (scaffold), `doctor` (diagnose), `eval` (test configs), `memory` (optional persistent memory)
 - Two skills: `/lp-enhance` (AI-powered CLAUDE.md improver), `/lp-migrate-memory` (legacy memory migration)
 - `doctor` is pure static analysis — no API calls, no cost, works offline; `--fix` auto-repairs issues
-- `init` generates 7 files (CLAUDE.md, TASKS.md, settings.json, .gitignore, .claudeignore, rules, lp-enhance skill)
+- `init` generates 8 files (CLAUDE.md, TASKS.md, BACKLOG.md, settings.json, .gitignore, .claudeignore, rules, lp-enhance skill)
 - `eval` runs Claude via Agent SDK (falls back to Claude CLI if SDK not installed)
 - `memory` is optional — SQLite + FTS5 + decay model + 7 MCP tools + TUI dashboard
 - Memory native deps (better-sqlite3, sqlite-vec) are NOT bundled — user installs when setting up memory

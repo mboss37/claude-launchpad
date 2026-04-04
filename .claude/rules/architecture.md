@@ -40,7 +40,7 @@
 ```
 
 ## Command Flow
-- `init` → detect stack → prompt user → generate 7 files (incl. lp-enhance skill) → report score
+- `init` → detect stack → prompt user → generate 8 files (incl. BACKLOG.md, lp-enhance skill) → report score
 - `doctor` → analyzers scan `.claude/` → score + report → optional `--fix` → memory analyzer conditional
 - `/lp-enhance` → skill runs in Claude Code session → AI rewrites CLAUDE.md → suggests hooks + MCP
 - `eval` → load YAML scenarios → run Claude via Agent SDK (fallback: CLI) → score checks → report
