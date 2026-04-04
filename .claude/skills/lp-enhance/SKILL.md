@@ -10,7 +10,7 @@ Read CLAUDE.md and the project's codebase, then update CLAUDE.md to fill in miss
 
 ## Budget Rule
 
-CLAUDE.md must stay UNDER 120 lines of actionable content (not counting headings, blank lines, or comments). Claude Code starts ignoring rules past ~150 instructions. If you need more detail, create .claude/rules/ files instead:
+CLAUDE.md must stay UNDER 200 lines of actionable content (not counting headings, blank lines, or comments). Claude Code starts ignoring rules past ~250 instructions. If you need more detail, create .claude/rules/ files instead:
 - Create .claude/rules/conventions.md for detailed coding patterns
 - Create .claude/rules/architecture.md for detailed structure docs
 - Keep CLAUDE.md to HIGH-LEVEL summaries only (3-5 bullets per section max)

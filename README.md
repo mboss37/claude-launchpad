@@ -7,7 +7,7 @@
 
 **Score your Claude Code setup. Fix what's broken. Prove it works.**
 
-CLAUDE.md is advisory — Claude follows your rules ~80% of the time. Hooks are deterministic — 100% compliance. But most developers have zero hooks and too many instructions. This tool gives you a number, fixes the gaps, and lets you prove Claude actually follows your config.
+CLAUDE.md is advisory, so Claude follows your rules about 80% of the time. Hooks are deterministic: 100% compliance. Most developers have zero hooks and too many instructions. This tool scores your setup, fixes the gaps, and proves Claude follows your config.
 
 ```bash
 npx claude-launchpad
@@ -25,7 +25,7 @@ Claude Launchpad has 4 CLI commands (`init`, `doctor`, `eval`, `memory`) plus 1 
 claude-launchpad init
 ```
 
-Detects your stack, generates `CLAUDE.md` with your commands and conventions, creates `TASKS.md` for tracking work across sessions, sets up hooks that auto-format code and block dangerous operations, and adds a `.claudeignore` so Claude skips `node_modules` and build artifacts.
+Detects your stack and generates `CLAUDE.md` with your commands and conventions. Creates `TASKS.md` for tracking, `BACKLOG.md` for parking features, sets up hooks that auto-format and block dangerous operations, and adds `.claudeignore` for noise files.
 
 Then use `/lp-enhance` inside Claude Code to have Claude read your actual codebase and fill in the architecture and guardrails — not boilerplate, real project-specific content.
 
@@ -35,7 +35,7 @@ Then use `/lp-enhance` inside Claude Code to have Claude read your actual codeba
 claude-launchpad
 ```
 
-Scans your Claude Code config, gives you a score out of 100, and tells you exactly what's wrong. Run `doctor --fix` to auto-apply deterministic fixes, then run `/lp-enhance` inside Claude Code to rewrite CLAUDE.md with project-specific guidance, then run `eval` to prove behavior.
+Scores your config out of 100 and tells you what's wrong. Run `doctor --fix` for automatic repairs, `/lp-enhance` for AI-powered rewrites, and `eval` to prove behavior.
 
 ## Command Model
 
@@ -66,8 +66,8 @@ The core of the tool. Runs 7 core analyzers against your `.claude/` directory an
 
 | Analyzer | What it catches |
 |---|---|
-| **Instruction Budget** | Too many instructions in CLAUDE.md — Claude starts ignoring rules past ~150 |
-| **CLAUDE.md Quality** | Missing sections (including Memory & Learnings), vague instructions ("write good code"), hardcoded secrets |
+| **Instruction Budget** | Too many instructions in CLAUDE.md — Claude starts ignoring rules past ~200 |
+| **CLAUDE.md Quality** | Missing essential sections, vague instructions ("write good code"), hardcoded secrets |
 | **Settings** | No hooks configured, dangerous tool access without safety nets |
 | **Hooks** | Missing auto-format on save, no .env file protection, no security gates, no PostCompact hook |
 | **Rules** | Dead rule files, stale references, empty configs |
@@ -94,7 +94,7 @@ Output looks like this:
 
 | Flag | What it does |
 |---|---|
-| `--fix` | Auto-fixes issues: adds hooks, CLAUDE.md sections, rules, .claudeignore |
+| `--fix` | Auto-fixes issues: adds hooks, CLAUDE.md sections, BACKLOG.md, rules, .claudeignore |
 | `--fix --dry-run` | Preview what --fix would change without applying |
 | `--watch` | Re-runs every second, updates when you save a config file |
 | `--json` | Pure JSON output, no colors, no banner — for scripts and CI |
@@ -112,6 +112,7 @@ Detects your project and generates Claude Code config that fits. No templates, n
 
   ✓ Generated CLAUDE.md
   ✓ Generated TASKS.md
+  ✓ Generated BACKLOG.md
   ✓ Generated .claude/settings.json (schema, permissions, hooks)
   ✓ Generated .claude/.gitignore
   ✓ Generated .claudeignore
@@ -121,9 +122,19 @@ Detects your project and generates Claude Code config that fits. No templates, n
 **Works with:** TypeScript, JavaScript, Python, Go, Ruby, Rust, Dart, PHP, Java, Kotlin, Swift, Elixir, C# — and detects frameworks (Next.js, FastAPI, Django, Rails, Laravel, Express, SvelteKit, Angular, NestJS, and 15+ more).
 
 **What init writes:**
-- Always writes: `CLAUDE.md`, `TASKS.md`, `.claude/settings.json`
+- Always writes: `CLAUDE.md`, `TASKS.md`, `BACKLOG.md`, `.claude/settings.json`
 - Creates when missing: `.claude/.gitignore`, `.claudeignore`, `.claude/rules/conventions.md`
 - Offers `/lp-enhance` install (project/global/skip) only when no project/global/legacy install already exists
+
+**The three-file system:**
+
+| File | Purpose |
+|---|---|
+| `CLAUDE.md` | What Claude needs to know — stack, commands, conventions, guardrails |
+| `TASKS.md` | What we're doing now — sprint tracking, session continuity |
+| `BACKLOG.md` | What we're doing later — parked features with P0/P1/P2 priority tiers |
+
+Without BACKLOG.md, deferred features get lost in conversation history or bloat TASKS.md. Init generates it, doctor checks for it, `--fix` creates it if missing.
 
 ## Enhance
 
@@ -135,7 +146,7 @@ Init detects your stack but can't understand your architecture. The `/lp-enhance
 
 Installed as a skill during `init` (you pick global or project scope). Claude reads your codebase and updates CLAUDE.md with real content - actual architecture, actual conventions, actual guardrails, and memory management instructions. Not boilerplate. It also suggests project-specific hooks (including PostCompact for session continuity) and MCP servers based on what it finds.
 
-Stays under the 120-instruction budget. Overflows detailed content to `.claude/rules/` files. If the skill is missing, `doctor --fix` will create it.
+Stays under the 200-instruction budget. Overflows detailed content to `.claude/rules/` files. If the skill is missing, `doctor --fix` will create it.
 
 ## Memory
 
@@ -245,7 +256,7 @@ Score below threshold = exit code 1 = PR blocked.
 
 **Enhance** is a `/lp-enhance` skill installed during `init`. It runs inside your active Claude Code session - no separate process, no overhead. Claude already has your codebase context, so it produces better results than an external command.
 
-**Eval** creates a temp directory, copies your full `.claude/` config (settings.json, rules, hooks, permissions) and `.claudeignore` into it, writes seed files from the scenario YAML, initializes a git repo, runs Claude via the Agent SDK (or falls back to CLI), then checks the output with grep/file assertions. Your code is never copied — only your Claude Code configuration. Sandbox is cleaned up after (or preserved with `--debug`).
+**Eval** creates a temp directory, copies your full `.claude/` config (settings.json, rules, hooks, permissions) and `.claudeignore` into it, writes seed files from the scenario YAML, initializes a git repo, runs Claude via the Agent SDK (or falls back to CLI), then checks the output with grep/file assertions. Your code is never copied, only your Claude Code configuration. Sandbox is cleaned up after (or preserved with `--debug`).
 
 ## Why This Exists
 
@@ -258,8 +269,10 @@ New to Claude Code? Here's what the terms mean:
 | Term | What it is |
 |---|---|
 | **CLAUDE.md** | A markdown file in your project root that tells Claude how to work on your code. Think of it as instructions for your AI pair programmer. [Official docs](https://docs.anthropic.com/en/docs/claude-code/memory#claudemd) |
+| **TASKS.md** | Sprint tracker and session log. Claude reads this at session start to pick up where you left off. |
+| **BACKLOG.md** | Where deferred features live. Priority tiers (P0/P1/P2) keep future ideas organized without cluttering TASKS.md. |
 | **Hooks** | Shell commands that run automatically when Claude does something. For example: auto-format a file after Claude edits it, or block Claude from reading your `.env` file. They live in `.claude/settings.json`. |
-| **Instruction budget** | CLAUDE.md has a soft limit of ~150 actionable lines. Past that, Claude starts ignoring rules at the bottom. Doctor counts your lines and warns you. |
+| **Instruction budget** | CLAUDE.md has a soft limit of ~200 actionable lines. Past that, Claude starts ignoring rules at the bottom. Doctor counts your lines and warns you. |
 | **Rules** | Extra markdown files in `.claude/rules/` that Claude reads alongside CLAUDE.md. Use them to offload detailed conventions so CLAUDE.md stays under budget. |
 | **Compaction** | When a Claude Code conversation gets too long, it compresses older messages to free up space. This can lose context — a PostCompact hook re-injects critical files (like TASKS.md) after compaction. |
 | **MCP Servers** | External tools Claude can connect to (databases, APIs, docs). Configured in `.claude/settings.json`. Most projects don't need them. |

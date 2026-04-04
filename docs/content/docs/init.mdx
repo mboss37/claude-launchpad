@@ -5,7 +5,7 @@ description: Auto-detect your project and generate Claude Code config from scrat
 
 import { File, Folder, Files } from 'fumadocs-ui/components/files';
 
-Detects your project and generates Claude Code config that fits. No templates, no menus — it reads your manifest files and figures it out.
+Detects your project and generates Claude Code config that fits. No templates, no menus. It reads your manifest files and figures it out.
 
 ```bash
 claude-launchpad init
@@ -38,7 +38,7 @@ Always writes these files, and creates additional files only when they do not al
   <File name=".claudeignore" />
 </Files>
 
-- **CLAUDE.md** — stack, commands, conventions, guardrails, memory management instructions
+- **CLAUDE.md** — stack, commands, conventions, guardrails, backlog instructions
 - **TASKS.md** — sprint tracking, session continuity, deferred issues
 - **BACKLOG.md** — parked features with priority tiers (P0/P1/P2), keeps future ideas from getting lost
 - **settings.json** — `$schema`, credential deny rules (~/.ssh, ~/.aws, ~/.npmrc), sandbox enabled, bypass mode disabled, hooks for .env protection + destructive command blocking + auto-format + sprint review + SessionStart + PostCompact

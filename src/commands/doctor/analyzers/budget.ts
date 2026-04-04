@@ -1,8 +1,8 @@
 import type { ClaudeConfig, AnalyzerResult, DiagnosticIssue } from "../../../types/index.js";
 
-const BUDGET_WARN = 120;
-const BUDGET_DANGER = 150;
-const BUDGET_CRITICAL = 200;
+const BUDGET_WARN = 150;
+const BUDGET_DANGER = 200;
+const BUDGET_CRITICAL = 250;
 
 export async function analyzeBudget(config: ClaudeConfig): Promise<AnalyzerResult> {
   const issues: DiagnosticIssue[] = [];
@@ -32,21 +32,21 @@ export async function analyzeBudget(config: ClaudeConfig): Promise<AnalyzerResul
     issues.push({
       analyzer: "Budget",
       severity: "critical",
-      message: `${count} instructions — way over the ~150 budget. Compliance drops significantly past 150.`,
+      message: `${count} instructions — way over the ~200 budget. Compliance drops significantly past 200.`,
       fix: "Move detailed rules to .claude/rules/*.md files. Keep CLAUDE.md to essential project identity.",
     });
   } else if (count > BUDGET_DANGER) {
     issues.push({
       analyzer: "Budget",
       severity: "high",
-      message: `${count} instructions — over the ~150 budget. Claude may start ignoring lower-priority rules.`,
+      message: `${count} instructions — over the ~200 budget. Claude may start ignoring lower-priority rules.`,
       fix: "Move verbose sections (conventions, off-limits details) to .claude/rules/ files.",
     });
   } else if (count > BUDGET_WARN) {
     issues.push({
       analyzer: "Budget",
       severity: "medium",
-      message: `${count} instructions — approaching the ~150 budget.`,
+      message: `${count} instructions — approaching the ~200 budget.`,
       fix: "Consider moving some rules to .claude/rules/ to leave headroom.",
     });
   }

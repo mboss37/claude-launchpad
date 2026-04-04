@@ -21,7 +21,7 @@ If missing, `doctor --fix` creates it at project scope.
 ## What it does
 
 - Fills in Architecture, Conventions, Off-Limits, Memory & Learnings, Key Decisions
-- Stays under the 120-instruction budget - overflows detailed content to `.claude/rules/`
+- Stays under the 200-instruction budget - overflows detailed content to `.claude/rules/`
 - Suggests project-specific hooks (including SessionStart and PostCompact)
 - Suggests path-scoped rules, sandbox network domains, and monorepo excludes
 - Suggests MCP servers based on detected external services
@@ -29,7 +29,7 @@ If missing, `doctor --fix` creates it at project scope.
 
 ## Instruction budget
 
-CLAUDE.md has a soft limit of ~150 actionable lines. Past that, Claude starts ignoring rules at the bottom. Doctor warns at 150. The skill targets 120 to leave headroom, and moves detailed content to `.claude/rules/` files.
+CLAUDE.md has a soft limit of ~200 actionable lines. Past that, Claude starts ignoring rules at the bottom. Doctor warns at 200. The skill targets 200, and moves detailed content to `.claude/rules/` files when overflow occurs.
 
 ## When to re-run
 

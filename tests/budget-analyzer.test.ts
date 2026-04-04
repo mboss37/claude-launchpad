@@ -24,20 +24,20 @@ describe("analyzeBudget", () => {
     expect(result.issues).toHaveLength(0);
   });
 
-  it("returns high severity for count over 150", async () => {
-    const result = await analyzeBudget(makeConfig({ claudeMdInstructionCount: 160 }));
+  it("returns high severity for count over 200", async () => {
+    const result = await analyzeBudget(makeConfig({ claudeMdInstructionCount: 210 }));
     expect(result.issues.some((i) => i.severity === "high")).toBe(true);
     expect(result.score).toBeLessThan(70);
   });
 
-  it("returns critical for count over 200", async () => {
-    const result = await analyzeBudget(makeConfig({ claudeMdInstructionCount: 250 }));
+  it("returns critical for count over 250", async () => {
+    const result = await analyzeBudget(makeConfig({ claudeMdInstructionCount: 300 }));
     expect(result.issues.some((i) => i.severity === "critical")).toBe(true);
     expect(result.score).toBeLessThan(30);
   });
 
-  it("returns medium for approaching budget (120-150)", async () => {
-    const result = await analyzeBudget(makeConfig({ claudeMdInstructionCount: 130 }));
+  it("returns medium for approaching budget (150-200)", async () => {
+    const result = await analyzeBudget(makeConfig({ claudeMdInstructionCount: 170 }));
     expect(result.issues.some((i) => i.severity === "medium")).toBe(true);
   });
 

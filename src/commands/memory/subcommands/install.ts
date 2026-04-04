@@ -43,7 +43,7 @@ export async function runInstall(opts: InstallOpts): Promise<void> {
     log.success('MCP server registered via `claude mcp add`');
   } else {
     log.warn('Could not register MCP server automatically.');
-    log.info('Run: claude mcp add agentic-memory -- npx claude-launchpad memory serve');
+    log.info('Run: claude mcp add --scope user agentic-memory npx claude-launchpad memory serve');
   }
 
   // Step 4: CLAUDE.md + skills
@@ -179,6 +179,11 @@ async function ensureNativeDeps(): Promise<void> {
 
 function registerMcpServer(): boolean {
   try {
+    const existing = execSync('claude mcp list', { stdio: 'pipe', timeout: 10000, encoding: 'utf-8' });
+    if (existing.includes('agentic-memory')) {
+      log.info('MCP server already registered globally');
+      return true;
+    }
     execSync(
       'claude mcp add --scope user agentic-memory npx claude-launchpad memory serve',
       { stdio: 'pipe', timeout: 10000 },

@@ -31,6 +31,8 @@ describe("analyzeQuality", () => {
 - Monorepo
 ## Off-Limits
 - Never hardcode secrets
+## Backlog
+- Use BACKLOG.md for deferred features
 ## Memory & Learnings
 - Use built-in memory system
 `;

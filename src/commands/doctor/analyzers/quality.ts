@@ -7,6 +7,7 @@ const BASE_SECTIONS = [
   { pattern: /^##\s+Session Start/m, name: "Session Start", why: "Without this, Claude won't read TASKS.md or maintain continuity" },
   { pattern: /^##\s+Off.?Limits/m, name: "Off-Limits", why: "Without guardrails, Claude has no boundaries beyond defaults" },
   { pattern: /^##\s+(Architecture|Project Structure)/m, name: "Architecture/Structure", why: "Claude makes better decisions when it understands the codebase shape" },
+  { pattern: /^##\s+Backlog/m, name: "Backlog", why: "Without backlog instructions, deferred features get lost in conversation history" },
 ] as const;
 
 const MEMORY_SECTION = { pattern: /^##\s+Memory/m, name: "Memory & Learnings", why: "Without memory instructions, Claude forgets learnings and repeats mistakes across sessions" } as const;

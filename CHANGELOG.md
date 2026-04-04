@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.10.0] — 2026-04-04
+
+### Added
+- BACKLOG.md as first-class project artifact alongside CLAUDE.md and TASKS.md
+  - `init` generates BACKLOG.md with priority tier template (P0/P1/P2)
+  - `doctor` flags missing BACKLOG.md (low severity, Rules analyzer)
+  - `doctor --fix` auto-creates BACKLOG.md if missing
+  - Generated CLAUDE.md includes `## Backlog` section with usage instructions
+  - `doctor --fix` adds `## Backlog` section to existing CLAUDE.md
+- Three-file system documented: CLAUDE.md (what Claude needs), TASKS.md (what we're doing now), BACKLOG.md (what we're doing later)
+- `memory install` now detects already-registered MCP server instead of showing false error
+
+### Changed
+- Instruction budget thresholds raised to match official Claude Code guidance: warn at 150, danger at 200, critical at 250 (was 120/150/200)
+- `/lp-enhance` skill budget raised from 120 to 200 lines
+
+### Fixed
+- `memory install` MCP registration: `claude mcp add` exited 1 when server already existed, causing false "Could not register" warning
+- Stale documentation references (budget thresholds, file counts, em dashes)
+
 ## [0.9.1] — 2026-04-04
 
 ### Fixed
@@ -16,7 +36,7 @@
   - Self-tuning: memories Claude searches for rise in rank, ignored ones fade out
   - Cold start handling: injects all when below 5 memories
   - 12 new tests for injection scoring, tiers, and budget
-- Backlog system (.claude/BACKLOG.md) for parking deferred features
+- Backlog system (BACKLOG.md) for parking deferred features
 
 ### Fixed
 - incrementInjection was never called (injection count permanently 0 for all memories)

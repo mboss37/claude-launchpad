@@ -26,11 +26,11 @@ claude-launchpad doctor
 
 | Analyzer | What it catches |
 |---|---|
-| **Instruction Budget** | Too many instructions — Claude starts ignoring rules past ~150 |
+| **Instruction Budget** | Too many instructions — Claude starts ignoring rules past ~200 |
 | **CLAUDE.md Quality** | Missing sections, vague instructions, hardcoded secrets |
 | **Settings** | No hooks, deprecated attribution, hook timeouts, auto-memory disabled |
 | **Hooks** | Missing auto-format, .env protection, PostCompact, SessionStart |
-| **Rules** | Dead rule files, stale references, empty configs |
+| **Rules** | Missing BACKLOG.md, dead rule files, stale references, empty configs |
 | **Permissions** | Credential exposure, blanket Bash, bypass mode, sandbox disabled, .env gap |
 | **MCP Servers** | Invalid transport configs, missing commands/URLs |
 | **Memory** (optional) | MCP server config, hooks, autoMemory setting, CLAUDE.md guidance, tool permissions |
@@ -51,11 +51,12 @@ claude-launchpad doctor
     - PostCompact hook for context re-injection
   </Accordion>
   <Accordion title="CLAUDE.md">
-    - Missing sections: Stack, Commands, Architecture, Off-Limits, Session Start, Memory & Learnings
+    - Missing sections: Stack, Commands, Architecture, Off-Limits, Session Start, Backlog, Memory & Learnings
     - Attribution migration (includeCoAuthoredBy → attribution object)
   </Accordion>
   <Accordion title="Files">
     - Starter rules file (.claude/rules/conventions.md)
+    - BACKLOG.md with priority tier template
     - .claudeignore with language-specific patterns
     - `/lp-enhance` skill at project scope, only if no project/global/legacy install exists
   </Accordion>
