@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.9.1] — 2026-04-04
+
+### Fixed
+- `cwdRequire` ESM compatibility: use `package.json` paths for `createRequire` instead of bare `require()` fallback that crashes in ESM bundles
+- Fixes "Dynamic require of better-sqlite3 is not supported" error when running `memory` command from globally installed CLI
+
 ## [0.9.0] — 2026-04-03
 
 ### Added
