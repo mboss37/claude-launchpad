@@ -330,7 +330,7 @@ async function createBacklogMd(root: string): Promise<boolean> {
   }
 
   const name = root.split("/").pop() ?? "Project";
-  await writeFile(backlogPath, `# ${name} — Backlog
+  await writeFile(backlogPath, `# ${name} - Backlog
 
 > Features discussed but deferred. Pick up when relevant.
 > Priority: P0 = next sprint, P1 = soon, P2 = when relevant.

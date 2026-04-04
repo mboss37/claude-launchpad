@@ -68,11 +68,11 @@ Test if Claude actually follows your rules. Each scenario creates an isolated sa
 
 ## How the sandbox works
 
-Each scenario runs in an isolated temp directory. Your code is never copied — only your Claude Code configuration:
+Each scenario runs in an isolated temp directory. Your code is never copied. Only your Claude Code configuration:
 
-- `.claude/settings.json` — your hooks, permissions, and schema
-- `.claude/rules/*` — all your convention and path-scoped rule files
-- `.claudeignore` — your ignore patterns
+- `.claude/settings.json`: your hooks, permissions, and schema
+- `.claude/rules/*`: all your convention and path-scoped rule files
+- `.claudeignore`: your ignore patterns
 - A scenario-specific `CLAUDE.md` with test instructions
 - Seed files from the scenario (e.g. a stub `src/api.ts`)
 

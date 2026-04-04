@@ -29,7 +29,7 @@ function makeConfig(overrides: Partial<ClaudeConfig> = {}): ClaudeConfig {
 describe("generateBacklogMd", () => {
   it("generates backlog with project name and priority tiers", () => {
     const result = generateBacklogMd({ name: "My App", description: "" });
-    expect(result).toContain("# My App — Backlog");
+    expect(result).toContain("# My App - Backlog");
     expect(result).toContain("P0 = next sprint");
     expect(result).toContain("P1 = soon");
     expect(result).toContain("P2 = when relevant");

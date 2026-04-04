@@ -218,7 +218,7 @@ function SectionHeading({
     <div>
       <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-fd-muted-foreground">{eyebrow}</p>
       <h2 className="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">{title}</h2>
-      <p className="mt-3 text-sm leading-6 text-fd-muted-foreground sm:text-base">{description}</p>
+      <p className="mt-3 max-w-2xl text-sm leading-6 text-fd-muted-foreground sm:text-base">{description}</p>
     </div>
   );
 }
@@ -237,11 +237,11 @@ export default function HomePage() {
             <span className="mt-2 block text-fd-muted-foreground">actually hold the line.</span>
           </h1>
           <p className="mt-4 max-w-2xl text-[15px] leading-7 text-fd-muted-foreground sm:text-lg">
-            Terminal-grade workflow for Claude configuration: scaffold it, diagnose it, refine CLAUDE.md from real context, then verify behavior in a sandbox.
+            CLAUDE.md is advisory. Hooks are deterministic. Most setups have zero hooks. Launchpad scaffolds your config, diagnoses gaps, and verifies Claude follows your rules in a sandbox.
           </p>
 
           <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-            <InstallBlock command="npm i -g claude-launchpad" className="w-full sm:w-auto" />
+            <InstallBlock command="npx claude-launchpad" className="w-full sm:w-auto" />
             <div className="grid w-full grid-cols-1 gap-2 min-[420px]:grid-cols-2 sm:contents">
               <Link href="/docs" className={buttonVariants({ className: 'h-11 shrink-0 whitespace-nowrap rounded-xl px-4' })}>
                 Open quickstart
@@ -278,7 +278,7 @@ export default function HomePage() {
           <SectionHeading
             eyebrow="Measured improvement"
             title="What changes after doctor --fix"
-            description="The goal is not prettier docs. The goal is a configuration that enforces behavior, blocks obvious mistakes, and can be validated."
+            description="One command finds misconfigurations. One flag fixes them. Your score goes from failing to passing in seconds."
           />
 
           <div className="mt-8">
@@ -317,16 +317,54 @@ export default function HomePage() {
                 </div>
               </div>
             </TerminalPanel>
+            <div className="mt-4">
+              <Link href="/docs/doctor" className={buttonVariants({ variant: 'outline', className: 'rounded-xl px-5' })}>
+                See all 8 analyzers
+                <ArrowRightIcon className="h-4 w-4" />
+              </Link>
+            </div>
           </div>
         </PageSection>
       </div>
+
+      <PageSection>
+        <div className="grid gap-8 lg:grid-cols-2 lg:items-start">
+          <div>
+            <SectionHeading
+              eyebrow="Verify behavior"
+              title="Eval: prove Claude follows your rules"
+              description="Doctor checks your config is correct. Eval checks that Claude actually behaves. Write YAML scenarios, run them in a sandbox, and get a pass/fail score."
+            />
+            <div className="mt-6 space-y-3 text-sm text-fd-muted-foreground">
+              <p>15 built-in scenarios across 3 suites: security, conventions, and workflow.</p>
+              <p>Each run creates an isolated sandbox with your full .claude/ config copied in. Your code is never touched.</p>
+            </div>
+            <div className="mt-6">
+              <Link href="/docs/eval" className={buttonVariants({ className: 'rounded-xl px-5' })}>
+                Write your first scenario
+                <ArrowRightIcon className="h-4 w-4" />
+              </Link>
+            </div>
+          </div>
+          <TerminalPanel title="eval output" aside={<Badge variant="outline">sandbox</Badge>}>
+            <div className="space-y-1 font-mono text-[13px]">
+              <div className="text-fd-muted-foreground">$ claude-launchpad eval</div>
+              <div className="mt-2"><span className="text-green-400">PASS</span> respects-claudeignore <span className="text-fd-muted-foreground">(12s)</span></div>
+              <div><span className="text-green-400">PASS</span> follows-off-limits <span className="text-fd-muted-foreground">(8s)</span></div>
+              <div><span className="text-green-400">PASS</span> uses-conventional-commits <span className="text-fd-muted-foreground">(6s)</span></div>
+              <div><span className="text-red-400">FAIL</span> blocks-credential-leak <span className="text-fd-muted-foreground">(9s)</span></div>
+              <div className="mt-2 text-fd-muted-foreground">Score: 3/4 (75%), 1 scenario needs attention</div>
+            </div>
+          </TerminalPanel>
+        </div>
+      </PageSection>
 
       <div className="border-y border-fd-border/80 bg-fd-card/22">
         <PageSection>
           <SectionHeading
             eyebrow="Optional add-on"
             title="Persistent memory across sessions"
-            description="Built-in memory is a flat file that grows forever. This replaces it with a brain-inspired system where knowledge decays at different rates, relevant context is auto-injected each session, and the whole thing self-tunes based on what Claude actually reaches for."
+            description="Doctor handles static config. Memory handles what Claude learns over time. Built-in memory is a flat file that grows forever. This replaces it: unused knowledge fades, relevant context auto-injects each session, and priorities self-tune based on actual usage."
           />
 
           <div className="mt-8 grid gap-4 lg:grid-cols-[0.35fr_0.65fr] lg:items-stretch">
@@ -339,7 +377,7 @@ export default function HomePage() {
                 <p className="mt-3 text-sm text-fd-muted-foreground">Interactive setup - asks before changing anything.</p>
                 <div className="mt-4 space-y-2 text-sm text-fd-muted-foreground">
                   <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Unused knowledge fades, useful knowledge rises</div>
-                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Best memories injected at session start — no prompt needed</div>
+                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Best memories injected at session start, no prompt needed</div>
                   <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> 7 MCP tools for Claude to read and write memories</div>
                   <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Facts auto-extracted from every session</div>
                   <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Project-scoped, no cross-contamination</div>
@@ -400,14 +438,14 @@ export default function HomePage() {
         <TerminalPanel title="get started" aside={<Badge variant="secondary">docs-first</Badge>}>
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-xl">
-              <h3 className="text-2xl font-semibold tracking-tight">Install, then follow the runbook.</h3>
+              <h3 className="text-2xl font-semibold tracking-tight">Zero config to start. Five minutes to a scored setup.</h3>
               <p className="mt-2 text-sm leading-6 text-fd-muted-foreground">
-                The landing page stays focused on the main workflow. The docs cover flags, edge cases, and command details.
+                The quickstart walks you through init, doctor, enhance, and eval. Flags, edge cases, and CI integration are in the full docs.
               </p>
             </div>
 
             <div className="flex flex-col gap-2">
-              <InstallBlock command="npm i -g claude-launchpad" className="w-full" />
+              <InstallBlock command="npx claude-launchpad" className="w-full" />
               <div className="grid grid-cols-2 gap-2">
                 <Link href="/docs" className={buttonVariants({ className: 'h-11 whitespace-nowrap rounded-xl px-4' })}>
                   Open docs
