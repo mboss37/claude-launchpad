@@ -237,7 +237,7 @@ export default function HomePage() {
             <span className="mt-2 block text-fd-muted-foreground">for Claude Code.</span>
           </h1>
           <p className="mt-4 max-w-2xl text-[15px] leading-7 text-fd-muted-foreground sm:text-lg">
-            Sprint tracking, config scoring, auto-fix, and behavior verification out of the box. Claude forgets between sessions, ignores half your rules, and has zero guardrails by default. This fixes that.
+            Sprint tracking, config scoring, auto-fix, and behavior verification out of the box. Without structure, Claude loses context between sessions, ignores half your rules, and has zero guardrails. This fixes that.
           </p>
 
           <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
