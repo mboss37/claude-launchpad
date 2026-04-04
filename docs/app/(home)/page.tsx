@@ -233,11 +233,11 @@ export default function HomePage() {
         <div className="max-w-3xl">
           <Badge variant="outline" className="border-fd-border bg-fd-background/45">Claude Launchpad</Badge>
           <h1 className="mt-5 text-[2.35rem] font-bold leading-[1.02] tracking-tight sm:text-6xl">
-            Make Claude Code
-            <span className="mt-2 block text-fd-muted-foreground">actually hold the line.</span>
+            Consistent developer experience
+            <span className="mt-2 block text-fd-muted-foreground">for Claude Code.</span>
           </h1>
           <p className="mt-4 max-w-2xl text-[15px] leading-7 text-fd-muted-foreground sm:text-lg">
-            CLAUDE.md is advisory. Hooks are deterministic. Most setups have zero hooks. Launchpad scaffolds your config, diagnoses gaps, and verifies Claude follows your rules in a sandbox.
+            Sprint tracking, config scoring, auto-fix, and behavior verification out of the box. Claude forgets between sessions, ignores half your rules, and has zero guardrails by default. This fixes that.
           </p>
 
           <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
