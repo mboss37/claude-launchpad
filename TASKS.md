@@ -20,29 +20,18 @@
 - **Sprint 13**: Growth — Fumadocs migration (7 MDX pages, search, OG meta, GitHub Actions deploy), 4-persona docs review, landing page redesign
 - **Sprint 14**: Memory — v0.7.5, /lp-enhance skill, agentic-memory integrated (262 tests), TUI dashboard, brain-inspired decay, zero-dep install, plugin removed
 - **Sprint 15**: Smart Injection — InjectionService (6-signal scoring, 3 tiers, token-budget packing), fixed injection tracking bugs, 274 tests, docs updated
+- **Sprint 16**: Backlog System — v0.10.0, BACKLOG.md in init/doctor/fix, three-file system, budget 200, MCP registration fix, content review skill, 280 tests
 
-## Current: Sprint 16 — Backlog System
+## Current: No active sprint
 
-BACKLOG.md as a first-class project artifact alongside CLAUDE.md and TASKS.md.
-
-- [ ] Move `.claude/BACKLOG.md` → `BACKLOG.md` (root), update path refs in CLAUDE.md, TASKS.md, CHANGELOG.md
-- [ ] Add BACKLOG.md generator to `init` (template with priority tiers)
-- [ ] Add backlog rule to `init` CLAUDE.md generator ("deferred features go to BACKLOG.md")
-- [ ] Add `doctor` quality check — suggest BACKLOG.md if missing (low severity)
-- [ ] Add `--fix` auto-create BACKLOG.md
-- [ ] Update docs (init.mdx — mention BACKLOG.md in generated files)
-- [ ] Tests for generator + quality check
+All planned work complete. Future features in BACKLOG.md.
 
 ## Session Log
-### 2026-04-03 (session 17)
-- Upgraded zod 3 to 4, deferred native deps to memory install, removed all optional deps bloat.
-- Removed plugin system entirely. Published v0.7.5 (3s install, zero warnings).
-- Migrated legacy memories, cleaned duplicates, fixed cwdRequire for global install.
-### 2026-04-03 (session 18)
-- Built smart injection algorithm: 3 expert design, InjectionService, 6-signal scoring, 3 tiers, token-budget packing.
-- Fixed critical bugs: incrementInjection never called, incrementAccess inflated during injection.
-- Updated README, landing page, docs with injection algorithm. Created .claude/BACKLOG.md for parked features.
 ### 2026-04-04 (session 19)
 - Fixed GitHub releases (v0.5.3-v0.6.1), TLS certs for headless Mac, gh auth.
 - Fixed ESM cwdRequire crash, MCP registration bug, memory optionality (v0.8.0-v0.9.1).
-- Multi-device sync expert panel → git-based sync spec added to backlog (P0). Opened Sprint 16.
+- Multi-device sync expert panel, git-based sync spec added to backlog (P0). Opened Sprint 16.
+### 2026-04-04 (session 20)
+- Sprint 16: BACKLOG.md as first-class artifact (init, doctor, fix, docs, 18 new tests).
+- Budget thresholds raised to 150/200/250 (official guidance). Content review skill created globally.
+- Published v0.10.0. Dev/release workflow validated with 3 dev publishes before release.
