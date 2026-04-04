@@ -11,20 +11,19 @@ import { log } from "../../../lib/output.js";
  */
 export function cwdRequire(id: string): unknown {
   // Try local project first
-  const localRequire = createRequire(join(process.cwd(), "node_modules"));
   try {
+    const localRequire = createRequire(join(process.cwd(), "package.json"));
     return localRequire(id);
   } catch { /* not in local */ }
 
   // Try global node_modules
   try {
     const globalPrefix = execSync("npm config get prefix", { encoding: "utf-8" }).trim();
-    const globalRequire = createRequire(join(globalPrefix, "lib", "node_modules"));
+    const globalRequire = createRequire(join(globalPrefix, "lib", "node_modules", "package.json"));
     return globalRequire(id);
   } catch { /* not in global */ }
 
-  // Last resort: CLI's own resolution
-  return require(id);
+  throw new Error(`Cannot find module '${id}' in local or global node_modules`);
 }
 
 /**
