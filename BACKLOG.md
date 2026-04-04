@@ -5,7 +5,30 @@ Priority: P0 = next sprint, P1 = soon, P2 = when relevant.
 
 ---
 
-## [P0] Memory: Multi-Device Sync
+## [P0] Cross-Platform Support (Linux + Windows)
+Hooks generate bash syntax (grep, pipes, exit 0) that breaks on Windows without WSL/Git Bash. Never tested on Linux or Windows.
+
+### Known risks
+- **Hooks**: all generated hooks use bash syntax. Windows cmd/PowerShell can't run them
+- **cwdRequire**: `npm config get prefix` + `lib/node_modules` path is Mac/Linux only. Windows uses `node_modules` directly
+- **sqlite-vec**: prebuilds may not exist for all Linux distros or Windows
+- **TUI dashboard (blessed)**: rendering issues on Windows cmd/PowerShell
+- **Path separators**: any hardcoded `/` in path logic
+
+### Testing plan
+- Test on Mihael's Linux machine + Windows machine
+- Run: `init`, `doctor`, `doctor --fix`, `memory install`, `memory` (stats)
+- Verify generated hooks work in default shell
+- Check native dep installation (better-sqlite3, sqlite-vec)
+
+### Fix strategy
+- Hooks: detect OS, generate PowerShell equivalents on Windows (or document WSL requirement)
+- cwdRequire: use `process.platform` to resolve correct global path
+- Add CI matrix: ubuntu-latest + windows-latest for test suite
+
+---
+
+## [P1] Memory: Multi-Device Sync
 Expert panel decision (2026-04-04): git-based sync with secret scanning. Full spec below.
 
 ### Commands
