@@ -4,6 +4,9 @@
 [![npm downloads](https://img.shields.io/npm/dm/claude-launchpad?style=flat-square)](https://www.npmjs.com/package/claude-launchpad)
 [![GitHub stars](https://img.shields.io/github/stars/mboss37/claude-launchpad?style=flat-square)](https://github.com/mboss37/claude-launchpad)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](https://github.com/mboss37/claude-launchpad/blob/master/LICENSE)
+![macOS](https://img.shields.io/badge/macOS-supported-brightgreen?style=flat-square&logo=apple)
+![Linux](https://img.shields.io/badge/Linux-supported-brightgreen?style=flat-square&logo=linux)
+![Windows](https://img.shields.io/badge/Windows-untested-yellow?style=flat-square&logo=windows)
 
 **Score your Claude Code config. Fix it. Prove it works.**
 
