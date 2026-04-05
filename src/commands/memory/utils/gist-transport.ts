@@ -2,15 +2,19 @@ import { execSync } from 'node:child_process';
 import { readFileSync, writeFileSync, unlinkSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
-import { resolveDataDir, DEFAULT_CONFIG } from '../config.js';
-import type { SyncConfig } from '../types.js';
+import { homedir } from 'node:os';
+
+interface SyncConfig {
+  readonly gistId: string;
+}
 
 const EXEC_OPTS = { encoding: 'utf-8' as const, timeout: 30_000 };
 const GIST_DESCRIPTION = 'agentic-memory sync';
 const SYNC_CONFIG_FILE = 'sync-config.json';
+const DATA_DIR = join(homedir(), '.agentic-memory');
 
 function syncConfigPath(): string {
-  return join(resolveDataDir(DEFAULT_CONFIG.dataDir), SYNC_CONFIG_FILE);
+  return join(DATA_DIR, SYNC_CONFIG_FILE);
 }
 
 function slugify(project: string): string {
