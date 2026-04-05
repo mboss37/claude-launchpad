@@ -208,12 +208,17 @@ If memory is not installed, it runs interactive setup. If installed, it shows st
 - **Self-tuning retrieval** promotes memories Claude searches for, demotes ones injected but never used
 - **Project-scoped** with no cross-contamination between projects
 - **TUI dashboard** (`--dashboard`) with vim navigation, filtering, and search
+- **Cross-device sync** via private GitHub Gist — push/pull memories between machines
 
-No cloud. No sync. Everything stays in `~/.agentic-memory/memory.db`.
+Data stays in `~/.agentic-memory/memory.db`. Sync is opt-in and uses your existing `gh` CLI auth.
 
-| Flag | What it does |
+| Flag / Subcommand | What it does |
 |---|---|
 | `--dashboard` | Opens the interactive TUI dashboard |
+| `push` | Push memories to a private GitHub Gist |
+| `pull` | Pull memories from a private GitHub Gist |
+| `push --project <name>` | Push only one project's memories |
+| `pull --project <name>` | Pull only one project's memories |
 
 ## Use in CI
 
@@ -272,7 +277,7 @@ New to Claude Code? Here's what the terms mean.
 
 ## Privacy
 
-No telemetry. No analytics. No data sent anywhere. Doctor, init, and fix are fully offline. Memory stores data locally at `~/.agentic-memory/`, no cloud sync. Enhance and eval run through your local Claude CLI, no data passes through this tool. [Full privacy policy](https://mboss37.github.io/claude-launchpad/privacy.html).
+No telemetry. No analytics. No data sent anywhere. Doctor, init, and fix are fully offline. Memory stores data locally at `~/.agentic-memory/`. The optional sync feature (`memory push/pull`) uses a private GitHub Gist under your own account — data goes to GitHub, not to us. Enhance and eval run through your local Claude CLI, no data passes through this tool. [Full privacy policy](https://mboss37.github.io/claude-launchpad/privacy.html).
 
 ## License
 

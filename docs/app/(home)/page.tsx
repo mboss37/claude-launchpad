@@ -382,6 +382,7 @@ export default function HomePage() {
                   <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Facts auto-extracted from every session</div>
                   <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Project-scoped, no cross-contamination</div>
                   <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> TUI dashboard with vim navigation</div>
+                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Cross-device sync via private GitHub Gist</div>
                 </div>
               </div>
               <div className="mt-5">
