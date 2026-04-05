@@ -23,9 +23,16 @@
 - **Sprint 16**: Backlog System — v0.10.0, BACKLOG.md in init/doctor/fix, three-file system, budget 200, MCP registration fix, content review skill, 280 tests
 - **Sprint 17**: Memory Sync — v0.11.0, push/pull via private GitHub Gist, multi-file per project, auto-discovery, dedup guard, 294 tests
 
-## Current: No active sprint
+## Current: Sprint 18 — TUI Dashboard Ink Migration
 
-All planned work complete. Future features in BACKLOG.md.
+Rewrite blessed dashboard with Ink (React for terminal). Modern, maintained, better UX.
+
+- [ ] Phase 1: Infrastructure (deps, tsconfig jsx, tsup externals)
+- [ ] Phase 2: Hooks (use-dashboard-state, use-keybindings, use-terminal-size)
+- [ ] Phase 3: Leaf components (keybinding-bar, header, stats-bar, search-bar, help-overlay)
+- [ ] Phase 4: Complex components (memory-list, memory-detail, project-list, project-picker)
+- [ ] Phase 5: Assembly (app.tsx, tui.tsx entry point)
+- [ ] Phase 6: Cleanup (delete blessed files, remove blessed dep)
 
 ## Session Log
 ### 2026-04-04 (session 20)
