@@ -56,7 +56,7 @@ export function loadSyncConfig(): SyncConfig | null {
   try {
     const raw = readFileSync(syncConfigPath(), 'utf-8');
     const parsed = JSON.parse(raw) as Record<string, unknown>;
-    if (typeof parsed.gistId === 'string' && parsed.gistId.length > 0) {
+    if (typeof parsed.gistId === 'string' && /^[a-f0-9]+$/.test(parsed.gistId)) {
       return { gistId: parsed.gistId };
     }
   } catch { /* no local config */ }
