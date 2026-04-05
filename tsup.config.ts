@@ -17,6 +17,11 @@ export default defineConfig({
     "sqlite-vec",
     "@modelcontextprotocol/sdk",
     "zod",
-    "blessed",
+    "react",
+    "react/jsx-runtime",
+    "ink",
+    "ink-text-input",
+    "ink-select-input",
+    "ink-spinner",
   ],
 });

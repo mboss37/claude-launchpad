@@ -1,14 +1,6 @@
 import type { Memory, MemoryType } from "../../types.js";
 import { DEFAULT_DECAY_PARAMS } from "../../config.js";
 
-// -- Blessed Tag Escaping -----------------------------------------------------
-
-/** Escape curly braces so Blessed doesn't interpret them as markup tags.
- *  Uses fullwidth brackets (U+FF5B / U+FF5D) - visually identical in terminal fonts. */
-export function escapeBlessedTags(text: string): string {
-  return text.replace(/\{/g, "\uFF5B").replace(/\}/g, "\uFF5D");
-}
-
 // -- Relative Time ------------------------------------------------------------
 
 const MINUTE = 60_000;
