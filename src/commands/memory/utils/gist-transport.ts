@@ -3,7 +3,8 @@ import { readFileSync, writeFileSync, unlinkSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
 import { resolveDataDir, DEFAULT_CONFIG } from '../config.js';
-import type { SyncConfig } from '../types.js';
+import { SyncPayloadSchema } from '../types.js';
+import type { SyncConfig, SyncPayload } from '../types.js';
 
 const EXEC_OPTS = { encoding: 'utf-8' as const, timeout: 30_000 };
 const GIST_DESCRIPTION = 'agentic-memory sync';
@@ -13,13 +14,24 @@ function syncConfigPath(): string {
   return join(resolveDataDir(DEFAULT_CONFIG.dataDir), SYNC_CONFIG_FILE);
 }
 
+function slugify(project: string): string {
+  return project.replace(/[^a-zA-Z0-9._-]/g, '-');
+}
+
 export function projectToFilename(project: string): string {
-  return `memories-${project}.json`;
+  if (!project) throw new Error('Project name cannot be empty');
+  return `memories-${slugify(project)}.json`;
 }
 
 export function filenameToProject(filename: string): string | null {
   const match = filename.match(/^memories-(.+)\.json$/);
   return match?.[1] ?? null;
+}
+
+export function parsePayload(raw: string | null): SyncPayload | null {
+  if (!raw || raw === 'null') return null;
+  try { return SyncPayloadSchema.parse(JSON.parse(raw)); }
+  catch { return null; }
 }
 
 export function assertGhAvailable(): void {
@@ -66,9 +78,10 @@ function discoverSyncGist(): string | null {
       { ...EXEC_OPTS, stdio: ['pipe', 'pipe', 'pipe'] },
     );
     for (const line of output.split('\n')) {
-      if (line.includes(GIST_DESCRIPTION)) {
-        const gistId = line.split('\t')[0]?.trim();
-        if (gistId) return gistId;
+      const cols = line.split('\t');
+      if (cols[1]?.trim() === GIST_DESCRIPTION) {
+        const gistId = cols[0]?.trim();
+        if (gistId && /^[a-f0-9]+$/.test(gistId)) return gistId;
       }
     }
   } catch { /* gh list failed */ }
@@ -82,15 +95,18 @@ export function saveSyncConfig(config: SyncConfig): void {
 }
 
 export function createGist(filename: string, content: string): string {
-  const tmpFile = join(tmpdir(), filename);
+  const safeFilename = slugify(filename.replace(/\.json$/, '')) + '.json';
+  const tmpFile = join(tmpdir(), safeFilename);
   try {
     writeFileSync(tmpFile, content, 'utf-8');
     const result = execSync(
       `gh gist create "${tmpFile}" --desc "${GIST_DESCRIPTION}" --public=false`,
       { ...EXEC_OPTS, stdio: ['pipe', 'pipe', 'pipe'] },
     ).trim();
-    const gistId = result.split('/').pop() ?? '';
-    if (!gistId) throw new Error(`Failed to parse gist ID from: ${result}`);
+    const gistId = result.split('/').pop()?.trim() ?? '';
+    if (!gistId || !/^[a-f0-9]+$/.test(gistId)) {
+      throw new Error(`Failed to parse gist ID from: ${result}`);
+    }
     saveSyncConfig({ gistId });
     return gistId;
   } finally {
@@ -100,8 +116,9 @@ export function createGist(filename: string, content: string): string {
 
 export function readGistFile(gistId: string, filename: string): string | null {
   try {
+    const escapedFilename = JSON.stringify(filename);
     return execSync(
-      `gh api "/gists/${gistId}" --jq '.files["${filename}"].content'`,
+      `gh api "/gists/${gistId}" --jq '.files[${escapedFilename}].content'`,
       { ...EXEC_OPTS, stdio: ['pipe', 'pipe', 'pipe'] },
     ).trimEnd();
   } catch {

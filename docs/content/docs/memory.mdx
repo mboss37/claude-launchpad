@@ -132,35 +132,54 @@ Keybindings:
 
 ## Cross-device sync
 
-Push and pull memories between machines. Uses a private GitHub Gist for storage. Requires the [GitHub CLI](https://cli.github.com/) (`gh`) to be installed and authenticated.
+Push and pull memories between machines. Uses a private GitHub Gist for storage with one file per project. Requires the [GitHub CLI](https://cli.github.com/) (`gh`) to be installed and authenticated.
 
 ```bash
-# Push all memories to a private gist
+# Push current project's memories
 claude-launchpad memory push
 
-# Pull memories from the gist on another machine
+# Pull current project's memories on another machine
 claude-launchpad memory pull
 
-# Scope to a single project
-claude-launchpad memory push --project my-app
-claude-launchpad memory pull --project my-app
+# Push/pull all projects at once
+claude-launchpad memory push --all
+claude-launchpad memory pull --all
 ```
 
-**First push** creates a new private gist and saves the gist ID to `~/.agentic-memory/sync-config.json`. Subsequent pushes update the same gist.
+Push and pull auto-detect the current project from your working directory. No `--project` flag needed.
 
-**Merge strategy:** newer version of each memory wins. New memories are inserted. Relations are added, never removed.
+### Gist structure
 
-**Pull-before-push:** every push automatically pulls first, so remote changes are never silently overwritten.
+One private gist holds all your projects, each in its own file:
+
+```
+gist: "agentic-memory sync"
+├── memories-my-app.json
+├── memories-api-server.json
+└── memories-shared-lib.json
+```
+
+Project-scoped push/pull only touches that project's file. Other projects are never read or modified.
+
+### How it works
+
+**First push** creates a new private gist. The gist ID is saved to `~/.agentic-memory/sync-config.json`.
+
+**New device:** the gist is auto-discovered from your GitHub account. No config file to copy.
+
+**Pull-before-push:** every push pulls first, so remote changes are never silently overwritten.
+
+**Merge strategy:** newer version of each memory wins (by `updated_at`). New memories are inserted. Relations are added, never removed.
 
 | Subcommand | What it does |
 |---|---|
-| `memory push` | Upload all memories to your private gist |
-| `memory pull` | Download and merge memories from your gist |
-| `memory push --project <name>` | Push only one project's memories |
-| `memory pull --project <name>` | Pull only one project's memories |
+| `memory push` | Push current project's memories |
+| `memory pull` | Pull current project's memories |
+| `memory push --all` | Push all projects |
+| `memory pull --all` | Pull all projects |
 | `memory push -y` | Skip confirmation prompt (for scripts) |
 
-Data is validated with Zod on both push and pull. Corrupt or incompatible gist data is rejected with a clear error.
+Data is validated with Zod on both push and pull. Corrupt or incompatible data is rejected with a clear error.
 
 ## Migrating from built-in memory
 

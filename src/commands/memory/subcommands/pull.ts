@@ -7,20 +7,14 @@ import {
   listGistFiles,
   filenameToProject,
   projectToFilename,
+  parsePayload,
 } from '../utils/gist-transport.js';
 import { mergeFromRemote } from '../utils/sync-merge.js';
-import { SyncPayloadSchema } from '../types.js';
 import type { SyncPayload, MergeResult } from '../types.js';
 import { detectProject } from '../utils/project.js';
 
 interface PullOpts {
   readonly all?: boolean;
-}
-
-function parsePayload(raw: string | null): SyncPayload | null {
-  if (!raw || raw === 'null') return null;
-  try { return SyncPayloadSchema.parse(JSON.parse(raw)); }
-  catch { return null; }
 }
 
 export async function runPull(opts: PullOpts): Promise<void> {
@@ -38,35 +32,34 @@ export async function runPull(opts: PullOpts): Promise<void> {
 
   try {
     if (opts.all) {
-      return pullAll(ctx, syncConfig.gistId);
+      pullAll(ctx, syncConfig.gistId);
+    } else {
+      pullProject(ctx, syncConfig.gistId);
     }
-
-    const project = detectProject(process.cwd());
-    if (!project) {
-      log.error('Could not detect project. Run from a project directory or use --all.');
-      return;
-    }
-
-    const filename = projectToFilename(project);
-    const raw = readGistFile(syncConfig.gistId, filename);
-    const payload = parsePayload(raw);
-
-    if (!payload) {
-      log.error(`No memories found for project "${project}" in gist.`);
-      return;
-    }
-
-    const result = mergeFromRemote(ctx.memoryRepo, ctx.relationRepo, payload);
-    printResult(result, payload, project);
   } finally {
     ctx.close();
   }
 }
 
-function pullAll(
-  ctx: ReturnType<typeof initStorage>,
-  gistId: string,
-): void {
+function pullProject(ctx: ReturnType<typeof initStorage>, gistId: string): void {
+  const project = detectProject(process.cwd());
+  if (!project) {
+    log.error('Could not detect project. Run from a project directory or use --all.');
+    return;
+  }
+
+  const filename = projectToFilename(project);
+  const payload = parsePayload(readGistFile(gistId, filename));
+  if (!payload) {
+    log.error(`No memories found for project "${project}" in gist.`);
+    return;
+  }
+
+  const result = mergeFromRemote(ctx.memoryRepo, ctx.relationRepo, payload);
+  printResult(result, project);
+}
+
+function pullAll(ctx: ReturnType<typeof initStorage>, gistId: string): void {
   const files = listGistFiles(gistId);
   const projectFiles = files.filter((f) => filenameToProject(f) !== null);
 
@@ -80,8 +73,7 @@ function pullAll(
   let totalRelations = 0;
 
   for (const filename of projectFiles) {
-    const raw = readGistFile(gistId, filename);
-    const payload = parsePayload(raw);
+    const payload = parsePayload(readGistFile(gistId, filename));
     if (!payload) continue;
     const result = mergeFromRemote(ctx.memoryRepo, ctx.relationRepo, payload);
     totalInserted += result.inserted;
@@ -102,7 +94,7 @@ function pullAll(
   log.blank();
 }
 
-function printResult(result: MergeResult, payload: SyncPayload, project: string): void {
+function printResult(result: MergeResult, project: string): void {
   log.blank();
   if (result.inserted === 0 && result.updated === 0 && result.relationsAdded === 0) {
     log.step('Already in sync');

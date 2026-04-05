@@ -215,10 +215,12 @@ Data stays in `~/.agentic-memory/memory.db`. Sync is opt-in via `gh` CLI.
 | Flag / Subcommand | What it does |
 |---|---|
 | `--dashboard` | Opens the interactive TUI dashboard |
-| `push` | Push memories to a private GitHub Gist |
-| `pull` | Pull memories from a private GitHub Gist |
-| `push --project <name>` | Push only one project's memories |
-| `pull --project <name>` | Pull only one project's memories |
+| `push` | Push current project's memories to a private GitHub Gist |
+| `pull` | Pull current project's memories from a private GitHub Gist |
+| `push --all` | Push all projects |
+| `pull --all` | Pull all projects |
+
+Sync stores one file per project inside a single private gist. Push/pull auto-detects the current project from your working directory. On a new device, the gist is auto-discovered from your GitHub account (no config to copy).
 
 ## Use in CI
 
