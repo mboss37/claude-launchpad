@@ -10,7 +10,7 @@ import { fileExists } from "./lib/fs-utils.js";
 const program = new Command()
   .name("claude-launchpad")
   .description("CLI toolkit that makes Claude Code setups measurably good")
-  .version("0.10.1-dev.3", "-v, --version")
+  .version("0.10.1-dev.4", "-v, --version")
   .action(async () => {
     // Default behavior: detect existing config and route accordingly
     const hasConfig = await fileExists(join(process.cwd(), "CLAUDE.md"))
