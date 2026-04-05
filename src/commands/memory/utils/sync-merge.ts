@@ -27,15 +27,12 @@ export function mergeFromRemote(
   memoryRepo: MemoryRepo,
   relationRepo: RelationRepo,
   payload: SyncPayload,
-  project?: string,
 ): MergeResult {
   let inserted = 0;
   let updated = 0;
   let relationsAdded = 0;
 
-  const memories = project
-    ? payload.memories.filter((m) => m.project === project)
-    : payload.memories;
+  const memories = payload.memories;
 
   for (const remote of memories) {
     const local = memoryRepo.getById(remote.id);

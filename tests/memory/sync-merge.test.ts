@@ -119,19 +119,15 @@ describe('sync-merge', () => {
       expect(after.content).toBe('Local content');
     });
 
-    it('should filter by project when specified', () => {
+    it('should merge all memories in payload (project filtering at file level)', () => {
       const m1 = makeSyncMemory({ id: 'proj-a', project: 'alpha' });
       const m2 = makeSyncMemory({ id: 'proj-b', project: 'beta' });
 
-      const result = mergeFromRemote(
-        memoryRepo, relationRepo,
-        makePayload([m1, m2]),
-        'alpha',
-      );
+      const result = mergeFromRemote(memoryRepo, relationRepo, makePayload([m1, m2]));
 
-      expect(result.inserted).toBe(1);
+      expect(result.inserted).toBe(2);
       expect(memoryRepo.getById('proj-a')).toBeDefined();
-      expect(memoryRepo.getById('proj-b')).toBeUndefined();
+      expect(memoryRepo.getById('proj-b')).toBeDefined();
     });
 
     it('should merge relations when both memories exist locally', () => {
