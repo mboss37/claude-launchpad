@@ -1,10 +1,15 @@
 import { z } from 'zod';
+import { createHash } from 'node:crypto';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { ToolDeps } from './register.js';
 import { MEMORY_TYPES, MEMORY_SOURCES } from '../types.js';
 import { getGitContext } from '../utils/git-context.js';
 import { validateMemoryContent } from '../utils/content-validation.js';
 import { checkContradiction } from '../utils/contradiction.js';
+
+// In-memory dedup: content hash → timestamp. Catches parallel calls within same request.
+const recentStores = new Map<string, number>();
+const DEDUP_WINDOW_MS = 10_000;
 
 const inputSchema = {
   type: z.enum(MEMORY_TYPES).describe('Memory type: working, episodic, semantic, procedural, or pattern'),
@@ -46,15 +51,19 @@ export function registerStore(server: McpServer, deps: ToolDeps): void {
       const context = args.context ?? JSON.stringify(getGitContext());
       const project = args.project ?? deps.project ?? undefined;
 
-      // Dedup: reject if identical content was stored in the last 10 seconds
-      const recent = deps.memoryRepo.getRecent(5, project);
-      const isDupe = recent.some((m) =>
-        m.content === args.content && (Date.now() - new Date(m.createdAt).getTime()) < 10_000
-      );
-      if (isDupe) {
+      // Dedup: in-memory guard catches parallel calls within same request
+      const contentHash = createHash('sha256').update(args.content).digest('hex');
+      const now = Date.now();
+      const lastStored = recentStores.get(contentHash);
+      if (lastStored && (now - lastStored) < DEDUP_WINDOW_MS) {
         return {
           content: [{ type: 'text' as const, text: 'Duplicate: identical memory was just stored. Skipped.' }],
         };
+      }
+      recentStores.set(contentHash, now);
+      // Prune old entries
+      for (const [key, ts] of recentStores) {
+        if (now - ts > DEDUP_WINDOW_MS) recentStores.delete(key);
       }
 
       // Contradiction detection
