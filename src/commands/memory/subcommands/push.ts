@@ -40,10 +40,32 @@ export async function runPush(opts: PushOpts): Promise<void> {
     }
 
     // Serialize local memories
-    const memories = ctx.memoryRepo.getAllForSync(opts.project);
+    const localMemories = ctx.memoryRepo.getAllForSync(opts.project);
     const allRelations = ctx.relationRepo.getAll();
-    const memoryIds = new Set(memories.map((m) => m.id));
-    const relations: readonly SyncRelationRow[] = allRelations
+
+    // For project-scoped push: merge local project memories into existing gist
+    // so other projects' memories aren't nuked
+    let finalMemories = localMemories.map(memoryToSyncRow);
+    let finalRelations: readonly SyncRelationRow[] = [];
+
+    if (opts.project && syncConfig) {
+      const raw = readGist(syncConfig.gistId);
+      if (raw) {
+        try {
+          const existing = SyncPayloadSchema.parse(JSON.parse(raw));
+          const otherMemories = existing.memories.filter((m) => m.project !== opts.project);
+          finalMemories = [...otherMemories, ...finalMemories];
+          const otherRelations = existing.relations.filter((r) => {
+            const localIds = new Set(localMemories.map((m) => m.id));
+            return !localIds.has(r.source_id) && !localIds.has(r.target_id);
+          });
+          finalRelations = [...otherRelations];
+        } catch { /* corrupt gist — overwrite */ }
+      }
+    }
+
+    const memoryIds = new Set(finalMemories.map((m) => m.id));
+    const localRelations: readonly SyncRelationRow[] = allRelations
       .filter((r) => memoryIds.has(r.sourceId) && memoryIds.has(r.targetId))
       .map((r) => ({
         source_id: r.sourceId,
@@ -52,12 +74,16 @@ export async function runPush(opts: PushOpts): Promise<void> {
         created_at: r.createdAt,
       }));
 
+    const mergedRelations = [...new Map(
+      [...finalRelations, ...localRelations].map((r) => [`${r.source_id}:${r.target_id}:${r.relation_type}`, r]),
+    ).values()];
+
     const payload: SyncPayload = {
       version: 1,
       machine_id: hostname(),
       pushed_at: new Date().toISOString(),
-      memories: memories.map(memoryToSyncRow),
-      relations,
+      memories: finalMemories,
+      relations: mergedRelations,
     };
 
     const json = JSON.stringify(payload, null, 2);
@@ -80,9 +106,13 @@ export async function runPush(opts: PushOpts): Promise<void> {
 
     log.blank();
     log.step('Push complete');
-    log.info(`Memories:  ${memories.length}`);
-    log.info(`Relations: ${relations.length}`);
-    if (opts.project) log.info(`Project:   ${opts.project}`);
+    if (opts.project) {
+      log.info(`Project:   ${opts.project} (${localMemories.length} memories)`);
+      log.info(`Total:     ${finalMemories.length} memories in gist`);
+    } else {
+      log.info(`Memories:  ${finalMemories.length}`);
+    }
+    log.info(`Relations: ${mergedRelations.length}`);
     log.blank();
   } finally {
     ctx.close();
