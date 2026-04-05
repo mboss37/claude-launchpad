@@ -132,7 +132,7 @@ Keybindings:
 
 ## Cross-device sync
 
-Push and pull memories between machines using a private GitHub Gist as transport. Requires the [GitHub CLI](https://cli.github.com/) (`gh`) to be installed and authenticated.
+Push and pull memories between machines. Uses a private GitHub Gist for storage. Requires the [GitHub CLI](https://cli.github.com/) (`gh`) to be installed and authenticated.
 
 ```bash
 # Push all memories to a private gist
@@ -148,14 +148,14 @@ claude-launchpad memory pull --project my-app
 
 **First push** creates a new private gist and saves the gist ID to `~/.agentic-memory/sync-config.json`. Subsequent pushes update the same gist.
 
-**Merge strategy:** when pulling, existing memories are compared by `updated_at` — the newer version wins. New memories are inserted. Relations are merged (added, never removed).
+**Merge strategy:** newer version of each memory wins. New memories are inserted. Relations are added, never removed.
 
 **Pull-before-push:** every push automatically pulls first, so remote changes are never silently overwritten.
 
 | Subcommand | What it does |
 |---|---|
-| `memory push` | Serialize all memories to JSON, upload to private gist |
-| `memory pull` | Fetch gist, merge into local SQLite |
+| `memory push` | Upload all memories to your private gist |
+| `memory pull` | Download and merge memories from your gist |
 | `memory push --project <name>` | Push only one project's memories |
 | `memory pull --project <name>` | Pull only one project's memories |
 | `memory push -y` | Skip confirmation prompt (for scripts) |

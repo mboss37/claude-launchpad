@@ -193,7 +193,7 @@ Results save to `.claude/eval/` as structured markdown. Feed them back to Claude
 
 ## Memory
 
-Optional persistent memory that replaces Claude Code's built-in flat-file memory with intelligent, decay-based retrieval.
+Optional persistent memory that replaces Claude Code's built-in flat-file system. Memories decay naturally, so stale knowledge fades and relevant context stays.
 
 ```bash
 claude-launchpad memory
@@ -202,15 +202,15 @@ claude-launchpad memory
 If memory is not installed, it runs interactive setup. If installed, it shows stats. Requires native deps first: `npm install better-sqlite3 sqlite-vec`.
 
 **What it does:**
-- **Smart session injection** starts each session with the most relevant memories, ranked by 6 signals and packed into a 2000-token budget across three tiers
+- **Smart session injection** loads the most relevant memories at session start
 - **Stop hook** extracts facts from the conversation when you finish
 - **Decay model** fades memories naturally (episodic: 60 days, semantic: 1 year, procedural: 2 years)
 - **Self-tuning retrieval** promotes memories Claude searches for, demotes ones injected but never used
 - **Project-scoped** with no cross-contamination between projects
 - **TUI dashboard** (`--dashboard`) with vim navigation, filtering, and search
-- **Cross-device sync** via private GitHub Gist — push/pull memories between machines
+- **Cross-device sync** pushes and pulls memories between machines via private GitHub Gist
 
-Data stays in `~/.agentic-memory/memory.db`. Sync is opt-in and uses your existing `gh` CLI auth.
+Data stays in `~/.agentic-memory/memory.db`. Sync is opt-in via `gh` CLI.
 
 | Flag / Subcommand | What it does |
 |---|---|
