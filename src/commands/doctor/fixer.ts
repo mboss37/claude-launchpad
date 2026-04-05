@@ -76,7 +76,7 @@ const FIX_TABLE: ReadonlyArray<{ analyzer: string; match: string; fix: FixFn }> 
   { analyzer: "Hooks", match: "SessionStart", fix: (root) => addSessionStartHook(root) },
   { analyzer: "Memory", match: "autoMemoryEnabled not disabled", fix: (root) => disableAutoMemory(root) },
   { analyzer: "Memory", match: "MCP tool permission", fix: (root) => addMemoryToolPermissions(root) },
-  { analyzer: "Memory", match: "CLAUDE.md missing memory guidance", fix: (root) => addClaudeMdSection(root, "## Memory", "Use agentic-memory to persist knowledge across sessions:\n- Memories are automatically injected at session start and extracted at session end\n- Save non-obvious decisions, gotchas, and deferred issues\n- Check memory for relevant context before starting work") },
+  { analyzer: "Memory", match: "CLAUDE.md missing memory guidance", fix: (root) => addClaudeMdSection(root, "## Memory", "Use agentic-memory to persist knowledge across sessions:\n- Memories are automatically injected at session start and extracted at session end\n- Save non-obvious decisions, gotchas, and deferred issues\n- NEVER store credentials, API keys, tokens, or secrets in memories\n- Check memory for relevant context before starting work") },
 ];
 
 async function tryFix(

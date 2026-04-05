@@ -40,6 +40,7 @@ export async function startServer(deps?: Partial<ServerDeps>): Promise<void> {
         + 'Use memory_update to modify existing memories instead of creating duplicates - it preserves access history. '
         + 'Store memories at the semantic level - capture WHY, not just WHAT happened. '
         + 'Only store knowledge worth remembering across sessions. '
+        + 'NEVER store credentials, API keys, tokens, passwords, or secrets - memories may be synced to external storage. '
         + 'Memory context is automatically injected at session start via hook - no need to call memory_recent manually.',
     },
   );

@@ -86,4 +86,5 @@ This project uses **agentic-memory** for persistent memory across sessions.
 - Use `memory_search` before `memory_store` to check for duplicates
 - Use `memory_update` to modify existing memories instead of creating new ones
 - **STORE IMMEDIATELY** when: a dependency strategy changes, an architecture decision is made, a convention is established, a bug pattern is discovered, or a feature is killed/added
+- **NEVER** store credentials, API keys, tokens, passwords, or other secrets in memories
 - Use absolute dates (not "next week") so memories stay useful across sessions
