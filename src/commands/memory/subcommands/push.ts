@@ -10,9 +10,8 @@ import {
   readGistFile,
   updateGistFiles,
   projectToFilename,
-  parsePayload,
 } from '../utils/gist-transport.js';
-import { mergeFromRemote, memoryToSyncRow } from '../utils/sync-merge.js';
+import { mergeFromRemote, memoryToSyncRow, parsePayload } from '../utils/sync-merge.js';
 import type { Memory, SyncPayload, SyncRelationRow } from '../types.js';
 import { detectProject } from '../utils/project.js';
 

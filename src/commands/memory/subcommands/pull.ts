@@ -7,9 +7,8 @@ import {
   listGistFiles,
   filenameToProject,
   projectToFilename,
-  parsePayload,
 } from '../utils/gist-transport.js';
-import { mergeFromRemote } from '../utils/sync-merge.js';
+import { mergeFromRemote, parsePayload } from '../utils/sync-merge.js';
 import type { SyncPayload, MergeResult } from '../types.js';
 import { detectProject } from '../utils/project.js';
 

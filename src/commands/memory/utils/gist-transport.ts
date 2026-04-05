@@ -3,8 +3,7 @@ import { readFileSync, writeFileSync, unlinkSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
 import { resolveDataDir, DEFAULT_CONFIG } from '../config.js';
-import { SyncPayloadSchema } from '../types.js';
-import type { SyncConfig, SyncPayload } from '../types.js';
+import type { SyncConfig } from '../types.js';
 
 const EXEC_OPTS = { encoding: 'utf-8' as const, timeout: 30_000 };
 const GIST_DESCRIPTION = 'agentic-memory sync';
@@ -28,11 +27,6 @@ export function filenameToProject(filename: string): string | null {
   return match?.[1] ?? null;
 }
 
-export function parsePayload(raw: string | null): SyncPayload | null {
-  if (!raw || raw === 'null') return null;
-  try { return SyncPayloadSchema.parse(JSON.parse(raw)); }
-  catch { return null; }
-}
 
 export function assertGhAvailable(): void {
   try {

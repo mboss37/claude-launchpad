@@ -1,3 +1,4 @@
+import { SyncPayloadSchema } from '../types.js';
 import type { Memory, SyncPayload, SyncMemoryRow, MergeResult, RelationType } from '../types.js';
 import type { MemoryRepo } from '../storage/memory-repo.js';
 import type { RelationRepo } from '../storage/relation-repo.js';
@@ -22,6 +23,12 @@ function memoryToSyncRow(m: Memory): SyncMemoryRow {
 }
 
 export { memoryToSyncRow };
+
+export function parsePayload(raw: string | null): SyncPayload | null {
+  if (!raw || raw === 'null') return null;
+  try { return SyncPayloadSchema.parse(JSON.parse(raw)); }
+  catch { return null; }
+}
 
 export function mergeFromRemote(
   memoryRepo: MemoryRepo,
