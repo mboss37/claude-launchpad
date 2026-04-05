@@ -5,57 +5,37 @@ Priority: P0 = next sprint, P1 = soon, P2 = when relevant.
 
 ---
 
-## [P0] Cross-Platform Support (Linux + Windows)
-Hooks generate bash syntax (grep, pipes, exit 0) that breaks on Windows without WSL/Git Bash. Never tested on Linux or Windows.
+## [P0] Memory: Multi-Device Sync (Push/Pull via Private GitHub Gist)
+Expert panel reviewed (2026-04-05). Simplified to bare minimum after discussion.
 
-### Known risks
-- **Hooks**: all generated hooks use bash syntax. Windows cmd/PowerShell can't run them
-- **cwdRequire**: `npm config get prefix` + `lib/node_modules` path is Mac/Linux only. Windows uses `node_modules` directly
-- **sqlite-vec**: prebuilds may not exist for all Linux distros or Windows
-- **TUI dashboard (blessed)**: rendering issues on Windows cmd/PowerShell
-- **Path separators**: any hardcoded `/` in path logic
-
-### Testing plan
-- Test on Mihael's Linux machine + Windows machine
-- Run: `init`, `doctor`, `doctor --fix`, `memory install`, `memory` (stats)
-- Verify generated hooks work in default shell
-- Check native dep installation (better-sqlite3, sqlite-vec)
-
-### Fix strategy
-- Hooks: detect OS, generate PowerShell equivalents on Windows (or document WSL requirement)
-- cwdRequire: use `process.platform` to resolve correct global path
-- Add CI matrix: ubuntu-latest + windows-latest for test suite
-
----
-
-## [P1] Memory: Multi-Device Sync
-Expert panel decision (2026-04-04): git-based sync with secret scanning. Full spec below.
+### How It Works
+- Private GitHub Gist as transport (unlisted, requires URL to access)
+- `gh` CLI handles auth (already on the machine)
+- Gist ID stored in `~/.agentic-memory/sync-config.json`
+- Full blob sync — no delta, no manifest. At 50-500 memories (~1MB) just overwrite the whole thing
+- Pull-before-push to prevent overwrites
+- Last-write-wins by `updated_at` for conflicts
 
 ### Commands
-- `memory export` — export all memories to `~/.agentic-memory/export.json`
-- `memory import [path]` — import from JSON, merge with local DB
-- `memory export --project <name>` — export only one project's memories
+```bash
+memory push                    # serialize all memories → push to gist
+memory pull                    # fetch gist → merge into local SQLite
+memory push --project <name>   # push only one project
+memory pull --project <name>   # pull only one project
+```
 
-### Export Format
+### Data Format (single gist file: `agentic-memory-sync.json`)
 ```json
 {
   "version": 1,
-  "exported_at": "2026-04-04T...",
   "machine_id": "mac-mini-mihael",
+  "pushed_at": "2026-04-05T...",
   "memories": [
     {
-      "id": "uuid",
-      "type": "semantic",
-      "title": "...",
-      "content": "...",
-      "tags": ["#decision"],
-      "importance": 0.7,
-      "project": "claude-launchpad",
-      "access_count": 5,
-      "injection_count": 3,
-      "created_at": "...",
-      "updated_at": "...",
-      "last_accessed": "..."
+      "id": "uuid", "type": "semantic", "title": "...", "content": "...",
+      "tags": ["#decision"], "importance": 0.7, "project": "claude-launchpad",
+      "access_count": 5, "injection_count": 3,
+      "created_at": "...", "updated_at": "...", "last_accessed": "..."
     }
   ],
   "relations": [
@@ -63,51 +43,30 @@ Expert panel decision (2026-04-04): git-based sync with secret scanning. Full sp
   ]
 }
 ```
-- Sorted by `id` for deterministic diffs
-- Includes relations so linked memories stay linked
 
-### Import Merge Strategy
-1. Hash each memory by `id`
-2. If `id` exists locally: compare `updated_at`, keep newer (last-write-wins)
-3. If `id` not in local DB: insert
-4. If `id` in local but not in import: keep (no deletions via import)
-5. Relations: union merge (add missing, never remove)
-6. After import: run decay recalculation on imported memories
+### Sync Protocol
+**Push:** pull first → merge → serialize all memories → update gist
+**Pull:** fetch gist → for each memory: if new insert, if exists keep newer by `updated_at`
+**First push:** confirm gist creation (`Create a private GitHub Gist for memory sync? [Y/n]`)
 
-### Secret Scanning (on export)
-Regex scan content + title before writing JSON:
-- `sk-[a-zA-Z0-9]{20,}` (OpenAI)
-- `ghp_[a-zA-Z0-9]{36}` (GitHub)
-- `AKIA[0-9A-Z]{16}` (AWS)
-- `xoxb-[0-9]+-[a-zA-Z0-9]+` (Slack)
-- `postgresql://`, `mongodb://`, `redis://` (connection strings)
-- Generic `password\s*[:=]\s*\S+` pattern
-
-Action: warn per match, ask to proceed or abort. `--force` skips prompt.
-
-### Sync Workflow (user-managed)
-```bash
-# On machine A (after a session):
-claude-launchpad memory export
-# Commit to private dotfiles repo, or let iCloud/Dropbox sync the file
-
-# On machine B (before a session):
-claude-launchpad memory import ~/.agentic-memory/export.json
-```
-No automatic sync. No hooks. No cloud service. User decides transport.
+### Error Handling
+- `gh` not installed: `Memory sync requires the GitHub CLI. Install: https://cli.github.com/`
+- `gh` not authed: `Run: gh auth login`
 
 ### Implementation Files
-- `src/commands/memory/subcommands/export.ts` — new
-- `src/commands/memory/subcommands/import.ts` — new
-- `src/commands/memory/utils/secret-scan.ts` — new
-- `src/commands/memory/index.ts` — register `export` + `import` subcommands
-- `src/commands/memory/storage/memory-repo.ts` — add `upsertFromImport()` method
+- `src/commands/memory/subcommands/push.ts` — new
+- `src/commands/memory/subcommands/pull.ts` — new
+- `src/commands/memory/utils/gist-transport.ts` — new (create/read/update gist via `gh`)
+- `src/commands/memory/index.ts` — register push/pull subcommands
+- `src/commands/memory/storage/memory-repo.ts` — add `getAllForSync()`, `upsertFromSync()`
 
-### Out of Scope
-- Automatic sync (hooks, watchers, cron)
-- Cloud storage backends (Turso deferred to P2)
-- CRDTs (killed — overengineered for single-user multi-device)
-- Vector embeddings in export (not portable across sqlite-vec versions)
+### Out of Scope (add when needed)
+- Delta sync / manifest (not needed at <500 memories)
+- Encryption (private gist is sufficient)
+- Lamport counters (clock skew unlikely for single user)
+- Tombstones / deletion propagation (add if users request)
+- Auto-sync (watchers, cron)
+- `memory sync` command (hides conflict direction)
 
 ---
 

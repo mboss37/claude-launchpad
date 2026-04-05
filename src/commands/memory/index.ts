@@ -104,5 +104,27 @@ export function createMemoryCommand(): Command {
     { hidden: true },
   );
 
+  // User-facing sync commands
+  memory.addCommand(
+    new Command("push")
+      .description("Push memories to GitHub Gist")
+      .option("--project <name>", "Scope to a specific project")
+      .option("-y, --yes", "Skip confirmation prompt")
+      .action(async (opts) => {
+        const { runPush } = await import("./subcommands/push.js");
+        await runPush(opts);
+      }),
+  );
+
+  memory.addCommand(
+    new Command("pull")
+      .description("Pull memories from GitHub Gist")
+      .option("--project <name>", "Scope to a specific project")
+      .action(async (opts) => {
+        const { runPull } = await import("./subcommands/pull.js");
+        await runPull(opts);
+      }),
+  );
+
   return memory;
 }

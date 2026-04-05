@@ -1,5 +1,5 @@
 import type Database from 'better-sqlite3';
-import type { Memory, MemoryType, MemorySource, StoreInput } from '../types.js';
+import type { Memory, MemoryType, MemorySource, StoreInput, SyncMemoryRow } from '../types.js';
 import { randomUUID } from 'node:crypto';
 
 function safeParseTags(raw: string): string[] {
@@ -96,6 +96,16 @@ export class MemoryRepo {
         SELECT id, title, injection_count FROM memories
         WHERE injection_count > 0 ORDER BY injection_count DESC LIMIT ?
       `),
+      upsertSync: db.prepare(`
+        INSERT OR REPLACE INTO memories
+          (id, type, title, content, context, source, project, tags, importance,
+           access_count, injection_count, created_at, updated_at, last_accessed, embedding)
+        VALUES (@id, @type, @title, @content, @context, @source, @project, @tags, @importance,
+                @accessCount, @injectionCount, @createdAt, @updatedAt, @lastAccessed, NULL)
+      `),
+      getAllStrictProject: db.prepare(
+        'SELECT * FROM memories WHERE project = ? ORDER BY created_at DESC'
+      ),
     };
   }
 
@@ -261,5 +271,32 @@ export class MemoryRepo {
   topInjected(limit: number = 5): readonly { id: string; title: string | null; injectionCount: number }[] {
     const rows = this.#stmts.topInjected.all(limit) as { id: string; title: string | null; injection_count: number }[];
     return rows.map(r => ({ id: r.id, title: r.title, injectionCount: r.injection_count }));
+  }
+
+  upsertFromSync(row: SyncMemoryRow): void {
+    this.#stmts.upsertSync.run({
+      id: row.id,
+      type: row.type,
+      title: row.title,
+      content: row.content,
+      context: row.context,
+      source: row.source,
+      project: row.project,
+      tags: JSON.stringify(row.tags),
+      importance: row.importance,
+      accessCount: row.access_count,
+      injectionCount: row.injection_count,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      lastAccessed: row.last_accessed,
+    });
+  }
+
+  getAllForSync(project?: string): readonly Memory[] {
+    if (project) {
+      const rows = this.#stmts.getAllStrictProject.all(project) as MemoryRow[];
+      return rows.map(rowToMemory);
+    }
+    return this.getAll();
   }
 }
