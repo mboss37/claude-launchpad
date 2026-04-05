@@ -82,6 +82,9 @@ Maximal Marginal Relevance for injection. Prevents injecting 5 memories on the s
 ## [P2] Memory: Exploration Slots
 Reserve 1/8 injection slots for random discovery. Memories that get searched after injection rise in rank; ones that don't fade out. Multi-armed bandit without ML training. Matters at 100+ memories.
 
+## [P1] Memory: TUI Dashboard Live Reload
+Dashboard (blessed TUI) loads data once at startup and never refreshes. If the underlying DB changes (e.g. `memory pull`, `memory.db` deleted), the dashboard shows stale data until restarted. Should watch `memory.db` with `fs.watch` and reload on change.
+
 ## [P1] Enhance: Eval Scenario Generation
 After rewriting CLAUDE.md, `/lp-enhance` should suggest 2-3 eval scenarios tailored to the project (e.g. "does Claude respect our off-limits?"). Closes the `init → doctor → enhance → eval` loop.
 

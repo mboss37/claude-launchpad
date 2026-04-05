@@ -46,6 +46,17 @@ export function registerStore(server: McpServer, deps: ToolDeps): void {
       const context = args.context ?? JSON.stringify(getGitContext());
       const project = args.project ?? deps.project ?? undefined;
 
+      // Dedup: reject if identical content was stored in the last 10 seconds
+      const recent = deps.memoryRepo.getRecent(5, project);
+      const isDupe = recent.some((m) =>
+        m.content === args.content && (Date.now() - new Date(m.createdAt).getTime()) < 10_000
+      );
+      if (isDupe) {
+        return {
+          content: [{ type: 'text' as const, text: 'Duplicate: identical memory was just stored. Skipped.' }],
+        };
+      }
+
       // Contradiction detection
       const contradictions: { id: string; title: string | null }[] = [];
       try {
