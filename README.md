@@ -210,7 +210,7 @@ If memory is not installed, it runs interactive setup. If installed, it shows st
 - **TUI dashboard** (`--dashboard`) with vim navigation, filtering, and search
 - **Cross-device sync** pushes and pulls memories between machines via private GitHub Gist
 
-Data stays in `~/.agentic-memory/memory.db`. Sync is opt-in via `gh` CLI.
+Data stays in `~/.agentic-memory/memory.db`. Sync requires the [GitHub CLI](https://cli.github.com/) (`gh`).
 
 | Flag / Subcommand | What it does |
 |---|---|
