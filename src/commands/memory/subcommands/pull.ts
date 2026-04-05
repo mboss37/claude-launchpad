@@ -46,11 +46,16 @@ export async function runPull(opts: PullOpts): Promise<void> {
   try {
     const result = mergeFromRemote(ctx.memoryRepo, ctx.relationRepo, payload, opts.project);
     log.blank();
-    log.step('Pull complete');
-    log.info(`From:     ${payload.machine_id} (${payload.pushed_at})`);
-    log.info(`Inserted: ${result.inserted}`);
-    log.info(`Updated:  ${result.updated}`);
-    log.info(`Relations: ${result.relationsAdded} added`);
+    if (result.inserted === 0 && result.updated === 0 && result.relationsAdded === 0) {
+      log.step('Already in sync');
+      log.info(`From: ${payload.machine_id} (${payload.pushed_at})`);
+    } else {
+      log.step('Pull complete');
+      log.info(`From:      ${payload.machine_id} (${payload.pushed_at})`);
+      if (result.inserted > 0) log.info(`Inserted:  ${result.inserted}`);
+      if (result.updated > 0) log.info(`Updated:   ${result.updated}`);
+      if (result.relationsAdded > 0) log.info(`Relations: ${result.relationsAdded} added`);
+    }
     log.blank();
   } finally {
     ctx.close();
