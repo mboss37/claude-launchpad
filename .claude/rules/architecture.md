@@ -25,9 +25,9 @@
 │   │       ├── storage/           # SQLite repos (memory, relation, search, migrator)
 │   │       ├── services/          # Retrieval, decay, consolidation, session
 │   │       ├── tools/             # 7 MCP tool handlers
-│   │       ├── subcommands/       # install, stats, context, extract, doctor
+│   │       ├── subcommands/       # install, stats, context, extract, doctor, push, pull
 │   │       ├── dashboard/         # Blessed TUI (lazy-loaded via --dashboard)
-│   │       └── utils/             # require-deps, git-context, content-validation
+│   │       └── utils/             # require-deps, git-context, content-validation, gist-transport, sync-merge
 │   ├── lib/
 │   │   ├── detect.ts              # Project auto-detection (language, framework, tools)
 │   │   ├── parser.ts              # Parse .claude/ directory structure
@@ -35,8 +35,8 @@
 │   │   └── settings.ts            # Shared readSettingsJson/writeSettingsJson
 │   └── types/index.ts             # Core type definitions (doctor, eval, init)
 ├── scenarios/common/              # Built-in eval scenarios (YAML)
-├── tests/                         # Vitest tests (262+)
-└── tests/memory/                  # Memory-specific tests (storage, services, utils)
+├── tests/                         # Vitest tests (294+)
+└── tests/memory/                  # Memory-specific tests (storage, services, sync, utils)
 ```
 
 ## Command Flow
@@ -49,6 +49,8 @@
 - `memory serve` → MCP server on stdio (called by Claude Code, not users)
 - `memory context` → SessionStart hook handler (injects relevant memories)
 - `memory extract` → Stop hook handler (extracts facts from transcript)
+- `memory push` → serialize memories → pull-before-push → upload to private GitHub Gist via `gh` CLI
+- `memory pull` → fetch gist → Zod-validate → last-write-wins merge into SQLite
 
 ## Dependency Strategy
 - **Core deps** (dependencies): commander, chalk, inquirer, ora, yaml — always installed
@@ -66,3 +68,5 @@
 - Memory analyzer returns null when memory is not detected — no native deps in doctor
 - Generators in `init/generators/` each produce one file — they share detected config but don't depend on each other
 - `src/lib/settings.ts` is shared between doctor fixer and memory install (readSettingsJson/writeSettingsJson)
+- `memory/utils/gist-transport.ts` is pure `gh` CLI glue — no memory repo dependencies, swappable transport
+- `memory/utils/sync-merge.ts` is shared merge logic used by both push (pull-before-push) and pull

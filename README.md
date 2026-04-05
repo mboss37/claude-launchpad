@@ -193,7 +193,7 @@ Results save to `.claude/eval/` as structured markdown. Feed them back to Claude
 
 ## Memory
 
-Optional persistent memory that replaces Claude Code's built-in flat-file memory with intelligent, decay-based retrieval.
+Optional persistent memory that replaces Claude Code's built-in flat-file system. Memories decay naturally, so stale knowledge fades and relevant context stays.
 
 ```bash
 claude-launchpad memory
@@ -202,18 +202,25 @@ claude-launchpad memory
 If memory is not installed, it runs interactive setup. If installed, it shows stats. Requires native deps first: `npm install better-sqlite3 sqlite-vec`.
 
 **What it does:**
-- **Smart session injection** starts each session with the most relevant memories, ranked by 6 signals and packed into a 2000-token budget across three tiers
+- **Smart session injection** loads the most relevant memories at session start
 - **Stop hook** extracts facts from the conversation when you finish
 - **Decay model** fades memories naturally (episodic: 60 days, semantic: 1 year, procedural: 2 years)
 - **Self-tuning retrieval** promotes memories Claude searches for, demotes ones injected but never used
 - **Project-scoped** with no cross-contamination between projects
 - **TUI dashboard** (`--dashboard`) with vim navigation, filtering, and search
+- **Cross-device sync** pushes and pulls memories between machines via private GitHub Gist
 
-No cloud. No sync. Everything stays in `~/.agentic-memory/memory.db`.
+Data stays in `~/.agentic-memory/memory.db`. Sync requires the [GitHub CLI](https://cli.github.com/) (`gh`).
 
-| Flag | What it does |
+| Flag / Subcommand | What it does |
 |---|---|
 | `--dashboard` | Opens the interactive TUI dashboard |
+| `push` | Push current project's memories to a private GitHub Gist |
+| `pull` | Pull current project's memories from a private GitHub Gist |
+| `push --all` | Push all projects |
+| `pull --all` | Pull all projects |
+
+Sync stores one file per project inside a single private gist. Push/pull auto-detects the current project from your working directory. On a new device, the gist is auto-discovered from your GitHub account (no config to copy).
 
 ## Use in CI
 
@@ -272,7 +279,7 @@ New to Claude Code? Here's what the terms mean.
 
 ## Privacy
 
-No telemetry. No analytics. No data sent anywhere. Doctor, init, and fix are fully offline. Memory stores data locally at `~/.agentic-memory/`, no cloud sync. Enhance and eval run through your local Claude CLI, no data passes through this tool. [Full privacy policy](https://mboss37.github.io/claude-launchpad/privacy.html).
+No telemetry. No analytics. No data sent anywhere. Doctor, init, and fix are fully offline. Memory stores data locally at `~/.agentic-memory/`. The optional sync feature (`memory push/pull`) uses a private GitHub Gist under your own account — data goes to GitHub, not to us. Enhance and eval run through your local Claude CLI, no data passes through this tool. [Full privacy policy](https://mboss37.github.io/claude-launchpad/privacy.html).
 
 ## License
 

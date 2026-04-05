@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.11.0] — 2026-04-05
+
+### Added
+- Cross-device memory sync via private GitHub Gist (`memory push` / `memory pull`)
+  - One file per project inside a single gist for scalable multi-project sync
+  - Auto-detects current project from working directory
+  - `--all` flag to push/pull all projects at once
+  - Auto-discovers gist on new devices (no config copying needed)
+  - Pull-before-push guard prevents silent overwrites
+  - Zod validation on both push and pull
+  - `-y` flag to skip confirmation prompt (for scripts)
+- In-memory dedup guard in `memory_store` to prevent duplicate memories from parallel MCP calls
+- No-credentials rule in MCP server instructions and doctor-generated CLAUDE.md
+
+### Changed
+- Refactored `doctor/fixer.ts` (433 to 385 lines) via shared `addHook()` helper
+- Refactored `eval/runner.ts`: merged duplicate file check functions, replaced local `fileExistsSafe` with shared `fileExists`
+
+### Fixed
+- Project-scoped push no longer overwrites other projects in gist
+- Shell injection risk in gist transport (slugified filenames, validated gist IDs)
+
 ## [0.10.0] — 2026-04-04
 
 ### Added

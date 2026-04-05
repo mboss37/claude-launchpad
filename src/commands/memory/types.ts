@@ -112,6 +112,78 @@ export const RelateInputSchema = z.object({
 });
 export type RelateInput = z.infer<typeof RelateInputSchema>;
 
+// ── Sync Types ───────────────────────────────────────────────
+
+export interface SyncPayload {
+  readonly version: number;
+  readonly machine_id: string;
+  readonly pushed_at: string;
+  readonly memories: readonly SyncMemoryRow[];
+  readonly relations: readonly SyncRelationRow[];
+}
+
+export interface SyncMemoryRow {
+  readonly id: string;
+  readonly type: MemoryType;
+  readonly title: string | null;
+  readonly content: string;
+  readonly context: string | null;
+  readonly source: MemorySource | null;
+  readonly project: string | null;
+  readonly tags: readonly string[];
+  readonly importance: number;
+  readonly access_count: number;
+  readonly injection_count: number;
+  readonly created_at: string;
+  readonly updated_at: string;
+  readonly last_accessed: string | null;
+}
+
+export interface SyncRelationRow {
+  readonly source_id: string;
+  readonly target_id: string;
+  readonly relation_type: RelationType;
+  readonly created_at: string;
+}
+
+export const SyncPayloadSchema = z.object({
+  version: z.number(),
+  machine_id: z.string(),
+  pushed_at: z.string(),
+  memories: z.array(z.object({
+    id: z.string(),
+    type: z.enum(MEMORY_TYPES),
+    title: z.string().nullable(),
+    content: z.string(),
+    context: z.string().nullable(),
+    source: z.enum(MEMORY_SOURCES).nullable(),
+    project: z.string().nullable(),
+    tags: z.array(z.string()),
+    importance: z.number(),
+    access_count: z.number(),
+    injection_count: z.number(),
+    created_at: z.string(),
+    updated_at: z.string(),
+    last_accessed: z.string().nullable(),
+  })),
+  relations: z.array(z.object({
+    source_id: z.string(),
+    target_id: z.string(),
+    relation_type: z.enum(RELATION_TYPES),
+    created_at: z.string(),
+  })),
+});
+
+export interface SyncConfig {
+  readonly gistId: string;
+}
+
+export interface MergeResult {
+  readonly inserted: number;
+  readonly updated: number;
+  readonly relationsAdded: number;
+}
+
 // ── Stats ─────────────────────────────────────────────────────
 
 export interface MemoryStats {

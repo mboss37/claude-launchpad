@@ -21,17 +21,18 @@
 - **Sprint 14**: Memory — v0.7.5, /lp-enhance skill, agentic-memory integrated (262 tests), TUI dashboard, brain-inspired decay, zero-dep install, plugin removed
 - **Sprint 15**: Smart Injection — InjectionService (6-signal scoring, 3 tiers, token-budget packing), fixed injection tracking bugs, 274 tests, docs updated
 - **Sprint 16**: Backlog System — v0.10.0, BACKLOG.md in init/doctor/fix, three-file system, budget 200, MCP registration fix, content review skill, 280 tests
+- **Sprint 17**: Memory Sync — v0.11.0, push/pull via private GitHub Gist, multi-file per project, auto-discovery, dedup guard, 294 tests
 
 ## Current: No active sprint
 
 All planned work complete. Future features in BACKLOG.md.
 
 ## Session Log
-### 2026-04-04 (session 19)
-- Fixed GitHub releases (v0.5.3-v0.6.1), TLS certs for headless Mac, gh auth.
-- Fixed ESM cwdRequire crash, MCP registration bug, memory optionality (v0.8.0-v0.9.1).
-- Multi-device sync expert panel, git-based sync spec added to backlog (P0). Opened Sprint 16.
 ### 2026-04-04 (session 20)
 - Sprint 16: BACKLOG.md as first-class artifact (init, doctor, fix, docs, 18 new tests).
 - Budget thresholds raised to 150/200/250 (official guidance). Content review skill created globally.
 - Published v0.10.0. Dev/release workflow validated with 3 dev publishes before release.
+### 2026-04-05 (session 21)
+- Sprint 17: Memory sync via private GitHub Gist (push/pull, multi-file per project, auto-discovery).
+- Fixed dedup bug (parallel MCP calls), refactored fixer.ts + runner.ts, 294 tests.
+- Published v0.11.0. Tested cross-device sync between Mac Mini and MacBook.

@@ -38,6 +38,7 @@ export class RelationRepo {
         SELECT COUNT(*) as count FROM relations WHERE source_id = ? OR target_id = ?
       `),
       count: db.prepare('SELECT COUNT(*) as count FROM relations'),
+      getAll: db.prepare('SELECT * FROM relations'),
     };
   }
 
@@ -74,5 +75,10 @@ export class RelationRepo {
   count(): number {
     const row = this.#stmts.count.get() as { count: number };
     return row.count;
+  }
+
+  getAll(): readonly Relation[] {
+    const rows = this.#stmts.getAll.all() as RelationRow[];
+    return rows.map(rowToRelation);
   }
 }

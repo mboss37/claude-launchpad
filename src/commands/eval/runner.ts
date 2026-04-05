@@ -1,10 +1,11 @@
-import { mkdir, writeFile, readFile, readdir, rm, cp, access } from "node:fs/promises";
+import { mkdir, writeFile, readFile, readdir, rm, cp } from "node:fs/promises";
 import { join, dirname } from "node:path";
 import { tmpdir } from "node:os";
 import { randomUUID } from "node:crypto";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import type { EvalScenario, EvalRunResult, EvalCheck } from "../../types/index.js";
+import { fileExists } from "../../lib/fs-utils.js";
 
 const exec = promisify(execFile);
 
@@ -107,30 +108,21 @@ async function copyProjectConfig(sandboxDir: string, projectRoot: string): Promi
 
   // Copy .claude/settings.json (hooks, permissions, schema)
   const settingsPath = join(claudeDir, "settings.json");
-  if (await fileExistsSafe(settingsPath)) {
+  if (await fileExists(settingsPath)) {
     await mkdir(sandboxClaudeDir, { recursive: true });
     await cp(settingsPath, join(sandboxClaudeDir, "settings.json"));
   }
 
   // Copy .claude/rules/ (all convention and path-scoped rule files)
   const rulesDir = join(claudeDir, "rules");
-  if (await fileExistsSafe(rulesDir)) {
+  if (await fileExists(rulesDir)) {
     await cp(rulesDir, join(sandboxClaudeDir, "rules"), { recursive: true });
   }
 
   // Copy .claudeignore
   const ignorePath = join(projectRoot, ".claudeignore");
-  if (await fileExistsSafe(ignorePath)) {
+  if (await fileExists(ignorePath)) {
     await cp(ignorePath, join(sandboxDir, ".claudeignore"));
-  }
-}
-
-async function fileExistsSafe(path: string): Promise<boolean> {
-  try {
-    await access(path);
-    return true;
-  } catch {
-    return false;
   }
 }
 
@@ -239,9 +231,8 @@ async function evaluateSingleCheck(check: EvalCheck, sandboxDir: string): Promis
     case "grep":
       return checkGrep(check, sandboxDir);
     case "file-exists":
-      return checkFileExists(check, sandboxDir);
     case "file-absent":
-      return checkFileAbsent(check, sandboxDir);
+      return checkFilePresence(check, sandboxDir);
     case "max-lines":
       return checkMaxLines(check, sandboxDir);
     case "custom":
@@ -269,21 +260,12 @@ async function checkGrep(check: EvalCheck, sandboxDir: string): Promise<boolean>
   }
 }
 
-async function checkFileExists(check: EvalCheck, sandboxDir: string): Promise<boolean> {
+async function checkFilePresence(check: EvalCheck, sandboxDir: string): Promise<boolean> {
   try {
     await readFile(join(sandboxDir, check.target));
     return check.expect === "present";
   } catch {
     return check.expect === "absent";
-  }
-}
-
-async function checkFileAbsent(check: EvalCheck, sandboxDir: string): Promise<boolean> {
-  try {
-    await readFile(join(sandboxDir, check.target));
-    return check.expect === "absent";
-  } catch {
-    return check.expect === "present";
   }
 }
 

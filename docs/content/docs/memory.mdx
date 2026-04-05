@@ -130,6 +130,57 @@ Keybindings:
 - `p` - project picker
 - `?` - help
 
+## Cross-device sync
+
+Push and pull memories between machines. Uses a private GitHub Gist for storage with one file per project. Requires the [GitHub CLI](https://cli.github.com/) (`gh`) to be installed and authenticated.
+
+```bash
+# Push current project's memories
+claude-launchpad memory push
+
+# Pull current project's memories on another machine
+claude-launchpad memory pull
+
+# Push/pull all projects at once
+claude-launchpad memory push --all
+claude-launchpad memory pull --all
+```
+
+Push and pull auto-detect the current project from your working directory. No `--project` flag needed.
+
+### Gist structure
+
+One private gist holds all your projects, each in its own file:
+
+```
+gist: "agentic-memory sync"
+├── memories-my-app.json
+├── memories-api-server.json
+└── memories-shared-lib.json
+```
+
+Project-scoped push/pull only touches that project's file. Other projects are never read or modified.
+
+### How it works
+
+**First push** creates a new private gist. The gist ID is saved to `~/.agentic-memory/sync-config.json`.
+
+**New device:** the gist is auto-discovered from your GitHub account. No config file to copy.
+
+**Pull-before-push:** every push pulls first, so remote changes are never silently overwritten.
+
+**Merge strategy:** newer version of each memory wins (by `updated_at`). New memories are inserted. Relations are added, never removed.
+
+| Subcommand | What it does |
+|---|---|
+| `memory push` | Push current project's memories |
+| `memory pull` | Pull current project's memories |
+| `memory push --all` | Push all projects |
+| `memory pull --all` | Pull all projects |
+| `memory push -y` | Skip confirmation prompt (for scripts) |
+
+Data is validated with Zod on both push and pull. Corrupt or incompatible data is rejected with a clear error.
+
 ## Migrating from built-in memory
 
 After installing, use `/lp-migrate-memory` inside Claude Code. It reads your legacy `~/.claude/projects/*/memory/*.md` files, deduplicates, and stores them with appropriate types and importance.

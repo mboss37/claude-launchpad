@@ -76,7 +76,7 @@ const FIX_TABLE: ReadonlyArray<{ analyzer: string; match: string; fix: FixFn }> 
   { analyzer: "Hooks", match: "SessionStart", fix: (root) => addSessionStartHook(root) },
   { analyzer: "Memory", match: "autoMemoryEnabled not disabled", fix: (root) => disableAutoMemory(root) },
   { analyzer: "Memory", match: "MCP tool permission", fix: (root) => addMemoryToolPermissions(root) },
-  { analyzer: "Memory", match: "CLAUDE.md missing memory guidance", fix: (root) => addClaudeMdSection(root, "## Memory", "Use agentic-memory to persist knowledge across sessions:\n- Memories are automatically injected at session start and extracted at session end\n- Save non-obvious decisions, gotchas, and deferred issues\n- Check memory for relevant context before starting work") },
+  { analyzer: "Memory", match: "CLAUDE.md missing memory guidance", fix: (root) => addClaudeMdSection(root, "## Memory", "Use agentic-memory to persist knowledge across sessions:\n- Memories are automatically injected at session start and extracted at session end\n- Save non-obvious decisions, gotchas, and deferred issues\n- NEVER store credentials, API keys, tokens, or secrets in memories\n- Check memory for relevant context before starting work") },
 ];
 
 async function tryFix(
@@ -90,39 +90,47 @@ async function tryFix(
   return entry ? entry.fix(root, detected) : false;
 }
 
+// ─── Hook Helper ───
+
+async function addHook(
+  root: string,
+  event: string,
+  dedupKeyword: string,
+  entry: Record<string, unknown>,
+  successMsg: string,
+): Promise<boolean> {
+  const settings = await readSettingsJson(root);
+  const hooks = (settings.hooks ?? {}) as Record<string, unknown>;
+  const hookList = (hooks[event] as Record<string, unknown>[] | undefined) ?? [];
+
+  const alreadyHas = hookList.some((g: Record<string, unknown>) => {
+    const nested = g.hooks as Record<string, unknown>[] | undefined;
+    return nested?.some((h) => String(h.command ?? "").includes(dedupKeyword));
+  });
+  if (alreadyHas) return false;
+
+  hookList.push(entry);
+  (settings as Record<string, unknown>).hooks = { ...hooks, [event]: hookList };
+  await writeSettingsJson(root, settings);
+  log.success(successMsg);
+  return true;
+}
+
 // ─── Fix Implementations ───
 
 async function addEnvProtectionHook(root: string): Promise<boolean> {
-  const settings = await readSettingsJson(root);
-  const hooks = (settings.hooks ?? {}) as Record<string, unknown>;
-  const preToolUse = (hooks.PreToolUse as Record<string, unknown>[] | undefined) ?? [];
-
-  // Check if already exists
-  const alreadyHas = preToolUse.some((g: Record<string, unknown>) => {
-    const nested = g.hooks as Record<string, unknown>[] | undefined;
-    return nested?.some((h) => String(h.command ?? "").includes(".env"));
-  });
-
-  if (alreadyHas) return false;
-
-  preToolUse.push({
+  return addHook(root, "PreToolUse", ".env", {
     matcher: "Read|Write|Edit",
     hooks: [{
       type: "command",
       command: "echo \"$TOOL_INPUT_FILE_PATH\" | grep -qE '\\.(env|env\\..*)$' && ! echo \"$TOOL_INPUT_FILE_PATH\" | grep -q '.env.example' && echo 'BLOCKED: .env files contain secrets' && exit 1; exit 0",
     }],
-  });
-
-  (settings as Record<string, unknown>).hooks = { ...hooks, PreToolUse: preToolUse };
-  await writeSettingsJson(root, settings);
-  log.success("Added .env file protection hook (PreToolUse)");
-  return true;
+  }, "Added .env file protection hook (PreToolUse)");
 }
 
 async function addAutoFormatHook(root: string, detected: DetectedProject): Promise<boolean> {
   if (!detected.language) return false;
 
-  // Safe formatter commands only — never use detected.formatCommand to prevent injection
   const formatters: Record<string, { extensions: string[]; command: string }> = {
     TypeScript: { extensions: ["ts", "tsx"], command: "npx prettier --write" },
     JavaScript: { extensions: ["js", "jsx"], command: "npx prettier --write" },
@@ -136,100 +144,44 @@ async function addAutoFormatHook(root: string, detected: DetectedProject): Promi
   const config = formatters[detected.language];
   if (!config) return false;
 
-  const settings = await readSettingsJson(root);
-  const hooks = (settings.hooks ?? {}) as Record<string, unknown>;
-  const postToolUse = (hooks.PostToolUse as Record<string, unknown>[] | undefined) ?? [];
-
-  const alreadyHas = postToolUse.some((g: Record<string, unknown>) => {
-    const nested = g.hooks as Record<string, unknown>[] | undefined;
-    return nested?.some((h) => String(h.command ?? "").includes("format"));
-  });
-
-  if (alreadyHas) return false;
-
   const extChecks = config.extensions.map((ext) => `[ "$ext" = "${ext}" ]`).join(" || ");
-
-  postToolUse.push({
+  return addHook(root, "PostToolUse", "format", {
     matcher: "Write|Edit",
     hooks: [{
       type: "command",
       command: `ext=\${TOOL_INPUT_FILE_PATH##*.}; (${extChecks}) && ${config.command} "$TOOL_INPUT_FILE_PATH" 2>/dev/null; exit 0`,
     }],
-  });
-
-  (settings as Record<string, unknown>).hooks = { ...hooks, PostToolUse: postToolUse };
-  await writeSettingsJson(root, settings);
-  log.success(`Added auto-format hook (PostToolUse → ${config.command})`);
-  return true;
+  }, `Added auto-format hook (PostToolUse → ${config.command})`);
 }
 
 async function addForcePushProtection(root: string): Promise<boolean> {
-  const settings = await readSettingsJson(root);
-  const hooks = (settings.hooks ?? {}) as Record<string, unknown>;
-  const preToolUse = (hooks.PreToolUse as Record<string, unknown>[] | undefined) ?? [];
-
-  const alreadyHas = preToolUse.some((g: Record<string, unknown>) => {
-    const nested = g.hooks as Record<string, unknown>[] | undefined;
-    return nested?.some((h) => String(h.command ?? "").includes("force"));
-  });
-
-  if (alreadyHas) return false;
-
-  preToolUse.push({
+  return addHook(root, "PreToolUse", "force", {
     matcher: "Bash",
     hooks: [{
       type: "command",
       command: "echo \"$TOOL_INPUT_COMMAND\" | grep -qE 'push.*--force|push.*-f' && echo 'WARNING: Force push detected — this can destroy remote history' && exit 1; exit 0",
     }],
-  });
-
-  (settings as Record<string, unknown>).hooks = { ...hooks, PreToolUse: preToolUse };
-  await writeSettingsJson(root, settings);
-  log.success("Added force-push protection hook (PreToolUse → Bash)");
-  return true;
+  }, "Added force-push protection hook (PreToolUse → Bash)");
 }
 
 async function addPostCompactHook(root: string): Promise<boolean> {
-  const settings = await readSettingsJson(root);
-  const hooks = (settings.hooks ?? {}) as Record<string, unknown>;
-  const postCompact = (hooks.PostCompact as Record<string, unknown>[] | undefined) ?? [];
-
-  const alreadyHas = postCompact.length > 0;
-  if (alreadyHas) return false;
-
-  postCompact.push({
+  return addHook(root, "PostCompact", "TASKS.md", {
     matcher: "",
     hooks: [{
       type: "command",
       command: "cat TASKS.md 2>/dev/null; exit 0",
     }],
-  });
-
-  (settings as Record<string, unknown>).hooks = { ...hooks, PostCompact: postCompact };
-  await writeSettingsJson(root, settings);
-  log.success("Added PostCompact hook (re-injects TASKS.md after compaction)");
-  return true;
+  }, "Added PostCompact hook (re-injects TASKS.md after compaction)");
 }
 
 async function addSessionStartHook(root: string): Promise<boolean> {
-  const settings = await readSettingsJson(root);
-  const hooks = (settings.hooks ?? {}) as Record<string, unknown>;
-  const sessionStart = (hooks.SessionStart as Record<string, unknown>[] | undefined) ?? [];
-
-  if (sessionStart.length > 0) return false;
-
-  sessionStart.push({
+  return addHook(root, "SessionStart", "TASKS.md", {
     matcher: "startup|resume",
     hooks: [{
       type: "command",
       command: "cat TASKS.md 2>/dev/null; exit 0",
     }],
-  });
-
-  (settings as Record<string, unknown>).hooks = { ...hooks, SessionStart: sessionStart };
-  await writeSettingsJson(root, settings);
-  log.success("Added SessionStart hook (injects TASKS.md at startup)");
-  return true;
+  }, "Added SessionStart hook (injects TASKS.md at startup)");
 }
 
 async function migrateAttribution(root: string): Promise<boolean> {

@@ -79,18 +79,12 @@ When all tasks in the current sprint are complete, do a quick quality check befo
 - Memory is optional: native deps deferred to user install, pure-JS deps in optionalDependencies
 - Plugin system killed: CLI is the product, no marketplace dependency
 
-## Memory & Learnings
-- Save gotchas, non-obvious decisions, and deferred issues to project memory
-- Save user preferences and workflow patterns to global memory
-- Before creating a new memory, check MEMORY.md for existing entries to update
-- Use absolute dates (not "next week") so memories stay useful across sessions
-- Don't save things derivable from code, git history, or this file
-
 ## Memory (agentic-memory)
 This project uses **agentic-memory** for persistent memory across sessions.
 - **DO NOT** use the built-in auto-memory system (~/.claude/projects/*/memory/)
-- Memory context is **automatically injected** at session start via SessionStart hook - no need to call memory_recent manually
-- Use `memory_search` to find specific memories by keyword
-- Use `memory_store` to save decisions, gotchas, and learnings worth remembering
-- Use `memory_stats` to check memory health
-- **STORE IMMEDIATELY** when: a dependency strategy changes, an architecture decision is made, a convention is established, a bug pattern is discovered, or a feature is killed/added. Don't wait for session end - the Stop hook only catches obvious patterns.
+- Memory context is **automatically injected** at session start via SessionStart hook
+- Use `memory_search` before `memory_store` to check for duplicates
+- Use `memory_update` to modify existing memories instead of creating new ones
+- **STORE IMMEDIATELY** when: a dependency strategy changes, an architecture decision is made, a convention is established, a bug pattern is discovered, or a feature is killed/added
+- **NEVER** store credentials, API keys, tokens, passwords, or other secrets in memories
+- Use absolute dates (not "next week") so memories stay useful across sessions
