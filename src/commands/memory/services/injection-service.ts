@@ -3,6 +3,7 @@ import type { RelationRepo } from "../storage/relation-repo.js";
 import type { Memory } from "../types.js";
 import {
   estimateTokens,
+  DEFAULT_DECAY_PARAMS,
   INJECTION_WEIGHTS as W,
   TYPE_INJECTION_BONUS,
   RECENCY_HALF_LIFE,
@@ -54,7 +55,7 @@ export class InjectionService {
 
     // Gate: skip working memories and below-floor importance
     const candidates = allMemories.filter(
-      (m) => m.type !== "working" && m.importance >= 0.05,
+      (m) => m.type !== "working" && m.importance >= DEFAULT_DECAY_PARAMS.importanceFloor,
     );
 
     if (candidates.length === 0) {
@@ -209,70 +210,64 @@ export class InjectionService {
     tokenBudget: number,
     totalCount: number,
   ): InjectionResult {
-    const available = tokenBudget - INJECTION_HEADER_TOKENS;
     const selected: ScoredMemory[] = [];
     let tokensUsed = INJECTION_HEADER_TOKENS;
-
-    // Reserve budget for pinned (high-importance) memories
-    const pinnedBudget = Math.floor(tokenBudget * INJECTION_PINNED_BUDGET_PCT);
-    const pinned = scored.filter(({ memory }) => memory.importance >= 0.8);
-    const nonPinned = scored.filter(({ memory }) => memory.importance < 0.8);
-
-    // Inject pinned first (guaranteed slots)
-    for (const { memory, score } of pinned) {
-      if (tokensUsed >= tokenBudget) break;
-      const cost = this.#estimateTierTokens(memory, "full");
-      if (tokensUsed + cost <= INJECTION_HEADER_TOKENS + pinnedBudget) {
-        selected.push({ memory, score, tier: "full", tokenCost: cost });
-        tokensUsed += cost;
-      }
-    }
-
-    // Type diversity tracking for full tier
     const fullTypeCount = new Map<string, number>();
-    for (const s of selected) {
-      if (s.tier === 'full') {
-        fullTypeCount.set(s.memory.type, (fullTypeCount.get(s.memory.type) ?? 0) + 1);
-      }
+
+    // Phase 1: pinned memories get guaranteed slots
+    const pinnedBudget = INJECTION_HEADER_TOKENS + Math.floor(tokenBudget * INJECTION_PINNED_BUDGET_PCT);
+    for (const { memory, score } of scored) {
+      if (memory.importance < 0.8 || tokensUsed >= pinnedBudget) continue;
+      const cost = this.#estimateTierTokens(memory, "full");
+      if (tokensUsed + cost > pinnedBudget) continue;
+      selected.push({ memory, score, tier: "full", tokenCost: cost });
+      tokensUsed += cost;
+      this.#bumpTypeCount(fullTypeCount, memory.type);
     }
 
-    // Pack remaining by score
-    for (const { memory, score } of nonPinned) {
+    // Phase 2: remaining memories packed by score
+    for (const { memory, score } of scored) {
       if (tokensUsed >= tokenBudget) break;
       if (selected.some((s) => s.memory.id === memory.id)) continue;
-
-      let tier = this.#assignTier(score, selected.length, available - (tokensUsed - INJECTION_HEADER_TOKENS));
-
-      // Type diversity: cap same type in full tier
-      if (tier === 'full' && (fullTypeCount.get(memory.type) ?? 0) >= INJECTION_MAX_SAME_TYPE_FULL) {
-        tier = 'summary';
-      }
-
-      const cost = this.#estimateTierTokens(memory, tier);
-      if (tokensUsed + cost <= tokenBudget) {
-        selected.push({ memory, score, tier, tokenCost: cost });
-        tokensUsed += cost;
-        if (tier === 'full') fullTypeCount.set(memory.type, (fullTypeCount.get(memory.type) ?? 0) + 1);
-        continue;
-      }
-
-      // Try cheaper tier
-      const demoted = tier === "full" ? "summary" as const : tier === "summary" ? "index" as const : null;
-      if (demoted) {
-        const demotedCost = this.#estimateTierTokens(memory, demoted);
-        if (tokensUsed + demotedCost <= tokenBudget) {
-          selected.push({ memory, score, tier: demoted, tokenCost: demotedCost });
-          tokensUsed += demotedCost;
-        }
-      }
+      tokensUsed = this.#tryPack(memory, score, tokenBudget, tokensUsed, selected, fullTypeCount);
     }
 
-    // Track injections
     for (const entry of selected) {
       this.#deps.memoryRepo.incrementInjection(entry.memory.id);
     }
-
     return { memories: selected, tokensUsed, tokenBudget, totalCount };
+  }
+
+  #tryPack(
+    memory: Memory, score: number, tokenBudget: number, tokensUsed: number,
+    selected: ScoredMemory[], fullTypeCount: Map<string, number>,
+  ): number {
+    const remaining = tokenBudget - tokensUsed;
+    let tier = this.#assignTier(score, selected.length, remaining);
+
+    if (tier === 'full' && (fullTypeCount.get(memory.type) ?? 0) >= INJECTION_MAX_SAME_TYPE_FULL) {
+      tier = 'summary';
+    }
+
+    const cost = this.#estimateTierTokens(memory, tier);
+    if (tokensUsed + cost <= tokenBudget) {
+      selected.push({ memory, score, tier, tokenCost: cost });
+      if (tier === 'full') this.#bumpTypeCount(fullTypeCount, memory.type);
+      return tokensUsed + cost;
+    }
+
+    const demoted = tier === "full" ? "summary" as const : tier === "summary" ? "index" as const : null;
+    if (!demoted) return tokensUsed;
+    const demotedCost = this.#estimateTierTokens(memory, demoted);
+    if (tokensUsed + demotedCost <= tokenBudget) {
+      selected.push({ memory, score, tier: demoted, tokenCost: demotedCost });
+      return tokensUsed + demotedCost;
+    }
+    return tokensUsed;
+  }
+
+  #bumpTypeCount(counts: Map<string, number>, type: string): void {
+    counts.set(type, (counts.get(type) ?? 0) + 1);
   }
 
   #assignTier(score: number, position: number, remainingBudget: number): InjectionTier {

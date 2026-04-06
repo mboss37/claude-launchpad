@@ -25,11 +25,17 @@
 - Docs-only / non-src changes: commit normally, no version bump, no publish
 
 ## Pre-Commit Checklist
-1. Read back every changed file — dead code, unused imports, wrong types
-2. Run `pnpm typecheck && pnpm test:run` — no commit if either fails
-3. Check function lengths (<50 lines) and file lengths (<400 lines)
-4. Verify no `any` types, no mutation, no hardcoded values
-5. After major features: spawn a code review agent to audit
+1. Run `pnpm typecheck && pnpm test:run` — NEVER commit if either fails
+2. Check function lengths (<50 lines) and file lengths (<400 lines)
+3. Verify no `any` types, no mutation, no hardcoded values
+
+## Sprint Review (MANDATORY before committing sprint-completing changes)
+When all sprint tasks are done, you MUST spawn a code review agent BEFORE committing:
+1. Spawn an Explore agent to audit all changed files for: dead code, unused imports, logic bugs, convention violations, hardcoded values, function/file length violations
+2. Wait for the review to complete
+3. Fix all HIGH and MEDIUM severity issues
+4. Only then commit
+5. Skip ONLY if the sprint was trivial (docs-only, config-only changes with no logic)
 
 ## Parallel Agents
 - Research tasks: spawn multiple agents with different lenses
