@@ -22,7 +22,7 @@
 - **Sprint 15**: Smart Injection — InjectionService (6-signal scoring, 3 tiers, token-budget packing), fixed injection tracking bugs, 274 tests, docs updated
 - **Sprint 16**: Backlog System — v0.10.0, BACKLOG.md in init/doctor/fix, three-file system, budget 200, MCP registration fix, content review skill, 280 tests
 - **Sprint 17**: Memory Sync — v0.11.0, push/pull via private GitHub Gist, multi-file per project, auto-discovery, dedup guard, 294 tests
-- **Sprint 18**: Algorithm Tuning + Ink Dashboard — v0.12.0, decay/injection/tagging tuning from 3-expert panel, blessed→Ink migration, content review fixes
+- **Sprint 18**: Algorithm Tuning + Ink Dashboard + Skills — v0.12.1, decay/injection/tagging tuning from 3-expert panel, blessed→Ink migration, skill rewrites (Anthropic patterns), dashboard delete, path-scoped rules in /lp-enhance
 
 ## Current: No active sprint
 
@@ -38,6 +38,6 @@ All planned work complete. Future features in BACKLOG.md.
 - Fixed dedup bug (parallel MCP calls), refactored fixer.ts + runner.ts, 294 tests.
 - Published v0.11.0. Tested cross-device sync between Mac Mini and MacBook.
 ### 2026-04-06 (session 22)
-- Sprint 18: Ink dashboard migration (blessed→Ink/React), algorithm tuning (3-expert panel).
-- Decay, injection, tagging, search all tuned. Content review across landing page/README/docs.
-- Published v0.12.0.
+- Sprint 18: Ink migration, algorithm tuning (3-expert panel), skill rewrites (Anthropic patterns), dashboard delete.
+- Memory sync v0.11.0 shipped + tested cross-device. Path-scoped rules in /lp-enhance. Content review fixes.
+- Published v0.12.0 + v0.12.1.

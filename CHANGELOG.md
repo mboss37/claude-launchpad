@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.12.1] — 2026-04-06
+
+### Added
+- Dashboard `d` key to delete selected memory with confirmation overlay
+- Path-scoped rules generation in /lp-enhance (detects monorepos, distinct areas, generates per-scope rules)
+- Rewrote all skills using Anthropic's internal patterns (TRIGGER/DO NOT TRIGGER, allowed-tools, phase-based workflows)
+- Dedup behavior note in memory_store tool description
+
+### Changed
+- /lp-enhance skill restructured as Research/Plan/Execute/Verify phases
+- /lp-migrate-memory skill restructured as Discover/Parse/Store/Report phases
+- content-review global skill restructured with phase-based workflow
+
 ## [0.12.0] — 2026-04-06
 
 ### Added
