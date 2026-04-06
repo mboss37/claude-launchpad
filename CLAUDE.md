@@ -39,12 +39,7 @@ CLI toolkit that makes Claude Code setups measurably good — diagnose, scaffold
 - Run locally: `npx tsx src/cli.ts <command>`
 
 ## Sprint Reviews
-When all tasks in the current sprint are complete, do a quick quality check before committing:
-- Scan changed files for dead code, debug logs, and TODO hacks
-- Run tests and type-checker if available
-- Check for convention violations and hardcoded values
-- Fix any issues, then commit
-- Skip if the sprint was trivial (docs, config-only changes)
+See `.claude/rules/conventions.md` — sprint review with code review agent is MANDATORY before committing sprint-completing changes.
 
 ## Conventions
 - Conventional commits (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`)
