@@ -24,6 +24,7 @@ export function useDashboardState(dataSource: DashboardDataSource) {
   const [focusedPane, setFocusedPane] = useState<FocusedPane>('list');
   const [showHelp, setShowHelp] = useState(false);
   const [showProjectPicker, setShowProjectPicker] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     dataSource.refresh();
@@ -110,15 +111,27 @@ export function useDashboardState(dataSource: DashboardDataSource) {
     dataSource.refresh();
     setRevision((r) => r + 1);
   }, [dataSource]);
+  const promptDelete = useCallback(() => {
+    if (selectedMemory) setShowDeleteConfirm(true);
+  }, [selectedMemory]);
+  const confirmDelete = useCallback(() => {
+    if (!selectedMemory) return;
+    dataSource.deleteMemory(selectedMemory.id);
+    setShowDeleteConfirm(false);
+    setSelectedIndex((i) => Math.max(0, i - 1));
+    dataSource.refresh();
+    setRevision((r) => r + 1);
+  }, [dataSource, selectedMemory]);
+  const cancelDelete = useCallback(() => setShowDeleteConfirm(false), []);
 
   return {
     typeFilter, lifespanFilter, searchQuery, searchActive, currentProject,
-    sortMode, selectedIndex, focusedPane, showHelp, showProjectPicker,
+    sortMode, selectedIndex, focusedPane, showHelp, showProjectPicker, showDeleteConfirm,
     filteredMemories, selectedMemory, relations, projects, stats,
     setSearchQuery, setCurrentProject, setSelectedIndex, setShowHelp, setShowProjectPicker,
     navigateUp, navigateDown, cycleSort, cycleLifespan,
     cycleProjectNext, cycleProjectPrev, focusNext, filterByType,
-    openSearch, closeSearch, refresh,
+    openSearch, closeSearch, refresh, promptDelete, confirmDelete, cancelDelete,
   };
 }
 

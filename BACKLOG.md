@@ -5,9 +5,6 @@ Priority: P0 = next sprint, P1 = soon, P2 = when relevant.
 
 ---
 
-## [P1] Memory: Dashboard Delete
-`d` keybinding in TUI dashboard with confirmation prompt. `hardDelete(id)` already exists in MemoryRepo.
-
 ## [P1] Memory: Bulk Purge by Project
 `memory --purge <project>` to delete all memories for a project. Useful for cleanup after project archival.
 
