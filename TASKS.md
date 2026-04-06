@@ -38,6 +38,6 @@ All planned work complete. Future features in BACKLOG.md.
 - Memory sync v0.11.0 shipped + tested cross-device. Path-scoped rules in /lp-enhance. Content review fixes.
 - Published v0.12.0 + v0.12.1.
 ### 2026-04-06 (session 23)
-- Docs: inline changelog via prebuild sync script, fixed llms.txt undefined Home entry.
-- Fix: memory search/recent truncated content to 500 chars, removed Zod .max(2000) on store.
-- Published v0.12.2.
+- Docs: inline changelog via prebuild sync, fixed llms.txt undefined entry, memory retrieval truncation bug.
+- Feat: Skill Authoring conventions in init + /lp-enhance (Anthropic's 5 internal patterns).
+- Published v0.12.2 + v0.13.0.
