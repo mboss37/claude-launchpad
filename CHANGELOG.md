@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.1] — 2026-04-06
+
+### Removed
+- Stop hook with `memory extract` — regex-based auto-extraction produced junk memories. Claude stores memories directly via MCP tools now
+- `memory extract` subcommand removed from CLI
+- `doctor` detects deprecated Stop hook, `--fix` auto-removes it from existing projects
+
 ## [0.14.0] — 2026-04-06
 
 ### Added
