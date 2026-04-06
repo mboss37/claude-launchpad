@@ -1,5 +1,45 @@
 # Changelog
 
+## [0.12.0] — 2026-04-06
+
+### Added
+- TUI dashboard migrated from blessed to Ink (React for terminal)
+  - Persistent keybinding hint bar (always visible)
+  - Inline live search (replaces modal)
+  - Focus ring on active pane (colored borders)
+  - Responsive layout (wide/medium/narrow)
+  - Arrow key + vim dual navigation
+- Memory algorithm tuning from 3-expert panel review:
+  - Episodic half-life 60 to 30 days, semantic 365 to 540 days
+  - Logarithmic access modifier (replaces step function)
+  - Stronger relation modifier (0.5x for 3+, 0.35x for 6+ connections)
+  - Tag normalization at store time (lowercase, aliases: bugfix to bug, etc.)
+  - Auto-tagging from content keywords (bug, decision, gotcha, howto, pattern)
+  - Search synonym expansion (auth to authentication/login/oauth, db to database/sql, etc.)
+  - Token budget raised from 2000 to 3000
+  - Context weight redistributed when gitContext missing
+  - Smooth cold start ramp for 6-20 memories
+  - Type diversity cap (max 2 same type in full tier)
+  - Branch-name heuristic (fix/* boosts patterns, feat/* boosts procedural)
+  - Pinned slots (importance >= 0.8 gets reserved 10% budget)
+  - Summary tier raised from 150 to 350 chars
+- Memory content limit reduced from 10000 to 2000 chars (~500 tokens)
+- No-credentials rule in MCP server instructions
+
+### Changed
+- Replaced blessed with Ink (React 19) + ink-text-input + ink-select-input
+- Dashboard lifespan display uses createdAt (matches decay-service)
+- Sprint review made mandatory in conventions.md (must spawn code review agent)
+- Feature branches required for feat: commits
+
+### Fixed
+- Esc key not working during TUI search
+- Ebbinghaus decay curve (steeper initial drop with residual floor)
+- Dedup guard messaging (pendingStores for parallel calls)
+
+### Removed
+- blessed dependency
+
 ## [0.11.0] — 2026-04-05
 
 ### Added
