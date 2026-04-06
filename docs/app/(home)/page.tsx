@@ -435,6 +435,60 @@ export default function HomePage() {
       </div>
 
       <PageSection>
+        <SectionHeading
+          eyebrow="The full picture"
+          title="Each tool has one job"
+          description="init scaffolds. doctor maintains. /lp-enhance makes it smart. eval proves it works. memory remembers."
+        />
+
+        <div className="mt-8 overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-fd-border text-left">
+                <th className="py-3 pr-4 font-medium text-fd-muted-foreground">Responsibility</th>
+                {['init', 'doctor --fix', '/lp-enhance', 'eval', 'memory'].map((cmd) => (
+                  <th key={cmd} className="px-3 py-3 text-center font-mono text-xs font-medium">{cmd}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="text-fd-muted-foreground">
+              {[
+                ['Detect stack and framework', true, false, false, false, false],
+                ['Generate CLAUDE.md, TASKS.md, BACKLOG.md', true, false, false, false, false],
+                ['Generate settings.json and hooks', true, true, false, false, false],
+                ['Generate .claudeignore', true, true, false, false, false],
+                ['Score config 0-100', false, true, false, false, false],
+                ['Fix missing sections, rules, permissions', false, true, false, false, false],
+                ['Rewrite CLAUDE.md with real project content', false, false, true, false, false],
+                ['Suggest hooks, MCP servers, path-scoped rules', false, false, true, false, false],
+                ['Overflow conventions to .claude/rules/', false, false, true, false, false],
+                ['Prove Claude follows your rules', false, false, false, true, false],
+                ['Run sandbox test scenarios', false, false, false, true, false],
+                ['Persistent cross-session memory', false, false, false, false, true],
+                ['Dashboard, sync, migration', false, false, false, false, true],
+              ].map(([label, ...checks]) => (
+                <tr key={label as string} className="border-b border-fd-border/50">
+                  <td className="py-2.5 pr-4 text-fd-foreground/80">{label as string}</td>
+                  {(checks as boolean[]).map((check, i) => (
+                    <td key={i} className="px-3 py-2.5 text-center">
+                      {check ? <span className="text-fd-foreground">✓</span> : <span className="text-fd-muted-foreground/20">-</span>}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="mt-4">
+          <Link href="/docs" className={buttonVariants({ variant: 'outline', className: 'rounded-xl px-5' })}>
+            Read the full docs
+            <ArrowRightIcon className="h-4 w-4" />
+          </Link>
+        </div>
+      </PageSection>
+
+      <div className="border-t border-fd-border/80">
+      <PageSection>
         <TerminalPanel title="get started" aside={<Badge variant="secondary">docs-first</Badge>}>
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-xl">
@@ -459,6 +513,7 @@ export default function HomePage() {
           </div>
         </TerminalPanel>
       </PageSection>
+      </div>
 
       <footer className={cn(shellClassName, 'flex flex-col gap-3 border-t border-fd-border py-6 text-xs text-fd-muted-foreground sm:flex-row sm:items-center sm:justify-between')}>
         <span>MIT License</span>
