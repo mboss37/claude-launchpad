@@ -1,5 +1,10 @@
 # Project Conventions
 
+## Git Branching
+- **Features (`feat:`) MUST use a feature branch** — create `feat/<name>` from master before any code changes
+- Patches (`fix:`), docs, config, and refactors can commit directly to master
+- Feature branches are merged via PR after testing
+
 ## Code Style
 - Conventional commits: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`
 - Immutable data patterns — never mutate, always return new objects
