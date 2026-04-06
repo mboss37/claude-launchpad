@@ -16,8 +16,9 @@ export function registerUpdate(server: McpServer, deps: ToolDeps): void {
     'memory_update',
     {
       description:
-        'Update an existing memory in-place. Preserves access count, injection count, and creation date. '
-        + 'Use memory_search to find the ID first. At least one field must be provided.',
+        'Correct or improve an existing memory instead of creating a duplicate. '
+        + 'Use when information has changed, a decision was revised, or a memory needs more detail. '
+        + 'Keeps the memory\'s history intact. Use memory_search to find the ID first.',
       inputSchema,
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true },
     },

@@ -1,15 +1,27 @@
 ---
 title: memory
-description: Persistent intelligent memory system for Claude Code sessions with decay-based retrieval.
+description: Claude maintains a personal knowledge base about your project — learns what matters, forgets what doesn't, gets smarter every session.
 ---
 
-Optional command that gives Claude Code a real memory. Instead of flat markdown files that grow forever, memories live in SQLite. Each session gets the most relevant ones, scored and ranked automatically.
+Claude Code has no long-term memory by default. Every session starts from zero. You re-explain your architecture, your conventions, your past decisions — over and over. The context window is large, but it is not a knowledge base.
+
+This command gives Claude a real one. A persistent, project-scoped knowledge base that Claude maintains itself. It learns from each session, cross-references what it knows, and surfaces the right context at the right time. You stop repeating yourself. Claude stops asking.
 
 ```bash
 claude-launchpad memory
 ```
 
 Running without flags starts an interactive setup that walks you through installation.
+
+## What changes
+
+Once memory is installed, three things happen automatically:
+
+1. **Session start** — Claude receives the most relevant memories for your current context (branch, files, recent work). No manual loading.
+2. **Session end** — Claude extracts what it learned from the conversation and stores it. No manual bookkeeping.
+3. **During sessions** — Claude can search, store, relate, and update memories on its own via MCP tools.
+
+The result: Claude builds a knowledge base about your project over time. Architecture decisions, bug patterns, deployment quirks, conventions that took you weeks to establish — all retained and surfaced when relevant.
 
 ## Prerequisites
 
@@ -52,55 +64,23 @@ If auto-registration fails, run the command manually:
 claude mcp add --scope user agentic-memory -- npx claude-launchpad memory serve
 ```
 
-## How it works
+## Memory types
 
-Each memory has a type that controls how long it stays relevant. Short-lived events fade in weeks; core knowledge persists for years.
+Not all knowledge ages the same way. A bug you fixed last Tuesday matters less next month. Your project's architecture matters for years. Memory types reflect this:
 
-| Type | Half-life | What it stores |
+| Type | Half-life | Examples |
 |---|---|---|
 | **working** | Session only | Scratch notes, cleared each session |
-| **episodic** | 30 days | Specific events - bugs fixed, decisions made |
-| **semantic** | 18 months | Facts - architecture, API contracts, conventions |
-| **procedural** | 2 years | How-to knowledge - build, deploy, commands |
+| **episodic** | 30 days | Bugs fixed, decisions made, experiments tried |
+| **semantic** | 18 months | Architecture, API contracts, conventions |
+| **procedural** | 2 years | Build steps, deploy commands, environment setup |
 | **pattern** | 6 months | Recurring issues, common solutions |
 
-### Session injection
-
-At session start, the SessionStart hook decides which memories Claude actually needs. It scores every candidate memory across six signals, assigns a presentation tier, and packs them into a token budget (default 3000 tokens). High-value memories get full content; lower-value ones get summaries or just titles.
-
-| Tier | What Claude sees | When used |
-|---|---|---|
-| **Full** | Complete content (up to 500 chars) + tags | Top-scored memories (score > 0.6) |
-| **Summary** | Title + first 350 chars | Mid-scored (score > 0.35) |
-| **Index** | Title + type only | Lower-scored but still relevant |
-
-When the token budget runs low, the algorithm demotes memories to cheaper tiers rather than dropping them entirely. A memory that would normally get full content might appear as a summary instead, fitting more knowledge into the same budget.
-
-**Scoring signals** (you don't need to configure these, listed for transparency):
-
-| Signal | Weight | What it measures |
-|---|---|---|
-| Context relevance | 30% | Git branch + file overlap with stored context |
-| Value signal | 25% | Access-to-injection ratio (searched often = valuable, injected but ignored = noise) |
-| Importance | 20% | User-assigned or auto-calculated importance score |
-| Recency | 15% | How recently updated, scaled by type (episodic: 7-day half-life, procedural: 90-day half-life) |
-| Type bonus | 5% | Procedural and pattern knowledge prioritized over episodic events |
-| Noise penalty | 5% | Penalizes memories injected many times without being accessed |
-
-### Self-tuning
-
-The algorithm learns from usage without any configuration. When Claude searches for a memory, that memory rises in rank for future sessions. When a memory gets injected repeatedly but Claude never references it, the noise penalty kicks in and it gradually stops appearing. This feedback loop runs through the value signal and noise penalty: no ML, no manual tuning.
-
-### Search scoring
-
-When Claude explicitly searches for memories (via the `memory_search` tool), results use a different scoring formula optimized for keyword relevance:
-- Text match (full-text search with relevance ranking) - 35%
-- Importance (user-assigned) - 20%
-- Recency (exponential decay) - 20%
-- Git context (branch + file overlap) - 15%
-- Access frequency - 10%
+Claude assigns a type when storing each memory. Short-lived events naturally fade. Core knowledge persists.
 
 ## MCP tools
+
+These are the tools Claude uses to maintain its knowledge base. You rarely call them directly — Claude uses them as needed during sessions.
 
 | Tool | What it does |
 |---|---|
@@ -161,7 +141,7 @@ gist: "agentic-memory sync"
 
 Project-scoped push/pull only touches that project's file. Other projects are never read or modified.
 
-### How it works
+### Sync details
 
 **First push** creates a new private gist. The gist ID is saved to `~/.agentic-memory/sync-config.json`.
 
@@ -195,6 +175,48 @@ When memory is detected, `doctor` adds a Memory analyzer that checks:
 - MCP tool permissions set
 
 `doctor --fix` auto-repairs missing permissions and auto-memory settings.
+
+## How it works under the hood
+
+The sections above cover what memory does for you. This section is for those who want to understand the machinery.
+
+### Session injection
+
+At session start, the SessionStart hook scores every candidate memory across six signals and assigns a presentation tier. Memories are packed into a token budget (default 3000 tokens). High-value memories get full content; lower-value ones get summaries or just titles.
+
+| Tier | What Claude sees | When used |
+|---|---|---|
+| **Full** | Complete content (up to 500 chars) + tags | Top-scored memories (score > 0.6) |
+| **Summary** | Title + first 350 chars | Mid-scored (score > 0.35) |
+| **Index** | Title + type only | Lower-scored but still relevant |
+
+When the token budget runs low, the algorithm demotes memories to cheaper tiers rather than dropping them entirely. A memory that would normally get full content might appear as a summary instead, fitting more knowledge into the same budget.
+
+### Scoring signals
+
+These are listed for transparency. You do not need to configure or think about them.
+
+| Signal | Weight | What it measures |
+|---|---|---|
+| Context relevance | 30% | Git branch + file overlap with stored context |
+| Value signal | 25% | Access-to-injection ratio (searched often = valuable, injected but ignored = noise) |
+| Importance | 20% | User-assigned or auto-calculated importance score |
+| Recency | 15% | How recently updated, scaled by type (episodic: 7-day half-life, procedural: 90-day half-life) |
+| Type bonus | 5% | Procedural and pattern knowledge prioritized over episodic events |
+| Noise penalty | 5% | Penalizes memories injected many times without being accessed |
+
+### Self-tuning
+
+The system learns from usage without configuration. When Claude searches for a memory, that memory rises in rank for future sessions. When a memory gets injected repeatedly but Claude never references it, the noise penalty kicks in and it gradually stops appearing. No ML models, no manual tuning — just a feedback loop through the value signal and noise penalty.
+
+### Search scoring
+
+When Claude explicitly searches for memories (via `memory_search`), results use a different scoring formula optimized for keyword relevance:
+- Text match (full-text search with relevance ranking) - 35%
+- Importance (user-assigned) - 20%
+- Recency (exponential decay) - 20%
+- Git context (branch + file overlap) - 15%
+- Access frequency - 10%
 
 ## Next
 

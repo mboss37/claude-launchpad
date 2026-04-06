@@ -13,10 +13,9 @@ export function registerRecent(server: McpServer, deps: ToolDeps): void {
     'memory_recent',
     {
       description:
-        'Load session context: returns context-matched, recent, and related memories. '
-        + 'Call this at the start of every session to load context from previous work. '
-        + 'Results are grouped into sections: contextMatched (matching current branch/files), '
-        + 'recent (most recent), and related (connected via relations).',
+        'Get caught up on what happened before this session. '
+        + 'Returns memories relevant to the current branch/files, recent activity, and related context. '
+        + 'Typically called at session start to restore working context. No query needed — it uses git state to find what matters.',
       inputSchema,
       annotations: { readOnlyHint: true, idempotentHint: true },
     },

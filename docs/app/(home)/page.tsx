@@ -363,8 +363,8 @@ export default function HomePage() {
         <PageSection>
           <SectionHeading
             eyebrow="Optional add-on"
-            title="Persistent memory across sessions"
-            description="Built-in memory is a flat file that grows forever. This replaces it with decay-based retrieval: unused knowledge fades, relevant context surfaces automatically."
+            title="A personal knowledge base for your project"
+            description="Claude maintains a living wiki about your codebase. It learns what matters, forgets what doesn't, and gets smarter every session — without you managing a single note."
           />
 
           <div className="mt-8 grid gap-4 lg:grid-cols-[0.35fr_0.65fr] lg:items-stretch">
@@ -374,15 +374,14 @@ export default function HomePage() {
                   <BrainIcon className="h-5 w-5 text-fd-muted-foreground" />
                   <span className="font-mono text-sm font-medium">claude-launchpad memory</span>
                 </div>
-                <p className="mt-3 text-sm text-fd-muted-foreground">Interactive setup - asks before changing anything.</p>
+                <p className="mt-3 text-sm text-fd-muted-foreground">One command to set up. Claude does the bookkeeping from there.</p>
                 <div className="mt-4 space-y-2 text-sm text-fd-muted-foreground">
-                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Unused knowledge fades, useful knowledge rises</div>
-                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Best memories injected at session start, no prompt needed</div>
-                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> 7 MCP tools for Claude to read and write memories</div>
-                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Facts auto-extracted from every session</div>
-                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Project-scoped, no cross-contamination</div>
-                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> TUI dashboard with vim navigation</div>
-                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Sync memories across machines with one command</div>
+                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Learns decisions, conventions, and patterns from every session</div>
+                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Surfaces the right context at the right time</div>
+                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Stale knowledge fades so the wiki stays clean</div>
+                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Each project gets its own knowledge base</div>
+                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Browse and manage everything in a terminal dashboard</div>
+                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Sync across machines with one command</div>
                 </div>
               </div>
               <div className="mt-5">

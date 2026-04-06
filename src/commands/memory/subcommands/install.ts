@@ -13,7 +13,7 @@ interface InstallOpts {
 
 export async function runInstall(opts: InstallOpts): Promise<void> {
   log.blank();
-  log.step('Memory system - install');
+  log.step('Setting up your knowledge base');
   log.blank();
 
   // Step 0: Ensure native deps are installed globally
@@ -23,34 +23,34 @@ export async function runInstall(opts: InstallOpts): Promise<void> {
   const dataDir = resolveDataDir(config.dataDir);
 
   // Step 1: Database
-  log.step('[1/4] Setting up database...');
+  log.step('[1/4] Creating knowledge base...');
   if (!existsSync(dataDir)) {
     mkdirSync(dataDir, { recursive: true });
   }
   const db = createDatabase({ dataDir });
   migrate(db);
   closeDatabase(db);
-  log.success(`${dataDir}/memory.db ready`);
+  log.success(`Knowledge base created at ${dataDir}/memory.db`);
 
   // Step 2: Configure Claude Code settings
-  log.step('[2/4] Configuring Claude Code...');
+  log.step('[2/4] Connecting to Claude Code...');
   await configureSettings(process.cwd());
 
   // Step 3: Register MCP server
-  log.step('[3/4] Registering MCP server...');
+  log.step('[3/4] Enabling memory tools...');
   const registered = registerMcpServer();
   if (registered) {
-    log.success('MCP server registered via `claude mcp add`');
+    log.success('Memory tools available in Claude Code');
   } else {
-    log.warn('Could not register MCP server automatically.');
+    log.warn('Could not enable memory tools automatically.');
     log.info('Run: claude mcp add --scope user agentic-memory npx claude-launchpad memory serve');
   }
 
   // Step 4: CLAUDE.md + skills
-  log.step('[4/4] Injecting guidance...');
+  log.step('[4/4] Adding instructions...');
   const guidanceAdded = injectClaudeMdGuidance(process.cwd());
   if (guidanceAdded) {
-    log.success('Memory guidance added to CLAUDE.md');
+    log.success('CLAUDE.md updated with memory instructions');
   }
   const skillsInstalled = installSkills(process.cwd());
   if (skillsInstalled > 0) {
@@ -58,8 +58,8 @@ export async function runInstall(opts: InstallOpts): Promise<void> {
   }
 
   log.blank();
-  log.success('Memory system installed.');
-  log.info('Restart your Claude Code session for the MCP server to connect.');
+  log.success('Knowledge base is ready. Claude will now remember across sessions.');
+  log.info('Restart your Claude Code session to activate.');
   log.blank();
 }
 
@@ -68,7 +68,7 @@ async function configureSettings(projectDir: string): Promise<void> {
 
   // Disable built-in auto-memory
   settings['autoMemoryEnabled'] = false;
-  log.info('Built-in auto-memory disabled');
+  log.info('Built-in auto-memory disabled (replaced by knowledge base)');
 
   // SessionStart hook
   const hooks = (settings['hooks'] ?? {}) as Record<string, unknown[]>;
@@ -80,7 +80,7 @@ async function configureSettings(projectDir: string): Promise<void> {
   addToolPermissions(settings);
 
   await writeSettingsJson(projectDir, settings);
-  log.success('settings.json updated');
+  log.success('Claude Code configured for knowledge base');
 }
 
 function addSessionStartHook(hooks: Record<string, unknown[]>): void {
@@ -100,7 +100,7 @@ function addSessionStartHook(hooks: Record<string, unknown[]>): void {
       hooks: [{ type: 'command', command: hookCommand }],
     });
     hooks['SessionStart'] = sessionStartHooks;
-    log.info('SessionStart hook added (injects memory context)');
+    log.info('Session start: Claude will recall relevant context automatically');
   }
 }
 
@@ -120,7 +120,7 @@ function addStopHook(hooks: Record<string, unknown[]>): void {
       hooks: [{ type: 'command', command: extractCommand, async: true }],
     });
     hooks['Stop'] = stopHooks;
-    log.info('Stop hook added (extracts facts from transcript)');
+    log.info('Session end: Claude will save important facts from the conversation');
   }
 }
 
@@ -149,7 +149,7 @@ function addToolPermissions(settings: Record<string, unknown>): void {
   if (added > 0) {
     permissions['allow'] = allowList;
     settings['permissions'] = permissions;
-    log.info(`Auto-allowed ${added} MCP tools`);
+    log.info(`${added} memory tools auto-approved`);
   }
 }
 
@@ -162,17 +162,17 @@ async function ensureNativeDeps(): Promise<void> {
     // Not installed — install globally
   }
 
-  log.step('Installing native dependencies (better-sqlite3, sqlite-vec)...');
+  log.step('Installing required database libraries...');
   try {
     execSync('npm install -g better-sqlite3 sqlite-vec', { stdio: 'pipe', timeout: 120000 });
-    log.success('Native dependencies installed globally');
+    log.success('Database libraries installed');
   } catch {
-    log.error('Failed to install native dependencies automatically.');
+    log.error('Could not install database libraries automatically.');
     log.blank();
     log.info('Install manually:');
     log.step('  npm install -g better-sqlite3 sqlite-vec');
     log.blank();
-    log.info('This requires a C++ compiler (Xcode on macOS, build-essential on Linux).');
+    log.info('Requires a C++ compiler (Xcode on macOS, build-essential on Linux).');
     process.exit(1);
   }
 }
@@ -181,7 +181,7 @@ function registerMcpServer(): boolean {
   try {
     const existing = execSync('claude mcp list', { stdio: 'pipe', timeout: 10000, encoding: 'utf-8' });
     if (existing.includes('agentic-memory')) {
-      log.info('MCP server already registered globally');
+      log.info('Memory tools already registered');
       return true;
     }
     execSync(

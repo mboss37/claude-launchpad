@@ -66,15 +66,12 @@ export function registerStore(server: McpServer, deps: ToolDeps): void {
     'memory_store',
     {
       description:
-        'Store a new memory. Use memory_search first to check for duplicates. '
-        + 'Prefer updating existing semantic/procedural memories over creating new ones. '
-        + 'Types: episodic (events), semantic (facts), procedural (how-to), pattern (recurring), working (temporary). '
-        + 'Importance: 0-0.3 ephemeral, 0.3-0.6 reference, 0.6-0.8 important, 0.8-1.0 critical. '
-        + 'Suggested tags: #bug, #decision, #gotcha, #howto, #pattern, #architecture. '
-        + 'Context is auto-detected from git (branch, recent files) if omitted. '
-        + 'NOTE: A built-in dedup guard prevents identical content from being stored twice within 10 seconds. '
-        + 'If you see "Skipped" responses, the memory was likely already stored by a parallel call. '
-        + 'This is expected behavior, not an error. The data is saved correctly.',
+        'Save something worth remembering to the knowledge base. '
+        + 'Use when you learn a fact, make a decision, hit a bug, or discover a pattern that future sessions should know. '
+        + 'Always search first to avoid duplicates — update existing memories when possible. '
+        + 'Types: semantic (facts/decisions), procedural (how-to), episodic (what happened), pattern (recurring), working (scratch). '
+        + 'Importance: 0.1 trivial, 0.5 useful, 0.8 important, 1.0 critical. '
+        + 'Tags and git context are auto-detected if omitted. "Skipped" responses mean a duplicate was caught — not an error.',
       inputSchema,
       annotations: { idempotentHint: false },
     },

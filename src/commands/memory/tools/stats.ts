@@ -10,8 +10,7 @@ export function registerStats(server: McpServer, deps: ToolDeps): void {
     'memory_stats',
     {
       description:
-        'Show memory dashboard: total count, breakdown by type, storage size, '
-        + 'and most-injected memories. No arguments needed.',
+        'See how much is in the knowledge base — total count, breakdown by type, storage size, and most-used memories.',
       annotations: { readOnlyHint: true, idempotentHint: true },
     },
     async () => {

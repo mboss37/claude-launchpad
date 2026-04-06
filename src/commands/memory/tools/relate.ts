@@ -17,9 +17,9 @@ export function registerRelate(server: McpServer, deps: ToolDeps): void {
     'memory_relate',
     {
       description:
-        'Create a typed relation between two memories. '
-        + 'Relations affect retrieval ranking (connected memories decay slower). '
-        + 'Types: relates_to, depends_on, contradicts, extends, implements, derived_from.',
+        'Link two memories together so they surface as a group. '
+        + 'Use when one memory extends, contradicts, depends on, or implements another. '
+        + 'Linked memories stay relevant longer and appear together in search results.',
       inputSchema,
       annotations: { idempotentHint: true },
     },

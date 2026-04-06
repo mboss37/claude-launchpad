@@ -193,7 +193,7 @@ Results save to `.claude/eval/` as structured markdown. Feed them back to Claude
 
 ## Memory
 
-Optional persistent memory that replaces Claude Code's built-in flat-file system. Memories decay naturally, so stale knowledge fades and relevant context stays.
+Claude maintains a personal knowledge base about your project. It learns what matters, forgets what doesn't, and gets smarter every session.
 
 ```bash
 claude-launchpad memory
@@ -201,14 +201,9 @@ claude-launchpad memory
 
 If memory is not installed, it runs interactive setup. If installed, it shows stats. Requires native deps first: `npm install better-sqlite3 sqlite-vec`.
 
-**What it does:**
-- **Smart session injection** loads the most relevant memories at session start
-- **Stop hook** extracts facts from the conversation when you finish
-- **Decay model** fades memories naturally (episodic: 30 days, semantic: 18 months, procedural: 2 years)
-- **Self-tuning retrieval** promotes memories Claude searches for, demotes ones injected but never used
-- **Project-scoped** with no cross-contamination between projects
-- **TUI dashboard** (`--dashboard`) with vim navigation, filtering, and search
-- **Cross-device sync** pushes and pulls memories between machines via private GitHub Gist
+Every session, Claude loads what it needs to know and extracts new knowledge when you finish. Stale facts fade on their own. Knowledge Claude actually uses gets reinforced. Each project has its own isolated memory, and you can sync it across machines via private GitHub Gist.
+
+Browse everything with `--dashboard` -- a terminal UI with vim navigation, filtering, and search.
 
 Data stays in `~/.agentic-memory/memory.db`. Sync requires the [GitHub CLI](https://cli.github.com/) (`gh`).
 

@@ -17,10 +17,9 @@ export function registerSearch(server: McpServer, deps: ToolDeps): void {
     'memory_search',
     {
       description:
-        'Search memories by keyword match, context relevance, and relation graph. '
-        + 'Returns up to `limit` results ranked by composite score (text match, importance, recency, access frequency, git context). '
-        + 'Related memories are automatically surfaced via 1-hop graph expansion. '
-        + 'Pass `id` for direct lookup. Use `type` and `tags` to filter.',
+        'Look up what you already know. Query the knowledge base before solving a problem or storing new information. '
+        + 'Use when: checking if something was already decided, finding how-to steps, recalling past bugs, or deduping before a store. '
+        + 'Related memories are surfaced automatically. Pass `id` for direct lookup, or filter by `type` and `tags`.',
       inputSchema,
       annotations: { readOnlyHint: true, idempotentHint: true },
     },

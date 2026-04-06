@@ -13,8 +13,9 @@ export function registerForget(server: McpServer, deps: ToolDeps): void {
     'memory_forget',
     {
       description:
-        'Forget a memory. By default, soft-deletes (sets importance to 0, allowing natural decay). '
-        + 'Pass hard_delete=true to permanently remove. Use memory_search to find the ID first.',
+        'Remove outdated or wrong information from the knowledge base. '
+        + 'Default: soft-delete (fades away naturally). Pass hard_delete=true to erase permanently. '
+        + 'Use memory_search to find the ID first.',
       inputSchema,
       annotations: { destructiveHint: true, idempotentHint: true },
     },

@@ -22,12 +22,12 @@ function isMemoryInstalled(): boolean {
 
 export function createMemoryCommand(): Command {
   const memory = new Command("memory")
-    .description("Persistent memory system for Claude Code sessions")
+    .description("Knowledge base that Claude maintains across sessions")
     .option("--dashboard", "Open the memory dashboard")
     .action(async (opts) => {
       if (opts.dashboard) {
         if (!isMemoryInstalled()) {
-          log.error("Memory system is not installed. Run `claude-launchpad memory` first.");
+          log.error("Knowledge base not set up yet. Run `claude-launchpad memory` first.");
           return;
         }
         const { requireMemoryDeps } = await import("./utils/require-deps.js");
@@ -40,17 +40,16 @@ export function createMemoryCommand(): Command {
       // Smart default: install or show stats
       if (!isMemoryInstalled()) {
         log.blank();
-        log.step("Agentic memory is not set up for this project.");
+        log.step("Claude doesn't have a knowledge base for this project yet.");
         log.blank();
-        log.info("This will (skipping what's already in place):");
-        log.info("  - Set up SQLite database at ~/.agentic-memory/");
-        log.info("  - Add SessionStart + Stop hooks to .claude/settings.json");
-        log.info("  - Register the MCP server with Claude Code (global)");
-        log.info("  - Add memory guidance to CLAUDE.md");
+        log.info("After setup, Claude will:");
+        log.info("  - Remember decisions, gotchas, and learnings across sessions");
+        log.info("  - Automatically recall relevant context when you start a session");
+        log.info("  - Save important facts as you work, so nothing gets lost");
         log.blank();
 
         const proceed = await confirm({
-          message: "Install agentic-memory?",
+          message: "Set up knowledge base?",
           default: true,
         });
 
