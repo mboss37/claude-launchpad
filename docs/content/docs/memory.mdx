@@ -3,7 +3,7 @@ title: memory
 description: Persistent intelligent memory system for Claude Code sessions with decay-based retrieval.
 ---
 
-Optional command that gives Claude Code a real memory. Instead of flat markdown files that grow forever, memories are stored in SQLite, scored by relevance, and injected into each session based on what actually matters right now.
+Optional command that gives Claude Code a real memory. Instead of flat markdown files that grow forever, memories live in SQLite. Each session gets the most relevant ones, scored and ranked automatically.
 
 ```bash
 claude-launchpad memory
@@ -71,12 +71,12 @@ At session start, the SessionStart hook decides which memories Claude actually n
 | Tier | What Claude sees | When used |
 |---|---|---|
 | **Full** | Complete content (up to 500 chars) + tags | Top-scored memories (score > 0.6) |
-| **Summary** | Title + first 150 chars | Mid-scored (score > 0.35) |
+| **Summary** | Title + first 350 chars | Mid-scored (score > 0.35) |
 | **Index** | Title + type only | Lower-scored but still relevant |
 
 When the token budget runs low, the algorithm demotes memories to cheaper tiers rather than dropping them entirely. A memory that would normally get full content might appear as a summary instead, fitting more knowledge into the same budget.
 
-**Scoring signals:**
+**Scoring signals** (you don't need to configure these, listed for transparency):
 
 | Signal | Weight | What it measures |
 |---|---|---|

@@ -10,9 +10,9 @@
 
 **Score your Claude Code config. Fix it. Prove it works.**
 
-Claude Code follows CLAUDE.md about 80% of the time. Hooks run at 100%. Most developers have zero hooks and too many instructions. Claude Launchpad scores your setup, fixes the gaps, and tests that Claude actually follows your rules.
+Claude follows CLAUDE.md ~80% of the time. Hooks run at 100%. Most setups have zero hooks. Claude Launchpad adds the hooks, scores your config, and tests that Claude actually follows your rules.
 
-This is for developers using Claude Code who want consistent results: solo devs, vibe coders, AI-first teams. If you have ever wondered why Claude ignores half your CLAUDE.md, this is the fix.
+For developers using Claude Code who want consistent results: solo devs, vibe coders, AI-first teams.
 
 ## Install and See Your Score
 
@@ -62,7 +62,7 @@ Scores your config, auto-repairs everything it can.
 | `TASKS.md` | What we're doing now | Current sprint, session log, progress |
 | `BACKLOG.md` | What we're doing later | Parked features with P0/P1/P2 priority tiers |
 
-Without BACKLOG.md, deferred features get lost in conversation history or bloat TASKS.md. Init generates all three. Doctor checks for them. `--fix` creates any that are missing.
+Init generates all three. Doctor checks for them. `--fix` creates any that are missing.
 
 ## Commands
 
@@ -145,7 +145,7 @@ Stays under the 200-instruction budget. Overflows detailed content to `.claude/r
 
 ## Eval
 
-Runs Claude against real test scenarios and scores the results. Nobody else has built this.
+Runs Claude against real test scenarios and scores the results.
 
 ```bash
 # Interactive mode (pick suite, runs, model)
@@ -244,23 +244,6 @@ jobs:
 
 Score below threshold = exit code 1 = PR blocked.
 
-## How It Works
-
-**Doctor** reads your files and runs static analysis. No API calls. No network. No cost.
-
-**Init** scans manifest files (package.json, go.mod, pyproject.toml, etc.) and detects your stack. Generates 8 files:
-- CLAUDE.md (sprint reviews, backlog management)
-- TASKS.md (session log, sprint tracking)
-- BACKLOG.md (priority-tiered feature parking)
-- settings.json (credential deny rules, sandbox, hooks)
-- .claude/.gitignore, .claudeignore, /lp-enhance skill, conventions.md
-
-Formatter hooks use hardcoded safe commands only.
-
-**Enhance** is a `/lp-enhance` skill installed during `init`. It runs inside your active Claude Code session, not a separate process. Claude already has your codebase context, so it produces better results than an external command.
-
-**Eval** creates a temp directory, copies your full `.claude/` config (settings.json, rules, hooks, permissions) and `.claudeignore` into it, writes seed files from the scenario YAML, initializes a git repo, runs Claude via the Agent SDK (or falls back to CLI), then checks the output with grep/file assertions. Your code is never copied, only your Claude Code configuration. Sandbox is cleaned up after (or preserved with `--debug`).
-
 ## Glossary
 
 New to Claude Code? Here's what the terms mean.
@@ -279,7 +262,13 @@ New to Claude Code? Here's what the terms mean.
 
 ## Privacy
 
-No telemetry. No analytics. No data sent anywhere. Doctor, init, and fix are fully offline. Memory stores data locally at `~/.agentic-memory/`. The optional sync feature (`memory push/pull`) uses a private GitHub Gist under your own account — data goes to GitHub, not to us. Enhance and eval run through your local Claude CLI, no data passes through this tool. [Full privacy policy](https://mboss37.github.io/claude-launchpad/privacy.html).
+- No telemetry, no analytics, no data sent anywhere
+- Doctor, init, and fix run fully offline
+- Memory stores data locally at `~/.agentic-memory/`
+- Sync (`memory push/pull`) uses a private GitHub Gist under your account
+- Enhance and eval run through your local Claude CLI
+
+[Full privacy policy](https://mboss37.github.io/claude-launchpad/privacy.html).
 
 ## License
 

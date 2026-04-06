@@ -237,7 +237,7 @@ export default function HomePage() {
             <span className="mt-2 block text-fd-muted-foreground">for Claude Code.</span>
           </h1>
           <p className="mt-4 max-w-2xl text-[15px] leading-7 text-fd-muted-foreground sm:text-lg">
-            Sprint tracking, config scoring, auto-fix, and behavior verification out of the box. Without structure, Claude loses context between sessions, ignores half your rules, and has zero guardrails. This fixes that.
+            Claude loses context between sessions, ignores half your rules, and has zero guardrails. Claude Launchpad scores your setup, fixes the gaps, and proves Claude follows your rules.
           </p>
 
           <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
@@ -364,7 +364,7 @@ export default function HomePage() {
           <SectionHeading
             eyebrow="Optional add-on"
             title="Persistent memory across sessions"
-            description="Doctor handles static config. Memory handles what Claude learns over time. Built-in memory is a flat file that grows forever. This replaces it: unused knowledge fades, relevant context auto-injects each session, and priorities self-tune based on actual usage."
+            description="Built-in memory is a flat file that grows forever. This replaces it with decay-based retrieval: unused knowledge fades, relevant context surfaces automatically."
           />
 
           <div className="mt-8 grid gap-4 lg:grid-cols-[0.35fr_0.65fr] lg:items-stretch">
