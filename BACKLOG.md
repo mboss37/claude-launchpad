@@ -5,9 +5,6 @@ Priority: P0 = next sprint, P1 = soon, P2 = when relevant.
 
 ---
 
-## [P0] Publish: Unpublished changes since v0.13.0
-Copy rewrites (outcome-focused memory framing), wiki->knowledge base, MCP server version from package.json. All cosmetic but should ship with the next release.
-
 ## [P1] Memory: Bulk Purge by Project
 `memory --purge <project>` to delete all memories for a project. Useful for cleanup after project archival.
 
