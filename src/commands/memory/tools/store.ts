@@ -71,7 +71,10 @@ export function registerStore(server: McpServer, deps: ToolDeps): void {
         + 'Types: episodic (events), semantic (facts), procedural (how-to), pattern (recurring), working (temporary). '
         + 'Importance: 0-0.3 ephemeral, 0.3-0.6 reference, 0.6-0.8 important, 0.8-1.0 critical. '
         + 'Suggested tags: #bug, #decision, #gotcha, #howto, #pattern, #architecture. '
-        + 'Context is auto-detected from git (branch, recent files) if omitted.',
+        + 'Context is auto-detected from git (branch, recent files) if omitted. '
+        + 'NOTE: A built-in dedup guard prevents identical content from being stored twice within 10 seconds. '
+        + 'If you see "Skipped" responses, the memory was likely already stored by a parallel call. '
+        + 'This is expected behavior, not an error. The data is saved correctly.',
       inputSchema,
       annotations: { idempotentHint: false },
     },
