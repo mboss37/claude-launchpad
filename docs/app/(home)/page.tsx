@@ -364,7 +364,7 @@ export default function HomePage() {
           <SectionHeading
             eyebrow="Optional add-on"
             title="A personal knowledge base for your project"
-            description="Claude maintains a living wiki about your codebase. It learns what matters, forgets what doesn't, and gets smarter every session — without you managing a single note."
+            description="Claude builds a knowledge base about your codebase. It learns what matters, forgets what doesn't, and gets smarter every session."
           />
 
           <div className="mt-8 grid gap-4 lg:grid-cols-[0.35fr_0.65fr] lg:items-stretch">
@@ -378,7 +378,7 @@ export default function HomePage() {
                 <div className="mt-4 space-y-2 text-sm text-fd-muted-foreground">
                   <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Learns decisions, conventions, and patterns from every session</div>
                   <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Surfaces the right context at the right time</div>
-                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Stale knowledge fades so the wiki stays clean</div>
+                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Stale knowledge fades so the knowledge base stays clean</div>
                   <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Each project gets its own knowledge base</div>
                   <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Browse and manage everything in a terminal dashboard</div>
                   <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Sync across machines with one command</div>

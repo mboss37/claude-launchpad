@@ -36,7 +36,7 @@ export async function startServer(deps?: Partial<ServerDeps>): Promise<void> {
     { name: 'agentic-memory', version: '0.1.0' },
     {
       instructions:
-        'This is your knowledge base — a persistent wiki that survives across sessions. '
+        'This is your knowledge base — persistent context that survives across sessions. '
         + 'Search before storing to avoid duplicates. Update existing memories instead of creating new ones. '
         + 'Store decisions, patterns, and insights — capture WHY, not just WHAT. '
         + 'Only save what future sessions will need. NEVER store secrets, API keys, or passwords. '
