@@ -23,16 +23,34 @@
 - **Sprint 16**: Backlog System — v0.10.0, BACKLOG.md in init/doctor/fix, three-file system, budget 200, MCP registration fix, content review skill, 280 tests
 - **Sprint 17**: Memory Sync — v0.11.0, push/pull via private GitHub Gist, multi-file per project, auto-discovery, dedup guard, 294 tests
 
-## Current: Sprint 18 — TUI Dashboard Ink Migration
+## Current: Sprint 18 — Memory Algorithm Tuning
 
-Rewrite blessed dashboard with Ink (React for terminal). Modern, maintained, better UX.
+Expert panel review (cognitive scientist, retrieval engineer, prompt engineer). All findings.
 
-- [ ] Phase 1: Infrastructure (deps, tsconfig jsx, tsup externals)
-- [ ] Phase 2: Hooks (use-dashboard-state, use-keybindings, use-terminal-size)
-- [ ] Phase 3: Leaf components (keybinding-bar, header, stats-bar, search-bar, help-overlay)
-- [ ] Phase 4: Complex components (memory-list, memory-detail, project-list, project-picker)
-- [ ] Phase 5: Assembly (app.tsx, tui.tsx entry point)
-- [ ] Phase 6: Cleanup (delete blessed files, remove blessed dep)
+**Decay & Lifecycle:**
+- [ ] Adjust half-lives (episodic 60→30d, semantic 365→540d)
+- [ ] Logarithmic access modifier (replace step function)
+- [ ] Stronger relation modifier (0.5x for 3+, 0.35x for 6+)
+- [ ] Fix dashboard lifespan to use createdAt (match decay-service)
+
+**Tagging & Discovery:**
+- [ ] Add FTS5 porter tokenizer (migration)
+- [ ] Normalize tags at store time (lowercase, singularize)
+- [ ] Tag alias map (bugfix→bug, etc.)
+- [ ] Auto-tagging from content keywords
+- [ ] Synonym expansion in search queries
+
+**Injection & Scoring:**
+- [ ] Raise token budget 2000→3000
+- [ ] Redistribute context weight when gitContext missing
+- [ ] Smooth cold start ramp (lerp min_score for 6-20 memories)
+- [ ] Type diversity cap (max 2 same type in full tier)
+- [ ] Branch-name heuristic (fix/* boosts patterns, feat/* boosts procedural)
+
+**Advanced:**
+- [ ] Pinned/evergreen slots (importance >= 0.8 gets reserved 10% budget)
+- [ ] Staleness detection (contradiction check on store)
+- [ ] Summary tier fix (300-400 chars or kill it)
 
 ## Session Log
 ### 2026-04-04 (session 20)
