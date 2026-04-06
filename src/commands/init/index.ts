@@ -175,6 +175,20 @@ function generateStarterRules(detected: DetectedProject): string {
     lines.push("- No unsafe blocks without a safety comment");
   }
 
+  // Skill authoring conventions
+  lines.push(
+    "",
+    "## Skill Authoring",
+    "",
+    "When creating Claude Code skills (.claude/skills/*/SKILL.md):",
+    "",
+    "- Add TRIGGER when / DO NOT TRIGGER when clauses in the description for auto-invocation",
+    "- Add allowed-tools in frontmatter to restrict tool access (e.g. Read, Glob, Grep for read-only skills)",
+    "- Add argument-hint in frontmatter showing the expected input format",
+    "- Structure as phases: Research, Plan, Execute, Verify with \"Done when:\" success criteria per phase",
+    "- Handle edge cases and preconditions before execution",
+  );
+
   lines.push("");
   return lines.join("\n");
 }

@@ -26,7 +26,7 @@
 │   │       ├── services/          # Retrieval, decay, consolidation, session
 │   │       ├── tools/             # 7 MCP tool handlers
 │   │       ├── subcommands/       # install, stats, context, extract, doctor, push, pull
-│   │       ├── dashboard/         # Blessed TUI (lazy-loaded via --dashboard)
+│   │       ├── dashboard/         # Ink TUI (lazy-loaded via --dashboard)
 │   │       └── utils/             # require-deps, git-context, content-validation, gist-transport, sync-merge
 │   ├── lib/
 │   │   ├── detect.ts              # Project auto-detection (language, framework, tools)
@@ -45,7 +45,7 @@
 - `/lp-enhance` → skill runs in Claude Code session → AI rewrites CLAUDE.md → suggests hooks + MCP
 - `eval` → load YAML scenarios → run Claude via Agent SDK (fallback: CLI) → score checks → report
 - `memory` → smart default: install prompt (if not set up) or stats (if installed)
-- `memory --dashboard` → blessed TUI with vim nav, project switching, filtering
+- `memory --dashboard` → Ink TUI with vim nav, project switching, filtering
 - `memory serve` → MCP server on stdio (called by Claude Code, not users)
 - `memory context` → SessionStart hook handler (injects relevant memories)
 - `memory extract` → Stop hook handler (extracts facts from transcript)
@@ -54,7 +54,7 @@
 
 ## Dependency Strategy
 - **Core deps** (dependencies): commander, chalk, inquirer, ora, yaml — always installed
-- **Optional deps** (optionalDependencies): zod, @modelcontextprotocol/sdk, blessed — installed with package, pure JS
+- **Optional deps** (optionalDependencies): zod, @modelcontextprotocol/sdk — installed with package, pure JS
 - **Native deps** (devDependencies): better-sqlite3, sqlite-vec — NOT installed for users, user installs when setting up memory
 - **Eval dep** (devDependencies): @anthropic-ai/claude-agent-sdk — eval falls back to Claude CLI if missing
 - All optional/native deps marked `external` in tsup — never bundled into dist

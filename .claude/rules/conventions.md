@@ -42,6 +42,14 @@ When all sprint tasks are done, you MUST spawn a code review agent BEFORE commit
 4. Only then commit
 5. Skip ONLY if the sprint was trivial (docs-only, config-only changes with no logic)
 
+## Skill Authoring
+When creating Claude Code skills (.claude/skills/*/SKILL.md):
+- Add TRIGGER when / DO NOT TRIGGER when clauses in the description for auto-invocation
+- Add allowed-tools in frontmatter to restrict tool access (e.g. Read, Glob, Grep for read-only skills)
+- Add argument-hint in frontmatter showing the expected input format
+- Structure as phases: Research, Plan, Execute, Verify with "Done when:" success criteria per phase
+- Handle edge cases and preconditions before execution
+
 ## Parallel Agents
 - Research tasks: spawn multiple agents with different lenses
 - Stress testing: use one Bash call with a shell loop (agents can't run Bash — see memory)
