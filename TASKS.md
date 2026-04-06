@@ -27,8 +27,24 @@
 ## Completed: Sprint 19 — Memory Placement (v0.15.0)
 Local vs shared config routing for memory setup. 28 files, 296 tests, docs updated.
 
-## Current: No active sprint
-All planned work complete. Future features in BACKLOG.md.
+## Current: Sprint 20 — Outcome-First Docs
+
+Rewrite docs to show value, not just features. Every section answers "so what?" for the user.
+
+### To Do
+- [ ] **Hooks explainer** — new section explaining SessionStart/PostCompact injection (hook output = conversation context, startup vs resume, why Claude always knows where you left off)
+- [ ] **Three-file system** — rewrite section to explain why splitting CLAUDE.md/TASKS.md/BACKLOG.md prevents context bloat
+- [ ] **Hooks vs CLAUDE.md compliance** — add prominent callout: rules ~80% compliance, hooks 100% (system-enforced)
+- [ ] **Instruction Budget** — reframe: past ~200 lines Claude starts ignoring rules at the bottom
+- [ ] **Doctor score meaning** — explain what a low score actually costs (ignored rules, lost context, security gaps)
+- [ ] **Memory before/after** — add contrast: "without memory you re-explain architecture every session"
+- [ ] **Eval failures** — explain what a FAIL means for daily experience, not just the test
+- [ ] **Sprint Reviews** — reframe as "automated code review before commit" not just "quality check"
+- [ ] **enhance vs init** — "init gives boilerplate, enhance reads your actual code and fills in real context"
+- [ ] **Landing page** — connect pain points to solutions (three-file system, hooks, memory)
+- [ ] **Content review** — run /content-review on all changed docs
+
+### Done
 
 ## Session Log
 ### 2026-04-05 (session 21)
