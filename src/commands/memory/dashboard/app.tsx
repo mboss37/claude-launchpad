@@ -13,6 +13,7 @@ import { ProjectList } from './components/project-list.js';
 import { StatsBar } from './components/stats-bar.js';
 import { HelpOverlay } from './components/help-overlay.js';
 import { ProjectPicker } from './components/project-picker.js';
+import { DeleteConfirm } from './components/delete-confirm.js';
 
 interface AppProps {
   readonly dataSource: DashboardDataSource;
@@ -34,6 +35,7 @@ export function App({ dataSource }: AppProps): React.ReactNode {
     cycleProjectPrev: state.cycleProjectPrev,
     cycleSort: state.cycleSort,
     focusNext: state.focusNext,
+    deleteMemory: state.promptDelete,
     openProjectPicker: () => state.setShowProjectPicker((v) => !v),
     showHelp: () => state.setShowHelp((v) => !v),
     refresh: state.refresh,
@@ -54,6 +56,16 @@ export function App({ dataSource }: AppProps): React.ReactNode {
         activeProject={state.currentProject}
         onSelect={(p) => { state.setCurrentProject(p); state.setSelectedIndex(0); }}
         onClose={() => state.setShowProjectPicker(false)}
+      />
+    );
+  }
+
+  if (state.showDeleteConfirm && state.selectedMemory) {
+    return (
+      <DeleteConfirm
+        memory={state.selectedMemory}
+        onConfirm={state.confirmDelete}
+        onCancel={state.cancelDelete}
       />
     );
   }

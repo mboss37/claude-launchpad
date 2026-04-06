@@ -120,6 +120,11 @@ export class DashboardDataSource {
     });
   }
 
+  /** Hard-delete a memory by ID. Returns true if deleted. */
+  deleteMemory(id: string): boolean {
+    return this.#memoryRepo.hardDelete(id);
+  }
+
   /** Stop watching the DB file. */
   stopWatching(): void {
     unwatchFile(this.#dbPath);

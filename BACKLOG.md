@@ -5,12 +5,6 @@ Priority: P0 = next sprint, P1 = soon, P2 = when relevant.
 
 ---
 
-## [P1] Enhance: Path-Scoped Rules Generation
-`/lp-enhance` should detect project structure and suggest path-scoped `.claude/rules/` files with `paths` frontmatter. Detect monorepos (workspaces, nx.json, lerna.json), distinct areas (api vs frontend vs docs), and generate focused rules per area. Stack-specific conventions (e.g., "use Server Components by default" for Next.js app/ dir) should be scoped to matching paths, not global.
-
-## [P1] Memory: Dashboard Delete
-`d` keybinding in TUI dashboard with confirmation prompt. `hardDelete(id)` already exists in MemoryRepo.
-
 ## [P1] Memory: Bulk Purge by Project
 `memory --purge <project>` to delete all memories for a project. Useful for cleanup after project archival.
 

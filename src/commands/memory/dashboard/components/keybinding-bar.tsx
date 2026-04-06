@@ -8,6 +8,7 @@ const HINTS = [
   ['1-5', 'type'],
   ['l', 'life'],
   ['s', 'sort'],
+  ['d', 'delete'],
   ['Tab', 'focus'],
   ['?', 'help'],
   ['q', 'quit'],
