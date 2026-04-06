@@ -41,9 +41,44 @@ Also review .claude/settings.json hooks:
 - DO NOT overwrite existing hooks - only add new ones specific to this project
 - Print hook suggestions at the end with the exact JSON to add, don't modify settings.json directly
 
-## Advanced configuration opportunities
+## Path-scoped rules generation
 
-- If the project has both app code and tests, suggest creating path-scoped .claude/rules/ files with paths: frontmatter
+Scan the project structure and generate focused .claude/rules/ files with paths: frontmatter. These load ONLY when Claude works on matching files, saving context tokens.
+
+**How to detect areas:**
+1. List top-level directories under src/ (or equivalent). Each distinct area (api, components, lib, tests) is a candidate.
+2. Check for monorepo indicators: workspaces in package.json, pnpm-workspace.yaml, nx.json, lerna.json. Each workspace is a candidate.
+3. Check for docs/, tests/, scripts/ as separate scopes.
+
+**For each detected area, create a rules file with this format:**
+
+---
+paths: ["src/api/**"]
+---
+# API Rules
+- Validate all request input with zod schemas
+- Return typed error responses, never throw raw errors
+- Keep route handlers under 30 lines
+
+**Stack-specific patterns to include:**
+- Next.js app/: "Use Server Components by default, add 'use client' only when needed"
+- API routes / src/api/: "Validate input at boundaries, typed error responses"
+- React components: "Colocate components near usage, props interface above component"
+- Tests: "One assertion per test when possible, descriptive test names"
+- Database / prisma/ / drizzle/: "Never write raw SQL, use the ORM, migrations required"
+- Docs: "No em dashes, max 3 sentences per paragraph, code examples required"
+
+**When NOT to generate:**
+- Small projects with < 5 source files (one conventions.md is enough)
+- Projects where all code is in one flat directory
+- If path-scoped rules already exist, don't overwrite them
+
+**Monorepo handling:**
+- Each package gets its own rules file: .claude/rules/packages-<name>.md
+- Suggest claudeMdExcludes in settings.json to skip irrelevant package CLAUDE.md files
+
+## Other advanced configuration
+
 - If the project uses external APIs, suggest sandbox.network.allowedDomains to restrict outbound traffic
 - If you detect a monorepo, suggest claudeMdExcludes in settings.json
 

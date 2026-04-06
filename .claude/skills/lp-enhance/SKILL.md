@@ -21,7 +21,7 @@ CLAUDE.md must stay UNDER 200 lines of actionable content (not counting headings
 2. **## Architecture** - 3-5 bullet points describing the codebase shape (not a full directory tree)
 3. **## Conventions** - max 8 key patterns. Move detailed rules to .claude/rules/conventions.md
 4. **## Off-Limits** - max 8 guardrails specific to this project
-5. **## Memory & Learnings** - max 6 bullets. If missing, add instructions for using the built-in memory system: what to save (gotchas, decisions, deferred issues, references), where (project vs global memory), and the rule to check existing memories before creating duplicates
+5. **## Memory & Learnings** - ONLY if the project already has a ## Memory section or agentic-memory is configured in .claude/settings.json. If present, keep to max 6 bullets. If the project does NOT use memory, do NOT add this section
 6. **## Key Decisions** - only decisions that affect how Claude should work in this codebase
 7. **MCP server suggestions** - look at what external services the project uses (databases, APIs, storage). If you spot Postgres, Redis, Stripe, GitHub API, or similar, suggest relevant MCP servers. Print as suggestions at the end, not in CLAUDE.md.
 
@@ -35,9 +35,46 @@ Also review .claude/settings.json hooks:
 - DO NOT overwrite existing hooks - only add new ones specific to this project
 - Print hook suggestions at the end with the exact JSON to add, don't modify settings.json directly
 
-## Advanced configuration opportunities
+## Path-scoped rules generation
 
-- If the project has both app code and tests, suggest creating path-scoped .claude/rules/ files with paths: frontmatter
+Scan the project structure and generate focused `.claude/rules/` files with `paths:` frontmatter. These load ONLY when Claude works on matching files, saving context tokens.
+
+**How to detect areas:**
+1. List top-level directories under `src/` (or equivalent). Each distinct area (api, components, lib, tests) is a candidate.
+2. Check for monorepo indicators: `workspaces` in package.json, `pnpm-workspace.yaml`, `nx.json`, `lerna.json`. Each workspace is a candidate.
+3. Check for `docs/`, `tests/`, `scripts/` as separate scopes.
+
+**For each detected area, create a rules file:**
+
+```markdown
+---
+paths: ["src/api/**"]
+---
+# API Rules
+- Validate all request input with zod schemas
+- Return typed error responses, never throw raw errors
+- Keep route handlers under 30 lines
+```
+
+**Stack-specific patterns to include:**
+- Next.js `app/`: "Use Server Components by default, add 'use client' only when needed"
+- API routes / `src/api/`: "Validate input at boundaries, typed error responses"
+- React components: "Colocate components near usage, props interface above component"
+- Tests: "One assertion per test when possible, descriptive test names"
+- Database / `prisma/` / `drizzle/`: "Never write raw SQL, use the ORM, migrations required"
+- Docs: "No em dashes, max 3 sentences per paragraph, code examples required"
+
+**When NOT to generate:**
+- Small projects with < 5 source files (one conventions.md is enough)
+- Projects where all code is in one flat directory
+- If path-scoped rules already exist, don't overwrite them
+
+**Monorepo handling:**
+- Each package gets its own rules file: `.claude/rules/packages-<name>.md`
+- Suggest `claudeMdExcludes` in settings.json to skip irrelevant package CLAUDE.md files
+
+## Other advanced configuration
+
 - If the project uses external APIs, suggest sandbox.network.allowedDomains to restrict outbound traffic
 - If you detect a monorepo, suggest claudeMdExcludes in settings.json
 
