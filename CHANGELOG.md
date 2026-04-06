@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.15.1] — 2026-04-06
+
+### Changed
+- TASKS.md template slimmed from 30 to 13 lines (removed kanban lanes, Deferred section, Next Sprint)
+
 ## [0.15.0] — 2026-04-06
 
 ### Added
