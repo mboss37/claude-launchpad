@@ -1,5 +1,9 @@
+import { createRequire } from 'node:module';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+
+const require = createRequire(import.meta.url);
+const { version } = require('../../../package.json') as { version: string };
 import { createDatabase, closeDatabase } from './storage/database.js';
 import { migrate } from './storage/migrator.js';
 import { MemoryRepo } from './storage/memory-repo.js';
@@ -33,7 +37,7 @@ export async function startServer(deps?: Partial<ServerDeps>): Promise<void> {
   });
 
   const server = new McpServer(
-    { name: 'agentic-memory', version: '0.1.0' },
+    { name: 'agentic-memory', version },
     {
       instructions:
         'This is your knowledge base — persistent context that survives across sessions. '
