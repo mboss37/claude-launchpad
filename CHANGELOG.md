@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.12.2] — 2026-04-06
+
+### Fixed
+- Memory search and recent tools returned truncated content (sliced to 500 chars) — now returns full content
+- Memory store Zod schema rejected content over 2000 chars before content-validation could run — removed hard limit, kept soft guide in tool description
+
+### Changed
+- Docs changelog rendered inline from CHANGELOG.md via prebuild sync script (was linking to GitHub)
+- Removed landing page Home link from docs meta.json that leaked `undefined` description into llms.txt
+
 ## [0.12.1] — 2026-04-06
 
 ### Added

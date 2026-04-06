@@ -52,7 +52,7 @@ function autoTag(content: string, existingTags: readonly string[]): string[] {
 
 const inputSchema = {
   type: z.enum(MEMORY_TYPES).describe('Memory type: working, episodic, semantic, procedural, or pattern'),
-  content: z.string().min(1).max(2000).describe('The memory content (max 2000 chars / ~500 tokens). Keep memories concise: capture the decision or insight, not the full context. Split large topics into separate memories.'),
+  content: z.string().min(1).describe('The memory content (aim for ~2000 chars / ~500 tokens). Keep memories concise: capture the decision or insight, not the full context. Split large topics into separate memories.'),
   title: z.string().max(200).optional().describe('Short title for the memory'),
   tags: z.array(z.string()).max(20).default([]).describe('Tags for categorization. Suggested: #bug, #decision, #gotcha, #howto, #pattern'),
   importance: z.number().min(0).max(1).default(0.5).describe('0-0.3 ephemeral, 0.3-0.6 reference, 0.6-0.8 important, 0.8-1.0 critical'),

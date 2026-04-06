@@ -84,7 +84,7 @@ export interface DecayParams {
 
 export const StoreInputSchema = z.object({
   type: z.enum(MEMORY_TYPES),
-  content: z.string().min(1).max(2000),
+  content: z.string().min(1),
   title: z.string().max(200).optional(),
   tags: z.array(z.string()).max(20).default([]),
   importance: z.number().min(0).max(1).default(0.5),

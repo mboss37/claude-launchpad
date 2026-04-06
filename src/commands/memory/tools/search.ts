@@ -46,7 +46,7 @@ export function registerSearch(server: McpServer, deps: ToolDeps): void {
         id: r.memory.id,
         type: r.memory.type,
         title: r.memory.title,
-        content: r.memory.content.slice(0, 500),
+        content: r.memory.content,
         score: Math.round(r.score * 100) / 100,
         explanation: r.explanation,
         importance: r.memory.importance,

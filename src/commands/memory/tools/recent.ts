@@ -39,7 +39,7 @@ export function registerRecent(server: McpServer, deps: ToolDeps): void {
         id: entry.result.memory.id,
         type: entry.result.memory.type,
         title: entry.result.memory.title,
-        content: entry.result.memory.content.slice(0, 500),
+        content: entry.result.memory.content,
         importance: entry.result.memory.importance,
         tags: entry.result.memory.tags,
         score: Math.round(entry.result.score * 100) / 100,
