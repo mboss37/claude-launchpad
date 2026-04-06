@@ -37,7 +37,7 @@ All planned work complete. Future features in BACKLOG.md.
 - Sprint 18: Ink migration, algorithm tuning (3-expert panel), skill rewrites (Anthropic patterns), dashboard delete.
 - Memory sync v0.11.0 shipped + tested cross-device. Path-scoped rules in /lp-enhance. Content review fixes.
 - Published v0.12.0 + v0.12.1.
-### 2026-04-06 (session 23)
-- Docs: inline changelog via prebuild sync, fixed llms.txt undefined entry, memory retrieval truncation bug.
-- Feat: Skill Authoring conventions in init + /lp-enhance (Anthropic's 5 internal patterns).
-- Published v0.12.2 + v0.13.0.
+### 2026-04-06 (session 23-24)
+- Fix: memory retrieval truncation (500 char slice), store Zod max removal, MCP server version from package.json.
+- Feat: /lp-enhance eval scenario gen + .claudeignore review + skill auto-update via doctor --fix. Karpathy-inspired copy rewrite. SEO pass.
+- Published v0.12.2, v0.13.0, v0.13.1, v0.14.0.

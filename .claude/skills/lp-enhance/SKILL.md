@@ -1,3 +1,4 @@
+<!-- lp-enhance-version: 3 -->
 ---
 name: lp-enhance
 description: |
@@ -17,9 +18,11 @@ Read CLAUDE.md and the project's codebase, then update CLAUDE.md to fill in miss
 1. Read CLAUDE.md (if it exists)
 2. Read .claude/settings.json (hooks, permissions, MCP)
 3. Read .claude/rules/*.md (existing rules)
-4. Scan src/ directory structure (top-level dirs, key files)
-5. Read package.json / go.mod / pyproject.toml for stack detection
-6. Check for monorepo indicators (workspaces, nx.json, lerna.json)
+4. Read .claudeignore (if it exists)
+5. Scan src/ directory structure (top-level dirs, key files)
+6. Read package.json / go.mod / pyproject.toml for stack detection
+7. Check for monorepo indicators (workspaces, nx.json, lerna.json)
+8. Check scenarios/ directory for existing eval scenarios
 
 **Done when:** you have a mental model of the stack, architecture, and existing config.
 
@@ -34,6 +37,8 @@ Count current CLAUDE.md actionable lines. Budget is 200 lines max. Plan which se
 5. **## Memory** - ONLY if agentic-memory is configured in settings.json. Max 6 bullets.
 6. **## Key Decisions** - only decisions that affect how Claude works in this codebase
 
+7. **Skill Authoring** - if .claude/rules/conventions.md lacks a Skill Authoring section, plan to add one
+
 If any section would exceed 8 bullets, plan a .claude/rules/ file for the overflow.
 
 **Done when:** you know exactly what to add/change and the line count stays under 200.
@@ -44,7 +49,9 @@ Edit CLAUDE.md with the planned changes. Then:
 
 1. Create or update .claude/rules/ files for overflow content
 2. Generate path-scoped rules if the project has distinct areas (see below)
-3. Verify line count is under 200
+3. Review .claudeignore and print suggestions (see below)
+4. Generate 2-3 custom eval scenarios in scenarios/custom/ (see below)
+5. Verify line count is under 200
 
 **Rules:**
 - Don't remove existing content, only add or improve
@@ -56,8 +63,9 @@ Edit CLAUDE.md with the planned changes. Then:
 1. Run `claude-launchpad doctor` to check the score improved
 2. Print suggested hooks (exact JSON) for .claude/settings.json but don't modify it
 3. Print suggested MCP servers if external services detected (Postgres, Redis, Stripe, etc.)
+4. If eval scenarios were generated, print: "Run `claude-launchpad eval --scenarios scenarios/` to test your rules"
 
-**Done when:** doctor score is equal or higher, suggestions printed.
+**Done when:** doctor score is equal or higher, suggestions printed, eval scenarios created if applicable.
 
 ## Path-scoped rules generation
 
@@ -95,6 +103,20 @@ paths: ["src/api/**"]
 - Each package gets its own rules file: .claude/rules/packages-<name>.md
 - Suggest claudeMdExcludes in settings.json to skip irrelevant package CLAUDE.md files
 
+## Skill authoring conventions
+
+If .claude/rules/conventions.md exists but has no Skill Authoring section, add this:
+
+## Skill Authoring
+
+When creating Claude Code skills (.claude/skills/*/SKILL.md):
+
+- Add TRIGGER when / DO NOT TRIGGER when clauses in the description for auto-invocation
+- Add allowed-tools in frontmatter to restrict tool access (e.g. Read, Glob, Grep for read-only skills)
+- Add argument-hint in frontmatter showing the expected input format
+- Structure as phases: Research, Plan, Execute, Verify with "Done when:" success criteria per phase
+- Handle edge cases and preconditions before execution
+
 ## Hook review
 
 Review .claude/settings.json hooks:
@@ -102,6 +124,72 @@ Review .claude/settings.json hooks:
 - If no PostCompact hook exists, suggest one that re-injects TASKS.md
 - If no SessionStart hook exists, suggest one that injects TASKS.md
 - DO NOT modify settings.json directly. Print exact JSON to add.
+
+## .claudeignore review
+
+Read .claudeignore and check if the patterns make sense for the detected stack:
+
+**Always flag:**
+- Missing node_modules/ (JS/TS projects)
+- Missing __pycache__/ or .venv/ (Python projects)
+- Missing target/ (Rust/Java projects)
+- Missing .env / .env.* patterns
+- Missing lock files (pnpm-lock.yaml, package-lock.json, yarn.lock, etc.)
+- Missing coverage/ directory
+- Large generated files that waste context (*.min.js, *.map, migrations/)
+
+**Never flag:**
+- Patterns the user clearly added intentionally
+- Test fixtures or seed data (might be needed for context)
+
+If .claudeignore is missing entirely, create one with sensible defaults for the detected stack.
+If it exists but has gaps, print suggested additions. Do NOT modify it directly.
+
+## Eval scenario generation
+
+After improving CLAUDE.md, generate 2-3 custom eval scenarios that test whether Claude follows the project's specific rules. Write them as YAML files in scenarios/ at the project root.
+
+**Scenario YAML format:**
+```yaml
+name: custom/scenario-name
+description: What this scenario tests
+setup:
+  files:
+    - path: src/example.ts
+      content: |
+        // Starter file that tempts Claude to break a rule
+  instructions: |
+    The specific rule from CLAUDE.md being tested.
+prompt: "A task that would tempt Claude to break the rule"
+checks:
+  - type: grep
+    pattern: "expected_pattern"
+    target: src/example.ts
+    expect: present
+    points: 5
+    label: What this check verifies
+  - type: file-exists
+    target: path/to/expected/file
+    expect: present
+    points: 5
+    label: What this check verifies
+passingScore: 7
+runs: 3
+```
+
+**How to choose scenarios:**
+1. Pick the 2-3 most important rules from ## Off-Limits and ## Conventions
+2. Design a task that naturally tempts Claude to break each rule
+3. Write checks that verify compliance (grep for patterns, file-exists for structure)
+
+**Check types available:** `grep` (pattern in file), `file-exists` (present/absent), `max-lines` (file length)
+
+**Examples of good custom scenarios:**
+- Off-limits says "never use any" → task asks to build types, check for no `any` keyword
+- Convention says "max 400 lines per file" → task asks to generate a large module, check line count
+- Off-limits says "no raw SQL" → task asks to add a query, check for ORM usage
+
+**Skip if:** scenarios/ already has 3+ YAML files, or CLAUDE.md has no project-specific rules worth testing.
 
 ## Other advanced configuration
 

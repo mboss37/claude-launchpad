@@ -72,6 +72,7 @@ const FIX_TABLE: ReadonlyArray<{ analyzer: string; match: string; fix: FixFn }> 
   { analyzer: "Permissions", match: "Sandbox not enabled", fix: (root) => addSandboxSettings(root) },
   { analyzer: "Permissions", match: ".env is protected by hooks but not in .claudeignore", fix: (root) => addEnvToClaudeignore(root) },
   { analyzer: "Rules", match: "No /lp-enhance skill", fix: (root) => createEnhanceSkill(root) },
+  { analyzer: "Rules", match: "lp-enhance skill is outdated", fix: (root) => updateEnhanceSkill(root) },
   { analyzer: "Settings", match: "Deprecated includeCoAuthoredBy", fix: (root) => migrateAttribution(root) },
   { analyzer: "Hooks", match: "SessionStart", fix: (root) => addSessionStartHook(root) },
   { analyzer: "Memory", match: "autoMemoryEnabled not disabled", fix: (root) => disableAutoMemory(root) },
@@ -380,6 +381,22 @@ async function createEnhanceSkill(root: string): Promise<boolean> {
   await mkdir(skillDir, { recursive: true });
   await writeFile(skillPath, generateEnhanceSkill());
   log.success("Generated /lp-enhance skill (.claude/skills/lp-enhance/)");
+  return true;
+}
+
+async function updateEnhanceSkill(root: string): Promise<boolean> {
+  // Update whichever location has the skill installed
+  const projectPath = join(root, ".claude", "skills", "lp-enhance", "SKILL.md");
+  const globalPath = join(homedir(), ".claude", "skills", "lp-enhance", "SKILL.md");
+
+  const targetPath = await fileExists(projectPath) ? projectPath
+    : await fileExists(globalPath) ? globalPath
+    : null;
+
+  if (!targetPath) return false;
+
+  await writeFile(targetPath, generateEnhanceSkill());
+  log.success("Updated /lp-enhance skill to latest version");
   return true;
 }
 

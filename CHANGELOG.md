@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.14.0] — 2026-04-06
+
+### Added
+- `/lp-enhance` now generates 2-3 custom eval scenarios from project-specific Off-Limits and Conventions rules
+- `/lp-enhance` now reviews .claudeignore and flags missing stack-specific patterns
+- `/lp-enhance` reads existing eval scenarios during research phase to avoid duplicates
+- Skill auto-update: `doctor` detects stale `/lp-enhance` skills, `--fix` updates them to latest version
+- Versioned skill schema (embedded `<!-- lp-enhance-version: N -->` comment) for stale detection
+
+### Changed
+- `/lp-enhance` skill expanded: .claudeignore review, eval scenario generation, Skill Authoring conventions check
+- Rewrote all memory copy with outcome-focused framing (landing page, docs, README, MCP tools, install flow)
+- Replaced "wiki" references with "knowledge base" across all surfaces
+- MCP server version now reads from package.json instead of hardcoded string
+- npm description sharpened, keywords expanded from 10 to 20, added bugs field
+
 ## [0.13.1] — 2026-04-06
 
 ### Changed

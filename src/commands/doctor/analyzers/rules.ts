@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { basename, join, dirname } from "node:path";
 import { homedir } from "node:os";
 import { fileExists } from "../../../lib/fs-utils.js";
+import { ENHANCE_SKILL_VERSION } from "../../init/generators/skill-enhance.js";
 import type { ClaudeConfig, AnalyzerResult, DiagnosticIssue } from "../../../types/index.js";
 
 export async function analyzeRules(config: ClaudeConfig): Promise<AnalyzerResult> {
@@ -44,6 +45,16 @@ export async function analyzeRules(config: ClaudeConfig): Promise<AnalyzerResult
       message: "No /lp-enhance skill found — use it inside Claude Code to AI-complete your CLAUDE.md",
       fix: "Run `claude-launchpad init` or `doctor --fix` to generate the skill",
     });
+  } else {
+    const installedVersion = await getSkillVersion(projectRoot);
+    if (installedVersion !== null && installedVersion < ENHANCE_SKILL_VERSION) {
+      issues.push({
+        analyzer: "Rules",
+        severity: "low",
+        message: `/lp-enhance skill is outdated (v${installedVersion}, latest v${ENHANCE_SKILL_VERSION})`,
+        fix: "Run `doctor --fix` to update the skill",
+      });
+    }
   }
 
   if (config.rules.length === 0) {
@@ -88,3 +99,22 @@ export async function analyzeRules(config: ClaudeConfig): Promise<AnalyzerResult
   return { name: "Rules", issues, score };
 }
 
+async function getSkillVersion(projectRoot: string): Promise<number | null> {
+  const paths = [
+    join(projectRoot, ".claude", "skills", "lp-enhance", "SKILL.md"),
+    join(homedir(), ".claude", "skills", "lp-enhance", "SKILL.md"),
+  ];
+
+  for (const p of paths) {
+    try {
+      const content = await readFile(p, "utf-8");
+      const match = content.match(/<!-- lp-enhance-version: (\d+) -->/);
+      if (match) return parseInt(match[1], 10);
+      // Skill exists but has no version tag — treat as v0 (pre-versioning)
+      return 0;
+    } catch {
+      continue;
+    }
+  }
+  return null;
+}
