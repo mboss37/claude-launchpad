@@ -4,8 +4,10 @@ import { execSync } from 'node:child_process';
 import { createDatabase, closeDatabase } from '../storage/database.js';
 import { migrate } from '../storage/migrator.js';
 import { loadConfig, resolveDataDir } from '../config.js';
-import { readSettingsJson, writeSettingsJson } from '../../../lib/settings.js';
+import { readSettingsJson, writeSettingsJson, readSettingsLocalJson, writeSettingsLocalJson } from '../../../lib/settings.js';
+import { getMemoryPlacement } from '../../../lib/memory-placement.js';
 import { log } from '../../../lib/output.js';
+import type { MemoryPlacement } from '../../../types/index.js';
 
 interface InstallOpts {
   readonly dbPath?: string;
@@ -19,11 +21,14 @@ export async function runInstall(opts: InstallOpts): Promise<void> {
   // Step 0: Ensure native deps are installed globally
   await ensureNativeDeps();
 
+  // Prompt for placement before any config writes
+  const placement = await getMemoryPlacement(process.cwd());
+
   const config = loadConfig(opts.dbPath ? { dataDir: opts.dbPath } : undefined);
   const dataDir = resolveDataDir(config.dataDir);
 
   // Step 1: Database
-  log.step('[1/4] Creating knowledge base...');
+  log.step('[1/5] Creating knowledge base...');
   if (!existsSync(dataDir)) {
     mkdirSync(dataDir, { recursive: true });
   }
@@ -33,11 +38,11 @@ export async function runInstall(opts: InstallOpts): Promise<void> {
   log.success(`Knowledge base created at ${dataDir}/memory.db`);
 
   // Step 2: Configure Claude Code settings
-  log.step('[2/4] Connecting to Claude Code...');
-  await configureSettings(process.cwd());
+  log.step('[2/5] Connecting to Claude Code...');
+  await configureSettings(process.cwd(), placement);
 
   // Step 3: Register MCP server
-  log.step('[3/4] Enabling memory tools...');
+  log.step('[3/5] Enabling memory tools...');
   const registered = registerMcpServer();
   if (registered) {
     log.success('Memory tools available in Claude Code');
@@ -47,14 +52,17 @@ export async function runInstall(opts: InstallOpts): Promise<void> {
   }
 
   // Step 4: CLAUDE.md + skills
-  log.step('[4/4] Adding instructions...');
-  const guidanceAdded = injectClaudeMdGuidance(process.cwd());
+  log.step('[4/5] Adding instructions...');
+  const guidanceAdded = injectClaudeMdGuidance(process.cwd(), placement);
   if (guidanceAdded) {
-    log.success('CLAUDE.md updated with memory instructions');
+    const label = placement === "local" ? ".claude/CLAUDE.md" : "CLAUDE.md";
+    log.success(`${label} updated with memory instructions`);
   }
-  const skillsInstalled = installSkills(process.cwd());
-  if (skillsInstalled > 0) {
-    log.success(`Installed ${skillsInstalled} skill(s) to .claude/skills/`);
+  if (placement === "shared") {
+    const skillsInstalled = installSkills(process.cwd());
+    if (skillsInstalled > 0) {
+      log.success(`Installed ${skillsInstalled} skill(s) to .claude/skills/`);
+    }
   }
 
   log.blank();
@@ -63,8 +71,26 @@ export async function runInstall(opts: InstallOpts): Promise<void> {
   log.blank();
 }
 
-async function configureSettings(projectDir: string): Promise<void> {
-  const settings = await readSettingsJson(projectDir);
+export function detectExistingSetup(projectDir: string): MemoryPlacement | null {
+  // Check local CLAUDE.md
+  try {
+    const localClaude = readFileSync(join(projectDir, '.claude', 'CLAUDE.md'), 'utf-8');
+    if (localClaude.includes('## Memory') || localClaude.includes('agentic-memory')) return "local";
+  } catch { /* not found */ }
+
+  // Check root CLAUDE.md
+  try {
+    const rootClaude = readFileSync(join(projectDir, 'CLAUDE.md'), 'utf-8');
+    if (rootClaude.includes('## Memory (agentic-memory)')) return "shared";
+  } catch { /* not found */ }
+
+  return null;
+}
+
+async function configureSettings(projectDir: string, placement: MemoryPlacement): Promise<void> {
+  const read = placement === "local" ? readSettingsLocalJson : readSettingsJson;
+  const write = placement === "local" ? writeSettingsLocalJson : writeSettingsJson;
+  const settings = await read(projectDir);
 
   // Disable built-in auto-memory
   settings['autoMemoryEnabled'] = false;
@@ -78,8 +104,9 @@ async function configureSettings(projectDir: string): Promise<void> {
   // Auto-allow MCP tools
   addToolPermissions(settings);
 
-  await writeSettingsJson(projectDir, settings);
-  log.success('Claude Code configured for knowledge base');
+  await write(projectDir, settings);
+  const target = placement === "local" ? "settings.local.json" : "settings.json";
+  log.success(`Claude Code configured in ${target}`);
 }
 
 function addSessionStartHook(hooks: Record<string, unknown[]>): void {
@@ -184,14 +211,19 @@ This project uses **agentic-memory** for persistent memory across sessions.
 - **STORE IMMEDIATELY** when: a dependency strategy changes, an architecture decision is made, a convention is established, a bug pattern is discovered, or a feature is killed/added
 `;
 
-function injectClaudeMdGuidance(projectDir: string): boolean {
-  const claudeMdPath = join(projectDir, 'CLAUDE.md');
+function injectClaudeMdGuidance(projectDir: string, placement: MemoryPlacement): boolean {
+  const claudeMdPath = placement === "local"
+    ? join(projectDir, '.claude', 'CLAUDE.md')
+    : join(projectDir, 'CLAUDE.md');
 
   let content = '';
   try {
     content = readFileSync(claudeMdPath, 'utf-8');
   } catch {
-    return false;
+    if (placement !== "local") return false;
+    // Create local .claude/CLAUDE.md
+    mkdirSync(join(projectDir, '.claude'), { recursive: true });
+    content = '# Local Claude Config\n';
   }
 
   if (content.includes('## Memory (agentic-memory)')) {

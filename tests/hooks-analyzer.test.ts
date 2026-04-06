@@ -9,6 +9,8 @@ function makeConfig(hooks: HookConfig[] = []): ClaudeConfig {
     claudeMdInstructionCount: 10,
     settingsPath: null,
     settings: null,
+    localClaudeMdContent: null,
+    localSettings: null,
     hooks,
     rules: [],
     mcpServers: [],

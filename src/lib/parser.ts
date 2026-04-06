@@ -6,15 +6,18 @@ import type { ClaudeConfig, HookConfig, McpServerConfig } from "../types/index.j
 const CLAUDE_MD = "CLAUDE.md";
 const CLAUDE_DIR = ".claude";
 const SETTINGS_FILE = "settings.json";
+const SETTINGS_LOCAL_FILE = "settings.local.json";
 const RULES_DIR = "rules";
 
 export async function parseClaudeConfig(projectRoot: string): Promise<ClaudeConfig> {
   const root = resolve(projectRoot);
   const claudeDir = join(root, CLAUDE_DIR);
 
-  const [claudeMd, settings, hooks, rules, mcpServers, skills, claudeignore] = await Promise.all([
+  const [claudeMd, localClaudeMd, settings, localSettings, hooks, rules, mcpServers, skills, claudeignore] = await Promise.all([
     readClaudeMd(root),
+    readFileOrNull(join(claudeDir, CLAUDE_MD)),
     readSettings(claudeDir),
+    readSettingsFromFile(claudeDir, SETTINGS_LOCAL_FILE),
     readHooks(claudeDir),
     readRules(claudeDir),
     readMcpServers(claudeDir),
@@ -32,6 +35,8 @@ export async function parseClaudeConfig(projectRoot: string): Promise<ClaudeConf
     claudeMdInstructionCount: instructionCount,
     settingsPath: settings !== null ? join(claudeDir, SETTINGS_FILE) : null,
     settings,
+    localClaudeMdContent: localClaudeMd,
+    localSettings,
     hooks,
     rules,
     mcpServers,
@@ -76,7 +81,11 @@ export function countInstructions(content: string): number {
 // ─── Settings ───
 
 async function readSettings(claudeDir: string): Promise<Record<string, unknown> | null> {
-  const raw = await readFileOrNull(join(claudeDir, SETTINGS_FILE));
+  return readSettingsFromFile(claudeDir, SETTINGS_FILE);
+}
+
+async function readSettingsFromFile(claudeDir: string, filename: string): Promise<Record<string, unknown> | null> {
+  const raw = await readFileOrNull(join(claudeDir, filename));
   if (raw === null) return null;
   try {
     return JSON.parse(raw) as Record<string, unknown>;

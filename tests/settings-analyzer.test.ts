@@ -9,6 +9,8 @@ function makeConfig(settings: Record<string, unknown> | null = null): ClaudeConf
     claudeMdInstructionCount: 10,
     settingsPath: settings ? "/test/.claude/settings.json" : null,
     settings,
+    localClaudeMdContent: null,
+    localSettings: null,
     hooks: [],
     rules: [],
     mcpServers: [],

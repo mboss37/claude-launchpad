@@ -52,8 +52,8 @@ Running `claude-launchpad memory` without flags uses a smart default:
 - SQLite database at `~/.agentic-memory/` (shared across projects, scoped per project internally)
 - SessionStart hook that injects relevant memories at session start
 - 7 MCP tools for storing, searching, and managing memories
-- Memory guidance section in CLAUDE.md
-- `/lp-migrate-memory` skill for porting legacy auto-memory files
+- Memory guidance section in CLAUDE.md (or `.claude/CLAUDE.md` for local placement)
+- `/lp-migrate-memory` skill for porting legacy auto-memory files (shared placement only)
 - Global MCP server registration via `claude mcp add --scope user`
 
 If auto-registration fails, run the command manually:
@@ -61,6 +61,27 @@ If auto-registration fails, run the command manually:
 ```bash
 claude mcp add --scope user agentic-memory -- npx claude-launchpad memory serve
 ```
+
+## Shared vs local placement
+
+During setup, you choose where memory config lives:
+
+```
+? Where should memory config go?
+❯ Shared (team sees it) — CLAUDE.md + settings.json
+  Local (only you) — .claude/CLAUDE.md + settings.local.json
+```
+
+**Shared** (default) writes memory guidance, hooks, and tool permissions to committed project files. Your whole team sees the memory setup.
+
+**Local** writes everything to gitignored files (`.claude/CLAUDE.md` and `.claude/settings.local.json`). Co-devs never see your memory config and can use their own setup (built-in auto-memory, a different MCP server, or nothing).
+
+Your choice is persisted in `settings.local.json` so `doctor --fix` applies memory fixes to the correct files without re-asking.
+
+Use local when:
+- You share a repo with devs who use different memory setups
+- You want to try agentic-memory without affecting the team config
+- The project's shared CLAUDE.md is managed by someone else
 
 ## Memory types
 
@@ -172,7 +193,7 @@ When memory is detected, `doctor` adds a Memory analyzer that checks:
 - CLAUDE.md guidance present
 - MCP tool permissions set
 
-`doctor --fix` auto-repairs missing permissions and auto-memory settings.
+`doctor --fix` auto-repairs missing permissions and auto-memory settings. The fixer respects your placement choice, writing to the local or shared files accordingly.
 
 ## How it works under the hood
 

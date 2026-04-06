@@ -9,6 +9,8 @@ function makeConfig(content: string | null): ClaudeConfig {
     claudeMdInstructionCount: 50,
     settingsPath: null,
     settings: null,
+    localClaudeMdContent: null,
+    localSettings: null,
     hooks: [],
     rules: [],
     mcpServers: [],

@@ -91,12 +91,16 @@ export interface EvalReport {
 
 // ─── Config Parsing Types ───
 
+export type MemoryPlacement = "shared" | "local";
+
 export interface ClaudeConfig {
   readonly claudeMdPath: string | null;
   readonly claudeMdContent: string | null;
   readonly claudeMdInstructionCount: number;
   readonly settingsPath: string | null;
   readonly settings: Record<string, unknown> | null;
+  readonly localClaudeMdContent: string | null;
+  readonly localSettings: Record<string, unknown> | null;
   readonly hooks: ReadonlyArray<HookConfig>;
   readonly rules: ReadonlyArray<string>;
   readonly mcpServers: ReadonlyArray<McpServerConfig>;

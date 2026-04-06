@@ -5,9 +5,14 @@ import { confirm } from "@inquirer/prompts";
 import { log } from "../../lib/output.js";
 
 function isMemoryInstalled(): boolean {
+  const cwd = process.cwd();
+  return hasMemoryHook(join(cwd, ".claude", "settings.json"))
+    || hasMemoryHook(join(cwd, ".claude", "settings.local.json"));
+}
+
+function hasMemoryHook(path: string): boolean {
   try {
-    const settingsPath = join(process.cwd(), ".claude", "settings.json");
-    const settings = JSON.parse(readFileSync(settingsPath, "utf-8")) as Record<string, unknown>;
+    const settings = JSON.parse(readFileSync(path, "utf-8")) as Record<string, unknown>;
     const hooks = settings.hooks as Record<string, unknown[]> | undefined;
     if (!hooks) return false;
     const sessionStart = hooks.SessionStart as Record<string, unknown>[] | undefined;
@@ -39,14 +44,27 @@ export function createMemoryCommand(): Command {
 
       // Smart default: install or show stats
       if (!isMemoryInstalled()) {
-        log.blank();
-        log.step("Claude doesn't have a knowledge base for this project yet.");
-        log.blank();
-        log.info("After setup, Claude will:");
-        log.info("  - Remember decisions, gotchas, and learnings across sessions");
-        log.info("  - Automatically recall relevant context when you start a session");
-        log.info("  - Save important facts as you work, so nothing gets lost");
-        log.blank();
+        // Check if config was already written (e.g. by doctor --fix) even though db isn't set up
+        const { detectExistingSetup } = await import("./subcommands/install.js");
+        const existing = detectExistingSetup(process.cwd());
+        if (existing) {
+          const location = existing === "local"
+            ? ".claude/CLAUDE.md + settings.local.json"
+            : "CLAUDE.md + settings.json";
+          log.blank();
+          log.success(`Memory config found (${location}) but database not set up.`);
+          log.info("Run the install to complete setup.");
+          log.blank();
+        } else {
+          log.blank();
+          log.step("Claude doesn't have a knowledge base for this project yet.");
+          log.blank();
+          log.info("After setup, Claude will:");
+          log.info("  - Remember decisions, gotchas, and learnings across sessions");
+          log.info("  - Automatically recall relevant context when you start a session");
+          log.info("  - Save important facts as you work, so nothing gets lost");
+          log.blank();
+        }
 
         const proceed = await confirm({
           message: "Set up knowledge base?",
