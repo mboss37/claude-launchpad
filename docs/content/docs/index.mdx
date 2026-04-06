@@ -121,25 +121,44 @@ Claude Launchpad has 4 CLI commands (`init`, `doctor`, `eval`, `memory`) and 2 s
   Your codebase changes. Your config should keep up. Run `doctor` periodically. If the score drops, `--fix` and `/lp-enhance` bring it back.
 </Callout>
 
-## Command Map (details in each command page)
+## Who does what
 
-Use this as a quick map; each command page covers full flags and workflows.
+Each tool handles one job. No overlap.
 
-| Command | What it does | Runs |
-|---|---|---|
-| `claude-launchpad init` | Detect stack, generate config, hooks, permissions | Locally |
-| `claude-launchpad` | Score your config 0-100, list issues | Locally |
-| `claude-launchpad doctor --fix` | Auto-fix issues: hooks, rules, sections, .claudeignore | Locally |
-| `claude-launchpad doctor --watch` | Live score that updates when you save config files | Locally |
-| `/lp-enhance` (skill) | Claude reads your code and completes CLAUDE.md | Inside Claude Code |
-| `claude-launchpad eval` | Run Claude against test scenarios, prove config works | Via Claude CLI |
-| `claude-launchpad memory` | Set up persistent memory, MCP tools, and `/lp-migrate-memory` skill | Locally |
-| `claude-launchpad memory --dashboard` | TUI dashboard for memory visualization | Locally |
-| `claude-launchpad memory push` | Push current project's memories to GitHub Gist | Via GitHub API |
-| `claude-launchpad memory pull` | Pull current project's memories from GitHub Gist | Via GitHub API |
+| Responsibility | `init` | `doctor --fix` | `/lp-enhance` | `eval` | `memory` |
+|---|---|---|---|---|---|
+| Detect stack and framework | ✓ | | | | |
+| Generate CLAUDE.md, TASKS.md, BACKLOG.md | ✓ | | | | |
+| Generate settings.json and hooks | ✓ | ✓ | | | |
+| Generate .claudeignore | ✓ | ✓ | | | |
+| Score config 0-100 | | ✓ | | | |
+| Fix missing sections, rules, permissions | | ✓ | | | |
+| Rewrite CLAUDE.md with real project content | | | ✓ | | |
+| Suggest hooks, MCP servers, path-scoped rules | | | ✓ | | |
+| Overflow conventions to .claude/rules/ | | | ✓ | | |
+| Prove Claude follows your rules | | | | ✓ | |
+| Run sandbox test scenarios | | | | ✓ | |
+| Persistent cross-session memory | | | | | ✓ |
+| Memory dashboard, sync, migration | | | | | ✓ |
+
+`init` scaffolds. `doctor` maintains. `/lp-enhance` makes it smart. `eval` proves it works. `memory` remembers.
+
+## Command reference
+
+| Command | Runs |
+|---|---|
+| `claude-launchpad init` | Locally, free |
+| `claude-launchpad` / `doctor` | Locally, free |
+| `claude-launchpad doctor --fix` | Locally, free |
+| `claude-launchpad doctor --watch` | Locally, free |
+| `/lp-enhance` (skill) | Inside Claude Code |
+| `claude-launchpad eval` | Via Claude CLI |
+| `claude-launchpad memory` | Locally |
+| `claude-launchpad memory --dashboard` | Locally |
+| `claude-launchpad memory push/pull` | Via GitHub API |
 
 <Callout type="info">
-  Commands marked **Locally** run offline with zero API calls. Commands marked **Via Claude CLI** require Claude Code installed and authenticated. Memory is optional - install only if you want persistent context across sessions.
+  Commands marked **Locally** run offline with zero API calls. Commands marked **Via Claude CLI** require Claude Code installed and authenticated. Memory is optional.
 </Callout>
 
 ## Next Steps

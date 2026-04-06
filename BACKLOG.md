@@ -21,11 +21,6 @@ Pre-existing mutation patterns in `src/commands/doctor/fixer.ts` and `src/comman
 - `install.ts:96,102,128,150` — direct assignment to settings/hooks objects (`settings['autoMemoryEnabled'] = false`, `allowList.push(tool)`)
 All violate the immutability convention. Low risk (works fine), but should be cleaned up to match project standards.
 
-## [P1] Docs: Command Responsibility Matrix
-Add a matrix table to docs showing every command and skill with what it does:
-| Responsibility | `init` | `doctor --fix` | `/lp-enhance` | `eval` | `memory` |
-Shows which tool handles what (scaffolding, detection, AI analysis, testing, persistence) so users understand the pipeline and where each tool fits.
-
 ## [P1] Skill: /lp-health — Session Health Check
 Skill (not CLI command — needs to run inside the session). Reports on current session health:
 - Context window usage (how much is consumed vs remaining)
