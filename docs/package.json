@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "next build",
-    "dev": "next dev",
+    "build": "node scripts/sync-changelog.mjs && next build",
+    "dev": "node scripts/sync-changelog.mjs && next dev",
     "start": "serve out",
     "types:check": "fumadocs-mdx && next typegen && tsc --noEmit",
     "postinstall": "fumadocs-mdx"
