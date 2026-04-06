@@ -24,8 +24,10 @@
 - **Sprint 17**: Memory Sync — v0.11.0, push/pull via private GitHub Gist, multi-file per project, auto-discovery, dedup guard, 294 tests
 - **Sprint 18**: Algorithm Tuning + Ink Dashboard + Skills — v0.12.1, decay/injection/tagging tuning from 3-expert panel, blessed→Ink migration, skill rewrites (Anthropic patterns), dashboard delete, path-scoped rules in /lp-enhance
 
-## Current: No active sprint
+## Completed: Sprint 19 — Memory Placement (v0.15.0)
+Local vs shared config routing for memory setup. 28 files, 296 tests, docs updated.
 
+## Current: No active sprint
 All planned work complete. Future features in BACKLOG.md.
 
 ## Session Log
