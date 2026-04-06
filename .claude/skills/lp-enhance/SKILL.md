@@ -1,4 +1,4 @@
-<!-- lp-enhance-version: 3 -->
+<!-- lp-enhance-version: 4 -->
 ---
 name: lp-enhance
 description: |
@@ -63,7 +63,7 @@ Edit CLAUDE.md with the planned changes. Then:
 1. Run `claude-launchpad doctor` to check the score improved
 2. Print suggested hooks (exact JSON) for .claude/settings.json but don't modify it
 3. Print suggested MCP servers if external services detected (Postgres, Redis, Stripe, etc.)
-4. If eval scenarios were generated, print: "Run `claude-launchpad eval --scenarios scenarios/` to test your rules"
+4. If eval scenarios were generated, print: "Run this in your terminal (not inside Claude Code): `claude-launchpad eval --scenarios scenarios/`"
 
 **Done when:** doctor score is equal or higher, suggestions printed, eval scenarios created if applicable.
 

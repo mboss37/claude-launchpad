@@ -2,7 +2,7 @@
  * Skill schema version. Bump this when the skill content changes.
  * Doctor compares this against installed skills to detect stale versions.
  */
-export const ENHANCE_SKILL_VERSION = 3;
+export const ENHANCE_SKILL_VERSION = 4;
 
 /**
  * Generates the /lp-enhance skill markdown content.
@@ -76,7 +76,7 @@ export function generateEnhanceSkill(): string {
     '1. Run `claude-launchpad doctor` to check the score improved',
     '2. Print suggested hooks (exact JSON) for .claude/settings.json but don\'t modify it',
     '3. Print suggested MCP servers if external services detected (Postgres, Redis, Stripe, etc.)',
-    '4. If eval scenarios were generated, print: "Run `claude-launchpad eval --scenarios scenarios/` to test your rules"',
+    '4. If eval scenarios were generated, print: "Run this in your terminal (not inside Claude Code): `claude-launchpad eval --scenarios scenarios/`"',
     '',
     '**Done when:** doctor score is equal or higher, suggestions printed, eval scenarios created if applicable.',
     '',
