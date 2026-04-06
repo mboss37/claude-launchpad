@@ -6,8 +6,9 @@ import { fileExists } from "../../lib/fs-utils.js";
 import { detectProject } from "../../lib/detect.js";
 import { generateClaudeignore } from "../init/generators/claudeignore.js";
 import { generateEnhanceSkill } from "../init/generators/skill-enhance.js";
-import { readSettingsJson, writeSettingsJson } from "../../lib/settings.js";
-import type { DiagnosticIssue, DetectedProject } from "../../types/index.js";
+import { readSettingsJson, writeSettingsJson, readSettingsLocalJson, writeSettingsLocalJson } from "../../lib/settings.js";
+import { getMemoryPlacement } from "../../lib/memory-placement.js";
+import type { DiagnosticIssue, DetectedProject, MemoryPlacement } from "../../types/index.js";
 
 interface FixResult {
   readonly fixed: number;
@@ -23,11 +24,13 @@ export async function applyFixes(
   projectRoot: string,
 ): Promise<FixResult> {
   const detected = await detectProject(projectRoot);
+  const hasMemoryIssues = issues.some((i) => i.analyzer === "Memory");
+  const placement = hasMemoryIssues ? await getMemoryPlacement(projectRoot) : "shared";
   let fixed = 0;
   let skipped = 0;
 
   for (const issue of issues) {
-    const applied = await tryFix(issue, projectRoot, detected);
+    const applied = await tryFix(issue, projectRoot, detected, placement);
     if (applied) {
       fixed++;
     } else {
@@ -39,7 +42,7 @@ export async function applyFixes(
 }
 
 // Fix lookup table: [analyzer, message substring] → fix function
-type FixFn = (root: string, detected: DetectedProject) => Promise<boolean>;
+type FixFn = (root: string, detected: DetectedProject, placement: MemoryPlacement) => Promise<boolean>;
 
 const FIX_TABLE: ReadonlyArray<{ analyzer: string; match: string; fix: FixFn }> = [
   { analyzer: "Hooks", match: "No hooks configured", fix: async (root, detected) => {
@@ -76,20 +79,25 @@ const FIX_TABLE: ReadonlyArray<{ analyzer: string; match: string; fix: FixFn }> 
   { analyzer: "Settings", match: "Deprecated includeCoAuthoredBy", fix: (root) => migrateAttribution(root) },
   { analyzer: "Hooks", match: "SessionStart", fix: (root) => addSessionStartHook(root) },
   { analyzer: "Memory", match: "Deprecated Stop hook", fix: (root) => removeStaleStopHook(root) },
-  { analyzer: "Memory", match: "autoMemoryEnabled not disabled", fix: (root) => disableAutoMemory(root) },
-  { analyzer: "Memory", match: "MCP tool permission", fix: (root) => addMemoryToolPermissions(root) },
-  { analyzer: "Memory", match: "CLAUDE.md missing memory guidance", fix: (root) => addClaudeMdSection(root, "## Memory", "Use agentic-memory to persist knowledge across sessions:\n- Memories are automatically injected at session start\n- STORE IMMEDIATELY when: a dependency strategy changes, an architecture decision is made, a convention is established, a bug pattern is discovered, or a feature is killed/added\n- Use memory_search before memory_store to check for duplicates\n- NEVER store credentials, API keys, tokens, or secrets in memories") },
+  { analyzer: "Memory", match: "autoMemoryEnabled not disabled", fix: (root, _det, placement) => disableAutoMemory(root, placement) },
+  { analyzer: "Memory", match: "MCP tool permission", fix: (root, _det, placement) => addMemoryToolPermissions(root, placement) },
+  { analyzer: "Memory", match: "CLAUDE.md missing memory guidance", fix: (root, _det, placement) => {
+    const content = "Use agentic-memory to persist knowledge across sessions:\n- Memories are automatically injected at session start\n- STORE IMMEDIATELY when: a dependency strategy changes, an architecture decision is made, a convention is established, a bug pattern is discovered, or a feature is killed/added\n- Use memory_search before memory_store to check for duplicates\n- NEVER store credentials, API keys, tokens, or secrets in memories";
+    const target = placement === "local" ? join(root, ".claude", "CLAUDE.md") : undefined;
+    return addClaudeMdSection(root, "## Memory", content, target);
+  }},
 ];
 
 async function tryFix(
   issue: DiagnosticIssue,
   root: string,
   detected: DetectedProject,
+  placement: MemoryPlacement,
 ): Promise<boolean> {
   const entry = FIX_TABLE.find(
     (e) => e.analyzer === issue.analyzer && issue.message.includes(e.match),
   );
-  return entry ? entry.fix(root, detected) : false;
+  return entry ? entry.fix(root, detected, placement) : false;
 }
 
 // ─── Hook Helper ───
@@ -250,13 +258,16 @@ async function addEnvToClaudeignore(root: string): Promise<boolean> {
   return true;
 }
 
-async function addClaudeMdSection(root: string, heading: string, content: string): Promise<boolean> {
-  const claudeMdPath = join(root, "CLAUDE.md");
+async function addClaudeMdSection(root: string, heading: string, content: string, targetPath?: string): Promise<boolean> {
+  const claudeMdPath = targetPath ?? join(root, "CLAUDE.md");
   let existing: string;
   try {
     existing = await readFile(claudeMdPath, "utf-8");
   } catch {
-    return false; // No CLAUDE.md to add to
+    if (!targetPath) return false; // No root CLAUDE.md to add to
+    // Create local .claude/CLAUDE.md
+    await mkdir(join(root, ".claude"), { recursive: true });
+    existing = "# Local Claude Config\n";
   }
 
   // Don't add if section already exists
@@ -270,7 +281,8 @@ async function addClaudeMdSection(root: string, heading: string, content: string
   const updated = existing.slice(0, insertAt) + section + existing.slice(insertAt);
 
   await writeFile(claudeMdPath, updated);
-  log.success(`Added "${heading}" section to CLAUDE.md`);
+  const label = targetPath ? ".claude/CLAUDE.md" : "CLAUDE.md";
+  log.success(`Added "${heading}" section to ${label}`);
   return true;
 }
 
@@ -334,18 +346,23 @@ async function createStarterRules(root: string): Promise<boolean> {
   return true;
 }
 
-async function disableAutoMemory(root: string): Promise<boolean> {
-  const settings = await readSettingsJson(root);
+async function disableAutoMemory(root: string, placement: MemoryPlacement): Promise<boolean> {
+  const read = placement === "local" ? readSettingsLocalJson : readSettingsJson;
+  const write = placement === "local" ? writeSettingsLocalJson : writeSettingsJson;
+  const settings = await read(root);
   if (settings.autoMemoryEnabled === false) return false;
 
   (settings as Record<string, unknown>).autoMemoryEnabled = false;
-  await writeSettingsJson(root, settings);
-  log.success("Set autoMemoryEnabled: false (prevents conflict with agentic-memory)");
+  await write(root, settings);
+  const target = placement === "local" ? "settings.local.json" : "settings.json";
+  log.success(`Set autoMemoryEnabled: false in ${target}`);
   return true;
 }
 
-async function addMemoryToolPermissions(root: string): Promise<boolean> {
-  const settings = await readSettingsJson(root);
+async function addMemoryToolPermissions(root: string, placement: MemoryPlacement): Promise<boolean> {
+  const read = placement === "local" ? readSettingsLocalJson : readSettingsJson;
+  const write = placement === "local" ? writeSettingsLocalJson : writeSettingsJson;
+  const settings = await read(root);
   const permissions = (settings.permissions ?? {}) as Record<string, unknown>;
   const allow = (permissions.allow as string[] | undefined) ?? [];
 
@@ -363,8 +380,9 @@ async function addMemoryToolPermissions(root: string): Promise<boolean> {
   if (missing.length === 0) return false;
 
   (settings as Record<string, unknown>).permissions = { ...permissions, allow: [...allow, ...missing] };
-  await writeSettingsJson(root, settings);
-  log.success("Added agentic-memory MCP tool permissions to allowedTools");
+  await write(root, settings);
+  const target = placement === "local" ? "settings.local.json" : "settings.json";
+  log.success(`Added agentic-memory MCP tool permissions to ${target}`);
   return true;
 }
 

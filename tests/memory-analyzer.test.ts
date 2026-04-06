@@ -4,9 +4,11 @@ import type { ClaudeConfig, HookConfig, McpServerConfig } from "../src/types/ind
 
 function makeConfig(overrides: {
   settings?: Record<string, unknown> | null;
+  localSettings?: Record<string, unknown> | null;
   hooks?: ReadonlyArray<HookConfig>;
   mcpServers?: ReadonlyArray<McpServerConfig>;
   claudeMdContent?: string | null;
+  localClaudeMdContent?: string | null;
 } = {}): ClaudeConfig {
   return {
     claudeMdPath: "/test/CLAUDE.md",
@@ -14,6 +16,8 @@ function makeConfig(overrides: {
     claudeMdInstructionCount: 10,
     settingsPath: "/test/.claude/settings.json",
     settings: overrides.settings ?? {},
+    localClaudeMdContent: overrides.localClaudeMdContent ?? null,
+    localSettings: overrides.localSettings ?? null,
     hooks: overrides.hooks ?? [],
     rules: [],
     mcpServers: overrides.mcpServers ?? [],
@@ -64,16 +68,9 @@ describe("analyzeMemory", () => {
     expect(result!.name).toBe("Memory");
   });
 
-  it("detects memory via hook command", async () => {
+  it("returns null when only hook references memory but no MCP server", async () => {
     const result = await analyzeMemory(makeConfig({ hooks: [sessionStartHook] }));
-    expect(result).not.toBeNull();
-  });
-
-  it("does not flag MCP server (registered globally, not in project settings)", async () => {
-    const result = await analyzeMemory(makeConfig({ hooks: [sessionStartHook] }));
-    expect(result!.issues.some(
-      (i) => i.message.includes("MCP server not found"),
-    )).toBe(false);
+    expect(result).toBeNull();
   });
 
   it("flags missing SessionStart hook as high severity", async () => {
@@ -162,6 +159,54 @@ describe("analyzeMemory", () => {
     }));
     expect(result!.score).toBe(100);
     expect(result!.issues).toHaveLength(0);
+  });
+
+  // ─── Local config detection ───
+
+  it("does not flag autoMemoryEnabled when set in local settings", async () => {
+    const result = await analyzeMemory(makeConfig({
+      mcpServers: [memoryServer],
+      settings: {},
+      localSettings: { autoMemoryEnabled: false },
+    }));
+    expect(result!.issues.some(
+      (i) => i.message.includes("autoMemoryEnabled"),
+    )).toBe(false);
+  });
+
+  it("does not flag memory guidance when in local CLAUDE.md", async () => {
+    const result = await analyzeMemory(makeConfig({
+      mcpServers: [memoryServer],
+      claudeMdContent: "# Test project",
+      localClaudeMdContent: "## Memory\nUse agentic-memory",
+    }));
+    expect(result!.issues.some(
+      (i) => i.message.includes("memory guidance"),
+    )).toBe(false);
+  });
+
+  it("does not flag tool permissions when in local settings", async () => {
+    const result = await analyzeMemory(makeConfig({
+      mcpServers: [memoryServer],
+      settings: { permissions: { allow: [] } },
+      localSettings: { permissions: { allow: ALL_TOOLS } },
+    }));
+    expect(result!.issues.some(
+      (i) => i.message.includes("tool permission"),
+    )).toBe(false);
+  });
+
+  it("merges tool permissions from both settings files", async () => {
+    const half1 = ALL_TOOLS.slice(0, 4);
+    const half2 = ALL_TOOLS.slice(4);
+    const result = await analyzeMemory(makeConfig({
+      mcpServers: [memoryServer],
+      settings: { permissions: { allow: half1 } },
+      localSettings: { permissions: { allow: half2 } },
+    }));
+    expect(result!.issues.some(
+      (i) => i.message.includes("tool permission"),
+    )).toBe(false);
   });
 
   it("calculates score correctly with mixed severities", async () => {

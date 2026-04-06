@@ -201,6 +201,13 @@ claude-launchpad memory
 
 If memory is not installed, it runs interactive setup. If installed, it shows stats. Requires native deps first: `npm install better-sqlite3 sqlite-vec`.
 
+During setup, you choose where memory config lives:
+
+- **Shared** (default) — config goes to `CLAUDE.md` + `settings.json` (committed, team sees it)
+- **Local** — config goes to `.claude/CLAUDE.md` + `settings.local.json` (gitignored, only you)
+
+Use "local" when co-devs have different memory setups (e.g. you use agentic-memory, they use built-in). Your choice is persisted so `doctor --fix` won't re-ask.
+
 Every session, Claude loads what it needs to know and stores new knowledge as it works. Stale facts fade on their own. Knowledge Claude actually uses gets reinforced. Each project has its own isolated memory, and you can sync it across machines via private GitHub Gist.
 
 Browse everything with `--dashboard` -- a terminal UI with vim navigation, filtering, and search.

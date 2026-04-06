@@ -16,3 +16,19 @@ export async function writeSettingsJson(root: string, settings: Record<string, u
   await mkdir(dir, { recursive: true });
   await writeFile(join(dir, "settings.json"), JSON.stringify(settings, null, 2) + "\n");
 }
+
+export async function readSettingsLocalJson(root: string): Promise<Record<string, unknown>> {
+  const path = join(root, ".claude", "settings.local.json");
+  try {
+    const content = await readFile(path, "utf-8");
+    return JSON.parse(content) as Record<string, unknown>;
+  } catch {
+    return {};
+  }
+}
+
+export async function writeSettingsLocalJson(root: string, settings: Record<string, unknown>): Promise<void> {
+  const dir = join(root, ".claude");
+  await mkdir(dir, { recursive: true });
+  await writeFile(join(dir, "settings.local.json"), JSON.stringify(settings, null, 2) + "\n");
+}

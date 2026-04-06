@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.15.0] — 2026-04-06
+
+### Added
+- Memory placement prompt: choose shared (CLAUDE.md + settings.json) or local (.claude/CLAUDE.md + settings.local.json) when setting up memory
+- Local placement keeps memory config gitignored — co-devs never see it
+- `doctor --fix` and `memory install` respect placement choice for all memory-related writes
+- Quality and memory analyzers check both shared and local files
+- `.claude/.gitignore` now includes `CLAUDE.md` for local config support
+- Doctor and analyzers now read `.claude/CLAUDE.md` and `settings.local.json`
+- `isMemoryInstalled()` checks both settings files for memory hooks
+
+### Fixed
+- `doctor --fix` injected memory guidance into CLAUDE.md on projects without agentic-memory installed — now only triggers when the MCP server is configured in project settings
+- Skills (lp-migrate-memory) no longer installed when using local placement
+
 ## [0.14.2] — 2026-04-06
 
 ### Fixed

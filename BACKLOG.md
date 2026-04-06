@@ -14,6 +14,13 @@ Maximal Marginal Relevance for injection. Prevents injecting 5 memories on the s
 ## [P2] Memory: Exploration Slots
 Reserve 1/8 injection slots for random discovery. Memories that get searched after injection rise in rank; ones that don't fade out. Multi-armed bandit without ML training. Matters at 100+ memories.
 
+## [P2] Refactor: Immutability Violations in Fixer and Install
+Pre-existing mutation patterns in `src/commands/doctor/fixer.ts` and `src/commands/memory/subcommands/install.ts`:
+- `fixer.ts:438` — `delete hooks.Stop` mutates directly, should create new object without key
+- `fixer.ts:122` — `hookList.push(entry)` mutates array before spread
+- `install.ts:96,102,128,150` — direct assignment to settings/hooks objects (`settings['autoMemoryEnabled'] = false`, `allowList.push(tool)`)
+All violate the immutability convention. Low risk (works fine), but should be cleaned up to match project standards.
+
 ## [P1] Docs: Command Responsibility Matrix
 Add a matrix table to docs showing every command and skill with what it does:
 | Responsibility | `init` | `doctor --fix` | `/lp-enhance` | `eval` | `memory` |

@@ -111,6 +111,7 @@ async function scaffold(root: string, options: InitOptions, detected: DetectedPr
   if (!hasClaudeGitignore) {
     writes.push(writeFile(claudeGitignorePath, [
       "# Local-only Claude Code files (never commit these)",
+      "CLAUDE.md",
       "settings.local.json",
       "plans/",
       "memory/",

@@ -44,9 +44,10 @@ export async function analyzeQuality(config: ClaudeConfig): Promise<AnalyzerResu
   const sections = hasMemoryIndicators(config)
     ? [...BASE_SECTIONS, MEMORY_SECTION]
     : [...BASE_SECTIONS];
+  const combinedContent = [content, config.localClaudeMdContent].filter(Boolean).join("\n");
   let sectionsFound = 0;
   for (const section of sections) {
-    if (section.pattern.test(content)) {
+    if (section.pattern.test(combinedContent)) {
       sectionsFound++;
     } else {
       issues.push({

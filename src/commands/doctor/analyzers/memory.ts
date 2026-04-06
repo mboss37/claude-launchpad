@@ -11,11 +11,7 @@ const MEMORY_MCP_TOOLS = [
 ] as const;
 
 export function hasMemoryIndicators(config: ClaudeConfig): boolean {
-  const hasMcpServer = config.mcpServers.some((s) => s.name === "agentic-memory");
-  const hasHookRef = config.hooks.some(
-    (h) => h.command?.includes("memory context"),
-  );
-  return hasMcpServer || hasHookRef;
+  return config.mcpServers.some((s) => s.name === "agentic-memory");
 }
 
 /**
@@ -54,19 +50,22 @@ export async function analyzeMemory(config: ClaudeConfig): Promise<AnalyzerResul
   }
 
   // 3. autoMemoryEnabled should be false (built-in memory conflicts with agentic-memory)
-  const autoMemoryDisabled = config.settings?.autoMemoryEnabled === false;
+  const autoMemoryDisabled = config.settings?.autoMemoryEnabled === false
+    || config.localSettings?.autoMemoryEnabled === false;
   if (!autoMemoryDisabled) {
     issues.push({
       analyzer: "Memory",
       severity: "medium",
       message: "autoMemoryEnabled not disabled — built-in memory may conflict with agentic-memory",
-      fix: "Set autoMemoryEnabled: false in .claude/settings.json",
+      fix: "Set autoMemoryEnabled: false in settings.json or settings.local.json",
     });
   }
 
-  // 5. CLAUDE.md memory guidance
+  // 5. CLAUDE.md memory guidance (check both shared and local)
   const hasMemoryGuidance = config.claudeMdContent?.includes("agentic-memory")
-    || config.claudeMdContent?.includes("## Memory");
+    || config.claudeMdContent?.includes("## Memory")
+    || config.localClaudeMdContent?.includes("agentic-memory")
+    || config.localClaudeMdContent?.includes("## Memory");
   if (!hasMemoryGuidance) {
     issues.push({
       analyzer: "Memory",
@@ -76,9 +75,13 @@ export async function analyzeMemory(config: ClaudeConfig): Promise<AnalyzerResul
     });
   }
 
-  // 6. MCP tool permissions
+  // 6. MCP tool permissions (check both shared and local settings)
   const permissions = (config.settings?.permissions as Record<string, unknown> | undefined) ?? {};
-  const allowList = (permissions.allow as string[] | undefined) ?? [];
+  const localPermissions = (config.localSettings?.permissions as Record<string, unknown> | undefined) ?? {};
+  const allowList = [
+    ...((permissions.allow as string[] | undefined) ?? []),
+    ...((localPermissions.allow as string[] | undefined) ?? []),
+  ];
   const missingTools = MEMORY_MCP_TOOLS.filter((t) => !allowList.includes(t));
   if (missingTools.length > 0) {
     issues.push({

@@ -41,3 +41,7 @@ All planned work complete. Future features in BACKLOG.md.
 - Fix: memory retrieval truncation (500 char slice), store Zod max removal, MCP server version from package.json.
 - Feat: /lp-enhance eval scenario gen + .claudeignore review + skill auto-update via doctor --fix. Karpathy-inspired copy rewrite. SEO pass.
 - Published v0.12.2, v0.13.0, v0.13.1, v0.14.0.
+### 2026-04-06 (session 25-26)
+- Fix: doctor --fix injected memory guidance into CLAUDE.md on non-memory projects (v0.14.3).
+- Feat: Memory placement — interactive local vs shared config routing. Parser reads both files, analyzers check both, fixer routes writes based on placement.
+- Published v0.14.3, v0.15.0.
