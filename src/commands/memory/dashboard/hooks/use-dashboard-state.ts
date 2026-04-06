@@ -27,6 +27,7 @@ export function useDashboardState(dataSource: DashboardDataSource) {
 
   useEffect(() => {
     dataSource.refresh();
+    setRevision((r) => r + 1);
     dataSource.startWatching(() => {
       dataSource.refresh();
       setRevision((r) => r + 1);
