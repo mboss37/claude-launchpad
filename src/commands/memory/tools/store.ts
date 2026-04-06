@@ -9,6 +9,7 @@ import { checkContradiction } from '../utils/contradiction.js';
 
 // In-memory dedup: content hash → timestamp. Catches parallel calls within same request.
 const recentStores = new Map<string, number>();
+const pendingStores = new Set<string>();
 const DEDUP_WINDOW_MS = 10_000;
 
 // Tag normalization: lowercase, strip #, singularize common suffixes, apply aliases
@@ -89,16 +90,22 @@ export function registerStore(server: McpServer, deps: ToolDeps): void {
       const context = args.context ?? JSON.stringify(getGitContext());
       const project = args.project ?? deps.project ?? undefined;
 
-      // Dedup: in-memory guard catches parallel calls within same request
+      // Dedup: in-memory guard catches parallel calls within same request.
+      // Uses a pending Set to catch calls that arrive in the same tick.
       const contentHash = createHash('sha256').update(args.content).digest('hex');
       const now = Date.now();
       const lastStored = recentStores.get(contentHash);
       if (lastStored && (now - lastStored) < DEDUP_WINDOW_MS) {
         return {
-          content: [{ type: 'text' as const, text: 'Duplicate: identical memory was just stored. Skipped.' }],
+          content: [{ type: 'text' as const, text: 'Skipped: identical memory already exists (stored moments ago).' }],
         };
       }
-      recentStores.set(contentHash, now);
+      if (pendingStores.has(contentHash)) {
+        return {
+          content: [{ type: 'text' as const, text: 'Skipped: identical memory is being stored by another call.' }],
+        };
+      }
+      pendingStores.add(contentHash);
       // Prune old entries
       for (const [key, ts] of recentStores) {
         if (now - ts > DEDUP_WINDOW_MS) recentStores.delete(key);
@@ -140,6 +147,10 @@ export function registerStore(server: McpServer, deps: ToolDeps): void {
         },
         null,
       );
+
+      // Mark as stored (dedup window starts now)
+      recentStores.set(contentHash, Date.now());
+      pendingStores.delete(contentHash);
 
       // Create contradiction relations
       for (const c of contradictions) {
