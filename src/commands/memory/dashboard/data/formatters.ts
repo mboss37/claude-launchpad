@@ -87,7 +87,7 @@ export function computeLifespan(memory: Memory): LifespanInfo {
 
   const ageDays = Math.max(
     0,
-    (Date.now() - new Date(memory.updatedAt).getTime()) / DAY,
+    (Date.now() - new Date(memory.createdAt).getTime()) / DAY,
   );
   const remaining = Math.max(0, Math.min(1, 1 - ageDays / (tauDays * 2)));
   const status: LifespanStatus =

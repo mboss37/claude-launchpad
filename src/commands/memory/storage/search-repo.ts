@@ -128,18 +128,38 @@ interface FtsRow {
   rank: number;
 }
 
+// Synonym expansion for common dev terms
+const SYNONYMS: Record<string, readonly string[]> = {
+  auth: ['authentication', 'login', 'oauth', 'jwt'],
+  authentication: ['auth', 'login', 'oauth'],
+  login: ['auth', 'authentication', 'signin'],
+  db: ['database', 'sql', 'sqlite', 'postgres'],
+  database: ['db', 'sql', 'sqlite', 'postgres'],
+  api: ['endpoint', 'route', 'rest', 'graphql'],
+  deploy: ['deployment', 'release', 'ship', 'publish'],
+  test: ['testing', 'spec', 'jest', 'vitest'],
+  config: ['configuration', 'settings', 'setup'],
+  err: ['error', 'exception', 'crash', 'bug'],
+  error: ['err', 'exception', 'crash', 'bug'],
+};
+
 /**
  * Convert a natural language query to FTS5 query syntax.
- * Wraps each word in quotes to avoid syntax errors from special characters.
+ * Expands synonyms and wraps words in quotes for safe matching.
  */
 function toFtsQuery(input: string): string | null {
   const words = input
-    .replace(/[^\w\s]/g, ' ')  // strip punctuation
+    .replace(/[^\w\s]/g, ' ')
     .split(/\s+/)
     .filter(w => w.length > 0);
 
   if (words.length === 0) return null;
 
-  // Use OR between words for broader recall
-  return words.map(w => `"${w}"`).join(' OR ');
+  const expanded = words.flatMap((w) => {
+    const lower = w.toLowerCase();
+    const syns = SYNONYMS[lower];
+    return syns ? [w, ...syns] : [w];
+  });
+
+  return [...new Set(expanded)].map(w => `"${w}"`).join(' OR ');
 }

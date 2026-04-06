@@ -11,6 +11,44 @@ import { checkContradiction } from '../utils/contradiction.js';
 const recentStores = new Map<string, number>();
 const DEDUP_WINDOW_MS = 10_000;
 
+// Tag normalization: lowercase, strip #, singularize common suffixes, apply aliases
+const TAG_ALIASES: Record<string, string> = {
+  bugs: 'bug', bugfix: 'bug', debugging: 'bug',
+  decisions: 'decision', decided: 'decision',
+  gotchas: 'gotcha', pitfall: 'gotcha', pitfalls: 'gotcha',
+  howtos: 'howto', 'how-to': 'howto',
+  patterns: 'pattern',
+  todos: 'todo', fixme: 'todo',
+  architectures: 'architecture', arch: 'architecture',
+};
+
+function normalizeTags(tags: readonly string[]): string[] {
+  return [...new Set(tags.map((t) => {
+    const stripped = t.replace(/^#/, '').toLowerCase().trim();
+    return TAG_ALIASES[stripped] ?? stripped;
+  }).filter(Boolean))];
+}
+
+// Auto-tag: detect common patterns in content
+const AUTO_TAG_PATTERNS: readonly { readonly pattern: RegExp; readonly tag: string }[] = [
+  { pattern: /\b(bug|crash|error|fix(ed)?|broke)\b/i, tag: 'bug' },
+  { pattern: /\b(decid|chose|decision|went with|picked)\b/i, tag: 'decision' },
+  { pattern: /\b(gotcha|careful|watch out|trap|pitfall)\b/i, tag: 'gotcha' },
+  { pattern: /\b(how to|steps to|run|install|deploy|command)\b/i, tag: 'howto' },
+  { pattern: /\b(pattern|recurring|always|every time)\b/i, tag: 'pattern' },
+];
+
+function autoTag(content: string, existingTags: readonly string[]): string[] {
+  const existing = new Set(existingTags);
+  const detected: string[] = [];
+  for (const { pattern, tag } of AUTO_TAG_PATTERNS) {
+    if (!existing.has(tag) && pattern.test(content)) {
+      detected.push(tag);
+    }
+  }
+  return detected;
+}
+
 const inputSchema = {
   type: z.enum(MEMORY_TYPES).describe('Memory type: working, episodic, semantic, procedural, or pattern'),
   content: z.string().min(1).max(2000).describe('The memory content (max 2000 chars / ~500 tokens). Keep memories concise: capture the decision or insight, not the full context. Split large topics into separate memories.'),
@@ -84,12 +122,17 @@ export function registerStore(server: McpServer, deps: ToolDeps): void {
         // Contradiction check is best-effort
       }
 
+      // Normalize tags + auto-tag from content
+      const normalizedTags = normalizeTags(args.tags);
+      const autoTags = autoTag(args.content, normalizedTags);
+      const finalTags = [...new Set([...normalizedTags, ...autoTags])];
+
       const memory = deps.memoryRepo.create(
         {
           type: args.type,
           content: args.content,
           title: args.title,
-          tags: args.tags,
+          tags: finalTags,
           importance: args.importance,
           context,
           source: args.source,

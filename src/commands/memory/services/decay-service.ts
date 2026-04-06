@@ -103,20 +103,24 @@ export class DecayService {
     // Synaptic consolidation window (days 0-7)
     if (ageDays <= 7) {
       if (memory.type === 'episodic') {
-        const ebbinghaus = Math.exp(-ageDays * 0.4);
-        return Math.max(this.#params.importanceFloor, memory.importance * ebbinghaus);
+        // Ebbinghaus curve: steep initial drop with residual floor
+        const ebbinghaus = Math.exp(-ageDays * 0.7) + 0.2;
+        return Math.max(this.#params.importanceFloor, memory.importance * Math.min(1, ebbinghaus));
       }
       return memory.importance;
     }
 
-    // Access modifier: higher access count = larger tau = slower decay
+    // Access modifier: logarithmic curve (spacing effect)
     const accessModifier = this.getAccessModifier(memory.accessCount);
 
-    // Relation modifier: connected memories decay slower
+    // Relation modifier: connected memories decay slower, highly connected near-immune
     const relationCount = this.#relationRepo.countByMemory(memory.id);
-    const relationModifier = relationCount >= this.#params.relationModifier.connectedThreshold
-      ? this.#params.relationModifier.connectedMultiplier
-      : this.#params.relationModifier.isolatedMultiplier;
+    const rm = this.#params.relationModifier;
+    const relationModifier = relationCount >= rm.highlyConnectedThreshold
+      ? rm.highlyConnectedMultiplier
+      : relationCount >= rm.connectedThreshold
+        ? rm.connectedMultiplier
+        : rm.isolatedMultiplier;
 
     let effectiveTau = tau * accessModifier * relationModifier;
 
@@ -132,9 +136,8 @@ export class DecayService {
   }
 
   private getAccessModifier(accessCount: number): number {
-    for (const tier of this.#params.accessModifiers) {
-      if (accessCount <= tier.maxCount) return tier.multiplier;
-    }
-    return 1.0;
+    // Logarithmic curve: 1 + log2(1 + count). Smoother than step function.
+    // At 0: 1.0, at 3: 2.0, at 10: 3.5, at 30: 5.0
+    return 1 + Math.log2(1 + accessCount);
   }
 }

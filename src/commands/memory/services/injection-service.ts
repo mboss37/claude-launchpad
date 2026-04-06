@@ -8,7 +8,10 @@ import {
   RECENCY_HALF_LIFE,
   INJECTION_MIN_SCORE,
   INJECTION_COLD_START_THRESHOLD,
+  INJECTION_COLD_START_RAMP_END,
   INJECTION_HEADER_TOKENS,
+  INJECTION_MAX_SAME_TYPE_FULL,
+  INJECTION_PINNED_BUDGET_PCT,
 } from "../config.js";
 import { computeContextScore, type GitContext } from "../utils/git-context.js";
 
@@ -58,10 +61,12 @@ export class InjectionService {
       return { memories: [], tokensUsed: 0, tokenBudget, totalCount };
     }
 
-    // Cold start: inject all if few memories
+    // Cold start: smooth ramp from 0.10 to INJECTION_MIN_SCORE
     const minScore = candidates.length <= INJECTION_COLD_START_THRESHOLD
       ? 0.10
-      : INJECTION_MIN_SCORE;
+      : candidates.length <= INJECTION_COLD_START_RAMP_END
+        ? 0.10 + (INJECTION_MIN_SCORE - 0.10) * (candidates.length - INJECTION_COLD_START_THRESHOLD) / (INJECTION_COLD_START_RAMP_END - INJECTION_COLD_START_THRESHOLD)
+        : INJECTION_MIN_SCORE;
 
     // Score all candidates
     const scored = candidates
@@ -101,8 +106,8 @@ export class InjectionService {
     if (summary.length > 0) {
       lines.push("## Related Memories");
       for (const { memory: m } of summary) {
-        const snippet = m.content.slice(0, 150);
-        const ellipsis = m.content.length > 150 ? "..." : "";
+        const snippet = m.content.slice(0, 350);
+        const ellipsis = m.content.length > 350 ? "..." : "";
         lines.push(`- **${m.title ?? "(untitled)"}** [${m.type}]: ${snippet}${ellipsis}`);
       }
       lines.push("");
@@ -121,12 +126,25 @@ export class InjectionService {
   // ── Scoring ────────────────────────────────────────────────
 
   #scoreMemory(memory: Memory): number {
-    const ctx = this.#contextRelevance(memory);
+    const hasGit = !!this.#deps.gitContext;
+    const ctx = hasGit ? this.#contextRelevance(memory) : 0;
     const val = this.#valueSignal(memory);
     const imp = memory.importance;
     const rec = this.#recencyScore(memory);
     const typ = TYPE_INJECTION_BONUS[memory.type] ?? 0.5;
     const noise = this.#noisePenalty(memory);
+    const branch = this.#branchHeuristic(memory);
+
+    // Redistribute context weight when git is unavailable
+    if (!hasGit) {
+      return (
+        val * (W.value + W.context * 0.4) +
+        imp * (W.importance + W.context * 0.3) +
+        rec * (W.recency + W.context * 0.3) +
+        typ * W.typeBonus +
+        noise * W.noise
+      );
+    }
 
     return (
       ctx * W.context +
@@ -134,13 +152,26 @@ export class InjectionService {
       imp * W.importance +
       rec * W.recency +
       typ * W.typeBonus +
-      noise * W.noise
+      noise * W.noise +
+      branch * 0.05
     );
   }
 
   #contextRelevance(memory: Memory): number {
     if (!this.#deps.gitContext) return 0;
     return computeContextScore(memory.context, this.#deps.gitContext, "");
+  }
+
+  #branchHeuristic(memory: Memory): number {
+    if (!this.#deps.gitContext?.branch) return 0;
+    const branch = this.#deps.gitContext.branch.toLowerCase();
+    if (branch.startsWith('fix/') || branch.startsWith('bugfix/')) {
+      return memory.type === 'pattern' ? 1.0 : memory.type === 'episodic' ? 0.5 : 0;
+    }
+    if (branch.startsWith('feat/') || branch.startsWith('feature/')) {
+      return memory.type === 'procedural' ? 1.0 : memory.type === 'semantic' ? 0.5 : 0;
+    }
+    return 0;
   }
 
   #valueSignal(memory: Memory): number {
@@ -182,15 +213,46 @@ export class InjectionService {
     const selected: ScoredMemory[] = [];
     let tokensUsed = INJECTION_HEADER_TOKENS;
 
-    for (const { memory, score } of scored) {
+    // Reserve budget for pinned (high-importance) memories
+    const pinnedBudget = Math.floor(tokenBudget * INJECTION_PINNED_BUDGET_PCT);
+    const pinned = scored.filter(({ memory }) => memory.importance >= 0.8);
+    const nonPinned = scored.filter(({ memory }) => memory.importance < 0.8);
+
+    // Inject pinned first (guaranteed slots)
+    for (const { memory, score } of pinned) {
       if (tokensUsed >= tokenBudget) break;
+      const cost = this.#estimateTierTokens(memory, "full");
+      if (tokensUsed + cost <= INJECTION_HEADER_TOKENS + pinnedBudget) {
+        selected.push({ memory, score, tier: "full", tokenCost: cost });
+        tokensUsed += cost;
+      }
+    }
 
-      const tier = this.#assignTier(score, selected.length, available - (tokensUsed - INJECTION_HEADER_TOKENS));
+    // Type diversity tracking for full tier
+    const fullTypeCount = new Map<string, number>();
+    for (const s of selected) {
+      if (s.tier === 'full') {
+        fullTypeCount.set(s.memory.type, (fullTypeCount.get(s.memory.type) ?? 0) + 1);
+      }
+    }
+
+    // Pack remaining by score
+    for (const { memory, score } of nonPinned) {
+      if (tokensUsed >= tokenBudget) break;
+      if (selected.some((s) => s.memory.id === memory.id)) continue;
+
+      let tier = this.#assignTier(score, selected.length, available - (tokensUsed - INJECTION_HEADER_TOKENS));
+
+      // Type diversity: cap same type in full tier
+      if (tier === 'full' && (fullTypeCount.get(memory.type) ?? 0) >= INJECTION_MAX_SAME_TYPE_FULL) {
+        tier = 'summary';
+      }
+
       const cost = this.#estimateTierTokens(memory, tier);
-
       if (tokensUsed + cost <= tokenBudget) {
         selected.push({ memory, score, tier, tokenCost: cost });
         tokensUsed += cost;
+        if (tier === 'full') fullTypeCount.set(memory.type, (fullTypeCount.get(memory.type) ?? 0) + 1);
         continue;
       }
 
@@ -225,7 +287,7 @@ export class InjectionService {
       case "full":
         return estimateTokens(memory.content.slice(0, 500)) + estimateTokens(meta) + 10;
       case "summary":
-        return estimateTokens(memory.content.slice(0, 150)) + estimateTokens(meta) + 8;
+        return estimateTokens(memory.content.slice(0, 350)) + estimateTokens(meta) + 8;
       case "index":
         return estimateTokens(`${memory.id.slice(0, 8)} [${memory.type}] ${memory.title ?? "(untitled)"}`) + 4;
     }

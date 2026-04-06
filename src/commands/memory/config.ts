@@ -8,7 +8,7 @@ import type { DecayParams } from './types.js';
 
 const ConfigSchema = z.object({
   dataDir: z.string().default('~/.agentic-memory'),
-  injectionBudget: z.number().int().min(100).max(20000).default(2000),
+  injectionBudget: z.number().int().min(100).max(20000).default(3000),
   consolidationInterval: z.number().int().min(1).default(10),
   enableReranker: z.boolean().default(true),
   logLevel: z.enum(['debug', 'info', 'warn', 'error']).default('warn'),
@@ -20,7 +20,7 @@ export type Config = z.infer<typeof ConfigSchema>;
 
 export const DEFAULT_CONFIG: Config = {
   dataDir: '~/.agentic-memory',
-  injectionBudget: 2000,
+  injectionBudget: 3000,
   consolidationInterval: 10,
   enableReranker: true,
   logLevel: 'warn',
@@ -29,8 +29,8 @@ export const DEFAULT_CONFIG: Config = {
 export const DEFAULT_DECAY_PARAMS: DecayParams = {
   tauByType: {
     working: 0,       // cleared each session, tau irrelevant
-    episodic: 60,     // fast decay
-    semantic: 365,    // slow decay
+    episodic: 30,     // fast decay (was 60, cognitive science: unrehearsed episodes fade in ~30d)
+    semantic: 540,    // slow decay (was 365, extracted facts are stable for years)
     procedural: 730,  // near-permanent
     pattern: 180,     // medium decay
   },
@@ -41,8 +41,10 @@ export const DEFAULT_DECAY_PARAMS: DecayParams = {
   ],
   relationModifier: {
     connectedThreshold: 3,
-    connectedMultiplier: 0.7,
+    connectedMultiplier: 0.5,  // was 0.7, richly connected memories decay much slower
     isolatedMultiplier: 1.3,
+    highlyConnectedThreshold: 6,
+    highlyConnectedMultiplier: 0.35,
   },
   importanceFloor: 0.05,
   pruneThreshold: 0.1,
@@ -86,7 +88,10 @@ export const RECENCY_HALF_LIFE: Record<string, number> = {
 
 export const INJECTION_MIN_SCORE = 0.25;
 export const INJECTION_COLD_START_THRESHOLD = 5;
+export const INJECTION_COLD_START_RAMP_END = 20;
 export const INJECTION_HEADER_TOKENS = 50;
+export const INJECTION_MAX_SAME_TYPE_FULL = 2;
+export const INJECTION_PINNED_BUDGET_PCT = 0.10;
 
 // ── Config Loader ─────────────────────────────────────────────
 

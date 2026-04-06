@@ -68,7 +68,13 @@ export interface ScoredCandidate {
 export interface DecayParams {
   readonly tauByType: Record<MemoryType, number>;
   readonly accessModifiers: readonly { readonly maxCount: number; readonly multiplier: number }[];
-  readonly relationModifier: { readonly connectedThreshold: number; readonly connectedMultiplier: number; readonly isolatedMultiplier: number };
+  readonly relationModifier: {
+    readonly connectedThreshold: number;
+    readonly connectedMultiplier: number;
+    readonly isolatedMultiplier: number;
+    readonly highlyConnectedThreshold: number;
+    readonly highlyConnectedMultiplier: number;
+  };
   readonly importanceFloor: number;
   readonly pruneThreshold: number;
   readonly pruneMinAgeDays: number;
