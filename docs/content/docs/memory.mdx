@@ -59,14 +59,14 @@ Each memory has a type that controls how long it stays relevant. Short-lived eve
 | Type | Half-life | What it stores |
 |---|---|---|
 | **working** | Session only | Scratch notes, cleared each session |
-| **episodic** | 60 days | Specific events - bugs fixed, decisions made |
-| **semantic** | 1 year | Facts - architecture, API contracts, conventions |
+| **episodic** | 30 days | Specific events - bugs fixed, decisions made |
+| **semantic** | 18 months | Facts - architecture, API contracts, conventions |
 | **procedural** | 2 years | How-to knowledge - build, deploy, commands |
 | **pattern** | 6 months | Recurring issues, common solutions |
 
 ### Session injection
 
-At session start, the SessionStart hook decides which memories Claude actually needs. It scores every candidate memory across six signals, assigns a presentation tier, and packs them into a token budget (default 2000 tokens). High-value memories get full content; lower-value ones get summaries or just titles.
+At session start, the SessionStart hook decides which memories Claude actually needs. It scores every candidate memory across six signals, assigns a presentation tier, and packs them into a token budget (default 3000 tokens). High-value memories get full content; lower-value ones get summaries or just titles.
 
 | Tier | What Claude sees | When used |
 |---|---|---|

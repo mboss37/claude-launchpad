@@ -204,7 +204,7 @@ If memory is not installed, it runs interactive setup. If installed, it shows st
 **What it does:**
 - **Smart session injection** loads the most relevant memories at session start
 - **Stop hook** extracts facts from the conversation when you finish
-- **Decay model** fades memories naturally (episodic: 60 days, semantic: 1 year, procedural: 2 years)
+- **Decay model** fades memories naturally (episodic: 30 days, semantic: 18 months, procedural: 2 years)
 - **Self-tuning retrieval** promotes memories Claude searches for, demotes ones injected but never used
 - **Project-scoped** with no cross-contamination between projects
 - **TUI dashboard** (`--dashboard`) with vim navigation, filtering, and search
