@@ -1,7 +1,7 @@
 {
   "name": "claude-launchpad",
   "version": "0.13.0",
-  "description": "CLI toolkit that makes Claude Code setups measurably good - scaffold, diagnose, evaluate, remember",
+  "description": "CLI toolkit for Claude Code — scaffold CLAUDE.md, diagnose config, enforce hooks, test with eval, add persistent memory",
   "type": "module",
   "bin": {
     "claude-launchpad": "./dist/cli.js"
@@ -23,20 +23,33 @@
   "keywords": [
     "claude",
     "claude-code",
+    "anthropic",
     "ai",
+    "llm",
+    "ai-tools",
     "developer-tools",
     "cli",
     "config",
+    "linter",
+    "scaffold",
+    "hooks",
+    "eval",
     "diagnostics",
     "memory",
     "persistent-memory",
-    "mcp"
+    "mcp",
+    "model-context-protocol",
+    "agentic",
+    "code-quality"
   ],
   "author": "mboss37",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/mboss37/claude-launchpad.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mboss37/claude-launchpad/issues"
   },
   "homepage": "https://mboss37.github.io/claude-launchpad/",
   "files": [
