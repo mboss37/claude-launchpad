@@ -1,43 +1,52 @@
 ---
 name: lp-migrate-memory
-description: Migrate legacy Claude Code auto-memory files (~/.claude/projects/*/memory/*.md) into agentic-memory. Use when setting up agentic-memory on a project that already has built-in memories.
+description: |
+  Migrate legacy Claude Code auto-memory files into agentic-memory.
+  TRIGGER when: user asks to migrate memories, port old memories, or has just installed agentic-memory on a project with existing built-in memories.
+  DO NOT TRIGGER when: user is storing new memories, searching, or using memory normally.
 allowed-tools: Read, Glob, Grep, mcp__agentic-memory__memory_store, mcp__agentic-memory__memory_search
+argument-hint: (no arguments needed)
 ---
 
 # Migrate Legacy Claude Code Memories
 
 Migrate memory files from Claude Code's built-in auto-memory system into agentic-memory.
 
-## Steps
+## Phase 1: Discover
 
-1. **Find legacy memory files** for this project:
-   - Scan `~/.claude/projects/*/memory/*.md` for directories whose slug matches the current project path
-   - The slug format is the absolute path with `/` replaced by `-` and leading `-` (e.g. `-Users-john-projects-myapp`)
-   - Also check `~/.claude/projects/*/memory/team/*.md` for team memories
+1. Scan `~/.claude/projects/*/memory/*.md` for directories matching the current project
+2. The slug format is the absolute path with `/` replaced by `-` (e.g., `-Users-john-projects-myapp`)
+3. Also check `~/.claude/projects/*/memory/team/*.md` for team memories
+4. Skip `MEMORY.md` (it's an index file, not a memory)
 
-2. **For each memory file found**, read it and parse:
-   - YAML frontmatter: `name`, `description`, `type` (user/feedback/project/reference)
-   - Body content (everything after the frontmatter closing `---`)
-   - Skip `MEMORY.md` (it's just an index file, not a memory)
+**Done when:** you have a list of memory files to migrate.
 
-3. **Before storing**, check for duplicates:
-   - Call `memory_search` with the memory description or first 100 chars of content
-   - If a close match exists (same topic), skip it and report
+## Phase 2: Parse and Deduplicate
 
-4. **Map types and store** each memory via `memory_store`:
-   - `user` -> type: `semantic`, tags: [`user`, `migrated`], importance: 0.7
-   - `feedback` -> type: `semantic`, tags: [`feedback`, `migrated`], importance: 0.8
-   - `project` -> type: `semantic`, tags: [`project`, `migrated`], importance: 0.6
-   - `reference` -> type: `semantic`, tags: [`reference`, `migrated`], importance: 0.5
-   - Use the frontmatter `name` as the title
-   - Use the body content as the memory content
-   - Set source: `import`
-   - Adjust importance up/down based on the content (decisions and gotchas deserve higher importance)
+For each memory file:
+1. Parse YAML frontmatter: `name`, `description`, `type` (user/feedback/project/reference)
+2. Extract body content (everything after closing `---`)
+3. Call `memory_search` with the description or first 100 chars
+4. If a close match exists, mark as skip (duplicate)
 
-5. **Report results**: list what was migrated, what was skipped (duplicates), and what failed
+**Done when:** each file is classified as migrate or skip.
 
-## Important
+## Phase 3: Store
 
-- Do NOT delete the original files - the user can do that manually after verifying
-- Do NOT migrate content that is purely derived from code (architecture, file structure) - it belongs in CLAUDE.md, not memory
-- If unsure about a memory's value, migrate it anyway - the decay system will naturally prune low-value memories over time
+Map types and store each non-duplicate via `memory_store`:
+- `user` -> type: semantic, tags: [user, migrated], importance: 0.7
+- `feedback` -> type: semantic, tags: [feedback, migrated], importance: 0.8
+- `project` -> type: semantic, tags: [project, migrated], importance: 0.6
+- `reference` -> type: semantic, tags: [reference, migrated], importance: 0.5
+
+Use frontmatter `name` as title, body as content, source: import.
+Adjust importance based on content (decisions and gotchas deserve higher).
+
+## Phase 4: Report
+
+List what was migrated, skipped (duplicates), and failed.
+
+**Important:**
+- Do NOT delete original files. The user verifies first.
+- Do NOT migrate content derived from code (architecture, file structure). That belongs in CLAUDE.md.
+- If unsure about value, migrate it. The decay system prunes low-value memories naturally.

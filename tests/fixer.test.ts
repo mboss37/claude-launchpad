@@ -246,7 +246,7 @@ describe("applyFixes", () => {
       "utf-8",
     );
     expect(content).toContain("lp-enhance");
-    expect(content).toContain("Budget Rule");
+    expect(content).toContain("Phase 1: Research");
   });
 
   it("does not duplicate /lp-enhance skill", async () => {
