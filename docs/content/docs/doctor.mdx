@@ -7,6 +7,8 @@ import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
 
 The core of the tool. Runs 7 analyzers against your `.claude/` directory and `CLAUDE.md`. An 8th (Memory) is added automatically when agentic-memory is detected.
 
+Low scores signal real problems: conventions ignored, credentials exposed, context lost mid-session, every session starting from scratch. Doctor finds these gaps before they waste your time.
+
 ```bash
 claude-launchpad doctor
 ```
@@ -26,29 +28,29 @@ claude-launchpad doctor
 
 | Analyzer | What it catches |
 |---|---|
-| **Instruction Budget** | Too many instructions. Claude starts ignoring rules past ~200. |
-| **CLAUDE.md Quality** | Missing sections, vague instructions, hardcoded secrets |
-| **Settings** | No hooks, deprecated attribution, hook timeouts, auto-memory disabled |
-| **Hooks** | Missing auto-format, .env protection, PostCompact, SessionStart |
-| **Rules** | Missing BACKLOG.md, dead rule files, stale references, empty configs |
-| **Permissions** | Credential exposure, blanket Bash, bypass mode, sandbox disabled, .env gap |
-| **MCP Servers** | Invalid transport configs, missing commands/URLs |
-| **Memory** (optional) | MCP server config, hooks, autoMemory setting, CLAUDE.md guidance, tool permissions |
+| **Instruction Budget** | Past ~200 lines, Claude stops reliably following rules at the bottom of CLAUDE.md. Doctor warns before you hit that limit. |
+| **CLAUDE.md Quality** | Missing sections mean Claude guesses your stack, conventions, and boundaries. Vague instructions ("write good code") waste budget with zero signal. |
+| **Settings** | Missing hooks, deprecated settings, auto-memory conflicts. Without proper settings, Claude runs without guardrails. |
+| **Hooks** | Missing SessionStart = Claude forgets where you left off. Missing PostCompact = Claude loses context mid-session. Missing auto-format = inconsistent code style. |
+| **Rules** | Missing BACKLOG.md, dead rule files, stale references. Without structure, deferred features get lost in conversation. |
+| **Permissions** | Credential exposure (SSH keys, AWS creds), bypass mode enabled, sandbox disabled. Security gaps that let Claude access what it shouldn't. |
+| **MCP Servers** | Invalid transport configs, missing commands/URLs. Broken MCP means Claude can't reach its tools. |
+| **Memory** (optional) | MCP server config, hooks, autoMemory conflicts, CLAUDE.md guidance, tool permissions. Only runs when agentic-memory is detected. |
 
 ## What --fix applies
 
 <Accordions type="multiple">
   <Accordion title="Security">
-    - Credential deny rules (~/.ssh/*, ~/.aws/*, ~/.npmrc)
-    - Bypass permissions mode disabled
-    - Sandbox enabled with failIfUnavailable
-    - .env added to .claudeignore (defense in depth)
+    - Credential deny rules (~/.ssh/*, ~/.aws/*, ~/.npmrc) so Claude can't read your keys even if it tries to debug
+    - Bypass permissions mode disabled so `--dangerously-skip-permissions` can't undo your safety settings
+    - Sandbox enabled with failIfUnavailable for subprocess isolation
+    - .env added to .claudeignore (defense in depth alongside the hook)
   </Accordion>
   <Accordion title="Hooks">
-    - .env file protection hook
-    - Auto-format hook (prettier, gofmt, ruff, etc.)
-    - Force-push protection hook
-    - PostCompact hook for context re-injection
+    - .env file protection hook (blocks reads/writes to .env files, 100% enforced)
+    - Auto-format hook (prettier, gofmt, ruff, etc.) so every edit matches your style
+    - Force-push protection hook (prevents accidental remote history destruction)
+    - PostCompact hook (re-injects TASKS.md after context compression so Claude stays on track mid-session)
   </Accordion>
   <Accordion title="CLAUDE.md">
     - Missing sections: Stack, Commands, Architecture, Off-Limits, Session Start, Backlog, Memory & Learnings

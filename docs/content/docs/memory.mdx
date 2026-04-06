@@ -3,7 +3,7 @@ title: memory
 description: Claude maintains a personal knowledge base about your project — learns what matters, forgets what doesn't, gets smarter every session.
 ---
 
-Claude Code has no long-term memory by default. Every session starts from zero. You re-explain your architecture, your conventions, your past decisions — over and over. The context window is large, but it is not a knowledge base.
+Without memory, you re-explain the same architecture every session. "We use server components by default." "The API validates with Zod." "Don't touch the legacy auth module." Every. Single. Time. The context window is large, but it resets to zero when a session ends.
 
 This command gives Claude a real one. A persistent, project-scoped knowledge base that Claude maintains itself. It learns from each session, cross-references what it knows, and surfaces the right context at the right time. You stop repeating yourself. Claude stops asking.
 
@@ -17,10 +17,10 @@ Running without flags starts an interactive setup that walks you through install
 
 Once memory is installed, two things happen automatically:
 
-1. **Session start** — Claude receives the most relevant memories for your current context (branch, files, recent work). No manual loading.
+1. **Session start** — The SessionStart hook auto-loads memories relevant to your current context (branch, files, recent work). No manual loading, no "please recall X."
 2. **During sessions** — Claude stores decisions, patterns, and insights as it works via MCP tools. CLAUDE.md guides it on what to remember.
 
-The result: Claude builds a knowledge base about your project over time. Architecture decisions, bug patterns, deployment quirks, conventions that took you weeks to establish — all retained and surfaced when relevant.
+The result: Claude remembers your architecture decisions, bug patterns, deployment quirks, and conventions across sessions. You stop repeating yourself. Claude stops asking.
 
 ## Prerequisites
 

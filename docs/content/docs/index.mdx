@@ -34,6 +34,10 @@ Or install globally:
 
 Claude Launchpad has 4 CLI commands (`init`, `doctor`, `eval`, `memory`) and 2 skills (`/lp-enhance`, `/lp-migrate-memory`). Memory is optional.
 
+<Callout type="info">
+  **Why hooks matter:** CLAUDE.md rules are ~80% reliable. Hooks are 100% enforced. A SessionStart hook that runs `cat TASKS.md` means Claude sees your tasks at every session start. A PostCompact hook re-surfaces tasks after context compression, keeping work on track.
+</Callout>
+
 ## Recommended Flow
 
 ### New project

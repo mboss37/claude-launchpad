@@ -84,21 +84,21 @@ const existingProjectSteps = [
 ] as const;
 
 const beforeIssues = [
-  'No hooks configured',
-  'Credential paths exposed',
-  'No .claudeignore',
-  'Bypass mode unprotected',
-  'Sandbox disabled',
-  'No Off-Limits guidance',
+  'Claude forgets context between sessions',
+  'Credentials (SSH, AWS) readable',
+  'No .claudeignore, reads noise files',
+  'Rules followed ~80% of the time',
+  'Loses track mid-session after compaction',
+  'No guardrails or conventions enforced',
 ] as const;
 
 const afterOutcomes = [
-  'Hooks enabled',
-  'Credentials blocked',
-  '.claudeignore added',
-  'Bypass mode disabled',
-  'Sandbox enabled',
-  'CLAUDE.md hardened',
+  'TASKS.md auto-injected every session',
+  'Credentials blocked system-wide',
+  '.claudeignore filters noise',
+  'Hooks enforce rules at 100%',
+  'PostCompact re-injects context',
+  'CLAUDE.md + rules guide every action',
 ] as const;
 
 function PageSection({ children, className }: { children: ReactNode; className?: string }) {
@@ -237,7 +237,7 @@ export default function HomePage() {
             <span className="mt-2 block text-fd-muted-foreground">for Claude Code.</span>
           </h1>
           <p className="mt-4 max-w-2xl text-[15px] leading-7 text-fd-muted-foreground sm:text-lg">
-            Claude loses context between sessions, ignores half your rules, and has zero guardrails. Claude Launchpad scores your setup, fixes the gaps, and proves Claude follows your rules.
+            Claude forgets everything between sessions, follows your rules ~80% of the time, and can read your SSH keys. Launchpad scores your setup, adds system-enforced hooks (100% compliance), and proves Claude follows your rules with test scenarios.
           </p>
 
           <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
@@ -333,7 +333,7 @@ export default function HomePage() {
             <SectionHeading
               eyebrow="Verify behavior"
               title="Eval: prove Claude follows your rules"
-              description="Doctor checks your config is correct. Eval checks that Claude actually behaves. Write YAML scenarios, run them in a sandbox, and get a pass/fail score."
+              description="A doctor score of 95% means your config looks good. An eval FAIL means Claude ignores those rules in practice. Eval closes the gap between configuration and actual behavior."
             />
             <div className="mt-6 space-y-3 text-sm text-fd-muted-foreground">
               <p>15 built-in scenarios across 3 suites: security, conventions, and workflow.</p>

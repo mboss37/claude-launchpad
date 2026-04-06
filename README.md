@@ -56,6 +56,8 @@ Scores your config, auto-repairs everything it can.
 
 ## The Three-File System
 
+Without structure, CLAUDE.md becomes a dumping ground. Future ideas bury active guidance. Sprint notes push conventions off-screen. Past the ~200 line budget, Claude starts ignoring rules at the bottom. The three-file split keeps each concern where it belongs:
+
 | File | Purpose | Example |
 |---|---|---|
 | `CLAUDE.md` | What Claude needs to know | Stack, commands, conventions, guardrails |
@@ -255,10 +257,10 @@ New to Claude Code? Here's what the terms mean.
 | **CLAUDE.md** | A markdown file in your project root that tells Claude how to work on your code. Think of it as instructions for your AI pair programmer. [Official docs](https://docs.anthropic.com/en/docs/claude-code/memory#claudemd) |
 | **TASKS.md** | Sprint tracker and session log. Claude reads this at session start to pick up where you left off. |
 | **BACKLOG.md** | Where deferred features live. Priority tiers (P0/P1/P2) keep future ideas organized without cluttering TASKS.md. |
-| **Hooks** | Shell commands that run automatically when Claude does something. Example: auto-format after edits, block reading `.env`. They live in `.claude/settings.json`. |
+| **Hooks** | Shell commands that run automatically when Claude does something. CLAUDE.md rules are ~80% reliable. Hooks are 100% enforced. A SessionStart hook that runs `cat TASKS.md` means Claude sees your task list at every session start. |
 | **Instruction budget** | CLAUDE.md has a soft limit of ~200 actionable lines. Past that, Claude starts ignoring rules at the bottom. Doctor counts your lines and warns you. |
 | **Rules** | Extra markdown files in `.claude/rules/` that Claude reads alongside CLAUDE.md. Use them to offload detailed conventions so CLAUDE.md stays under budget. |
-| **Compaction** | When a conversation gets too long, Claude compresses older messages. This can lose context. A PostCompact hook re-injects critical files (like TASKS.md) after compaction. |
+| **Compaction** | When a conversation gets too long, Claude compresses older messages. Without a PostCompact hook, Claude loses track of your sprint and session context mid-work. The hook re-injects TASKS.md after compaction so Claude stays on track. |
 | **MCP Servers** | External tools Claude can connect to (databases, APIs, docs). Configured in `.claude/settings.json`. Most projects don't need them. |
 | **.claudeignore** | Like `.gitignore` but for Claude. Tells Claude which files to skip so it doesn't waste time reading noise. |
 

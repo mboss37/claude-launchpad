@@ -5,7 +5,7 @@ description: Run Claude against test scenarios and prove your config works.
 
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
-Test if Claude actually follows your rules. Each scenario creates an isolated sandbox, runs Claude with a task, and checks the output.
+A doctor score of 95% means your config is solid. An eval FAIL means Claude ignores those rules anyway. Eval closes the gap between configuration and behavior by running Claude against test scenarios in isolated sandboxes.
 
 <Tabs items={['Interactive', 'Flags']}>
   <Tab value="Interactive">
@@ -62,9 +62,9 @@ Test if Claude actually follows your rules. Each scenario creates an isolated sa
 | Scenario | Tests |
 |---|---|
 | git-conventions | Conventional commit format |
-| session-continuity | Reads TASKS.md, continues from last session |
-| memory-persistence | Documents non-obvious workarounds for future sessions |
-| deferred-tracking | Parks non-urgent issues in Deferred section |
+| session-continuity | Claude reads TASKS.md at startup and continues from your last session instead of starting fresh |
+| memory-persistence | Claude documents non-obvious workarounds so future sessions don't repeat mistakes |
+| deferred-tracking | Claude parks non-urgent issues instead of cluttering the current sprint |
 
 ## How the sandbox works
 
