@@ -75,9 +75,10 @@ const FIX_TABLE: ReadonlyArray<{ analyzer: string; match: string; fix: FixFn }> 
   { analyzer: "Rules", match: "lp-enhance skill is outdated", fix: (root) => updateEnhanceSkill(root) },
   { analyzer: "Settings", match: "Deprecated includeCoAuthoredBy", fix: (root) => migrateAttribution(root) },
   { analyzer: "Hooks", match: "SessionStart", fix: (root) => addSessionStartHook(root) },
+  { analyzer: "Memory", match: "Deprecated Stop hook", fix: (root) => removeStaleStopHook(root) },
   { analyzer: "Memory", match: "autoMemoryEnabled not disabled", fix: (root) => disableAutoMemory(root) },
   { analyzer: "Memory", match: "MCP tool permission", fix: (root) => addMemoryToolPermissions(root) },
-  { analyzer: "Memory", match: "CLAUDE.md missing memory guidance", fix: (root) => addClaudeMdSection(root, "## Memory", "Use agentic-memory to persist knowledge across sessions:\n- Memories are automatically injected at session start and extracted at session end\n- Save non-obvious decisions, gotchas, and deferred issues\n- NEVER store credentials, API keys, tokens, or secrets in memories\n- Check memory for relevant context before starting work") },
+  { analyzer: "Memory", match: "CLAUDE.md missing memory guidance", fix: (root) => addClaudeMdSection(root, "## Memory", "Use agentic-memory to persist knowledge across sessions:\n- Memories are automatically injected at session start\n- STORE IMMEDIATELY when: a dependency strategy changes, an architecture decision is made, a convention is established, a bug pattern is discovered, or a feature is killed/added\n- Use memory_search before memory_store to check for duplicates\n- NEVER store credentials, API keys, tokens, or secrets in memories") },
 ];
 
 async function tryFix(
@@ -397,6 +398,32 @@ async function updateEnhanceSkill(root: string): Promise<boolean> {
 
   await writeFile(targetPath, generateEnhanceSkill());
   log.success("Updated /lp-enhance skill to latest version");
+  return true;
+}
+
+async function removeStaleStopHook(root: string): Promise<boolean> {
+  const settings = await readSettingsJson(root);
+  const hooks = settings.hooks as Record<string, unknown[]> | undefined;
+  if (!hooks?.Stop) return false;
+
+  const stopHooks = hooks.Stop as Record<string, unknown>[];
+  const filtered = stopHooks.filter((h) => {
+    const innerHooks = h.hooks as Record<string, unknown>[] | undefined;
+    return !innerHooks?.some(
+      (ih) => typeof ih.command === "string" && (ih.command as string).includes("memory extract"),
+    );
+  });
+
+  if (filtered.length === stopHooks.length) return false;
+
+  if (filtered.length === 0) {
+    delete hooks.Stop;
+  } else {
+    hooks.Stop = filtered;
+  }
+
+  await writeSettingsJson(root, settings);
+  log.success("Removed deprecated Stop hook (memory extract)");
   return true;
 }
 

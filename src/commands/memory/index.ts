@@ -82,17 +82,6 @@ export function createMemoryCommand(): Command {
   );
 
   memory.addCommand(
-    new Command("extract")
-      .description("Extract facts from transcript (hook handler)")
-      .action(async () => {
-        const { runExtract } = await import("./subcommands/extract.js");
-        await runExtract();
-      })
-      .helpCommand(false),
-    { hidden: true },
-  );
-
-  memory.addCommand(
     new Command("serve")
       .description("Start MCP server (Claude Code)")
       .action(async () => {

@@ -73,7 +73,6 @@ async function configureSettings(projectDir: string): Promise<void> {
   // SessionStart hook
   const hooks = (settings['hooks'] ?? {}) as Record<string, unknown[]>;
   addSessionStartHook(hooks);
-  addStopHook(hooks);
   settings['hooks'] = hooks;
 
   // Auto-allow MCP tools
@@ -101,26 +100,6 @@ function addSessionStartHook(hooks: Record<string, unknown[]>): void {
     });
     hooks['SessionStart'] = sessionStartHooks;
     log.info('Session start: Claude will recall relevant context automatically');
-  }
-}
-
-function addStopHook(hooks: Record<string, unknown[]>): void {
-  const stopHooks = (hooks['Stop'] ?? []) as Record<string, unknown>[];
-  const extractCommand = 'npx claude-launchpad memory extract 2>/dev/null; exit 0';
-
-  const alreadyHasExtract = stopHooks.some((h) => {
-    const innerHooks = h['hooks'] as Record<string, unknown>[] | undefined;
-    return innerHooks?.some(
-      ih => typeof ih['command'] === 'string' && (ih['command'] as string).includes('claude-launchpad memory extract'),
-    );
-  });
-
-  if (!alreadyHasExtract) {
-    stopHooks.push({
-      hooks: [{ type: 'command', command: extractCommand, async: true }],
-    });
-    hooks['Stop'] = stopHooks;
-    log.info('Session end: Claude will save important facts from the conversation');
   }
 }
 
@@ -202,7 +181,7 @@ This project uses **agentic-memory** for persistent memory across sessions.
 - Use \`memory_search\` to find specific memories by keyword
 - Use \`memory_store\` to save decisions, gotchas, and learnings worth remembering
 - Use \`memory_stats\` to check memory health
-- **STORE IMMEDIATELY** when: a dependency strategy changes, an architecture decision is made, a convention is established, a bug pattern is discovered, or a feature is killed/added. Don't wait for session end - the Stop hook only catches obvious patterns.
+- **STORE IMMEDIATELY** when: a dependency strategy changes, an architecture decision is made, a convention is established, a bug pattern is discovered, or a feature is killed/added
 `;
 
 function injectClaudeMdGuidance(projectDir: string): boolean {

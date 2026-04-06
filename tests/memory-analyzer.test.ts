@@ -35,12 +35,6 @@ const sessionStartHook: HookConfig = {
   command: "memory context --project test",
 };
 
-const stopHook: HookConfig = {
-  event: "Stop",
-  type: "command",
-  command: "memory extract --project test",
-};
-
 const ALL_TOOLS = [
   "mcp__agentic-memory__memory_store",
   "mcp__agentic-memory__memory_search",
@@ -76,7 +70,7 @@ describe("analyzeMemory", () => {
   });
 
   it("does not flag MCP server (registered globally, not in project settings)", async () => {
-    const result = await analyzeMemory(makeConfig({ hooks: [sessionStartHook, stopHook] }));
+    const result = await analyzeMemory(makeConfig({ hooks: [sessionStartHook] }));
     expect(result!.issues.some(
       (i) => i.message.includes("MCP server not found"),
     )).toBe(false);
@@ -86,16 +80,6 @@ describe("analyzeMemory", () => {
     const result = await analyzeMemory(makeConfig({ mcpServers: [memoryServer] }));
     expect(result!.issues.some(
       (i) => i.severity === "high" && i.message.includes("SessionStart"),
-    )).toBe(true);
-  });
-
-  it("flags missing Stop hook as medium severity", async () => {
-    const result = await analyzeMemory(makeConfig({
-      mcpServers: [memoryServer],
-      hooks: [sessionStartHook],
-    }));
-    expect(result!.issues.some(
-      (i) => i.severity === "medium" && i.message.includes("Stop hook"),
     )).toBe(true);
   });
 
@@ -172,7 +156,7 @@ describe("analyzeMemory", () => {
   it("returns perfect score when fully configured", async () => {
     const result = await analyzeMemory(makeConfig({
       mcpServers: [memoryServer],
-      hooks: [sessionStartHook, stopHook],
+      hooks: [sessionStartHook],
       settings: { autoMemoryEnabled: false, permissions: { allow: ALL_TOOLS } },
       claudeMdContent: "# Test\n## Memory\nUse agentic-memory",
     }));
@@ -181,9 +165,9 @@ describe("analyzeMemory", () => {
   });
 
   it("calculates score correctly with mixed severities", async () => {
-    // Only MCP server, nothing else → high (SessionStart) + medium (Stop) + medium (autoMemory) + low (guidance) + low (tools)
+    // Only MCP server, nothing else → high (SessionStart) + medium (autoMemory) + low (guidance) + low (tools)
     const result = await analyzeMemory(makeConfig({ mcpServers: [memoryServer] }));
-    // 100 - (20 + 10 + 10 + 5 + 5) = 50
-    expect(result!.score).toBe(50);
+    // 100 - (20 + 10 + 5 + 5) = 60
+    expect(result!.score).toBe(60);
   });
 });

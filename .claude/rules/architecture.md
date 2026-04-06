@@ -25,7 +25,7 @@
 │   │       ├── storage/           # SQLite repos (memory, relation, search, migrator)
 │   │       ├── services/          # Retrieval, decay, consolidation, session
 │   │       ├── tools/             # 7 MCP tool handlers
-│   │       ├── subcommands/       # install, stats, context, extract, doctor, push, pull
+│   │       ├── subcommands/       # install, stats, context, doctor, push, pull
 │   │       ├── dashboard/         # Ink TUI (lazy-loaded via --dashboard)
 │   │       └── utils/             # require-deps, git-context, content-validation, gist-transport, sync-merge
 │   ├── lib/
@@ -48,7 +48,6 @@
 - `memory --dashboard` → Ink TUI with vim nav, project switching, filtering
 - `memory serve` → MCP server on stdio (called by Claude Code, not users)
 - `memory context` → SessionStart hook handler (injects relevant memories)
-- `memory extract` → Stop hook handler (extracts facts from transcript)
 - `memory push` → serialize memories → pull-before-push → upload to private GitHub Gist via `gh` CLI
 - `memory pull` → fetch gist → Zod-validate → last-write-wins merge into SQLite
 

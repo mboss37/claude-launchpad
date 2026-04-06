@@ -201,7 +201,7 @@ claude-launchpad memory
 
 If memory is not installed, it runs interactive setup. If installed, it shows stats. Requires native deps first: `npm install better-sqlite3 sqlite-vec`.
 
-Every session, Claude loads what it needs to know and extracts new knowledge when you finish. Stale facts fade on their own. Knowledge Claude actually uses gets reinforced. Each project has its own isolated memory, and you can sync it across machines via private GitHub Gist.
+Every session, Claude loads what it needs to know and stores new knowledge as it works. Stale facts fade on their own. Knowledge Claude actually uses gets reinforced. Each project has its own isolated memory, and you can sync it across machines via private GitHub Gist.
 
 Browse everything with `--dashboard` -- a terminal UI with vim navigation, filtering, and search.
 

@@ -15,11 +15,10 @@ Running without flags starts an interactive setup that walks you through install
 
 ## What changes
 
-Once memory is installed, three things happen automatically:
+Once memory is installed, two things happen automatically:
 
 1. **Session start** — Claude receives the most relevant memories for your current context (branch, files, recent work). No manual loading.
-2. **Session end** — Claude extracts what it learned from the conversation and stores it. No manual bookkeeping.
-3. **During sessions** — Claude can search, store, relate, and update memories on its own via MCP tools.
+2. **During sessions** — Claude stores decisions, patterns, and insights as it works via MCP tools. CLAUDE.md guides it on what to remember.
 
 The result: Claude builds a knowledge base about your project over time. Architecture decisions, bug patterns, deployment quirks, conventions that took you weeks to establish — all retained and surfaced when relevant.
 
@@ -52,7 +51,6 @@ Running `claude-launchpad memory` without flags uses a smart default:
 
 - SQLite database at `~/.agentic-memory/` (shared across projects, scoped per project internally)
 - SessionStart hook that injects relevant memories at session start
-- Stop hook that extracts facts from the conversation transcript
 - 7 MCP tools for storing, searching, and managing memories
 - Memory guidance section in CLAUDE.md
 - `/lp-migrate-memory` skill for porting legacy auto-memory files
@@ -169,7 +167,7 @@ After installing, use `/lp-migrate-memory` inside Claude Code. It reads your leg
 
 When memory is detected, `doctor` adds a Memory analyzer that checks:
 - MCP server registered
-- SessionStart and Stop hooks configured
+- SessionStart hook configured
 - Built-in auto-memory disabled
 - CLAUDE.md guidance present
 - MCP tool permissions set

@@ -76,7 +76,7 @@ export function generateEnhanceSkill(): string {
     '1. Run `claude-launchpad doctor` to check the score improved',
     '2. Print suggested hooks (exact JSON) for .claude/settings.json but don\'t modify it',
     '3. Print suggested MCP servers if external services detected (Postgres, Redis, Stripe, etc.)',
-    '4. If eval scenarios were generated, print: "Run this in your terminal (not inside Claude Code): `claude-launchpad eval --scenarios scenarios/`"',
+    '4. If eval scenarios were generated, print: "Run this in your terminal (not inside Claude Code): `claude-launchpad eval --scenarios scenarios/ --runs 1`"',
     '',
     '**Done when:** doctor score is equal or higher, suggestions printed, eval scenarios created if applicable.',
     '',

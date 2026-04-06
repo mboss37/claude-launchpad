@@ -13,7 +13,7 @@ const MEMORY_MCP_TOOLS = [
 export function hasMemoryIndicators(config: ClaudeConfig): boolean {
   const hasMcpServer = config.mcpServers.some((s) => s.name === "agentic-memory");
   const hasHookRef = config.hooks.some(
-    (h) => h.command?.includes("memory context") || h.command?.includes("memory extract"),
+    (h) => h.command?.includes("memory context"),
   );
   return hasMcpServer || hasHookRef;
 }
@@ -40,20 +40,20 @@ export async function analyzeMemory(config: ClaudeConfig): Promise<AnalyzerResul
     });
   }
 
-  // 3. Stop hook with memory extract
-  const hasStopHook = config.hooks.some(
+  // 2. Deprecated Stop hook with memory extract (removed in v0.14.0)
+  const hasStaleStopHook = config.hooks.some(
     (h) => h.event === "Stop" && h.command?.includes("memory extract"),
   );
-  if (!hasStopHook) {
+  if (hasStaleStopHook) {
     issues.push({
       analyzer: "Memory",
-      severity: "medium",
-      message: "No Stop hook with memory extract for session learnings",
-      fix: "Add a Stop hook that runs `memory extract` to capture session insights",
+      severity: "low",
+      message: "Deprecated Stop hook found (memory extract) — auto-extraction was removed, Claude stores memories directly via MCP tools",
+      fix: "Run `doctor --fix` to remove the stale Stop hook",
     });
   }
 
-  // 4. autoMemoryEnabled should be false (built-in memory conflicts with agentic-memory)
+  // 3. autoMemoryEnabled should be false (built-in memory conflicts with agentic-memory)
   const autoMemoryDisabled = config.settings?.autoMemoryEnabled === false;
   if (!autoMemoryDisabled) {
     issues.push({
