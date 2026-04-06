@@ -29,10 +29,6 @@
 All planned work complete. Future features in BACKLOG.md.
 
 ## Session Log
-### 2026-04-04 (session 20)
-- Sprint 16: BACKLOG.md as first-class artifact (init, doctor, fix, docs, 18 new tests).
-- Budget thresholds raised to 150/200/250 (official guidance). Content review skill created globally.
-- Published v0.10.0. Dev/release workflow validated with 3 dev publishes before release.
 ### 2026-04-05 (session 21)
 - Sprint 17: Memory sync via private GitHub Gist (push/pull, multi-file per project, auto-discovery).
 - Fixed dedup bug (parallel MCP calls), refactored fixer.ts + runner.ts, 294 tests.
@@ -41,3 +37,7 @@ All planned work complete. Future features in BACKLOG.md.
 - Sprint 18: Ink migration, algorithm tuning (3-expert panel), skill rewrites (Anthropic patterns), dashboard delete.
 - Memory sync v0.11.0 shipped + tested cross-device. Path-scoped rules in /lp-enhance. Content review fixes.
 - Published v0.12.0 + v0.12.1.
+### 2026-04-06 (session 23)
+- Docs: inline changelog via prebuild sync script, fixed llms.txt undefined Home entry.
+- Fix: memory search/recent truncated content to 500 chars, removed Zod .max(2000) on store.
+- Published v0.12.2.

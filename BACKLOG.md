@@ -25,6 +25,9 @@ Add a matrix table to docs showing every command and skill with what it does:
 | Responsibility | `init` | `doctor --fix` | `/lp-enhance` | `eval` | `memory` |
 Shows which tool handles what (scaffolding, detection, AI analysis, testing, persistence) so users understand the pipeline and where each tool fits.
 
+## [P2] Docs: .mdx Extension Middleware
+Fumadocs supports middleware that rewrites `/docs/foo.mdx` to the per-page markdown route, letting AI agents append `.mdx` to any doc URL. Not critical with static export but nice-to-have if hosting supports rewrites.
+
 ## Launch Campaign
 - Landing page: before/after diff view (CLAUDE.md + settings.json)
 - Record 10-sec terminal GIF (bad score → --fix → good score)
