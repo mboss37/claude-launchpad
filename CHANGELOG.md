@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.14.2] — 2026-04-06
+
+### Fixed
+- Skill version comment placed before YAML frontmatter broke skill parsing ("Skill must provide a name")
+
 ## [0.14.1] — 2026-04-06
 
 ### Removed
