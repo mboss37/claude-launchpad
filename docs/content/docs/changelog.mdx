@@ -5,6 +5,19 @@ description: Release history for Claude Launchpad.
 
 {/* Auto-generated from CHANGELOG.md - do not edit directly */}
 
+## [0.13.0] — 2026-04-06
+
+### Added
+- Skill Authoring conventions section in `init`-generated conventions.md (Anthropic's 5 internal skill patterns: TRIGGER clauses, allowed-tools, argument-hint, phase-based structure, edge case handling)
+- `/lp-enhance` detects missing Skill Authoring section and adds it to existing projects
+- Inline changelog in docs site via prebuild sync script (no longer links to GitHub)
+
+### Fixed
+- Memory search and recent tools returned truncated content (sliced to 500 chars) — now returns full content
+- Memory store rejected content over 2000 chars via Zod schema before content-validation could run — removed hard limit, kept soft guide in tool description
+- Stale `blessed` references updated to `Ink` in architecture docs
+- `undefined` Home page description removed from llms.txt index
+
 ## [0.12.2] — 2026-04-06
 
 ### Fixed
