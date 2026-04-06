@@ -72,7 +72,7 @@ Init generates all three. Doctor checks for them. `--fix` creates any that are m
 | `claude-launchpad init` | Detect stack, generate config + hooks + permissions | Locally, free |
 | `claude-launchpad doctor --fix` | Auto-fix issues found by doctor | Locally, free |
 | `claude-launchpad eval` | Run Claude against test scenarios, score results | Via Claude CLI |
-| `claude-launchpad memory` | Optional persistent memory system | Locally |
+| `claude-launchpad memory` | Optional knowledge base that persists across sessions | Locally |
 | `/lp-enhance` (skill) | Claude reads your code and completes CLAUDE.md | Inside Claude Code |
 
 ## Doctor
