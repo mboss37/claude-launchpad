@@ -2,7 +2,7 @@
  * Skill schema version. Bump this when the skill content changes.
  * Doctor compares this against installed skills to detect stale versions.
  */
-export const ENHANCE_SKILL_VERSION = 4;
+export const ENHANCE_SKILL_VERSION = 5;
 
 /**
  * Generates the /lp-enhance skill markdown content.
@@ -11,7 +11,6 @@ export const ENHANCE_SKILL_VERSION = 4;
  */
 export function generateEnhanceSkill(): string {
   return [
-    `<!-- lp-enhance-version: ${ENHANCE_SKILL_VERSION} -->`,
     '---',
     'name: lp-enhance',
     'description: |',
@@ -21,6 +20,8 @@ export function generateEnhanceSkill(): string {
     'allowed-tools: Read, Glob, Grep, Edit, Write',
     'argument-hint: (no arguments needed)',
     '---',
+    '',
+    `<!-- lp-enhance-version: ${ENHANCE_SKILL_VERSION} -->`,
     '',
     '# lp-enhance - AI-powered CLAUDE.md improver',
     '',
