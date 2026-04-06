@@ -55,5 +55,5 @@ export function useKeybindings(
     if (input === '?') actions.showHelp();
     if (input === 'r') actions.refresh();
     if (input === 'q') actions.quit();
-  }, { isActive: !opts.searchActive });
+  });
 }
