@@ -89,6 +89,12 @@ async function pushProject(
   }
 
   const memories = ctx.memoryRepo.getAllForSync(project);
+
+  if (memories.length === 0) {
+    log.warn(`No memories found for "${project}". Nothing to push.`);
+    return;
+  }
+
   const memoryIds = new Set(memories.map((m) => m.id));
   const relations = filterRelations(allRelations, memoryIds);
   const json = JSON.stringify(buildPayload(memories.map(memoryToSyncRow), relations), null, 2);
@@ -114,6 +120,12 @@ async function pushAll(
   opts: PushOpts,
 ): Promise<void> {
   const allMemories = ctx.memoryRepo.getAllForSync();
+
+  if (allMemories.length === 0) {
+    log.warn('No memories found. Nothing to push.');
+    return;
+  }
+
   const byProject = groupByProject(allMemories);
 
   const files: Record<string, string> = {};

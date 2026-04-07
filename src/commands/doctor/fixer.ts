@@ -49,7 +49,8 @@ const FIX_TABLE: ReadonlyArray<{ analyzer: string; match: string; fix: FixFn }> 
     const a = await addEnvProtectionHook(root);
     const b = await addAutoFormatHook(root, detected);
     const c = await addForcePushProtection(root);
-    return a || b || c;
+    const d = await addSessionStartHook(root);
+    return a || b || c || d;
   }},
   { analyzer: "Hooks", match: ".env file protection", fix: (root) => addEnvProtectionHook(root) },
   { analyzer: "Hooks", match: "auto-format", fix: (root, detected) => addAutoFormatHook(root, detected) },

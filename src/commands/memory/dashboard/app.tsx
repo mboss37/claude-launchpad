@@ -14,6 +14,7 @@ import { StatsBar } from './components/stats-bar.js';
 import { HelpOverlay } from './components/help-overlay.js';
 import { ProjectPicker } from './components/project-picker.js';
 import { DeleteConfirm } from './components/delete-confirm.js';
+import { PurgeConfirm } from './components/purge-confirm.js';
 
 interface AppProps {
   readonly dataSource: DashboardDataSource;
@@ -35,10 +36,10 @@ export function App({ dataSource }: AppProps): React.ReactNode {
     cycleProjectPrev: state.cycleProjectPrev,
     cycleSort: state.cycleSort,
     focusNext: state.focusNext,
-    deleteMemory: state.promptDelete,
+    removeMemory: state.promptDelete,
+    purgeProject: state.promptPurge,
     openProjectPicker: () => state.setShowProjectPicker((v) => !v),
     showHelp: () => state.setShowHelp((v) => !v),
-    refresh: state.refresh,
     quit: exit,
   }, {
     searchActive: state.searchActive,
@@ -70,6 +71,17 @@ export function App({ dataSource }: AppProps): React.ReactNode {
     );
   }
 
+  if (state.showPurgeConfirm && state.currentProject) {
+    return (
+      <PurgeConfirm
+        project={state.currentProject}
+        memoryCount={state.filteredMemories.length}
+        onConfirm={state.confirmPurge}
+        onCancel={state.cancelPurge}
+      />
+    );
+  }
+
   const contentHeight = Math.max(4, rows - 6);
   const isNarrow = layout === 'narrow';
 
@@ -82,6 +94,7 @@ export function App({ dataSource }: AppProps): React.ReactNode {
         lifespanFilter={state.lifespanFilter}
         sortMode={state.sortMode}
         searchQuery={state.searchQuery}
+        layout={layout}
       />
       {state.searchActive && (
         <SearchBar

@@ -22,8 +22,8 @@ export interface KeybindingActions {
   readonly focusNext: () => void;
   readonly openProjectPicker: () => void;
   readonly showHelp: () => void;
-  readonly deleteMemory: () => void;
-  readonly refresh: () => void;
+  readonly removeMemory: () => void;
+  readonly purgeProject: () => void;
   readonly quit: () => void;
 }
 
@@ -53,9 +53,9 @@ export function useKeybindings(
     if (input === ']' || key.rightArrow) actions.cycleProjectNext();
     if (input === '[' || key.leftArrow) actions.cycleProjectPrev();
     if (key.tab) actions.focusNext();
-    if (input === 'd') actions.deleteMemory();
+    if (input === 'r') actions.removeMemory();
+    if (input === 'd') actions.purgeProject();
     if (input === '?') actions.showHelp();
-    if (input === 'r') actions.refresh();
     if (input === 'q') actions.quit();
   });
 }

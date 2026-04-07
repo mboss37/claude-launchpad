@@ -132,16 +132,5 @@ export function createMemoryCommand(): Command {
       }),
   );
 
-  memory.addCommand(
-    new Command("purge")
-      .description("Delete all memories for a project")
-      .argument("<project>", "Project name to purge")
-      .option("-y, --yes", "Skip confirmation prompt")
-      .action(async (project, opts) => {
-        const { runPurge } = await import("./subcommands/purge.js");
-        await runPurge({ project, ...opts });
-      }),
-  );
-
   return memory;
 }

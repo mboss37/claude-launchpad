@@ -125,6 +125,11 @@ export class DashboardDataSource {
     return this.#memoryRepo.hardDelete(id);
   }
 
+  /** Delete all memories for a project. Returns number of deleted memories. */
+  purgeProject(project: string): number {
+    return this.#memoryRepo.deleteByProject(project);
+  }
+
   /** Stop watching the DB file. */
   stopWatching(): void {
     unwatchFile(this.#dbPath);
