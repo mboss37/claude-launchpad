@@ -41,10 +41,10 @@ export const DEFAULT_DECAY_PARAMS: DecayParams = {
   ],
   relationModifier: {
     connectedThreshold: 3,
-    connectedMultiplier: 0.5,  // was 0.7, richly connected memories decay much slower
-    isolatedMultiplier: 1.3,
+    connectedMultiplier: 1.8,   // higher tau = slower decay for connected memories
+    isolatedMultiplier: 0.8,    // lower tau = slightly faster decay for isolated memories
     highlyConnectedThreshold: 6,
-    highlyConnectedMultiplier: 0.35,
+    highlyConnectedMultiplier: 2.5, // near-immune: ~2.5x longer effective half-life
   },
   importanceFloor: 0.05,
   pruneThreshold: 0.1,

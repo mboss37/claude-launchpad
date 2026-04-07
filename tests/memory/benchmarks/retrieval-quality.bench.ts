@@ -130,7 +130,7 @@ describe('Retrieval Quality Benchmarks', () => {
   });
 
   describe('type filtering', () => {
-    it('direct FTS results respect type filter', async () => {
+    it('all results respect type filter including relation-expanded', async () => {
       const results = await service.search({
         query: 'authentication setup guide',
         type: 'procedural',
@@ -138,13 +138,10 @@ describe('Retrieval Quality Benchmarks', () => {
         min_importance: 0,
       });
 
-      // Direct FTS results are filtered by type.
-      // Relation-expanded results may include other types (known behavior).
-      const directResults = results.filter(r => !r.explanation.startsWith('Related'));
-      for (const r of directResults) {
+      for (const r of results) {
         expect(r.memory.type).toBe('procedural');
       }
-      expect(directResults.length).toBeGreaterThan(0);
+      expect(results.length).toBeGreaterThan(0);
     });
   });
 

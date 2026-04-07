@@ -295,6 +295,24 @@ describe('relation-boosted search', () => {
     }
   });
 
+  it('should respect type filter in relation-expanded results', async () => {
+    const memA = memoryRepo.create(
+      { type: 'procedural', content: 'JWT token setup guide', tags: [], importance: 0.7, source: 'manual' },
+      null,
+    );
+    const memB = memoryRepo.create(
+      { type: 'semantic', content: 'JWT token security notes', tags: [], importance: 0.6, source: 'manual' },
+      null,
+    );
+    relationRepo.create(memA.id, memB.id, 'extends');
+
+    const results = await service.search({ query: 'JWT token', type: 'procedural', limit: 10, min_importance: 0 });
+
+    for (const r of results) {
+      expect(r.memory.type).toBe('procedural');
+    }
+  });
+
   it('should not duplicate memories that match FTS AND are related', async () => {
     const memA = memoryRepo.create(
       { type: 'semantic', content: 'JWT token validation', tags: [], importance: 0.7, source: 'manual' },

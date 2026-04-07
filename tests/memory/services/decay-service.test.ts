@@ -143,6 +143,35 @@ describe('DecayService', () => {
 
       expect(withPenalty).toBeLessThan(noPenalty);
     });
+
+    it('connected memories decay slower than isolated ones', () => {
+      const { db, memoryRepo, relationRepo, decayService } = setup();
+
+      const isolated = memoryRepo.create(
+        { type: 'semantic', content: 'isolated memory', tags: [], importance: 0.8, source: 'manual' }, null,
+      );
+      const connected = memoryRepo.create(
+        { type: 'semantic', content: 'connected memory', tags: [], importance: 0.8, source: 'manual' }, null,
+      );
+
+      // Age both to 180 days
+      const date = daysAgo(180);
+      db.prepare('UPDATE memories SET created_at = ?, updated_at = ? WHERE id = ?').run(date, date, isolated.id);
+      db.prepare('UPDATE memories SET created_at = ?, updated_at = ? WHERE id = ?').run(date, date, connected.id);
+
+      // Create 7 relations to make `connected` highly connected
+      for (let i = 0; i < 7; i++) {
+        const other = memoryRepo.create(
+          { type: 'semantic', content: `related ${i}`, tags: [], importance: 0.5, source: 'manual' }, null,
+        );
+        relationRepo.create(connected.id, other.id, 'relates_to');
+      }
+
+      const decayedIsolated = decayService.computeDecayedImportance(memoryRepo.getById(isolated.id)!);
+      const decayedConnected = decayService.computeDecayedImportance(memoryRepo.getById(connected.id)!);
+
+      expect(decayedConnected).toBeGreaterThan(decayedIsolated);
+    });
   });
 
   describe('prune', () => {

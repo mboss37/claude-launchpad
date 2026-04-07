@@ -109,17 +109,13 @@ describe('Decay Accuracy Benchmarks', () => {
       const decayedConnected = decayService.computeDecayedImportance(connected);
 
       reportMetrics('Relation Effect (180d semantic)', {
-        'isolated (modifier=1.3)': decayedIsolated,
-        'highly connected (modifier=0.35)': decayedConnected,
+        'isolated (modifier=0.8)': decayedIsolated,
+        'highly connected (modifier=2.5)': decayedConnected,
         'ratio (connected/isolated)': decayedConnected / decayedIsolated,
       });
 
-      // NOTE: Current config multiplies tau by 0.35 for highly connected,
-      // which actually accelerates decay (lower tau = faster).
-      // isolatedMultiplier=1.3 slows isolated decay slightly.
-      // This may be a config bug — the comment says "near-immune" but
-      // the multiplier reduces tau. Benchmark captures current behavior.
-      expect(decayedIsolated).not.toBe(decayedConnected);
+      // Higher multiplier = higher effective tau = slower decay
+      expect(decayedConnected).toBeGreaterThan(decayedIsolated);
     });
 
     it('injection penalty accelerates decay for unused memories', () => {

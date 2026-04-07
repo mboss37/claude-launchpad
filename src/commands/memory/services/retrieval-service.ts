@@ -82,7 +82,7 @@ export class RetrievalService {
 
     // Phase 4: Relation expansion — surface connected memories
     const seenIds = new Set(topN.map(c => c.memory.id));
-    const expanded = this.#expandWithRelations(topN, input.limit, seenIds, input.min_importance);
+    const expanded = this.#expandWithRelations(topN, input.limit, seenIds, input.min_importance, input.type);
     if (expanded.length > 0) {
       topN = [...topN, ...expanded].sort((a, b) => b.composite - a.composite).slice(0, input.limit);
     }
@@ -118,7 +118,7 @@ export class RetrievalService {
     const recent = this.#loadRecent(recentBudget, input.project, input.type, seenIds);
 
     const sourceIds = [...contextMatched, ...recent].map(r => r.result.memory.id);
-    const related = this.#loadRelatedExpansion(sourceIds, relatedBudget, seenIds);
+    const related = this.#loadRelatedExpansion(sourceIds, relatedBudget, seenIds, input.type);
 
     const all = [...contextMatched, ...recent, ...related];
     for (const entry of all) {
@@ -168,7 +168,7 @@ export class RetrievalService {
   }
 
   #loadRelatedExpansion(
-    sourceIds: readonly string[], budget: number, seenIds: Set<string>,
+    sourceIds: readonly string[], budget: number, seenIds: Set<string>, typeFilter?: MemoryType,
   ): SessionContextResult[] {
     if (budget <= 0) return [];
     const results: SessionContextResult[] = [];
@@ -181,6 +181,7 @@ export class RetrievalService {
 
         const other = this.#deps.memoryRepo.getById(otherId);
         if (!other) continue;
+        if (typeFilter && other.type !== typeFilter) continue;
 
         const src = this.#deps.memoryRepo.getById(srcId);
         const weight = RELATION_TYPE_WEIGHTS[rel.relationType] ?? 0.5;
@@ -204,6 +205,7 @@ export class RetrievalService {
     limit: number,
     seenIds: Set<string>,
     minImportance: number,
+    typeFilter?: MemoryType,
   ): { memory: Memory; composite: number; parts: ScoreParts }[] {
     if (topResults.length >= limit) return [];
 
@@ -219,6 +221,7 @@ export class RetrievalService {
 
         const other = this.#deps.memoryRepo.getById(otherId);
         if (!other || other.importance < minImportance) continue;
+        if (typeFilter && other.type !== typeFilter) continue;
 
         const weight = RELATION_TYPE_WEIGHTS[rel.relationType] ?? 0.5;
         const composite = parent.composite * 0.7 * weight;
