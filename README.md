@@ -88,7 +88,7 @@ Runs 7 analyzers against your `.claude/` directory and CLAUDE.md. No API calls, 
 | **Instruction Budget** | Too many instructions. Claude starts ignoring rules past ~200. |
 | **CLAUDE.md Quality** | Missing sections, vague instructions, hardcoded secrets |
 | **Settings** | No hooks configured, dangerous tool access without safety nets |
-| **Hooks** | Missing auto-format, no .env protection, no PostCompact hook |
+| **Hooks** | Missing auto-format, no .env protection, no PostCompact hook, no auto-sync on session end |
 | **Rules** | Dead rule files, stale references, empty configs |
 | **Permissions** | Credential exposure (~/.ssh, ~/.aws), blanket Bash approval, sandbox disabled |
 | **MCP Servers** | Invalid transport configs, missing commands/URLs |
@@ -210,7 +210,7 @@ During setup, you choose where memory config lives:
 
 Use "local" when co-devs have different memory setups (e.g. you use agentic-memory, they use built-in). Your choice is persisted so `doctor --fix` won't re-ask.
 
-Every session, Claude loads what it needs to know and stores new knowledge as it works. Stale facts fade on their own. Knowledge Claude actually uses gets reinforced. Each project has its own isolated memory, and you can sync it across machines via private GitHub Gist.
+Every session, Claude loads what it needs to know and stores new knowledge as it works. Stale facts fade on their own. Knowledge Claude actually uses gets reinforced. Each project has its own isolated memory. When a session ends, memories auto-sync to a private GitHub Gist so they're available on any machine.
 
 Browse everything with `--dashboard` -- a terminal UI with vim navigation, filtering, and search.
 

@@ -126,6 +126,8 @@ Keybindings:
 - `1`-`5` - filter by type (0 = all)
 - `l` - cycle lifespan filter (healthy/fading/stale)
 - `s` - cycle sort mode
+- `r` - remove selected memory (with confirmation)
+- `d` - purge all memories for current project (with confirmation)
 - `p` - project picker
 - `?` - help
 
@@ -189,9 +191,11 @@ After installing, use `/lp-migrate-memory` inside Claude Code. It reads your leg
 When memory is detected, `doctor` adds a Memory analyzer that checks:
 - MCP server registered
 - SessionStart hook configured
+- SessionEnd hook configured (memories sync automatically when you close a session)
 - Built-in auto-memory disabled
 - CLAUDE.md guidance present
 - MCP tool permissions set
+- `allowedMcpServers` includes `agentic-memory`
 
 `doctor --fix` auto-repairs missing permissions and auto-memory settings. The fixer respects your placement choice, writing to the local or shared files accordingly.
 

@@ -270,10 +270,10 @@ async function addSessionEndPushHook(root: string, placement: MemoryPlacement): 
   });
   if (alreadyHas) return false;
 
-  sessionEndHooks.push({
+  const newEntry = {
     hooks: [{ type: "command", command: "claude-launchpad memory push -y 2>/dev/null; exit 0" }],
-  });
-  hooks.SessionEnd = sessionEndHooks;
+  };
+  hooks.SessionEnd = [...sessionEndHooks, newEntry];
   (settings as Record<string, unknown>).hooks = hooks;
   await write(root, settings);
   const target = placement === "local" ? "settings.local.json" : "settings.json";
