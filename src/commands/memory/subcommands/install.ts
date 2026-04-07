@@ -7,6 +7,7 @@ import { loadConfig, resolveDataDir } from '../config.js';
 import { readSettingsJson, writeSettingsJson, readSettingsLocalJson, writeSettingsLocalJson } from '../../../lib/settings.js';
 import { getMemoryPlacement } from '../../../lib/memory-placement.js';
 import { log } from '../../../lib/output.js';
+import { readSyncConfig } from '../utils/gist-transport.js';
 import type { MemoryPlacement } from '../../../types/index.js';
 
 interface InstallOpts {
@@ -99,6 +100,12 @@ async function configureSettings(projectDir: string, placement: MemoryPlacement)
   // SessionStart hook
   const hooks = (settings['hooks'] ?? {}) as Record<string, unknown[]>;
   addSessionStartHook(hooks);
+
+  // SessionEnd push hook (only when sync is already configured)
+  if (readSyncConfig()) {
+    addSessionEndPushHook(hooks);
+  }
+
   settings['hooks'] = hooks;
 
   // Auto-allow MCP tools
@@ -127,6 +134,24 @@ function addSessionStartHook(hooks: Record<string, unknown[]>): void {
     });
     hooks['SessionStart'] = sessionStartHooks;
     log.info('Session start: Claude will recall relevant context automatically');
+  }
+}
+
+function addSessionEndPushHook(hooks: Record<string, unknown[]>): void {
+  const sessionEndHooks = (hooks['SessionEnd'] ?? []) as Record<string, unknown>[];
+  const alreadyHooked = sessionEndHooks.some((h) => {
+    const innerHooks = h['hooks'] as Record<string, unknown>[] | undefined;
+    return innerHooks?.some(
+      ih => typeof ih['command'] === 'string' && (ih['command'] as string).includes('memory push'),
+    );
+  });
+
+  if (!alreadyHooked) {
+    sessionEndHooks.push({
+      hooks: [{ type: 'command', command: 'claude-launchpad memory push -y 2>/dev/null; exit 0' }],
+    });
+    hooks['SessionEnd'] = sessionEndHooks;
+    log.info('Session end: memories will auto-push to GitHub Gist');
   }
 }
 

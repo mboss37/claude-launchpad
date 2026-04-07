@@ -1,6 +1,11 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { analyzeMemory } from "../src/commands/doctor/analyzers/memory.js";
 import type { ClaudeConfig, HookConfig, McpServerConfig } from "../src/types/index.js";
+
+const mockReadSyncConfig = vi.fn(() => null);
+vi.mock("../src/commands/memory/utils/gist-transport.js", () => ({
+  readSyncConfig: (...args: unknown[]) => mockReadSyncConfig(...args),
+}));
 
 function makeConfig(overrides: {
   settings?: Record<string, unknown> | null;
@@ -214,5 +219,40 @@ describe("analyzeMemory", () => {
     const result = await analyzeMemory(makeConfig({ mcpServers: [memoryServer] }));
     // 100 - (20 + 10 + 5 + 5) = 60
     expect(result!.score).toBe(60);
+  });
+
+  // ─── SessionEnd sync hook ───
+
+  it("does not flag SessionEnd push hook when sync is not configured", async () => {
+    const result = await analyzeMemory(makeConfig({
+      mcpServers: [memoryServer],
+      hooks: [sessionStartHook],
+    }));
+    expect(result!.issues.some((i) => i.message.includes("SessionEnd"))).toBe(false);
+  });
+
+  it("flags missing SessionEnd push hook when sync is configured", async () => {
+    mockReadSyncConfig.mockReturnValueOnce({ gistId: "abc123" });
+
+    const result = await analyzeMemory(makeConfig({
+      mcpServers: [memoryServer],
+      hooks: [sessionStartHook],
+    }));
+    expect(result!.issues.some((i) => i.message.includes("SessionEnd"))).toBe(true);
+  });
+
+  it("does not flag when SessionEnd push hook exists and sync is configured", async () => {
+    mockReadSyncConfig.mockReturnValueOnce({ gistId: "abc123" });
+
+    const sessionEndPush: HookConfig = {
+      event: "SessionEnd",
+      type: "command",
+      command: "claude-launchpad memory push -y",
+    };
+    const result = await analyzeMemory(makeConfig({
+      mcpServers: [memoryServer],
+      hooks: [sessionStartHook, sessionEndPush],
+    }));
+    expect(result!.issues.some((i) => i.message.includes("SessionEnd"))).toBe(false);
   });
 });

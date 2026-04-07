@@ -97,7 +97,15 @@ async function readSettingsFromFile(claudeDir: string, filename: string): Promis
 // ─── Hooks ───
 
 async function readHooks(claudeDir: string): Promise<ReadonlyArray<HookConfig>> {
-  const settingsRaw = await readFileOrNull(join(claudeDir, SETTINGS_FILE));
+  const [shared, local] = await Promise.all([
+    readHooksFromFile(join(claudeDir, SETTINGS_FILE)),
+    readHooksFromFile(join(claudeDir, SETTINGS_LOCAL_FILE)),
+  ]);
+  return [...shared, ...local];
+}
+
+async function readHooksFromFile(settingsPath: string): Promise<ReadonlyArray<HookConfig>> {
+  const settingsRaw = await readFileOrNull(settingsPath);
   if (settingsRaw === null) return [];
 
   try {
@@ -112,7 +120,6 @@ async function readHooks(claudeDir: string): Promise<ReadonlyArray<HookConfig>> 
         const g = group as Record<string, unknown>;
         const matcher = g.matcher as string | undefined;
 
-        // New schema: { matcher, hooks: [{ type, command }] }
         const nestedHooks = g.hooks as Record<string, unknown>[] | undefined;
         if (Array.isArray(nestedHooks)) {
           for (const hook of nestedHooks) {
@@ -126,7 +133,6 @@ async function readHooks(claudeDir: string): Promise<ReadonlyArray<HookConfig>> 
             });
           }
         } else {
-          // Legacy flat schema: { matcher, type, command }
           result.push({
             event: event as HookConfig["event"],
             type: (g.type as HookConfig["type"]) ?? "command",
