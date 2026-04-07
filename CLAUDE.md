@@ -18,6 +18,7 @@ CLI toolkit that makes Claude Code setups measurably good — diagnose, scaffold
 - When a feature is discussed but deferred, add it to `BACKLOG.md` immediately
 - Never leave future ideas only in TASKS.md or conversation — they get lost
 - BACKLOG.md is the single source of truth for parked features
+- After every feature merge: delete done/killed items, update partial items, keep under 50 lines
 
 ## Architecture
 - Four CLI commands: `init` (scaffold), `doctor` (diagnose), `eval` (test configs), `memory` (optional persistent memory)

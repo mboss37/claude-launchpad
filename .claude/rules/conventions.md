@@ -52,6 +52,14 @@ When creating Claude Code skills (.claude/skills/*/SKILL.md):
 - Structure as phases: Research, Plan, Execute, Verify with "Done when:" success criteria per phase
 - Handle edge cases and preconditions before execution
 
+## Backlog Hygiene
+After every feature merge or sprint completion:
+1. Scan BACKLOG.md for items that are now done, partially done, or no longer relevant
+2. Delete completed/killed items entirely — no strikethrough, no tombstones, they're just noise
+3. Update partially-done items to reflect remaining work only
+4. Re-prioritize if the feature changed what matters next
+5. BACKLOG.md should never exceed 50 lines of active items
+
 ## Content Updates
 When any feature, fix, or behavioral change ships, evaluate all three surfaces:
 - **Landing page** (`docs/app/(home)/page.tsx`): high-level hooks — what it does, why it matters. No implementation details.
