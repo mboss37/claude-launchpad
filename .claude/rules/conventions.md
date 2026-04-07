@@ -31,8 +31,9 @@
 
 ## Pre-Commit Checklist
 1. Run `pnpm typecheck && pnpm test:run` — NEVER commit if either fails
-2. Check function lengths (<50 lines) and file lengths (<400 lines)
-3. Verify no `any` types, no mutation, no hardcoded values
+2. If changes touch `src/commands/memory/` — run `pnpm bench:memory` and verify no regressions
+3. Check function lengths (<50 lines) and file lengths (<400 lines)
+4. Verify no `any` types, no mutation, no hardcoded values
 
 ## Sprint Review (MANDATORY before committing sprint-completing changes)
 When all sprint tasks are done, you MUST spawn a code review agent BEFORE committing:

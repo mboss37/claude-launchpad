@@ -18,7 +18,8 @@
     "publish:dev": "npm version prerelease --preid=dev --no-git-tag-version && node scripts/sync-version.mjs && npm publish --tag dev",
     "publish:release": "npm publish",
     "docs:dev": "cd docs && pnpm dev",
-    "docs:build": "cd docs && pnpm build"
+    "docs:build": "cd docs && pnpm build",
+    "bench:memory": "vitest run --config vitest.bench.config.ts --reporter=verbose"
   },
   "keywords": [
     "claude",

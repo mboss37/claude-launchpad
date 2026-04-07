@@ -35,8 +35,14 @@ CLI toolkit that makes Claude Code setups measurably good — diagnose, scaffold
 - Dev: `pnpm dev`
 - Build: `pnpm build`
 - Test: `pnpm test` / `pnpm test:run`
+- Benchmarks: `pnpm bench:memory`
 - Type check: `pnpm typecheck`
 - Run locally: `npx tsx src/cli.ts <command>`
+
+## Memory Benchmarks
+Benchmark suite in `tests/memory/benchmarks/` — 54 tests across 4 files measuring retrieval quality, injection quality, decay accuracy, and scale performance. Excluded from `pnpm test`; run separately via `pnpm bench:memory`.
+
+**MANDATORY**: Before releasing any memory feature, bugfix, or algorithm change, run `pnpm bench:memory` and verify no regressions. Do NOT ship memory changes with failing benchmarks. If a change intentionally shifts metrics (e.g. tuning scoring weights), update the benchmark thresholds and document why in the commit message.
 
 ## Sprint Reviews
 See `.claude/rules/conventions.md` — sprint review with code review agent is MANDATORY before committing sprint-completing changes.
