@@ -15,10 +15,11 @@ Running without flags starts an interactive setup that walks you through install
 
 ## What changes
 
-Once memory is installed, two things happen automatically:
+Once memory is installed, three things happen automatically:
 
-1. **Session start** — The SessionStart hook auto-loads memories relevant to your current context (branch, files, recent work). No manual loading, no "please recall X."
+1. **Session start** — Memories from other devices are pulled (if sync is configured), then relevant memories are injected into context based on your current branch, files, and recent work. No manual loading, no "please recall X."
 2. **During sessions** — Claude stores decisions, patterns, and insights as it works via MCP tools. CLAUDE.md guides it on what to remember.
+3. **Session end** — Memories are pushed to your private GitHub Gist (if sync is configured) so they're available on any machine next session.
 
 The result: Claude remembers your architecture decisions, bug patterns, deployment quirks, and conventions across sessions. You stop repeating yourself. Claude stops asking.
 
@@ -51,6 +52,7 @@ Running `claude-launchpad memory` without flags uses a smart default:
 
 - SQLite database at `~/.agentic-memory/` (shared across projects, scoped per project internally)
 - SessionStart hook that injects relevant memories at session start
+- SessionStart pull hook and SessionEnd push hook (when sync is configured) for automatic cross-device sync
 - 7 MCP tools for storing, searching, and managing memories
 - Memory guidance section in CLAUDE.md (or `.claude/CLAUDE.md` for local placement)
 - `/lp-migrate-memory` skill for porting legacy auto-memory files (shared placement only)
@@ -130,8 +132,8 @@ Keybindings:
 - `1`-`5` - filter by type (0 = all)
 - `l` - cycle lifespan filter (healthy/fading/stale)
 - `s` - cycle sort mode
-- `r` - remove selected memory (with confirmation)
-- `d` - purge all memories for current project (with confirmation)
+- `r` - remove the selected memory permanently (with confirmation)
+- `d` - purge all memories for the current project permanently (with confirmation). Both are destructive and cannot be undone.
 - `p` - project picker
 - `?` - help
 
@@ -152,6 +154,8 @@ claude-launchpad memory pull --all
 ```
 
 Push and pull auto-detect the current project from your working directory. No `--project` flag needed.
+
+When sync is configured, `doctor --fix` adds SessionStart and SessionEnd hooks that pull and push automatically. You rarely need to run these commands manually after initial setup.
 
 ### Gist structure
 

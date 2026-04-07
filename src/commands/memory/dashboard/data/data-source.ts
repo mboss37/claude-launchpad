@@ -125,6 +125,11 @@ export class DashboardDataSource {
     return this.#memoryRepo.hardDelete(id);
   }
 
+  /** Count memories for a project (unfiltered). */
+  countByProject(project: string): number {
+    return this.#cachedMemories.filter((m) => m.project === project).length;
+  }
+
   /** Delete all memories for a project. Returns number of deleted memories. */
   purgeProject(project: string): number {
     return this.#memoryRepo.deleteByProject(project);

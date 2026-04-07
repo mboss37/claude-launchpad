@@ -109,8 +109,10 @@ export interface ClaudeConfig {
   readonly claudeignoreContent: string | null;
 }
 
+export type HookEvent = "PreToolUse" | "PostToolUse" | "SessionStart" | "SessionEnd" | "PostCompact" | "Stop";
+
 export interface HookConfig {
-  readonly event: string;
+  readonly event: HookEvent | string;
   readonly type: "command" | "prompt" | "agent" | "http";
   readonly matcher?: string;
   readonly command?: string;

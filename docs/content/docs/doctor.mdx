@@ -34,7 +34,7 @@ claude-launchpad doctor
 | **Hooks** | Missing SessionStart = Claude forgets where you left off. Missing PostCompact = Claude loses context mid-session. Missing SessionEnd = memories never sync. Missing auto-format = inconsistent code style. |
 | **Rules** | Missing BACKLOG.md, dead rule files, stale references. Without structure, deferred features get lost in conversation. |
 | **Permissions** | Credential exposure (SSH keys, AWS creds), bypass mode enabled, sandbox disabled. Security gaps that let Claude access what it shouldn't. |
-| **MCP Servers** | Invalid transport configs, missing commands/URLs, MCP servers not in `allowedMcpServers` whitelist. Unwhitelisted or broken MCP servers block Claude from its tools. |
+| **MCP Servers** | Invalid transport configs, missing commands/URLs, MCP servers not in `allowedMcpServers` whitelist. `allowedMcpServers` is a security setting that restricts which MCP servers Claude can use -- without it, any server added to `.mcp.json` or settings is auto-trusted. `--fix` populates it from your configured servers. |
 | **Memory** (optional) | MCP server config, hooks, autoMemory conflicts, CLAUDE.md guidance, tool permissions. Only runs when agentic-memory is detected. |
 
 ## What --fix applies

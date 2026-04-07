@@ -75,7 +75,7 @@ export function App({ dataSource }: AppProps): React.ReactNode {
     return (
       <PurgeConfirm
         project={state.currentProject}
-        memoryCount={state.filteredMemories.length}
+        memoryCount={dataSource.countByProject(state.currentProject)}
         onConfirm={state.confirmPurge}
         onCancel={state.cancelPurge}
       />
