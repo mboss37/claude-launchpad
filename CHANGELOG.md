@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.15.2] — 2026-04-07
+
+### Fixed
+- Relation decay modifier was inverted: connected memories decayed faster instead of slower (highlyConnectedMultiplier 0.35→2.5, connectedMultiplier 0.5→1.8, isolatedMultiplier 1.3→0.8)
+- Type filter leaked through relation expansion in search — filtered searches could return wrong-type memories via related links
+
 ## [0.15.1] — 2026-04-06
 
 ### Changed
