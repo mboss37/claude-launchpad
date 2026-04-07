@@ -73,9 +73,18 @@ describe("analyzeMemory", () => {
     expect(result!.name).toBe("Memory");
   });
 
-  it("returns null when only hook references memory but no MCP server", async () => {
+  it("detects memory via SessionStart hook even without MCP server entry", async () => {
     const result = await analyzeMemory(makeConfig({ hooks: [sessionStartHook] }));
-    expect(result).toBeNull();
+    expect(result).not.toBeNull();
+    expect(result!.name).toBe("Memory");
+  });
+
+  it("detects memory via tool permissions even without MCP server entry", async () => {
+    const result = await analyzeMemory(makeConfig({
+      settings: { permissions: { allow: ["mcp__agentic-memory__memory_store"] } },
+    }));
+    expect(result).not.toBeNull();
+    expect(result!.name).toBe("Memory");
   });
 
   it("flags missing SessionStart hook as high severity", async () => {
@@ -254,5 +263,42 @@ describe("analyzeMemory", () => {
       hooks: [sessionStartHook, sessionEndPush],
     }));
     expect(result!.issues.some((i) => i.message.includes("SessionEnd"))).toBe(false);
+  });
+
+  // ─── SessionStart pull hook ───
+
+  it("does not flag SessionStart pull hook when sync is not configured", async () => {
+    const result = await analyzeMemory(makeConfig({
+      mcpServers: [memoryServer],
+      hooks: [sessionStartHook],
+    }));
+    expect(result!.issues.some((i) => i.message.includes("auto-pull"))).toBe(false);
+  });
+
+  it("flags missing SessionStart pull hook when sync is configured", async () => {
+    mockReadSyncConfig.mockReturnValueOnce({ gistId: "abc123" });
+
+    const result = await analyzeMemory(makeConfig({
+      mcpServers: [memoryServer],
+      hooks: [sessionStartHook],
+    }));
+    expect(result!.issues.some(
+      (i) => i.severity === "medium" && i.message.includes("auto-pull"),
+    )).toBe(true);
+  });
+
+  it("does not flag when SessionStart pull hook exists and sync is configured", async () => {
+    mockReadSyncConfig.mockReturnValueOnce({ gistId: "abc123" });
+
+    const sessionStartPull: HookConfig = {
+      event: "SessionStart",
+      type: "command",
+      command: "claude-launchpad memory pull -y",
+    };
+    const result = await analyzeMemory(makeConfig({
+      mcpServers: [memoryServer],
+      hooks: [sessionStartHook, sessionStartPull],
+    }));
+    expect(result!.issues.some((i) => i.message.includes("auto-pull"))).toBe(false);
   });
 });

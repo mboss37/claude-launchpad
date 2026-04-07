@@ -42,14 +42,15 @@ export async function runInstall(opts: InstallOpts): Promise<void> {
   log.step('[2/5] Connecting to Claude Code...');
   await configureSettings(process.cwd(), placement);
 
-  // Step 3: Register MCP server
+  // Step 3: Register MCP server (project scope for shared, local scope for local)
   log.step('[3/5] Enabling memory tools...');
-  const registered = registerMcpServer();
+  const mcpScope = placement === "local" ? "local" : "project";
+  const registered = registerMcpServer(mcpScope);
   if (registered) {
     log.success('Memory tools available in Claude Code');
   } else {
     log.warn('Could not enable memory tools automatically.');
-    log.info('Run: claude mcp add --scope user agentic-memory npx claude-launchpad memory serve');
+    log.info(`Run: claude mcp add --scope ${mcpScope} agentic-memory -- npx claude-launchpad memory serve`);
   }
 
   // Step 4: CLAUDE.md + skills
@@ -97,8 +98,11 @@ async function configureSettings(projectDir: string, placement: MemoryPlacement)
   settings['autoMemoryEnabled'] = false;
   log.info('Built-in auto-memory disabled (replaced by knowledge base)');
 
-  // SessionStart hook
+  // SessionStart hooks
   const hooks = (settings['hooks'] ?? {}) as Record<string, unknown[]>;
+  if (readSyncConfig()) {
+    addSessionStartPullHook(hooks);
+  }
   addSessionStartHook(hooks);
 
   // SessionEnd push hook (only when sync is already configured)
@@ -114,6 +118,26 @@ async function configureSettings(projectDir: string, placement: MemoryPlacement)
   await write(projectDir, settings);
   const target = placement === "local" ? "settings.local.json" : "settings.json";
   log.success(`Claude Code configured in ${target}`);
+}
+
+function addSessionStartPullHook(hooks: Record<string, unknown[]>): void {
+  const sessionStartHooks = (hooks['SessionStart'] ?? []) as Record<string, unknown>[];
+  const alreadyHooked = sessionStartHooks.some((h) => {
+    const innerHooks = h['hooks'] as Record<string, unknown>[] | undefined;
+    return innerHooks?.some(
+      ih => typeof ih['command'] === 'string' && (ih['command'] as string).includes('memory pull'),
+    );
+  });
+
+  if (!alreadyHooked) {
+    // Insert at the beginning so pull runs before context injection
+    sessionStartHooks.unshift({
+      matcher: 'startup',
+      hooks: [{ type: 'command', command: 'claude-launchpad memory pull -y 2>/dev/null; exit 0' }],
+    });
+    hooks['SessionStart'] = sessionStartHooks;
+    log.info('Session start: memories will auto-pull from GitHub Gist');
+  }
 }
 
 function addSessionStartHook(hooks: Record<string, unknown[]>): void {
@@ -208,7 +232,7 @@ async function ensureNativeDeps(): Promise<void> {
   }
 }
 
-function registerMcpServer(): boolean {
+function registerMcpServer(scope: "project" | "local"): boolean {
   try {
     const existing = execSync('claude mcp list', { stdio: 'pipe', timeout: 10000, encoding: 'utf-8' });
     if (existing.includes('agentic-memory')) {
@@ -216,7 +240,7 @@ function registerMcpServer(): boolean {
       return true;
     }
     execSync(
-      'claude mcp add --scope user agentic-memory npx claude-launchpad memory serve',
+      `claude mcp add --scope ${scope} agentic-memory -- npx claude-launchpad memory serve`,
       { stdio: 'pipe', timeout: 10000 },
     );
     return true;

@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "agentic-memory": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "claude-launchpad",
+        "memory",
+        "serve"
+      ],
+      "env": {}
+    }
+  }
+}

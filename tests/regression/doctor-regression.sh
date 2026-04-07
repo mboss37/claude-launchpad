@@ -113,10 +113,12 @@ echo '{"memoryPlacement":"shared"}' > .claude/settings.local.json
 
 OUTPUT=$($CLI doctor 2>&1 || true)
 echo "$OUTPUT" | grep -q "SessionEnd" && green "S4: doctor flags missing SessionEnd hook" || red "S4: doctor should flag SessionEnd hook"
+echo "$OUTPUT" | grep -q "SessionStart.*auto-pull" && green "S4: doctor flags missing SessionStart pull hook" || red "S4: doctor should flag SessionStart pull hook"
 
 $CLI doctor --fix 2>&1 > /dev/null || true
 cat .claude/settings.json | grep -q "SessionEnd" && green "S4: --fix added SessionEnd hook" || red "S4: --fix should add SessionEnd hook"
 cat .claude/settings.json | grep -q "memory push" && green "S4: SessionEnd hook contains memory push" || red "S4: SessionEnd hook should push memories"
+cat .claude/settings.json | grep -q "memory pull" && green "S4: --fix added SessionStart pull hook" || red "S4: --fix should add SessionStart pull hook"
 
 # ── Scenario 5: Perfect project — no issues ──
 header "Scenario 5: Fully configured project"
@@ -215,6 +217,58 @@ cat > .claude/settings.json <<'EOF'
 EOF
 OUTPUT=$($CLI doctor --json 2>&1 || true)
 echo "$OUTPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); issues=[i for a in d['analyzers'] for i in a['issues']]; assert any('SessionEnd' in i['message'] for i in issues)" 2>/dev/null && green "S6: JSON includes SessionEnd for memory project" || red "S6: JSON should include SessionEnd for memory project"
+
+# ── Scenario 8: Memory detected via .mcp.json ──
+header "Scenario 8: .mcp.json memory detection"
+S8="$BASE/s8-mcp-json"
+mkdir -p "$S8/.claude" && cd "$S8"
+git init -q
+echo -e "# Test\n## Memory\nUse agentic-memory" > CLAUDE.md
+echo '{"memoryPlacement":"shared"}' > .claude/settings.local.json
+cat > .mcp.json <<'EOF'
+{
+  "mcpServers": {
+    "agentic-memory": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["claude-launchpad", "memory", "serve"]
+    }
+  }
+}
+EOF
+cat > .claude/settings.json <<'EOF'
+{
+  "autoMemoryEnabled": false,
+  "hooks": {"SessionStart": [{"matcher":"startup|resume","hooks": [{"type": "command", "command": "npx claude-launchpad memory context --json 2>/dev/null; exit 0"}]}]},
+  "permissions": {"allow": ["mcp__agentic-memory__memory_store","mcp__agentic-memory__memory_search","mcp__agentic-memory__memory_recent","mcp__agentic-memory__memory_forget","mcp__agentic-memory__memory_relate","mcp__agentic-memory__memory_stats","mcp__agentic-memory__memory_update"]}
+}
+EOF
+OUTPUT=$($CLI doctor --json 2>&1 || true)
+echo "$OUTPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); names=[a['name'] for a in d['analyzers']]; assert 'Memory' in names" 2>/dev/null && green "S8: doctor detects memory via .mcp.json" || red "S8: doctor should detect memory via .mcp.json"
+echo "$OUTPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); mem=[a for a in d['analyzers'] if a['name']=='Memory'][0]; assert len(mem['issues'])==0 or all(i['severity']!='high' and i['severity']!='critical' for i in mem['issues'])" 2>/dev/null && green "S8: no high/critical memory issues with .mcp.json setup" || red "S8: should have no high/critical memory issues"
+
+# ── Scenario 9: MCP detected via .mcp.json for allowedMcpServers ──
+header "Scenario 9: .mcp.json triggers allowedMcpServers check"
+S9="$BASE/s9-mcp-json-security"
+mkdir -p "$S9/.claude" && cd "$S9"
+git init -q
+echo '# Test' > CLAUDE.md
+cat > .mcp.json <<'EOF'
+{
+  "mcpServers": {
+    "my-server": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["my-mcp-server"]
+    }
+  }
+}
+EOF
+cat > .claude/settings.json <<'EOF'
+{}
+EOF
+OUTPUT=$($CLI doctor 2>&1 || true)
+echo "$OUTPUT" | grep -q "allowedMcpServers" && green "S9: doctor flags allowedMcpServers for .mcp.json server" || red "S9: doctor should flag allowedMcpServers for .mcp.json server"
 
 # ── Scenario 7: --fix is idempotent ──
 header "Scenario 7: --fix idempotency"

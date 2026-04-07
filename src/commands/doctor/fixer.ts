@@ -83,6 +83,7 @@ const FIX_TABLE: ReadonlyArray<{ analyzer: string; match: string; fix: FixFn }> 
   { analyzer: "Memory", match: "autoMemoryEnabled not disabled", fix: (root, _det, placement) => disableAutoMemory(root, placement) },
   { analyzer: "Memory", match: "MCP tool permission", fix: (root, _det, placement) => addMemoryToolPermissions(root, placement) },
   { analyzer: "MCP", match: "no allowedMcpServers", fix: (root) => addAllowedMcpServers(root) },
+  { analyzer: "Memory", match: "SessionStart hook to auto-pull", fix: (root, _det, placement) => addSessionStartPullHook(root, placement) },
   { analyzer: "Memory", match: "SessionEnd hook to auto-push", fix: (root, _det, placement) => addSessionEndPushHook(root, placement) },
   { analyzer: "Memory", match: "CLAUDE.md missing memory guidance", fix: (root, _det, placement) => {
     const content = "Use agentic-memory to persist knowledge across sessions:\n- Memories are automatically injected at session start\n- STORE IMMEDIATELY when: a dependency strategy changes, an architecture decision is made, a convention is established, a bug pattern is discovered, or a feature is killed/added\n- Use memory_search before memory_store to check for duplicates\n- NEVER store credentials, API keys, tokens, or secrets in memories";
@@ -254,6 +255,32 @@ async function addAllowedMcpServers(root: string): Promise<boolean> {
   );
   await writeSettingsJson(root, settings);
   log.success("Added allowedMcpServers from configured servers");
+  return true;
+}
+
+async function addSessionStartPullHook(root: string, placement: MemoryPlacement): Promise<boolean> {
+  const read = placement === "local" ? readSettingsLocalJson : readSettingsJson;
+  const write = placement === "local" ? writeSettingsLocalJson : writeSettingsJson;
+  const settings = await read(root);
+  const hooks = (settings.hooks ?? {}) as Record<string, unknown[]>;
+  const sessionStartHooks = (hooks.SessionStart as Record<string, unknown>[] | undefined) ?? [];
+
+  const alreadyHas = sessionStartHooks.some((g) => {
+    const nested = g.hooks as Record<string, unknown>[] | undefined;
+    return nested?.some((h) => String(h.command ?? "").includes("memory pull"));
+  });
+  if (alreadyHas) return false;
+
+  const newEntry = {
+    matcher: "startup",
+    hooks: [{ type: "command", command: "claude-launchpad memory pull -y 2>/dev/null; exit 0" }],
+  };
+  // Insert at beginning so pull runs before context injection
+  hooks.SessionStart = [newEntry, ...sessionStartHooks];
+  (settings as Record<string, unknown>).hooks = hooks;
+  await write(root, settings);
+  const target = placement === "local" ? "settings.local.json" : "settings.json";
+  log.success(`Added SessionStart hook for memory sync to ${target}`);
   return true;
 }
 
