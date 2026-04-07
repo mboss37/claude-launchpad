@@ -31,10 +31,10 @@ claude-launchpad doctor
 | **Instruction Budget** | Past ~200 lines, Claude stops reliably following rules at the bottom of CLAUDE.md. Doctor warns before you hit that limit. |
 | **CLAUDE.md Quality** | Missing sections mean Claude guesses your stack, conventions, and boundaries. Vague instructions ("write good code") waste budget with zero signal. |
 | **Settings** | Missing hooks, deprecated settings, auto-memory conflicts. Without proper settings, Claude runs without guardrails. |
-| **Hooks** | Missing SessionStart = Claude forgets where you left off. Missing PostCompact = Claude loses context mid-session. Missing auto-format = inconsistent code style. |
+| **Hooks** | Missing SessionStart = Claude forgets where you left off. Missing PostCompact = Claude loses context mid-session. Missing SessionEnd = memories never sync. Missing auto-format = inconsistent code style. |
 | **Rules** | Missing BACKLOG.md, dead rule files, stale references. Without structure, deferred features get lost in conversation. |
 | **Permissions** | Credential exposure (SSH keys, AWS creds), bypass mode enabled, sandbox disabled. Security gaps that let Claude access what it shouldn't. |
-| **MCP Servers** | Invalid transport configs, missing commands/URLs. Broken MCP means Claude can't reach its tools. |
+| **MCP Servers** | Invalid transport configs, missing commands/URLs, MCP servers not in `allowedMcpServers` whitelist. `allowedMcpServers` is a security setting that restricts which MCP servers Claude can use -- without it, any server added to `.mcp.json` or settings is auto-trusted. `--fix` populates it from your configured servers. |
 | **Memory** (optional) | MCP server config, hooks, autoMemory conflicts, CLAUDE.md guidance, tool permissions. Only runs when agentic-memory is detected. |
 
 ## What --fix applies
@@ -44,6 +44,7 @@ claude-launchpad doctor
     - Credential deny rules (~/.ssh/*, ~/.aws/*, ~/.npmrc) so Claude can't read your keys even if it tries to debug
     - Bypass permissions mode disabled so `--dangerously-skip-permissions` can't undo your safety settings
     - Sandbox enabled with failIfUnavailable for subprocess isolation
+    - `allowedMcpServers` populated from your defined MCP servers
     - .env added to .claudeignore (defense in depth alongside the hook)
   </Accordion>
   <Accordion title="Hooks">
@@ -51,6 +52,7 @@ claude-launchpad doctor
     - Auto-format hook (prettier, gofmt, ruff, etc.) so every edit matches your style
     - Force-push protection hook (prevents accidental remote history destruction)
     - PostCompact hook (re-injects TASKS.md after context compression so Claude stays on track mid-session)
+    - SessionEnd hook with memory push (memory projects only, auto-syncs memories when session closes)
   </Accordion>
   <Accordion title="CLAUDE.md">
     - Missing sections: Stack, Commands, Architecture, Off-Limits, Session Start, Backlog, Memory & Learnings

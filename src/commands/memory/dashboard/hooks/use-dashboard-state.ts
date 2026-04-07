@@ -25,6 +25,7 @@ export function useDashboardState(dataSource: DashboardDataSource) {
   const [showHelp, setShowHelp] = useState(false);
   const [showProjectPicker, setShowProjectPicker] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showPurgeConfirm, setShowPurgeConfirm] = useState(false);
 
   useEffect(() => {
     dataSource.refresh();
@@ -107,10 +108,6 @@ export function useDashboardState(dataSource: DashboardDataSource) {
     setSearchQuery('');
     setSelectedIndex(0);
   }, []);
-  const refresh = useCallback(() => {
-    dataSource.refresh();
-    setRevision((r) => r + 1);
-  }, [dataSource]);
   const promptDelete = useCallback(() => {
     if (selectedMemory) setShowDeleteConfirm(true);
   }, [selectedMemory]);
@@ -123,15 +120,29 @@ export function useDashboardState(dataSource: DashboardDataSource) {
     setRevision((r) => r + 1);
   }, [dataSource, selectedMemory]);
   const cancelDelete = useCallback(() => setShowDeleteConfirm(false), []);
+  const promptPurge = useCallback(() => {
+    if (currentProject) setShowPurgeConfirm(true);
+  }, [currentProject]);
+  const confirmPurge = useCallback(() => {
+    if (!currentProject) return;
+    dataSource.purgeProject(currentProject);
+    setShowPurgeConfirm(false);
+    setCurrentProject(undefined);
+    setSelectedIndex(0);
+    dataSource.refresh();
+    setRevision((r) => r + 1);
+  }, [dataSource, currentProject]);
+  const cancelPurge = useCallback(() => setShowPurgeConfirm(false), []);
 
   return {
     typeFilter, lifespanFilter, searchQuery, searchActive, currentProject,
-    sortMode, selectedIndex, focusedPane, showHelp, showProjectPicker, showDeleteConfirm,
+    sortMode, selectedIndex, focusedPane, showHelp, showProjectPicker, showDeleteConfirm, showPurgeConfirm,
     filteredMemories, selectedMemory, relations, projects, stats,
     setSearchQuery, setCurrentProject, setSelectedIndex, setShowHelp, setShowProjectPicker,
     navigateUp, navigateDown, cycleSort, cycleLifespan,
     cycleProjectNext, cycleProjectPrev, focusNext, filterByType,
-    openSearch, closeSearch, refresh, promptDelete, confirmDelete, cancelDelete,
+    openSearch, closeSearch, promptDelete, confirmDelete, cancelDelete,
+    promptPurge, confirmPurge, cancelPurge,
   };
 }
 

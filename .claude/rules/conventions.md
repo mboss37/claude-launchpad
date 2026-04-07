@@ -2,6 +2,7 @@
 
 ## Git Branching
 - **Features (`feat:`) MUST use a feature branch** — create `feat/<name>` from master before any code changes
+- **NEVER push a feature branch to origin until the sprint is complete** — local commits only until all tasks are done, reviewed, and ready for PR
 - Patches (`fix:`), docs, config, and refactors can commit directly to master
 - Feature branches are merged via PR after testing
 
@@ -50,6 +51,14 @@ When creating Claude Code skills (.claude/skills/*/SKILL.md):
 - Add argument-hint in frontmatter showing the expected input format
 - Structure as phases: Research, Plan, Execute, Verify with "Done when:" success criteria per phase
 - Handle edge cases and preconditions before execution
+
+## Content Updates
+When any feature, fix, or behavioral change ships, evaluate all three surfaces:
+- **Landing page** (`docs/app/(home)/page.tsx`): high-level hooks — what it does, why it matters. No implementation details.
+- **Docs** (`docs/content/docs/*.mdx`): detailed documentation with flags, examples, and edge cases.
+- **README** (`README.md`): dev-facing perspective — quick setup, commands, what's new.
+
+Not every change touches all three. A new doctor check updates docs only. A new command updates all three. Decide per change, but always consider all three.
 
 ## Parallel Agents
 - Research tasks: spawn multiple agents with different lenses

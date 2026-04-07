@@ -20,7 +20,7 @@ export async function parseClaudeConfig(projectRoot: string): Promise<ClaudeConf
     readSettingsFromFile(claudeDir, SETTINGS_LOCAL_FILE),
     readHooks(claudeDir),
     readRules(claudeDir),
-    readMcpServers(claudeDir),
+    readMcpServers(claudeDir, root),
     readSkills(claudeDir),
     readFileOrNull(join(root, ".claudeignore")),
   ]);
@@ -97,7 +97,15 @@ async function readSettingsFromFile(claudeDir: string, filename: string): Promis
 // ─── Hooks ───
 
 async function readHooks(claudeDir: string): Promise<ReadonlyArray<HookConfig>> {
-  const settingsRaw = await readFileOrNull(join(claudeDir, SETTINGS_FILE));
+  const [shared, local] = await Promise.all([
+    readHooksFromFile(join(claudeDir, SETTINGS_FILE)),
+    readHooksFromFile(join(claudeDir, SETTINGS_LOCAL_FILE)),
+  ]);
+  return [...shared, ...local];
+}
+
+async function readHooksFromFile(settingsPath: string): Promise<ReadonlyArray<HookConfig>> {
+  const settingsRaw = await readFileOrNull(settingsPath);
   if (settingsRaw === null) return [];
 
   try {
@@ -112,7 +120,6 @@ async function readHooks(claudeDir: string): Promise<ReadonlyArray<HookConfig>> 
         const g = group as Record<string, unknown>;
         const matcher = g.matcher as string | undefined;
 
-        // New schema: { matcher, hooks: [{ type, command }] }
         const nestedHooks = g.hooks as Record<string, unknown>[] | undefined;
         if (Array.isArray(nestedHooks)) {
           for (const hook of nestedHooks) {
@@ -126,7 +133,6 @@ async function readHooks(claudeDir: string): Promise<ReadonlyArray<HookConfig>> 
             });
           }
         } else {
-          // Legacy flat schema: { matcher, type, command }
           result.push({
             event: event as HookConfig["event"],
             type: (g.type as HookConfig["type"]) ?? "command",
@@ -152,8 +158,52 @@ async function readRules(claudeDir: string): Promise<ReadonlyArray<string>> {
 
 // ─── MCP Servers ───
 
-async function readMcpServers(claudeDir: string): Promise<ReadonlyArray<McpServerConfig>> {
-  const settingsRaw = await readFileOrNull(join(claudeDir, SETTINGS_FILE));
+async function readMcpServers(claudeDir: string, projectRoot: string): Promise<ReadonlyArray<McpServerConfig>> {
+  const [fromMcpJson, fromSettings, fromLocalSettings] = await Promise.all([
+    readMcpJsonFile(join(projectRoot, ".mcp.json")),
+    readMcpServersFromSettings(join(claudeDir, SETTINGS_FILE)),
+    readMcpServersFromSettings(join(claudeDir, SETTINGS_LOCAL_FILE)),
+  ]);
+  // Deduplicate by name — .mcp.json > local settings > shared settings
+  const seen = new Set<string>();
+  const result: McpServerConfig[] = [];
+  for (const server of [...fromMcpJson, ...fromLocalSettings, ...fromSettings]) {
+    if (!seen.has(server.name)) {
+      seen.add(server.name);
+      result.push(server);
+    }
+  }
+  return result;
+}
+
+/** Read .mcp.json (project-scoped MCP config created by `claude mcp add --scope project`) */
+async function readMcpJsonFile(mcpJsonPath: string): Promise<ReadonlyArray<McpServerConfig>> {
+  const raw = await readFileOrNull(mcpJsonPath);
+  if (raw === null) return [];
+
+  try {
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    const servers = parsed.mcpServers as Record<string, unknown> | undefined;
+    if (!servers || typeof servers !== "object") return [];
+
+    const result: McpServerConfig[] = [];
+    for (const [name, config] of Object.entries(servers)) {
+      const c = config as Record<string, unknown>;
+      result.push({
+        name,
+        transport: (c.transport as McpServerConfig["transport"]) ?? "stdio",
+        command: c.command as string | undefined,
+        url: c.url as string | undefined,
+      });
+    }
+    return result;
+  } catch {
+    return [];
+  }
+}
+
+async function readMcpServersFromSettings(settingsPath: string): Promise<ReadonlyArray<McpServerConfig>> {
+  const settingsRaw = await readFileOrNull(settingsPath);
   if (settingsRaw === null) return [];
 
   try {

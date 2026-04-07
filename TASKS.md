@@ -33,8 +33,8 @@ Rewrote all docs, README, and landing page to show value not features. 8 files, 
 ## Completed: Sprint 21 — Memory Bug Fixes
 Benchmark suite (54 tests) + two P0 fixes found by benchmarks. Relation decay modifier inverted (0.35→2.5), type filter leak in relation expansion. 298 tests + 54 benchmarks green.
 
-## Current: No active sprint
-All planned work complete. Future features in BACKLOG.md.
+## Completed: Sprint 22 — Purge + Doctor Modernization
+TUI purge (d/r keybindings), doctor SessionEnd + allowedMcpServers checks, push guard, regression tests, doc updates across all 3 surfaces. 318 tests + 54 benchmarks.
 
 ## Session Log
 ### 2026-04-06 (session 23-24)
@@ -48,4 +48,8 @@ All planned work complete. Future features in BACKLOG.md.
 ### 2026-04-07 (session 27)
 - Built memory benchmark suite (54 tests, 4 files): retrieval quality, injection quality, decay accuracy, scale performance.
 - Fixed two P0 bugs found by benchmarks: relation decay modifier inverted, type filter leak in relation expansion.
-- 298 tests + 54 benchmarks. Benchmarks now mandatory for memory changes.
+### 2026-04-07 (session 28-29)
+- Doctor modernization: SessionEnd detection, MCP allowedMcpServers check + fixer, hook analyzer cleanup.
+- TUI: project purge (`d`), remove single (`r`), responsive header, killed manual refresh + CLI purge command.
+- Push guard: 0-memory push warns and bails. DashboardDataSource unit tests (10), regression script moved to repo.
+- Doc updates: doctor.mdx, memory.mdx, README, landing page. Content review pass. Convention rule for 3-surface updates.

@@ -1,4 +1,5 @@
 import type { ClaudeConfig, AnalyzerResult, DiagnosticIssue } from "../../../types/index.js";
+import { readSyncConfig } from "../../memory/utils/gist-transport.js";
 
 const MEMORY_MCP_TOOLS = [
   "mcp__agentic-memory__memory_store",
@@ -11,7 +12,22 @@ const MEMORY_MCP_TOOLS = [
 ] as const;
 
 export function hasMemoryIndicators(config: ClaudeConfig): boolean {
-  return config.mcpServers.some((s) => s.name === "agentic-memory");
+  // MCP server in project settings (shared or local)
+  if (config.mcpServers.some((s) => s.name === "agentic-memory")) return true;
+
+  // Tool permissions referencing agentic-memory (server may be registered via `claude mcp add`)
+  const permissions = (config.settings?.permissions as Record<string, unknown> | undefined) ?? {};
+  const localPermissions = (config.localSettings?.permissions as Record<string, unknown> | undefined) ?? {};
+  const allowList = [
+    ...((permissions.allow as string[] | undefined) ?? []),
+    ...((localPermissions.allow as string[] | undefined) ?? []),
+  ];
+  if (allowList.some((t) => t.startsWith("mcp__agentic-memory__"))) return true;
+
+  // SessionStart hook referencing memory context injection
+  if (config.hooks.some((h) => h.event === "SessionStart" && h.command?.includes("memory context"))) return true;
+
+  return false;
 }
 
 /**
@@ -90,6 +106,34 @@ export async function analyzeMemory(config: ClaudeConfig): Promise<AnalyzerResul
       message: `${missingTools.length} agentic-memory MCP tool permission(s) missing from allowedTools`,
       fix: "Add all agentic-memory tool names to allowedTools in .claude/settings.json",
     });
+  }
+
+  // 7. Sync hooks when sync is configured
+  const syncConfig = readSyncConfig();
+  if (syncConfig) {
+    const hasSessionStartPull = config.hooks.some(
+      (h) => h.event === "SessionStart" && h.command?.includes("memory pull"),
+    );
+    if (!hasSessionStartPull) {
+      issues.push({
+        analyzer: "Memory",
+        severity: "medium",
+        message: "Sync configured but no SessionStart hook to auto-pull memories before context injection",
+        fix: "Run `doctor --fix` to add a SessionStart hook that pulls memories automatically",
+      });
+    }
+
+    const hasSessionEndPush = config.hooks.some(
+      (h) => h.event === "SessionEnd" && h.command?.includes("memory push"),
+    );
+    if (!hasSessionEndPush) {
+      issues.push({
+        analyzer: "Memory",
+        severity: "medium",
+        message: "Sync configured but no SessionEnd hook to auto-push memories after each session",
+        fix: "Run `doctor --fix` to add a SessionEnd hook that pushes memories automatically",
+      });
+    }
   }
 
   const critical = issues.filter((i) => i.severity === "critical").length;

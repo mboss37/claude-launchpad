@@ -65,6 +65,15 @@
     ],
     "SessionStart": [
       {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claude-launchpad memory pull -y 2>/dev/null; exit 0"
+          }
+        ]
+      },
+      {
         "matcher": "startup|resume",
         "hooks": [
           {
@@ -79,6 +88,16 @@
           {
             "type": "command",
             "command": "npx claude-launchpad memory context --json 2>/dev/null; exit 0"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claude-launchpad memory push -y >/dev/null 2>&1 & exit 0"
           }
         ]
       }
@@ -105,5 +124,10 @@
     "enabled": true,
     "failIfUnavailable": true
   },
-  "autoMemoryEnabled": false
+  "autoMemoryEnabled": false,
+  "allowedMcpServers": [
+    {
+      "serverName": "agentic-memory"
+    }
+  ]
 }

@@ -15,10 +15,11 @@ Running without flags starts an interactive setup that walks you through install
 
 ## What changes
 
-Once memory is installed, two things happen automatically:
+Once memory is installed, three things happen automatically:
 
-1. **Session start** — The SessionStart hook auto-loads memories relevant to your current context (branch, files, recent work). No manual loading, no "please recall X."
+1. **Session start** — Memories from other devices are pulled (if sync is configured), then relevant memories are injected into context based on your current branch, files, and recent work. No manual loading, no "please recall X."
 2. **During sessions** — Claude stores decisions, patterns, and insights as it works via MCP tools. CLAUDE.md guides it on what to remember.
+3. **Session end** — Memories are pushed to your private GitHub Gist (if sync is configured) so they're available on any machine next session.
 
 The result: Claude remembers your architecture decisions, bug patterns, deployment quirks, and conventions across sessions. You stop repeating yourself. Claude stops asking.
 
@@ -51,15 +52,20 @@ Running `claude-launchpad memory` without flags uses a smart default:
 
 - SQLite database at `~/.agentic-memory/` (shared across projects, scoped per project internally)
 - SessionStart hook that injects relevant memories at session start
+- SessionStart pull hook and SessionEnd push hook (when sync is configured) for automatic cross-device sync
 - 7 MCP tools for storing, searching, and managing memories
 - Memory guidance section in CLAUDE.md (or `.claude/CLAUDE.md` for local placement)
 - `/lp-migrate-memory` skill for porting legacy auto-memory files (shared placement only)
-- Global MCP server registration via `claude mcp add --scope user`
+- MCP server registration via `claude mcp add` (project or local scope based on placement)
 
 If auto-registration fails, run the command manually:
 
 ```bash
-claude mcp add --scope user agentic-memory -- npx claude-launchpad memory serve
+# Shared placement (team sees it — creates .mcp.json)
+claude mcp add --scope project agentic-memory -- npx claude-launchpad memory serve
+
+# Local placement (only you — writes to ~/.claude.json)
+claude mcp add --scope local agentic-memory -- npx claude-launchpad memory serve
 ```
 
 ## Shared vs local placement
@@ -68,13 +74,13 @@ During setup, you choose where memory config lives:
 
 ```
 ? Where should memory config go?
-❯ Shared (team sees it) — CLAUDE.md + settings.json
+❯ Shared (team sees it) — CLAUDE.md + settings.json + .mcp.json
   Local (only you) — .claude/CLAUDE.md + settings.local.json
 ```
 
-**Shared** (default) writes memory guidance, hooks, and tool permissions to committed project files. Your whole team sees the memory setup.
+**Shared** (default) writes memory guidance, hooks, and tool permissions to committed project files. The MCP server is registered in `.mcp.json` (project scope). Your whole team sees the memory setup and gets the approval prompt on first use.
 
-**Local** writes everything to gitignored files (`.claude/CLAUDE.md` and `.claude/settings.local.json`). Co-devs never see your memory config and can use their own setup (built-in auto-memory, a different MCP server, or nothing).
+**Local** writes everything to gitignored files (`.claude/CLAUDE.md` and `.claude/settings.local.json`). The MCP server is registered at local scope in `~/.claude.json`. Co-devs never see your memory config and can use their own setup (built-in auto-memory, a different MCP server, or nothing).
 
 Your choice is persisted in `settings.local.json` so `doctor --fix` applies memory fixes to the correct files without re-asking.
 
@@ -126,6 +132,8 @@ Keybindings:
 - `1`-`5` - filter by type (0 = all)
 - `l` - cycle lifespan filter (healthy/fading/stale)
 - `s` - cycle sort mode
+- `r` - remove the selected memory permanently (with confirmation)
+- `d` - purge all memories for the current project permanently (with confirmation). Both are destructive and cannot be undone.
 - `p` - project picker
 - `?` - help
 
@@ -146,6 +154,8 @@ claude-launchpad memory pull --all
 ```
 
 Push and pull auto-detect the current project from your working directory. No `--project` flag needed.
+
+When sync is configured, `doctor --fix` adds SessionStart and SessionEnd hooks that pull and push automatically. You rarely need to run these commands manually after initial setup.
 
 ### Gist structure
 
@@ -187,11 +197,14 @@ After installing, use `/lp-migrate-memory` inside Claude Code. It reads your leg
 ## Doctor integration
 
 When memory is detected, `doctor` adds a Memory analyzer that checks:
-- MCP server registered
-- SessionStart hook configured
+- MCP server registered (via `.mcp.json`, settings, or tool permissions)
+- SessionStart context hook configured
+- SessionStart pull hook configured (when sync is set up)
+- SessionEnd push hook configured (when sync is set up)
 - Built-in auto-memory disabled
 - CLAUDE.md guidance present
 - MCP tool permissions set
+- `allowedMcpServers` includes `agentic-memory`
 
 `doctor --fix` auto-repairs missing permissions and auto-memory settings. The fixer respects your placement choice, writing to the local or shared files accordingly.
 

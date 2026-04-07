@@ -4,7 +4,7 @@ import { join, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
 import { homedir } from 'node:os';
 
-interface SyncConfig {
+export interface SyncConfig {
   readonly gistId: string;
 }
 
@@ -50,6 +50,21 @@ export function assertGhAvailable(): void {
       'Run: gh auth login'
     );
   }
+}
+
+/**
+ * Read sync config from disk only — no network discovery.
+ * Safe to call from lightweight contexts like doctor analyzers.
+ */
+export function readSyncConfig(): SyncConfig | null {
+  try {
+    const raw = readFileSync(syncConfigPath(), 'utf-8');
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    if (typeof parsed.gistId === 'string' && /^[a-f0-9]+$/.test(parsed.gistId)) {
+      return { gistId: parsed.gistId };
+    }
+  } catch { /* no config file */ }
+  return null;
 }
 
 export function loadSyncConfig(): SyncConfig | null {

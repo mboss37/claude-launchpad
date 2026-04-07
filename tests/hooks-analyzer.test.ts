@@ -51,6 +51,13 @@ describe("analyzeHooks", () => {
     expect(result.issues.some((i) => i.message.includes(".env"))).toBe(true);
   });
 
+  it("does not flag SessionEnd (handled by memory analyzer)", async () => {
+    const result = await analyzeHooks(makeConfig([
+      { event: "PreToolUse", type: "command", command: ".env block" },
+    ]));
+    expect(result.issues.some((i) => i.message.includes("SessionEnd"))).toBe(false);
+  });
+
   it("recognizes various formatter names", async () => {
     const formatters = ["prettier", "gofmt", "rustfmt", "rubocop", "pint"];
     for (const fmt of formatters) {

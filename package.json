@@ -1,6 +1,6 @@
 {
   "name": "claude-launchpad",
-  "version": "0.15.2",
+  "version": "0.16.0",
   "description": "CLI toolkit for Claude Code — scaffold CLAUDE.md, diagnose config, enforce hooks, test with eval, add persistent memory",
   "type": "module",
   "bin": {
@@ -19,7 +19,8 @@
     "publish:release": "npm publish",
     "docs:dev": "cd docs && pnpm dev",
     "docs:build": "cd docs && pnpm build",
-    "bench:memory": "vitest run --config vitest.bench.config.ts --reporter=verbose"
+    "bench:memory": "vitest run --config vitest.bench.config.ts --reporter=verbose",
+    "test:regression": "bash tests/regression/doctor-regression.sh"
   },
   "keywords": [
     "claude",

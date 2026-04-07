@@ -88,7 +88,7 @@ Runs 7 analyzers against your `.claude/` directory and CLAUDE.md. No API calls, 
 | **Instruction Budget** | Too many instructions. Claude starts ignoring rules past ~200. |
 | **CLAUDE.md Quality** | Missing sections, vague instructions, hardcoded secrets |
 | **Settings** | No hooks configured, dangerous tool access without safety nets |
-| **Hooks** | Missing auto-format, no .env protection, no PostCompact hook |
+| **Hooks** | Missing auto-format, no .env protection, no PostCompact hook, no auto-sync on session end |
 | **Rules** | Dead rule files, stale references, empty configs |
 | **Permissions** | Credential exposure (~/.ssh, ~/.aws), blanket Bash approval, sandbox disabled |
 | **MCP Servers** | Invalid transport configs, missing commands/URLs |
@@ -210,7 +210,7 @@ During setup, you choose where memory config lives:
 
 Use "local" when co-devs have different memory setups (e.g. you use agentic-memory, they use built-in). Your choice is persisted so `doctor --fix` won't re-ask.
 
-Every session, Claude loads what it needs to know and stores new knowledge as it works. Stale facts fade on their own. Knowledge Claude actually uses gets reinforced. Each project has its own isolated memory, and you can sync it across machines via private GitHub Gist.
+Every session, Claude loads what it needs to know and stores new knowledge as it works. Stale facts fade on their own. Knowledge Claude actually uses gets reinforced. Each project has its own isolated memory. When a session ends, memories auto-sync to a private GitHub Gist so they're available on any machine.
 
 Browse everything with `--dashboard` -- a terminal UI with vim navigation, filtering, and search.
 
@@ -261,7 +261,7 @@ New to Claude Code? Here's what the terms mean.
 | **Instruction budget** | CLAUDE.md has a soft limit of ~200 actionable lines. Past that, Claude starts ignoring rules at the bottom. Doctor counts your lines and warns you. |
 | **Rules** | Extra markdown files in `.claude/rules/` that Claude reads alongside CLAUDE.md. Use them to offload detailed conventions so CLAUDE.md stays under budget. |
 | **Compaction** | When a conversation gets too long, Claude compresses older messages. Without a PostCompact hook, Claude loses track of your sprint and session context mid-work. The hook re-injects TASKS.md after compaction so Claude stays on track. |
-| **MCP Servers** | External tools Claude can connect to (databases, APIs, docs). Configured in `.claude/settings.json`. Most projects don't need them. |
+| **MCP Servers** | External tools Claude can connect to (databases, APIs, docs). Configured in `.mcp.json` (project scope) or `.claude/settings.json`. Most projects don't need them. |
 | **.claudeignore** | Like `.gitignore` but for Claude. Tells Claude which files to skip so it doesn't waste time reading noise. |
 
 ## Privacy

@@ -1,6 +1,11 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { analyzeMemory } from "../src/commands/doctor/analyzers/memory.js";
 import type { ClaudeConfig, HookConfig, McpServerConfig } from "../src/types/index.js";
+
+const mockReadSyncConfig = vi.fn(() => null);
+vi.mock("../src/commands/memory/utils/gist-transport.js", () => ({
+  readSyncConfig: (...args: unknown[]) => mockReadSyncConfig(...args),
+}));
 
 function makeConfig(overrides: {
   settings?: Record<string, unknown> | null;
@@ -68,9 +73,18 @@ describe("analyzeMemory", () => {
     expect(result!.name).toBe("Memory");
   });
 
-  it("returns null when only hook references memory but no MCP server", async () => {
+  it("detects memory via SessionStart hook even without MCP server entry", async () => {
     const result = await analyzeMemory(makeConfig({ hooks: [sessionStartHook] }));
-    expect(result).toBeNull();
+    expect(result).not.toBeNull();
+    expect(result!.name).toBe("Memory");
+  });
+
+  it("detects memory via tool permissions even without MCP server entry", async () => {
+    const result = await analyzeMemory(makeConfig({
+      settings: { permissions: { allow: ["mcp__agentic-memory__memory_store"] } },
+    }));
+    expect(result).not.toBeNull();
+    expect(result!.name).toBe("Memory");
   });
 
   it("flags missing SessionStart hook as high severity", async () => {
@@ -214,5 +228,77 @@ describe("analyzeMemory", () => {
     const result = await analyzeMemory(makeConfig({ mcpServers: [memoryServer] }));
     // 100 - (20 + 10 + 5 + 5) = 60
     expect(result!.score).toBe(60);
+  });
+
+  // ─── SessionEnd sync hook ───
+
+  it("does not flag SessionEnd push hook when sync is not configured", async () => {
+    const result = await analyzeMemory(makeConfig({
+      mcpServers: [memoryServer],
+      hooks: [sessionStartHook],
+    }));
+    expect(result!.issues.some((i) => i.message.includes("SessionEnd"))).toBe(false);
+  });
+
+  it("flags missing SessionEnd push hook when sync is configured", async () => {
+    mockReadSyncConfig.mockReturnValueOnce({ gistId: "abc123" });
+
+    const result = await analyzeMemory(makeConfig({
+      mcpServers: [memoryServer],
+      hooks: [sessionStartHook],
+    }));
+    expect(result!.issues.some((i) => i.message.includes("SessionEnd"))).toBe(true);
+  });
+
+  it("does not flag when SessionEnd push hook exists and sync is configured", async () => {
+    mockReadSyncConfig.mockReturnValueOnce({ gistId: "abc123" });
+
+    const sessionEndPush: HookConfig = {
+      event: "SessionEnd",
+      type: "command",
+      command: "claude-launchpad memory push -y",
+    };
+    const result = await analyzeMemory(makeConfig({
+      mcpServers: [memoryServer],
+      hooks: [sessionStartHook, sessionEndPush],
+    }));
+    expect(result!.issues.some((i) => i.message.includes("SessionEnd"))).toBe(false);
+  });
+
+  // ─── SessionStart pull hook ───
+
+  it("does not flag SessionStart pull hook when sync is not configured", async () => {
+    const result = await analyzeMemory(makeConfig({
+      mcpServers: [memoryServer],
+      hooks: [sessionStartHook],
+    }));
+    expect(result!.issues.some((i) => i.message.includes("auto-pull"))).toBe(false);
+  });
+
+  it("flags missing SessionStart pull hook when sync is configured", async () => {
+    mockReadSyncConfig.mockReturnValueOnce({ gistId: "abc123" });
+
+    const result = await analyzeMemory(makeConfig({
+      mcpServers: [memoryServer],
+      hooks: [sessionStartHook],
+    }));
+    expect(result!.issues.some(
+      (i) => i.severity === "medium" && i.message.includes("auto-pull"),
+    )).toBe(true);
+  });
+
+  it("does not flag when SessionStart pull hook exists and sync is configured", async () => {
+    mockReadSyncConfig.mockReturnValueOnce({ gistId: "abc123" });
+
+    const sessionStartPull: HookConfig = {
+      event: "SessionStart",
+      type: "command",
+      command: "claude-launchpad memory pull -y",
+    };
+    const result = await analyzeMemory(makeConfig({
+      mcpServers: [memoryServer],
+      hooks: [sessionStartHook, sessionStartPull],
+    }));
+    expect(result!.issues.some((i) => i.message.includes("auto-pull"))).toBe(false);
   });
 });

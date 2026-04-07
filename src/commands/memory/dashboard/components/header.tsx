@@ -3,6 +3,7 @@ import { Box, Text } from 'ink';
 import type { MemoryType } from '../../types.js';
 import type { LifespanStatus } from '../data/formatters.js';
 import type { SortMode } from '../hooks/use-dashboard-state.js';
+import type { LayoutMode } from '../hooks/use-terminal-size.js';
 
 interface HeaderProps {
   readonly project?: string;
@@ -10,24 +11,35 @@ interface HeaderProps {
   readonly lifespanFilter?: LifespanStatus;
   readonly sortMode: SortMode;
   readonly searchQuery: string;
+  readonly layout: LayoutMode;
 }
 
-export function Header({ project, typeFilter, lifespanFilter, sortMode, searchQuery }: HeaderProps): React.ReactNode {
+export function Header({ project, typeFilter, lifespanFilter, sortMode, searchQuery, layout }: HeaderProps): React.ReactNode {
+  const sep = <Text dimColor> | </Text>;
+
   return (
-    <Box>
+    <Box overflow="hidden">
       <Text bold color="green"> agentic-memory </Text>
-      <Text dimColor> | </Text>
+      {sep}
       <Text color="white">{project ?? 'all projects'}</Text>
-      <Text dimColor> | </Text>
-      <Text dimColor>{typeFilter ?? 'all types'}</Text>
-      <Text dimColor> | </Text>
-      <Text dimColor>{lifespanFilter ?? 'all life'}</Text>
-      <Text dimColor> | </Text>
-      <Text dimColor>sort:{sortMode}</Text>
+      {layout !== 'narrow' && (
+        <>
+          {sep}
+          <Text dimColor>{typeFilter ?? 'all types'}</Text>
+          {sep}
+          <Text dimColor>{lifespanFilter ?? 'all life'}</Text>
+        </>
+      )}
+      {layout === 'wide' && (
+        <>
+          {sep}
+          <Text dimColor>sort:{sortMode}</Text>
+        </>
+      )}
       {searchQuery && (
         <>
-          <Text dimColor> | </Text>
-          <Text color="yellow">search:{searchQuery}</Text>
+          {sep}
+          <Text color="yellow">/{searchQuery}</Text>
         </>
       )}
     </Box>

@@ -6,8 +6,12 @@ import { fileExists } from "../../lib/fs-utils.js";
 import { detectProject } from "../../lib/detect.js";
 import { generateClaudeignore } from "../init/generators/claudeignore.js";
 import { generateEnhanceSkill } from "../init/generators/skill-enhance.js";
-import { readSettingsJson, writeSettingsJson, readSettingsLocalJson, writeSettingsLocalJson } from "../../lib/settings.js";
+import { readSettingsJson, writeSettingsJson } from "../../lib/settings.js";
 import { getMemoryPlacement } from "../../lib/memory-placement.js";
+import {
+  disableAutoMemory, addMemoryToolPermissions, addAllowedMcpServers,
+  addSessionStartPullHook, addSessionEndPushHook, removeStaleStopHook,
+} from "./fixer-memory.js";
 import type { DiagnosticIssue, DetectedProject, MemoryPlacement } from "../../types/index.js";
 
 interface FixResult {
@@ -49,7 +53,8 @@ const FIX_TABLE: ReadonlyArray<{ analyzer: string; match: string; fix: FixFn }> 
     const a = await addEnvProtectionHook(root);
     const b = await addAutoFormatHook(root, detected);
     const c = await addForcePushProtection(root);
-    return a || b || c;
+    const d = await addSessionStartHook(root);
+    return a || b || c || d;
   }},
   { analyzer: "Hooks", match: ".env file protection", fix: (root) => addEnvProtectionHook(root) },
   { analyzer: "Hooks", match: "auto-format", fix: (root, detected) => addAutoFormatHook(root, detected) },
@@ -81,6 +86,9 @@ const FIX_TABLE: ReadonlyArray<{ analyzer: string; match: string; fix: FixFn }> 
   { analyzer: "Memory", match: "Deprecated Stop hook", fix: (root) => removeStaleStopHook(root) },
   { analyzer: "Memory", match: "autoMemoryEnabled not disabled", fix: (root, _det, placement) => disableAutoMemory(root, placement) },
   { analyzer: "Memory", match: "MCP tool permission", fix: (root, _det, placement) => addMemoryToolPermissions(root, placement) },
+  { analyzer: "MCP", match: "no allowedMcpServers", fix: (root, _det, placement) => addAllowedMcpServers(root, placement) },
+  { analyzer: "Memory", match: "SessionStart hook to auto-pull", fix: (root, _det, placement) => addSessionStartPullHook(root, placement) },
+  { analyzer: "Memory", match: "SessionEnd hook to auto-push", fix: (root, _det, placement) => addSessionEndPushHook(root, placement) },
   { analyzer: "Memory", match: "CLAUDE.md missing memory guidance", fix: (root, _det, placement) => {
     const content = "Use agentic-memory to persist knowledge across sessions:\n- Memories are automatically injected at session start\n- STORE IMMEDIATELY when: a dependency strategy changes, an architecture decision is made, a convention is established, a bug pattern is discovered, or a feature is killed/added\n- Use memory_search before memory_store to check for duplicates\n- NEVER store credentials, API keys, tokens, or secrets in memories";
     const target = placement === "local" ? join(root, ".claude", "CLAUDE.md") : undefined;
@@ -241,6 +249,7 @@ async function addSandboxSettings(root: string): Promise<boolean> {
   return true;
 }
 
+
 async function addEnvToClaudeignore(root: string): Promise<boolean> {
   const ignorePath = join(root, ".claudeignore");
   let content: string;
@@ -346,45 +355,6 @@ async function createStarterRules(root: string): Promise<boolean> {
   return true;
 }
 
-async function disableAutoMemory(root: string, placement: MemoryPlacement): Promise<boolean> {
-  const read = placement === "local" ? readSettingsLocalJson : readSettingsJson;
-  const write = placement === "local" ? writeSettingsLocalJson : writeSettingsJson;
-  const settings = await read(root);
-  if (settings.autoMemoryEnabled === false) return false;
-
-  (settings as Record<string, unknown>).autoMemoryEnabled = false;
-  await write(root, settings);
-  const target = placement === "local" ? "settings.local.json" : "settings.json";
-  log.success(`Set autoMemoryEnabled: false in ${target}`);
-  return true;
-}
-
-async function addMemoryToolPermissions(root: string, placement: MemoryPlacement): Promise<boolean> {
-  const read = placement === "local" ? readSettingsLocalJson : readSettingsJson;
-  const write = placement === "local" ? writeSettingsLocalJson : writeSettingsJson;
-  const settings = await read(root);
-  const permissions = (settings.permissions ?? {}) as Record<string, unknown>;
-  const allow = (permissions.allow as string[] | undefined) ?? [];
-
-  const tools = [
-    "mcp__agentic-memory__memory_store",
-    "mcp__agentic-memory__memory_search",
-    "mcp__agentic-memory__memory_recent",
-    "mcp__agentic-memory__memory_forget",
-    "mcp__agentic-memory__memory_relate",
-    "mcp__agentic-memory__memory_stats",
-    "mcp__agentic-memory__memory_update",
-  ];
-
-  const missing = tools.filter((t) => !allow.includes(t));
-  if (missing.length === 0) return false;
-
-  (settings as Record<string, unknown>).permissions = { ...permissions, allow: [...allow, ...missing] };
-  await write(root, settings);
-  const target = placement === "local" ? "settings.local.json" : "settings.json";
-  log.success(`Added agentic-memory MCP tool permissions to ${target}`);
-  return true;
-}
 
 async function createEnhanceSkill(root: string): Promise<boolean> {
   const skillDir = join(root, ".claude", "skills", "lp-enhance");
@@ -419,29 +389,4 @@ async function updateEnhanceSkill(root: string): Promise<boolean> {
   return true;
 }
 
-async function removeStaleStopHook(root: string): Promise<boolean> {
-  const settings = await readSettingsJson(root);
-  const hooks = settings.hooks as Record<string, unknown[]> | undefined;
-  if (!hooks?.Stop) return false;
-
-  const stopHooks = hooks.Stop as Record<string, unknown>[];
-  const filtered = stopHooks.filter((h) => {
-    const innerHooks = h.hooks as Record<string, unknown>[] | undefined;
-    return !innerHooks?.some(
-      (ih) => typeof ih.command === "string" && (ih.command as string).includes("memory extract"),
-    );
-  });
-
-  if (filtered.length === stopHooks.length) return false;
-
-  if (filtered.length === 0) {
-    delete hooks.Stop;
-  } else {
-    hooks.Stop = filtered;
-  }
-
-  await writeSettingsJson(root, settings);
-  log.success("Removed deprecated Stop hook (memory extract)");
-  return true;
-}
 

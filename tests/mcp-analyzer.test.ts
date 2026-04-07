@@ -27,8 +27,9 @@ describe("analyzeMcp", () => {
     expect(result.issues[0].severity).toBe("info");
   });
 
-  it("returns 100 for valid stdio server config", async () => {
+  it("returns 100 for valid stdio server config with allowedMcpServers", async () => {
     const result = await analyzeMcp(makeConfig({
+      settings: { allowedMcpServers: [{ serverName: "github" }] },
       mcpServers: [{
         name: "github",
         transport: "stdio",
@@ -37,6 +38,30 @@ describe("analyzeMcp", () => {
     }));
     expect(result.score).toBe(100);
     expect(result.issues).toHaveLength(0);
+  });
+
+  it("flags missing allowedMcpServers when servers exist", async () => {
+    const result = await analyzeMcp(makeConfig({
+      mcpServers: [{
+        name: "github",
+        transport: "stdio",
+        command: "npx @modelcontextprotocol/server-github",
+      }],
+    }));
+    expect(result.issues.some((i) => i.message.includes("allowedMcpServers"))).toBe(true);
+    expect(result.score).toBe(75);
+  });
+
+  it("flags sandbox without network config for HTTP MCP servers", async () => {
+    const result = await analyzeMcp(makeConfig({
+      settings: { sandbox: { enabled: true }, allowedMcpServers: [{ serverName: "api" }] },
+      mcpServers: [{
+        name: "api",
+        transport: "http",
+        url: "https://api.example.com/mcp",
+      }],
+    }));
+    expect(result.issues.some((i) => i.message.includes("network restrictions"))).toBe(true);
   });
 
   it("flags stdio server without command", async () => {

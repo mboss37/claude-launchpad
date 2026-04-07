@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.16.0] — 2026-04-07
+
+### Added
+- TUI dashboard: `d` to purge all memories for a project, `r` to remove a single memory (both with confirmation dialogs)
+- Doctor: detects missing SessionEnd hook on memory projects
+- Doctor: detects MCP servers not in `allowedMcpServers` whitelist
+- `doctor --fix`: auto-adds `allowedMcpServers` from configured MCP servers (reads `.mcp.json`)
+- `doctor --fix`: auto-adds SessionStart pull and SessionEnd push hooks for memory sync
+- `doctor --fix`: `allowedMcpServers` respects shared/local placement routing
+- Push guard: `memory push` warns and bails on 0 memories instead of uploading empty gist
+- Regression test suite (`pnpm test:regression`): 7 scenarios, 16 assertions for doctor CLI end-to-end
+- DashboardDataSource unit tests (purge, delete, filtering, stats)
+
+### Fixed
+- `getMemoryPlacement` no longer prompts on every `--fix` for pre-existing installs -- infers placement from existing config
+- SessionEnd push hook backgrounded to avoid timeout kill by Claude Code hook runner
+- MCP fixer reads `.mcp.json` for server names (not just `settings.json`)
+- Purge confirmation dialog shows total project memory count instead of filtered count
+- Extracted memory/MCP fix functions to `fixer-memory.ts` (fixer.ts: 536 to 392 lines)
+
+### Changed
+- TUI header is now responsive to terminal width
+- Killed CLI `memory --purge` command (replaced by TUI keybindings)
+
 ## [0.15.2] — 2026-04-07
 
 ### Fixed
