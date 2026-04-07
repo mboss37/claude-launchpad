@@ -88,6 +88,7 @@ export class MemoryRepo {
       softDelete: db.prepare('UPDATE memories SET importance = 0, updated_at = ? WHERE id = ?'),
       hardDelete: db.prepare('DELETE FROM memories WHERE id = ?'),
       deleteByType: db.prepare('DELETE FROM memories WHERE type = ?'),
+      deleteByProject: db.prepare('DELETE FROM memories WHERE project = ?'),
       count: db.prepare('SELECT COUNT(*) as count FROM memories'),
       countByProject: db.prepare('SELECT COUNT(*) as count FROM memories WHERE project = ?'),
       countByType: db.prepare('SELECT type, COUNT(*) as count FROM memories GROUP BY type'),
@@ -246,6 +247,11 @@ export class MemoryRepo {
 
   deleteByType(type: MemoryType): number {
     const result = this.#stmts.deleteByType.run(type);
+    return result.changes;
+  }
+
+  deleteByProject(project: string): number {
+    const result = this.#stmts.deleteByProject.run(project);
     return result.changes;
   }
 

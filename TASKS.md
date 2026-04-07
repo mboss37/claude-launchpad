@@ -33,8 +33,10 @@ Rewrote all docs, README, and landing page to show value not features. 8 files, 
 ## Completed: Sprint 21 — Memory Bug Fixes
 Benchmark suite (54 tests) + two P0 fixes found by benchmarks. Relation decay modifier inverted (0.35→2.5), type filter leak in relation expansion. 298 tests + 54 benchmarks green.
 
-## Current: No active sprint
-All planned work complete. Future features in BACKLOG.md.
+## Current: Sprint 22 — Purge + Doctor Modernization
+1. `memory --purge <project>` — bulk delete all memories for a project
+2. Doctor: detect new hook events/types (SessionEnd, UserPromptSubmit, http/agent hooks, .claude/agents/)
+3. Doctor: sandbox + MCP security checks (recommend sandbox config, MCP allow/deny lists)
 
 ## Session Log
 ### 2026-04-06 (session 23-24)

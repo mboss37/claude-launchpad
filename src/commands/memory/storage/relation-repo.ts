@@ -39,6 +39,11 @@ export class RelationRepo {
       `),
       count: db.prepare('SELECT COUNT(*) as count FROM relations'),
       getAll: db.prepare('SELECT * FROM relations'),
+      deleteOrphaned: db.prepare(`
+        DELETE FROM relations
+        WHERE source_id NOT IN (SELECT id FROM memories)
+           OR target_id NOT IN (SELECT id FROM memories)
+      `),
     };
   }
 
@@ -80,5 +85,10 @@ export class RelationRepo {
   getAll(): readonly Relation[] {
     const rows = this.#stmts.getAll.all() as RelationRow[];
     return rows.map(rowToRelation);
+  }
+
+  deleteOrphaned(): number {
+    const result = this.#stmts.deleteOrphaned.run();
+    return result.changes;
   }
 }

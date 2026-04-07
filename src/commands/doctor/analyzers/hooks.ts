@@ -74,6 +74,40 @@ export async function analyzeHooks(config: ClaudeConfig): Promise<AnalyzerResult
     });
   }
 
-  const score = Math.max(0, 100 - issues.length * 15);
+  // Check for SessionEnd hook (new in Claude Code)
+  const hasSessionEnd = hooks.some((h) => h.event === "SessionEnd");
+  if (!hasSessionEnd) {
+    issues.push({
+      analyzer: "Hooks",
+      severity: "info",
+      message: "No SessionEnd hook — use to auto-summarize or persist session artifacts",
+      fix: "Add a SessionEnd hook for session cleanup or summary generation",
+    });
+  }
+
+  // Check for UserPromptSubmit hook (input guardrails)
+  const hasUserPromptSubmit = hooks.some((h) => h.event === "UserPromptSubmit");
+  if (!hasUserPromptSubmit) {
+    issues.push({
+      analyzer: "Hooks",
+      severity: "info",
+      message: "No UserPromptSubmit hook — can validate or transform prompts before execution",
+      fix: "Add a UserPromptSubmit hook for input validation or guardrails",
+    });
+  }
+
+  // Check for hook type diversity
+  const hookTypes = new Set(hooks.map((h) => h.type));
+  if (hooks.length > 0 && hookTypes.size === 1 && hookTypes.has("command")) {
+    issues.push({
+      analyzer: "Hooks",
+      severity: "info",
+      message: "All hooks use command type — http, prompt, and agent hook types enable richer automation",
+    });
+  }
+
+  // Score: only count actionable issues (not info)
+  const actionable = issues.filter((i) => i.severity !== "info").length;
+  const score = Math.max(0, 100 - actionable * 15);
   return { name: "Hooks", issues, score };
 }

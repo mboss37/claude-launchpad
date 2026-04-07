@@ -81,6 +81,7 @@ const FIX_TABLE: ReadonlyArray<{ analyzer: string; match: string; fix: FixFn }> 
   { analyzer: "Memory", match: "Deprecated Stop hook", fix: (root) => removeStaleStopHook(root) },
   { analyzer: "Memory", match: "autoMemoryEnabled not disabled", fix: (root, _det, placement) => disableAutoMemory(root, placement) },
   { analyzer: "Memory", match: "MCP tool permission", fix: (root, _det, placement) => addMemoryToolPermissions(root, placement) },
+  { analyzer: "MCP", match: "no allowedMcpServers", fix: (root) => addAllowedMcpServers(root) },
   { analyzer: "Memory", match: "CLAUDE.md missing memory guidance", fix: (root, _det, placement) => {
     const content = "Use agentic-memory to persist knowledge across sessions:\n- Memories are automatically injected at session start\n- STORE IMMEDIATELY when: a dependency strategy changes, an architecture decision is made, a convention is established, a bug pattern is discovered, or a feature is killed/added\n- Use memory_search before memory_store to check for duplicates\n- NEVER store credentials, API keys, tokens, or secrets in memories";
     const target = placement === "local" ? join(root, ".claude", "CLAUDE.md") : undefined;
@@ -238,6 +239,19 @@ async function addSandboxSettings(root: string): Promise<boolean> {
   (settings as Record<string, unknown>).sandbox = { enabled: true, failIfUnavailable: true };
   await writeSettingsJson(root, settings);
   log.success("Enabled sandbox with failIfUnavailable");
+  return true;
+}
+
+async function addAllowedMcpServers(root: string): Promise<boolean> {
+  const settings = await readSettingsJson(root);
+  if (settings.allowedMcpServers) return false;
+  const servers = settings.mcpServers as Record<string, unknown> | undefined;
+  if (!servers || typeof servers !== "object") return false;
+  (settings as Record<string, unknown>).allowedMcpServers = Object.keys(servers).map(
+    (name) => ({ serverName: name }),
+  );
+  await writeSettingsJson(root, settings);
+  log.success("Added allowedMcpServers from configured servers");
   return true;
 }
 
