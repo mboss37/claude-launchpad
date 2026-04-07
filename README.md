@@ -261,7 +261,7 @@ New to Claude Code? Here's what the terms mean.
 | **Instruction budget** | CLAUDE.md has a soft limit of ~200 actionable lines. Past that, Claude starts ignoring rules at the bottom. Doctor counts your lines and warns you. |
 | **Rules** | Extra markdown files in `.claude/rules/` that Claude reads alongside CLAUDE.md. Use them to offload detailed conventions so CLAUDE.md stays under budget. |
 | **Compaction** | When a conversation gets too long, Claude compresses older messages. Without a PostCompact hook, Claude loses track of your sprint and session context mid-work. The hook re-injects TASKS.md after compaction so Claude stays on track. |
-| **MCP Servers** | External tools Claude can connect to (databases, APIs, docs). Configured in `.claude/settings.json`. Most projects don't need them. |
+| **MCP Servers** | External tools Claude can connect to (databases, APIs, docs). Configured in `.mcp.json` (project scope) or `.claude/settings.json`. Most projects don't need them. |
 | **.claudeignore** | Like `.gitignore` but for Claude. Tells Claude which files to skip so it doesn't waste time reading noise. |
 
 ## Privacy
