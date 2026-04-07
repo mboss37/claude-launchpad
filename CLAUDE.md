@@ -40,7 +40,7 @@ CLI toolkit that makes Claude Code setups measurably good — diagnose, scaffold
 - Run locally: `npx tsx src/cli.ts <command>`
 
 ## Test Layers
-- **Unit tests** (`pnpm test:run`): Vitest, 318 tests covering analyzers, repos, services, utils, data sources
+- **Unit tests** (`pnpm test:run`): Vitest, 322 tests covering analyzers, repos, services, utils, data sources
 - **Regression tests** (`pnpm test:regression`): bash script that runs the real CLI against temp projects (doctor, --fix, JSON output, idempotency)
 - **Benchmarks** (`pnpm bench:memory`): 54 tests measuring memory retrieval, injection, decay, and scale
 

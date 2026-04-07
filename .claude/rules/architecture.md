@@ -34,9 +34,9 @@
 │   │   ├── output.ts              # Terminal formatting (colors, tables, score bars)
 │   │   └── settings.ts            # Shared readSettingsJson/writeSettingsJson
 │   └── types/index.ts             # Core type definitions (doctor, eval, init)
-├── scenarios/common/              # Built-in eval scenarios (YAML)
-├── tests/                         # Vitest tests (294+)
-└── tests/memory/                  # Memory-specific tests (storage, services, sync, utils)
+├── scenarios/                     # Built-in eval scenarios (YAML: security/, conventions/, workflow/)
+├── tests/                         # Vitest tests (322+)
+└── tests/memory/                  # Memory-specific tests (storage, services, sync, utils) + benchmarks (54)
 ```
 
 ## Command Flow
@@ -53,7 +53,7 @@
 
 ## Dependency Strategy
 - **Core deps** (dependencies): commander, chalk, inquirer, ora, yaml — always installed
-- **Optional deps** (optionalDependencies): zod, @modelcontextprotocol/sdk — installed with package, pure JS
+- **Optional deps** (optionalDependencies): zod, @modelcontextprotocol/sdk, ink, react — installed with package, pure JS
 - **Native deps** (devDependencies): better-sqlite3, sqlite-vec — NOT installed for users, user installs when setting up memory
 - **Eval dep** (devDependencies): @anthropic-ai/claude-agent-sdk — eval falls back to Claude CLI if missing
 - All optional/native deps marked `external` in tsup — never bundled into dist
