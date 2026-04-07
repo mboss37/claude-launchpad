@@ -23,28 +23,39 @@
 - **Sprint 16**: Backlog System — v0.10.0, BACKLOG.md in init/doctor/fix, three-file system, budget 200, MCP registration fix, content review skill, 280 tests
 - **Sprint 17**: Memory Sync — v0.11.0, push/pull via private GitHub Gist, multi-file per project, auto-discovery, dedup guard, 294 tests
 - **Sprint 18**: Algorithm Tuning + Ink Dashboard + Skills — v0.12.1, decay/injection/tagging tuning from 3-expert panel, blessed→Ink migration, skill rewrites (Anthropic patterns), dashboard delete, path-scoped rules in /lp-enhance
+- **Sprint 19**: Memory Placement (v0.15.0) — local vs shared config routing, 28 files, 296 tests
+- **Sprint 20**: Outcome-First Docs — rewrote all docs/README/landing page for value not features
+- **Sprint 21**: Memory Bug Fixes — benchmark suite (54 tests), relation decay + type filter fixes
+- **Sprint 22**: Purge + Doctor Modernization (v0.16.0) — TUI purge, SessionEnd/MCP checks, fixer extraction, 322 tests
 
-## Completed: Sprint 19 — Memory Placement (v0.15.0)
-Local vs shared config routing for memory setup. 28 files, 296 tests, docs updated.
+## Current Sprint: Sprint 23 — Stability (path to v1.0.0)
 
-## Completed: Sprint 20 — Outcome-First Docs
-Rewrote all docs, README, and landing page to show value not features. 8 files, 54 insertions. Content reviewed.
+### Sync Hardening
+- [ ] Add `deleteGistFile()` to gist-transport
+- [ ] `memory sync clean <project>` subcommand
+- [ ] `memory sync status` subcommand (local vs remote counts)
+- [ ] Pull warning when creating fresh DB for a project
 
-## Completed: Sprint 21 — Memory Bug Fixes
-Benchmark suite (54 tests) + two P0 fixes found by benchmarks. Relation decay modifier inverted (0.35→2.5), type filter leak in relation expansion. 298 tests + 54 benchmarks green.
+### Store Dedup Fix
+- [ ] Migration: add `content_hash` column + unique index
+- [ ] Compute SHA-256 in `MemoryRepo.create()`, use `INSERT OR IGNORE`
+- [ ] Keep in-memory dedup as fast-path optimization
 
-## Completed: Sprint 22 — Purge + Doctor Modernization (v0.16.0)
-TUI purge, doctor SessionEnd + MCP checks, placement inference, SessionEnd push timeout fix, fixer extraction. 322 tests + 54 benchmarks. Code + content reviewed, 5-scenario regression tested.
+### Cleanup
+- [ ] Immutability violations in fixer.ts and install.ts
+
+### Ship
+- [ ] Tests + benchmarks green
+- [ ] Code review
+- [ ] Publish v1.0.0
 
 ## Session Log
-### 2026-04-07 (session 27)
-- Built memory benchmark suite (54 tests, 4 files): retrieval quality, injection quality, decay accuracy, scale performance.
-- Fixed two P0 bugs found by benchmarks: relation decay modifier inverted, type filter leak in relation expansion.
 ### 2026-04-07 (session 28-29)
 - Doctor modernization: SessionEnd detection, MCP allowedMcpServers check + fixer, hook analyzer cleanup.
 - TUI: project purge (`d`), remove single (`r`), responsive header, killed manual refresh + CLI purge command.
-- Push guard, DashboardDataSource tests, regression script, doc updates across all 3 surfaces.
 ### 2026-04-08 (session 30)
-- Fix: getMemoryPlacement inference from permissions (no more prompt on existing installs), MCP fixer reads .mcp.json, respects placement.
-- Fix: SessionEnd push hook backgrounded to avoid timeout kill. Purge count shows total not filtered.
-- Extracted fixer-memory.ts (536→392 lines). Code review + content review agents. 5-scenario regression test. Published v0.16.0.
+- Fix: getMemoryPlacement inference, MCP fixer reads .mcp.json, SessionEnd push timeout. Published v0.16.0.
+### 2026-04-08 (session 31)
+- /lp-enhance: path-scoped rules for memory + doctor modules, updated architecture.md.
+- Backlog cleanup: killed 5 dead items, added hygiene rule, trimmed 64→42 lines.
+- Fix: MCP parser `type` vs `transport` field, doctor footer for unfixable issues. Published v0.16.1.
