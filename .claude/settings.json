@@ -82,6 +82,16 @@
           }
         ]
       }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claude-launchpad memory push -y 2>/dev/null; exit 0"
+          }
+        ]
+      }
     ]
   },
   "permissions": {
