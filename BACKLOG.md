@@ -29,6 +29,16 @@ Skill (not CLI command — needs to run inside the session). Reports on current 
 - Issues: missing hooks, broken MCP tools, settings drift from doctor recommendations
 - Actionable suggestions: "your memory injection is 40% of budget, consider pruning"
 
+## [P1] Doctor: Detect New Hook Events and Types
+Claude Code now supports 28 hook events (we only check 4) and 4 hook types (command, prompt, http, agent). Highest-value additions for doctor to detect and recommend:
+- `SessionEnd` — cleanup, memory consolidation triggers
+- `UserPromptSubmit` — input validation, guardrails
+- `http` hook type — webhook automation with env var interpolation
+- `.claude/agents/` directory — custom agent definitions (new convention)
+
+## [P1] Doctor: Sandbox and MCP Security Checks
+Claude Code now has full sandbox config (`sandbox.filesystem`, `sandbox.network`) and MCP allow/deny lists (`allowedMcpServers`, `deniedMcpServers`). Doctor could recommend these for projects with MCP servers or security-sensitive codebases.
+
 ## [P2] Docs: .mdx Extension Middleware
 Fumadocs supports middleware that rewrites `/docs/foo.mdx` to the per-page markdown route, letting AI agents append `.mdx` to any doc URL. Not critical with static export but nice-to-have if hosting supports rewrites.
 

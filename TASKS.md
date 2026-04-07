@@ -30,18 +30,13 @@ Local vs shared config routing for memory setup. 28 files, 296 tests, docs updat
 ## Completed: Sprint 20 — Outcome-First Docs
 Rewrote all docs, README, and landing page to show value not features. 8 files, 54 insertions. Content reviewed.
 
+## Completed: Sprint 21 — Memory Bug Fixes
+Benchmark suite (54 tests) + two P0 fixes found by benchmarks. Relation decay modifier inverted (0.35→2.5), type filter leak in relation expansion. 298 tests + 54 benchmarks green.
+
 ## Current: No active sprint
 All planned work complete. Future features in BACKLOG.md.
 
 ## Session Log
-### 2026-04-05 (session 21)
-- Sprint 17: Memory sync via private GitHub Gist (push/pull, multi-file per project, auto-discovery).
-- Fixed dedup bug (parallel MCP calls), refactored fixer.ts + runner.ts, 294 tests.
-- Published v0.11.0. Tested cross-device sync between Mac Mini and MacBook.
-### 2026-04-06 (session 22)
-- Sprint 18: Ink migration, algorithm tuning (3-expert panel), skill rewrites (Anthropic patterns), dashboard delete.
-- Memory sync v0.11.0 shipped + tested cross-device. Path-scoped rules in /lp-enhance. Content review fixes.
-- Published v0.12.0 + v0.12.1.
 ### 2026-04-06 (session 23-24)
 - Fix: memory retrieval truncation (500 char slice), store Zod max removal, MCP server version from package.json.
 - Feat: /lp-enhance eval scenario gen + .claudeignore review + skill auto-update via doctor --fix. Karpathy-inspired copy rewrite. SEO pass.
@@ -50,3 +45,7 @@ All planned work complete. Future features in BACKLOG.md.
 - Fix: doctor --fix injected memory guidance into CLAUDE.md on non-memory projects (v0.14.3).
 - Feat: Memory placement — interactive local vs shared config routing. Parser reads both files, analyzers check both, fixer routes writes based on placement.
 - Published v0.14.3, v0.15.0.
+### 2026-04-07 (session 27)
+- Built memory benchmark suite (54 tests, 4 files): retrieval quality, injection quality, decay accuracy, scale performance.
+- Fixed two P0 bugs found by benchmarks: relation decay modifier inverted, type filter leak in relation expansion.
+- 298 tests + 54 benchmarks. Benchmarks now mandatory for memory changes.
