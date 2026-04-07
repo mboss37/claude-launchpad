@@ -82,7 +82,7 @@ const FIX_TABLE: ReadonlyArray<{ analyzer: string; match: string; fix: FixFn }> 
   { analyzer: "Memory", match: "Deprecated Stop hook", fix: (root) => removeStaleStopHook(root) },
   { analyzer: "Memory", match: "autoMemoryEnabled not disabled", fix: (root, _det, placement) => disableAutoMemory(root, placement) },
   { analyzer: "Memory", match: "MCP tool permission", fix: (root, _det, placement) => addMemoryToolPermissions(root, placement) },
-  { analyzer: "MCP", match: "no allowedMcpServers", fix: (root) => addAllowedMcpServers(root) },
+  { analyzer: "MCP", match: "no allowedMcpServers", fix: (root, _det, placement) => addAllowedMcpServers(root, placement) },
   { analyzer: "Memory", match: "SessionStart hook to auto-pull", fix: (root, _det, placement) => addSessionStartPullHook(root, placement) },
   { analyzer: "Memory", match: "SessionEnd hook to auto-push", fix: (root, _det, placement) => addSessionEndPushHook(root, placement) },
   { analyzer: "Memory", match: "CLAUDE.md missing memory guidance", fix: (root, _det, placement) => {
@@ -245,16 +245,38 @@ async function addSandboxSettings(root: string): Promise<boolean> {
   return true;
 }
 
-async function addAllowedMcpServers(root: string): Promise<boolean> {
-  const settings = await readSettingsJson(root);
+async function addAllowedMcpServers(root: string, placement: MemoryPlacement): Promise<boolean> {
+  const read = placement === "local" ? readSettingsLocalJson : readSettingsJson;
+  const write = placement === "local" ? writeSettingsLocalJson : writeSettingsJson;
+  const settings = await read(root);
   if (settings.allowedMcpServers) return false;
-  const servers = settings.mcpServers as Record<string, unknown> | undefined;
-  if (!servers || typeof servers !== "object") return false;
-  (settings as Record<string, unknown>).allowedMcpServers = Object.keys(servers).map(
+  // Also check the other file
+  const other = placement === "local" ? await readSettingsJson(root) : await readSettingsLocalJson(root);
+  if (other.allowedMcpServers) return false;
+
+  // Collect server names from settings.json and .mcp.json
+  const serverNames = new Set<string>();
+  const settingsServers = settings.mcpServers as Record<string, unknown> | undefined;
+  if (settingsServers && typeof settingsServers === "object") {
+    for (const name of Object.keys(settingsServers)) serverNames.add(name);
+  }
+  const mcpJsonPath = join(root, ".mcp.json");
+  try {
+    const mcpJson = JSON.parse(await readFile(mcpJsonPath, "utf-8")) as Record<string, unknown>;
+    const mcpServers = mcpJson.mcpServers as Record<string, unknown> | undefined;
+    if (mcpServers && typeof mcpServers === "object") {
+      for (const name of Object.keys(mcpServers)) serverNames.add(name);
+    }
+  } catch { /* no .mcp.json */ }
+
+  if (serverNames.size === 0) return false;
+
+  (settings as Record<string, unknown>).allowedMcpServers = [...serverNames].map(
     (name) => ({ serverName: name }),
   );
-  await writeSettingsJson(root, settings);
-  log.success("Added allowedMcpServers from configured servers");
+  await write(root, settings);
+  const target = placement === "local" ? "settings.local.json" : "settings.json";
+  log.success(`Added allowedMcpServers from configured servers to ${target}`);
   return true;
 }
 
@@ -298,7 +320,7 @@ async function addSessionEndPushHook(root: string, placement: MemoryPlacement): 
   if (alreadyHas) return false;
 
   const newEntry = {
-    hooks: [{ type: "command", command: "claude-launchpad memory push -y 2>/dev/null; exit 0" }],
+    hooks: [{ type: "command", command: "claude-launchpad memory push -y >/dev/null 2>&1 & exit 0" }],
   };
   hooks.SessionEnd = [...sessionEndHooks, newEntry];
   (settings as Record<string, unknown>).hooks = hooks;

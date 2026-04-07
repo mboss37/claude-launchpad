@@ -172,7 +172,7 @@ function addSessionEndPushHook(hooks: Record<string, unknown[]>): void {
 
   if (!alreadyHooked) {
     sessionEndHooks.push({
-      hooks: [{ type: 'command', command: 'claude-launchpad memory push -y 2>/dev/null; exit 0' }],
+      hooks: [{ type: 'command', command: 'claude-launchpad memory push -y >/dev/null 2>&1 & exit 0' }],
     });
     hooks['SessionEnd'] = sessionEndHooks;
     log.info('Session end: memories will auto-push to GitHub Gist');

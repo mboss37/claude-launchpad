@@ -51,6 +51,9 @@ Push/pull needs hardening for edge cases discovered in testing:
 ## [P2] Docs: .mdx Extension Middleware
 Fumadocs supports middleware that rewrites `/docs/foo.mdx` to the per-page markdown route, letting AI agents append `.mdx` to any doc URL. Not critical with static export but nice-to-have if hosting supports rewrites.
 
+## [P2] Memory: Store Dedup Race Condition
+Concurrent `memory_store` calls can create duplicates. The dedup guard does check-then-write without a lock, so two parallel stores with similar content both pass the check before either commits. Seen when Claude calls multiple `memory_store` in one message. Fix options: SQLite exclusive transaction around the check+insert, or a unique content hash constraint on the table.
+
 ## Launch Campaign
 - Landing page: before/after diff view (CLAUDE.md + settings.json)
 - Record 10-sec terminal GIF (bad score → --fix → good score)
