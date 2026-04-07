@@ -381,7 +381,7 @@ export default function HomePage() {
                   <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Stale knowledge fades so the knowledge base stays clean</div>
                   <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Each project gets its own knowledge base</div>
                   <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Browse and manage everything in a terminal dashboard</div>
-                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Auto-syncs when you close a session</div>
+                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Auto-syncs when you start or end a session</div>
                 </div>
               </div>
               <div className="mt-5">
