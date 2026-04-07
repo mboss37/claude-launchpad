@@ -33,23 +33,18 @@ Rewrote all docs, README, and landing page to show value not features. 8 files, 
 ## Completed: Sprint 21 — Memory Bug Fixes
 Benchmark suite (54 tests) + two P0 fixes found by benchmarks. Relation decay modifier inverted (0.35→2.5), type filter leak in relation expansion. 298 tests + 54 benchmarks green.
 
-## Completed: Sprint 22 — Purge + Doctor Modernization
-TUI purge (d/r keybindings), doctor SessionEnd + allowedMcpServers checks, push guard, regression tests, doc updates across all 3 surfaces. 318 tests + 54 benchmarks.
+## Completed: Sprint 22 — Purge + Doctor Modernization (v0.16.0)
+TUI purge, doctor SessionEnd + MCP checks, placement inference, SessionEnd push timeout fix, fixer extraction. 322 tests + 54 benchmarks. Code + content reviewed, 5-scenario regression tested.
 
 ## Session Log
-### 2026-04-06 (session 23-24)
-- Fix: memory retrieval truncation (500 char slice), store Zod max removal, MCP server version from package.json.
-- Feat: /lp-enhance eval scenario gen + .claudeignore review + skill auto-update via doctor --fix. Karpathy-inspired copy rewrite. SEO pass.
-- Published v0.12.2, v0.13.0, v0.13.1, v0.14.0.
-### 2026-04-06 (session 25-26)
-- Fix: doctor --fix injected memory guidance into CLAUDE.md on non-memory projects (v0.14.3).
-- Feat: Memory placement — interactive local vs shared config routing. Parser reads both files, analyzers check both, fixer routes writes based on placement.
-- Published v0.14.3, v0.15.0.
 ### 2026-04-07 (session 27)
 - Built memory benchmark suite (54 tests, 4 files): retrieval quality, injection quality, decay accuracy, scale performance.
 - Fixed two P0 bugs found by benchmarks: relation decay modifier inverted, type filter leak in relation expansion.
 ### 2026-04-07 (session 28-29)
 - Doctor modernization: SessionEnd detection, MCP allowedMcpServers check + fixer, hook analyzer cleanup.
 - TUI: project purge (`d`), remove single (`r`), responsive header, killed manual refresh + CLI purge command.
-- Push guard: 0-memory push warns and bails. DashboardDataSource unit tests (10), regression script moved to repo.
-- Doc updates: doctor.mdx, memory.mdx, README, landing page. Content review pass. Convention rule for 3-surface updates.
+- Push guard, DashboardDataSource tests, regression script, doc updates across all 3 surfaces.
+### 2026-04-08 (session 30)
+- Fix: getMemoryPlacement inference from permissions (no more prompt on existing installs), MCP fixer reads .mcp.json, respects placement.
+- Fix: SessionEnd push hook backgrounded to avoid timeout kill. Purge count shows total not filtered.
+- Extracted fixer-memory.ts (536→392 lines). Code review + content review agents. 5-scenario regression test. Published v0.16.0.
