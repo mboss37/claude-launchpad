@@ -191,7 +191,7 @@ async function readMcpJsonFile(mcpJsonPath: string): Promise<ReadonlyArray<McpSe
       const c = config as Record<string, unknown>;
       result.push({
         name,
-        transport: (c.transport as McpServerConfig["transport"]) ?? "stdio",
+        transport: ((c.transport ?? c.type) as McpServerConfig["transport"]) ?? "stdio",
         command: c.command as string | undefined,
         url: c.url as string | undefined,
       });
@@ -216,7 +216,7 @@ async function readMcpServersFromSettings(settingsPath: string): Promise<Readonl
       const c = config as Record<string, unknown>;
       result.push({
         name,
-        transport: (c.transport as McpServerConfig["transport"]) ?? "stdio",
+        transport: ((c.transport ?? c.type) as McpServerConfig["transport"]) ?? "stdio",
         command: c.command as string | undefined,
         url: c.url as string | undefined,
       });

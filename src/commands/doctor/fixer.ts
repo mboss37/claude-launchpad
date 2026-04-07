@@ -96,6 +96,12 @@ const FIX_TABLE: ReadonlyArray<{ analyzer: string; match: string; fix: FixFn }> 
   }},
 ];
 
+export function hasAutoFix(issue: DiagnosticIssue): boolean {
+  return FIX_TABLE.some(
+    (e) => e.analyzer === issue.analyzer && issue.message.includes(e.match),
+  );
+}
+
 async function tryFix(
   issue: DiagnosticIssue,
   root: string,

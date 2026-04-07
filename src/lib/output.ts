@@ -1,5 +1,6 @@
 import chalk from "chalk";
-import type { Severity, AnalyzerResult } from "../types/index.js";
+import type { Severity, AnalyzerResult, DiagnosticIssue } from "../types/index.js";
+import { hasAutoFix } from "../commands/doctor/fixer.js";
 
 // ─── Colors ───
 
@@ -113,7 +114,12 @@ export function renderDoctorReport(results: ReadonlyArray<AnalyzerResult>, optio
   if (options?.afterFix) {
     log.info(`${actionable.length} remaining issue(s) require manual intervention.`);
   } else {
-    log.info(`${actionable.length} issue(s). Run ${chalk.bold("--fix")} to auto-repair or ${chalk.bold("--fix --dry-run")} to preview.`);
+    const fixable = actionable.filter((i) => hasAutoFix(i));
+    if (fixable.length > 0) {
+      log.info(`${actionable.length} issue(s). Run ${chalk.bold("--fix")} to auto-repair or ${chalk.bold("--fix --dry-run")} to preview.`);
+    } else {
+      log.info(`${actionable.length} issue(s) require manual intervention.`);
+    }
   }
   return { overallScore, actionableCount: actionable.length };
 }

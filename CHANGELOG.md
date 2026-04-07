@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.16.1] — 2026-04-08
+
+### Fixed
+- MCP parser now reads `type` field from `.mcp.json` (Claude Code uses `type`, not `transport`) — fixes false "no command" warnings on HTTP MCP servers like Supabase
+- Doctor footer no longer suggests `--fix` when remaining issues have no auto-fixer
+
 ## [0.16.0] — 2026-04-07
 
 ### Added
