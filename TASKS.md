@@ -34,9 +34,14 @@ Rewrote all docs, README, and landing page to show value not features. 8 files, 
 Benchmark suite (54 tests) + two P0 fixes found by benchmarks. Relation decay modifier inverted (0.35→2.5), type filter leak in relation expansion. 298 tests + 54 benchmarks green.
 
 ## Current: Sprint 22 — Purge + Doctor Modernization
-1. `memory --purge <project>` — bulk delete all memories for a project
-2. Doctor: detect new hook events/types (SessionEnd, UserPromptSubmit, http/agent hooks, .claude/agents/)
-3. Doctor: sandbox + MCP security checks (recommend sandbox config, MCP allow/deny lists)
+1. ~~`memory --purge <project>`~~ → Killed CLI purge, moved to TUI (`d` = delete project, `r` = remove single)
+2. ✅ Doctor: detect SessionEnd (memory projects), MCP `allowedMcpServers` check + fixer
+3. ✅ Doctor: sandbox + MCP security checks in fixer
+4. ✅ Push guard: warn and bail on 0 memories instead of empty gist
+5. ✅ TUI: responsive header, purge confirm dialog
+6. **TODO**: Tests for new TUI keybindings + purge flow
+7. **TODO**: Manual TUI check (purge confirm, responsive header, keybinding bar)
+8. **TODO**: Doc updates (doctor.mdx, memory.mdx)
 
 ## Session Log
 ### 2026-04-06 (session 23-24)
@@ -50,4 +55,7 @@ Benchmark suite (54 tests) + two P0 fixes found by benchmarks. Relation decay mo
 ### 2026-04-07 (session 27)
 - Built memory benchmark suite (54 tests, 4 files): retrieval quality, injection quality, decay accuracy, scale performance.
 - Fixed two P0 bugs found by benchmarks: relation decay modifier inverted, type filter leak in relation expansion.
-- 298 tests + 54 benchmarks. Benchmarks now mandatory for memory changes.
+### 2026-04-07 (session 28)
+- Doctor modernization: SessionEnd detection, MCP allowedMcpServers check + fixer, hook analyzer cleanup.
+- TUI: project purge (`d`), remove single (`r`), responsive header, killed manual refresh + CLI purge command.
+- Push guard: 0-memory push warns and bails. Regression test updated (16 scenarios green).
