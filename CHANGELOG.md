@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.0.0] — 2026-04-08
+
+### Added
+- `memory sync status` subcommand: shows local vs remote memory counts per project
+- `memory sync clean <project>` subcommand: removes a project from the sync gist
+- `deleteGistFile()` in gist-transport for removing individual files from sync gist
+- Pull warning when creating a fresh database from remote for a project
+- Migration 003: `content_hash` column with unique index on memories table
+- Store dedup at database level: SHA-256 content hash with `INSERT OR IGNORE` prevents duplicates even across concurrent calls
+- Clean error messages for all sync commands when `gh` is not authenticated
+
+### Fixed
+- Immutability violations in fixer.ts, fixer-memory.ts, and install.ts (all mutations replaced with spread operators)
+- Sync upsert no longer silently deletes memories with duplicate content across different IDs
+- Migration backfill deduplicates existing rows before creating unique index (handles pre-existing duplicates)
+
+### Changed
+- `MemoryRepo.create()` returns `null` instead of throwing on duplicate content (in-memory dedup kept as fast-path)
+- `upsertFromSync()` uses check-then-insert/update pattern instead of `INSERT OR REPLACE` to respect content_hash constraint
+
 ## [0.16.1] — 2026-04-08
 
 ### Fixed

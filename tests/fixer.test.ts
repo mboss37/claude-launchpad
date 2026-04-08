@@ -82,7 +82,7 @@ describe("applyFixes", () => {
     expect(result.fixed).toBe(1);
 
     const content = await readFile(join(testDir, ".claudeignore"), "utf-8");
-    expect(content).toContain("node_modules");
+    expect(content).toContain("dist/");
     expect(content).toContain(".env");
   });
 

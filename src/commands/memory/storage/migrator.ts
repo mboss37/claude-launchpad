@@ -1,6 +1,7 @@
 import type Database from 'better-sqlite3';
 import * as migration001 from './migrations/001-initial.js';
 import * as migration002 from './migrations/002-add-project.js';
+import * as migration003 from './migrations/003-add-content-hash.js';
 
 interface Migration {
   readonly version: number;
@@ -10,6 +11,7 @@ interface Migration {
 const migrations: readonly Migration[] = [
   migration001,
   migration002,
+  migration003,
 ];
 
 export function getSchemaVersion(db: Database.Database): number {

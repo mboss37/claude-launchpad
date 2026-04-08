@@ -6,6 +6,9 @@ description: Install Claude Launchpad and score your Claude Code setup in 10 sec
 import { Step, Steps } from 'fumadocs-ui/components/steps';
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
+Claude Code follows your CLAUDE.md rules about 80% of the time. Hooks run at 100%.
+Most projects have zero hooks configured. Claude Launchpad fixes that.
+
 ## Install
 
 ```bash
@@ -156,6 +159,8 @@ Each tool handles one job. No overlap.
 | `claude-launchpad memory` | Locally |
 | `claude-launchpad memory --dashboard` | Locally |
 | `claude-launchpad memory push/pull` | Via GitHub API |
+| `claude-launchpad memory sync status` | Locally |
+| `claude-launchpad memory sync clean` | Locally |
 
 <Callout type="info">
   Commands marked **Locally** run offline with zero API calls. Commands marked **Via Claude CLI** require Claude Code installed and authenticated. Memory is optional.

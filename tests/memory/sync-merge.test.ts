@@ -7,11 +7,12 @@ import type Database from 'better-sqlite3';
 import type { SyncPayload, SyncMemoryRow } from '../../src/commands/memory/types.js';
 
 function makeSyncMemory(overrides: Partial<SyncMemoryRow> = {}): SyncMemoryRow {
+  const id = overrides.id ?? 'test-id-1';
   return {
-    id: 'test-id-1',
+    id,
     type: 'semantic',
     title: 'Test memory',
-    content: 'Some content',
+    content: `Content for ${id}`,
     context: null,
     source: 'manual',
     project: 'test-project',
@@ -63,7 +64,7 @@ describe('sync-merge', () => {
       expect(result.updated).toBe(0);
       const stored = memoryRepo.getById('new-1');
       expect(stored).toBeDefined();
-      expect(stored!.content).toBe('Some content');
+      expect(stored!.content).toBe('Content for new-1');
       expect(stored!.project).toBe('test-project');
     });
 

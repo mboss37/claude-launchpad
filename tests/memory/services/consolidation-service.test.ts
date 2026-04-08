@@ -19,17 +19,19 @@ function daysAgo(days: number): string {
 describe('ConsolidationService', () => {
   describe('deduplicateMemories', () => {
     it('merges memories with identical content', () => {
-      const { memoryRepo, consolidation } = setup();
+      const { db, memoryRepo, consolidation } = setup();
 
       memoryRepo.create({
         type: 'semantic', content: 'SQLite uses WAL mode', tags: ['tag1'],
         importance: 0.8, source: 'manual',
       }, null);
 
-      memoryRepo.create({
-        type: 'semantic', content: 'SQLite uses WAL mode', tags: ['tag2'],
-        importance: 0.6, source: 'manual',
-      }, null);
+      // Insert duplicate directly to bypass content_hash unique constraint
+      const now = new Date().toISOString();
+      db.prepare(`
+        INSERT INTO memories (id, type, content, tags, importance, source, created_at, updated_at, content_hash)
+        VALUES (?, 'semantic', 'SQLite uses WAL mode', '["tag2"]', 0.6, 'manual', ?, ?, 'dup-hash')
+      `).run('dup-id', now, now);
 
       expect(memoryRepo.count()).toBe(2);
       const merged = consolidation.deduplicateMemories();

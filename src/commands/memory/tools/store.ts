@@ -152,6 +152,12 @@ export function registerStore(server: McpServer, deps: ToolDeps): void {
       recentStores.set(contentHash, Date.now());
       pendingStores.delete(contentHash);
 
+      if (!memory) {
+        return {
+          content: [{ type: 'text' as const, text: 'Skipped: identical memory already exists in the knowledge base.' }],
+        };
+      }
+
       // Create contradiction relations
       for (const c of contradictions) {
         try {

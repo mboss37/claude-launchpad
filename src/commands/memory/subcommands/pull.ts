@@ -54,6 +54,11 @@ function pullProject(ctx: ReturnType<typeof initStorage>, gistId: string): void 
     return;
   }
 
+  const localCount = ctx.memoryRepo.count(project);
+  if (localCount === 0) {
+    log.warn(`No local memories for "${project}" — creating fresh database from remote.`);
+  }
+
   const result = mergeFromRemote(ctx.memoryRepo, ctx.relationRepo, payload);
   printResult(result, project);
 }

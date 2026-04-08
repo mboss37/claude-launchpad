@@ -8,9 +8,9 @@
 ![Linux](https://img.shields.io/badge/Linux-supported-brightgreen?style=flat-square&logo=linux)
 ![Windows](https://img.shields.io/badge/Windows-untested-yellow?style=flat-square&logo=windows)
 
-**Score your Claude Code config. Fix it. Prove it works.**
+**Claude follows CLAUDE.md ~80% of the time. Hooks run at 100%. Most setups have zero hooks.**
 
-Claude follows CLAUDE.md ~80% of the time. Hooks run at 100%. Most setups have zero hooks. Claude Launchpad adds the hooks, scores your config, and tests that Claude actually follows your rules.
+Claude Launchpad adds the hooks, scores your config, and tests that Claude actually follows your rules.
 
 For developers using Claude Code who want consistent results: solo devs, vibe coders, AI-first teams.
 
@@ -56,7 +56,13 @@ Scores your config, auto-repairs everything it can.
 
 ## The Three-File System
 
-Without structure, CLAUDE.md becomes a dumping ground. Future ideas bury active guidance. Sprint notes push conventions off-screen. Past the ~200 line budget, Claude starts ignoring rules at the bottom. The three-file split keeps each concern where it belongs:
+Without structure, CLAUDE.md becomes a dumping ground:
+
+- Future ideas bury active guidance
+- Sprint notes push conventions off-screen  
+- Past ~200 lines, Claude starts ignoring rules at the bottom
+
+The three-file split keeps each concern where it belongs:
 
 | File | Purpose | Example |
 |---|---|---|
@@ -212,7 +218,7 @@ Use "local" when co-devs have different memory setups (e.g. you use agentic-memo
 
 Every session, Claude loads what it needs to know and stores new knowledge as it works. Stale facts fade on their own. Knowledge Claude actually uses gets reinforced. Each project has its own isolated memory. When a session ends, memories auto-sync to a private GitHub Gist so they're available on any machine.
 
-Browse everything with `--dashboard` -- a terminal UI with vim navigation, filtering, and search.
+Browse everything with `--dashboard`, a terminal UI with vim navigation, filtering, and search.
 
 Data stays in `~/.agentic-memory/memory.db`. Sync requires the [GitHub CLI](https://cli.github.com/) (`gh`).
 
@@ -223,6 +229,9 @@ Data stays in `~/.agentic-memory/memory.db`. Sync requires the [GitHub CLI](http
 | `pull` | Pull current project's memories from a private GitHub Gist |
 | `push --all` | Push all projects |
 | `pull --all` | Pull all projects |
+| `push -y` | Skip confirmation prompt |
+| `sync status` | Show local vs remote memory counts |
+| `sync clean <project>` | Remove a project from the sync gist |
 
 Sync stores one file per project inside a single private gist. Push/pull auto-detects the current project from your working directory. On a new device, the gist is auto-discovered from your GitHub account (no config to copy).
 

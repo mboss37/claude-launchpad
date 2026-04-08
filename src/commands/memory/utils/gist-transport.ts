@@ -151,6 +151,20 @@ export function listGistFiles(gistId: string): readonly string[] {
   }
 }
 
+export function deleteGistFile(gistId: string, filename: string): void {
+  const payload = { files: { [filename]: null } };
+  const tmpFile = join(tmpdir(), `gist-delete-${Date.now()}.json`);
+  try {
+    writeFileSync(tmpFile, JSON.stringify(payload), 'utf-8');
+    execSync(
+      `gh api --method PATCH "/gists/${gistId}" --input "${tmpFile}"`,
+      { ...EXEC_OPTS, stdio: ['pipe', 'pipe', 'pipe'] },
+    );
+  } finally {
+    try { unlinkSync(tmpFile); } catch { /* ignore */ }
+  }
+}
+
 export function updateGistFiles(
   gistId: string,
   files: Record<string, string>,

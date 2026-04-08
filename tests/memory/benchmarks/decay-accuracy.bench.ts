@@ -4,11 +4,12 @@ import { DecayService } from '../../../src/commands/memory/services/decay-servic
 import { DEFAULT_DECAY_PARAMS } from '../../../src/commands/memory/config.js';
 import type { Memory, MemoryType } from '../../../src/commands/memory/types.js';
 
+let seqCounter = 0;
 function createMemoryAtAge(bench: BenchDb, type: MemoryType, importance: number, daysOld: number, accessCount = 0): Memory {
   const memory = bench.memoryRepo.create(
-    { type, content: `${type} memory at ${daysOld} days`, tags: [], importance, source: 'manual' },
+    { type, content: `${type} memory at ${daysOld} days #${++seqCounter}`, tags: [], importance, source: 'manual' },
     null,
-  );
+  )!
   const date = daysAgoIso(daysOld);
   bench.db.prepare('UPDATE memories SET created_at = ?, updated_at = ? WHERE id = ?').run(date, date, memory.id);
   for (let i = 0; i < accessCount; i++) bench.memoryRepo.incrementAccess(memory.id);

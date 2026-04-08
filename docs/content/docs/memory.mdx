@@ -21,7 +21,7 @@ Once memory is installed, three things happen automatically:
 2. **During sessions** — Claude stores decisions, patterns, and insights as it works via MCP tools. CLAUDE.md guides it on what to remember.
 3. **Session end** — Memories are pushed to your private GitHub Gist (if sync is configured) so they're available on any machine next session.
 
-The result: Claude remembers your architecture decisions, bug patterns, deployment quirks, and conventions across sessions. You stop repeating yourself. Claude stops asking.
+The result: Claude remembers your architecture decisions, bug patterns, deployment quirks, and conventions across sessions.
 
 ## Prerequisites
 
@@ -187,6 +187,9 @@ Project-scoped push/pull only touches that project's file. Other projects are ne
 | `memory push --all` | Push all projects |
 | `memory pull --all` | Pull all projects |
 | `memory push -y` | Skip confirmation prompt (for scripts) |
+| `memory sync status` | Show local vs remote memory counts per project |
+| `memory sync clean <project>` | Remove a project from the sync gist |
+| `memory sync clean <project> -y` | Skip confirmation prompt |
 
 Data is validated with Zod on both push and pull. Corrupt or incompatible data is rejected with a clear error.
 

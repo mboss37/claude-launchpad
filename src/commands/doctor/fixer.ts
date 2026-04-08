@@ -133,9 +133,9 @@ async function addHook(
   });
   if (alreadyHas) return false;
 
-  hookList.push(entry);
-  (settings as Record<string, unknown>).hooks = { ...hooks, [event]: hookList };
-  await writeSettingsJson(root, settings);
+  const updated = [...hookList, entry];
+  const updatedSettings = { ...settings, hooks: { ...hooks, [event]: updated } };
+  await writeSettingsJson(root, updatedSettings);
   log.success(successMsg);
   return true;
 }
@@ -228,8 +228,8 @@ async function addCredentialDenyRules(root: string): Promise<boolean> {
   const missing = toAdd.filter((p) => !deny.includes(p));
   if (missing.length === 0) return false;
 
-  (settings as Record<string, unknown>).permissions = { ...permissions, deny: [...deny, ...missing] };
-  await writeSettingsJson(root, settings);
+  const updated = { ...settings, permissions: { ...permissions, deny: [...deny, ...missing] } };
+  await writeSettingsJson(root, updated);
   log.success("Added credential deny rules (SSH, AWS, npm)");
   return true;
 }
@@ -238,8 +238,8 @@ async function addBypassDisable(root: string): Promise<boolean> {
   const settings = await readSettingsJson(root);
   if (settings.disableBypassPermissionsMode === "disable") return false;
 
-  (settings as Record<string, unknown>).disableBypassPermissionsMode = "disable";
-  await writeSettingsJson(root, settings);
+  const updated = { ...settings, disableBypassPermissionsMode: "disable" };
+  await writeSettingsJson(root, updated);
   log.success("Added disableBypassPermissionsMode: disable");
   return true;
 }
@@ -249,8 +249,8 @@ async function addSandboxSettings(root: string): Promise<boolean> {
   const sandbox = settings.sandbox as Record<string, unknown> | undefined;
   if (sandbox?.enabled === true) return false;
 
-  (settings as Record<string, unknown>).sandbox = { enabled: true, failIfUnavailable: true };
-  await writeSettingsJson(root, settings);
+  const updated = { ...settings, sandbox: { enabled: true, failIfUnavailable: true } };
+  await writeSettingsJson(root, updated);
   log.success("Enabled sandbox with failIfUnavailable");
   return true;
 }

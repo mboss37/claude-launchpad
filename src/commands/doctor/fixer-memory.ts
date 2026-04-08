@@ -27,9 +27,9 @@ async function addPlacementHook(
   });
   if (alreadyHas) return false;
 
-  hooks[event] = prepend ? [entry, ...hookList] : [...hookList, entry];
-  (settings as Record<string, unknown>).hooks = hooks;
-  await write(root, settings);
+  const updatedList = prepend ? [entry, ...hookList] : [...hookList, entry];
+  const updatedSettings = { ...settings, hooks: { ...hooks, [event]: updatedList } };
+  await write(root, updatedSettings);
   log.success(successMsg);
   return true;
 }
@@ -42,8 +42,8 @@ export async function disableAutoMemory(root: string, placement: MemoryPlacement
   const settings = await read(root);
   if (settings.autoMemoryEnabled === false) return false;
 
-  (settings as Record<string, unknown>).autoMemoryEnabled = false;
-  await write(root, settings);
+  const updated = { ...settings, autoMemoryEnabled: false };
+  await write(root, updated);
   const target = placement === "local" ? "settings.local.json" : "settings.json";
   log.success(`Set autoMemoryEnabled: false in ${target}`);
   return true;
@@ -69,8 +69,8 @@ export async function addMemoryToolPermissions(root: string, placement: MemoryPl
   const missing = tools.filter((t) => !allow.includes(t));
   if (missing.length === 0) return false;
 
-  (settings as Record<string, unknown>).permissions = { ...permissions, allow: [...allow, ...missing] };
-  await write(root, settings);
+  const updated = { ...settings, permissions: { ...permissions, allow: [...allow, ...missing] } };
+  await write(root, updated);
   const target = placement === "local" ? "settings.local.json" : "settings.json";
   log.success(`Added agentic-memory MCP tool permissions to ${target}`);
   return true;
@@ -109,8 +109,8 @@ export async function removeStaleStopHook(root: string): Promise<boolean> {
   const updated = filtered.length === 0
     ? (({ Stop: _, ...rest }) => rest)(hooks as Record<string, unknown>)
     : { ...hooks, Stop: filtered };
-  (settings as Record<string, unknown>).hooks = updated;
-  await writeSettingsJson(root, settings);
+  const updatedSettings = { ...settings, hooks: updated };
+  await writeSettingsJson(root, updatedSettings);
   log.success("Removed deprecated Stop hook (memory extract)");
   return true;
 }
@@ -141,10 +141,11 @@ export async function addAllowedMcpServers(root: string, placement: MemoryPlacem
 
   if (serverNames.size === 0) return false;
 
-  (settings as Record<string, unknown>).allowedMcpServers = [...serverNames].map(
-    (name) => ({ serverName: name }),
-  );
-  await write(root, settings);
+  const updatedSettings = {
+    ...settings,
+    allowedMcpServers: [...serverNames].map((name) => ({ serverName: name })),
+  };
+  await write(root, updatedSettings);
   const target = placement === "local" ? "settings.local.json" : "settings.json";
   log.success(`Added allowedMcpServers from configured servers to ${target}`);
   return true;

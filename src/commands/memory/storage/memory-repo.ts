@@ -1,6 +1,6 @@
 import type Database from 'better-sqlite3';
 import type { Memory, MemoryType, MemorySource, StoreInput, SyncMemoryRow } from '../types.js';
-import { randomUUID } from 'node:crypto';
+import { randomUUID, createHash } from 'node:crypto';
 
 function safeParseTags(raw: string): string[] {
   try {
@@ -60,8 +60,8 @@ export class MemoryRepo {
     this.db = db;
     this.#stmts = {
       insert: db.prepare(`
-        INSERT INTO memories (id, type, title, content, context, source, project, tags, importance, created_at, updated_at, embedding)
-        VALUES (@id, @type, @title, @content, @context, @source, @project, @tags, @importance, @createdAt, @updatedAt, @embedding)
+        INSERT OR IGNORE INTO memories (id, type, title, content, context, source, project, tags, importance, created_at, updated_at, embedding, content_hash)
+        VALUES (@id, @type, @title, @content, @context, @source, @project, @tags, @importance, @createdAt, @updatedAt, @embedding, @contentHash)
       `),
       getById: db.prepare('SELECT * FROM memories WHERE id = ?'),
       getAll: db.prepare('SELECT * FROM memories ORDER BY created_at DESC'),
@@ -74,7 +74,8 @@ export class MemoryRepo {
       update: db.prepare(`
         UPDATE memories
         SET title = @title, content = @content, context = @context, tags = @tags,
-            importance = @importance, updated_at = @updatedAt, embedding = @embedding
+            importance = @importance, updated_at = @updatedAt, embedding = @embedding,
+            content_hash = @contentHash
         WHERE id = @id
       `),
       updateImportance: db.prepare('UPDATE memories SET importance = ?, updated_at = ? WHERE id = ?'),
@@ -92,17 +93,27 @@ export class MemoryRepo {
       count: db.prepare('SELECT COUNT(*) as count FROM memories'),
       countByProject: db.prepare('SELECT COUNT(*) as count FROM memories WHERE project = ?'),
       countByType: db.prepare('SELECT type, COUNT(*) as count FROM memories GROUP BY type'),
+      projectCounts: db.prepare('SELECT COALESCE(project, \'_global\') as project, COUNT(*) as count FROM memories GROUP BY project'),
       dateRange: db.prepare('SELECT MIN(created_at) as oldest, MAX(created_at) as newest FROM memories'),
       topInjected: db.prepare(`
         SELECT id, title, injection_count FROM memories
         WHERE injection_count > 0 ORDER BY injection_count DESC LIMIT ?
       `),
-      upsertSync: db.prepare(`
-        INSERT OR REPLACE INTO memories
+      insertSync: db.prepare(`
+        INSERT OR IGNORE INTO memories
           (id, type, title, content, context, source, project, tags, importance,
-           access_count, injection_count, created_at, updated_at, last_accessed, embedding)
+           access_count, injection_count, created_at, updated_at, last_accessed, embedding, content_hash)
         VALUES (@id, @type, @title, @content, @context, @source, @project, @tags, @importance,
-                @accessCount, @injectionCount, @createdAt, @updatedAt, @lastAccessed, NULL)
+                @accessCount, @injectionCount, @createdAt, @updatedAt, @lastAccessed, NULL, @contentHash)
+      `),
+      updateSync: db.prepare(`
+        UPDATE memories SET
+          title = @title, content = @content, context = @context,
+          source = @source, project = @project, tags = @tags,
+          importance = @importance, access_count = @accessCount,
+          injection_count = @injectionCount, updated_at = @updatedAt,
+          last_accessed = @lastAccessed, content_hash = @contentHash
+        WHERE id = @id
       `),
       getAllStrictProject: db.prepare(
         'SELECT * FROM memories WHERE project = ? ORDER BY created_at DESC'
@@ -110,9 +121,10 @@ export class MemoryRepo {
     };
   }
 
-  create(input: StoreInput, _embedding: Buffer | null = null): Memory {
+  create(input: StoreInput, _embedding: Buffer | null = null): Memory | null {
     const now = new Date().toISOString();
     const id = randomUUID();
+    const contentHash = createHash('sha256').update(input.content).digest('hex');
 
     const params = {
       id,
@@ -127,9 +139,11 @@ export class MemoryRepo {
       createdAt: now,
       updatedAt: now,
       embedding: null,
+      contentHash,
     };
 
-    this.#stmts.insert.run(params);
+    const result = this.#stmts.insert.run(params);
+    if (result.changes === 0) return null;
 
     const row: MemoryRow = {
       id,
@@ -200,15 +214,17 @@ export class MemoryRepo {
 
     const now = new Date().toISOString();
 
+    const finalContent = updates.content ?? existing.content;
     const params = {
       id,
       title: updates.title !== undefined ? updates.title : existing.title,
-      content: updates.content ?? existing.content,
+      content: finalContent,
       context: updates.context !== undefined ? updates.context : existing.context,
       tags: JSON.stringify(updates.tags ?? existing.tags),
       importance: updates.importance ?? existing.importance,
       updatedAt: now,
       embedding: null,
+      contentHash: createHash('sha256').update(finalContent).digest('hex'),
     };
 
     this.#stmts.update.run(params);
@@ -269,6 +285,11 @@ export class MemoryRepo {
     return Object.fromEntries(rows.map(r => [r.type, r.count]));
   }
 
+  projectCounts(): ReadonlyMap<string, number> {
+    const rows = this.#stmts.projectCounts.all() as { project: string; count: number }[];
+    return new Map(rows.map(r => [r.project, r.count]));
+  }
+
   dateRange(): { oldest: string | null; newest: string | null } {
     const row = this.#stmts.dateRange.get() as { oldest: string | null; newest: string | null };
     return { oldest: row.oldest, newest: row.newest };
@@ -280,7 +301,7 @@ export class MemoryRepo {
   }
 
   upsertFromSync(row: SyncMemoryRow): void {
-    this.#stmts.upsertSync.run({
+    const params = {
       id: row.id,
       type: row.type,
       title: row.title,
@@ -295,7 +316,15 @@ export class MemoryRepo {
       createdAt: row.created_at,
       updatedAt: row.updated_at,
       lastAccessed: row.last_accessed,
-    });
+      contentHash: createHash('sha256').update(row.content).digest('hex'),
+    };
+
+    const existing = this.getById(row.id);
+    if (existing) {
+      this.#stmts.updateSync.run(params);
+    } else {
+      this.#stmts.insertSync.run(params);
+    }
   }
 
   getAllForSync(project?: string): readonly Memory[] {

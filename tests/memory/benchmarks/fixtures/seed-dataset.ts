@@ -120,7 +120,7 @@ export function seedDatabase(memoryRepo: MemoryRepo): IdMap {
   const idMap: IdMap = new Map();
 
   for (const entry of ALL_CLUSTERS) {
-    const memory = memoryRepo.create(entry.input, null);
+    const memory = memoryRepo.create(entry.input, null)!;
     idMap.set(entry.name, memory.id);
 
     // Backdate if specified
@@ -182,7 +182,7 @@ export function seedBulk(memoryRepo: MemoryRepo, count: number): void {
         tags: [topic, type],
         importance,
         source: 'manual',
-      }, null);
+      }, null)!;
 
       const date = daysAgoIso(daysOld);
       memoryRepo.db.prepare('UPDATE memories SET created_at = ?, updated_at = ? WHERE id = ?').run(date, date, memory.id);

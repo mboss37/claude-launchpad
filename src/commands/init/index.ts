@@ -52,7 +52,11 @@ export function createInitCommand(): Command {
 
       // Check for existing files
       const hasClaudeMd = await fileExists(join(root, "CLAUDE.md"));
-      if (hasClaudeMd && !opts.yes) {
+      if (hasClaudeMd) {
+        if (opts.yes) {
+          log.info("CLAUDE.md already exists. Use `doctor --fix` to update, or re-run without --yes to overwrite.");
+          return;
+        }
         const overwrite = await confirm({
           message: "CLAUDE.md already exists. Overwrite?",
           default: false,

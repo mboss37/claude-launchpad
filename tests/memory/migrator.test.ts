@@ -15,7 +15,7 @@ describe('migrator', () => {
   });
 
   it('should run initial migration and set schema version', () => {
-    expect(getSchemaVersion(db)).toBe(2);
+    expect(getSchemaVersion(db)).toBe(3);
   });
 
   it('should create memories table with correct columns', () => {
@@ -36,6 +36,7 @@ describe('migrator', () => {
     expect(columns).toContain('injection_count');
     expect(columns).toContain('embedding');
     expect(columns).toContain('project');
+    expect(columns).toContain('content_hash');
   });
 
   it('should create relations table', () => {
@@ -76,6 +77,6 @@ describe('migrator', () => {
   it('should be idempotent (running migrate twice is safe)', async () => {
     const { migrate } = await import('../../src/commands/memory/storage/migrator.js');
     migrate(db);
-    expect(getSchemaVersion(db)).toBe(2);
+    expect(getSchemaVersion(db)).toBe(3);
   });
 });

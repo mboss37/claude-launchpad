@@ -65,7 +65,7 @@ export async function runExtract(): Promise<void> {
         // Dedup is best-effort
       }
 
-      ctx.memoryRepo.create(
+      const created = ctx.memoryRepo.create(
         {
           type: fact.type,
           content: fact.content,
@@ -76,7 +76,7 @@ export async function runExtract(): Promise<void> {
         },
         null,
       );
-      stored++;
+      if (created) stored++;
     }
 
     if (stored > 0) {

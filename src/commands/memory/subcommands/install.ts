@@ -7,8 +7,16 @@ import { loadConfig, resolveDataDir } from '../config.js';
 import { readSettingsJson, writeSettingsJson, readSettingsLocalJson, writeSettingsLocalJson } from '../../../lib/settings.js';
 import { getMemoryPlacement } from '../../../lib/memory-placement.js';
 import { log } from '../../../lib/output.js';
-import { readSyncConfig } from '../utils/gist-transport.js';
 import type { MemoryPlacement } from '../../../types/index.js';
+
+function isGhAuthenticated(): boolean {
+  try {
+    execSync('gh auth status', { stdio: 'pipe', timeout: 5000 });
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 interface InstallOpts {
   readonly dbPath?: string;
@@ -70,6 +78,16 @@ export async function runInstall(opts: InstallOpts): Promise<void> {
   log.blank();
   log.success('Knowledge base is ready. Claude will now remember across sessions.');
   log.info('Restart your Claude Code session to activate.');
+
+  // Sync guidance
+  if (isGhAuthenticated()) {
+    log.info('Cross-device sync available. Run `memory push` to back up, or it auto-syncs each session.');
+  } else {
+    log.blank();
+    log.info('Recommended: install the GitHub CLI for cross-device memory sync:');
+    log.step('  https://cli.github.com/');
+    log.step('  gh auth login');
+  }
   log.blank();
 }
 
@@ -95,32 +113,29 @@ async function configureSettings(projectDir: string, placement: MemoryPlacement)
   const settings = await read(projectDir);
 
   // Disable built-in auto-memory
-  settings['autoMemoryEnabled'] = false;
   log.info('Built-in auto-memory disabled (replaced by knowledge base)');
 
-  // SessionStart hooks
-  const hooks = (settings['hooks'] ?? {}) as Record<string, unknown[]>;
-  if (readSyncConfig()) {
-    addSessionStartPullHook(hooks);
-  }
-  addSessionStartHook(hooks);
+  // Build hooks immutably — always add sync hooks (they fail silently without gh)
+  const baseHooks = (settings['hooks'] ?? {}) as Record<string, unknown[]>;
+  const withPull = addSessionStartPullHook(baseHooks);
+  const withContext = addSessionStartHook(withPull);
+  const withPush = addSessionEndPushHook(withContext);
 
-  // SessionEnd push hook (only when sync is already configured)
-  if (readSyncConfig()) {
-    addSessionEndPushHook(hooks);
-  }
+  // Build permissions immutably
+  const withPermissions = addToolPermissions(settings);
 
-  settings['hooks'] = hooks;
+  const updated = {
+    ...withPermissions,
+    autoMemoryEnabled: false,
+    hooks: withPush,
+  };
 
-  // Auto-allow MCP tools
-  addToolPermissions(settings);
-
-  await write(projectDir, settings);
+  await write(projectDir, updated);
   const target = placement === "local" ? "settings.local.json" : "settings.json";
   log.success(`Claude Code configured in ${target}`);
 }
 
-function addSessionStartPullHook(hooks: Record<string, unknown[]>): void {
+function addSessionStartPullHook(hooks: Record<string, unknown[]>): Record<string, unknown[]> {
   const sessionStartHooks = (hooks['SessionStart'] ?? []) as Record<string, unknown>[];
   const alreadyHooked = sessionStartHooks.some((h) => {
     const innerHooks = h['hooks'] as Record<string, unknown>[] | undefined;
@@ -129,18 +144,18 @@ function addSessionStartPullHook(hooks: Record<string, unknown[]>): void {
     );
   });
 
-  if (!alreadyHooked) {
-    // Insert at the beginning so pull runs before context injection
-    sessionStartHooks.unshift({
-      matcher: 'startup',
-      hooks: [{ type: 'command', command: 'claude-launchpad memory pull -y 2>/dev/null; exit 0' }],
-    });
-    hooks['SessionStart'] = sessionStartHooks;
-    log.info('Session start: memories will auto-pull from GitHub Gist');
-  }
+  if (alreadyHooked) return hooks;
+
+  // Insert at the beginning so pull runs before context injection
+  const entry = {
+    matcher: 'startup',
+    hooks: [{ type: 'command', command: 'claude-launchpad memory pull -y 2>/dev/null; exit 0' }],
+  };
+  log.info('Session start: memories will auto-pull from GitHub Gist');
+  return { ...hooks, SessionStart: [entry, ...sessionStartHooks] };
 }
 
-function addSessionStartHook(hooks: Record<string, unknown[]>): void {
+function addSessionStartHook(hooks: Record<string, unknown[]>): Record<string, unknown[]> {
   const sessionStartHooks = (hooks['SessionStart'] ?? []) as Record<string, unknown>[];
   const hookCommand = 'npx claude-launchpad memory context --json 2>/dev/null; exit 0';
 
@@ -151,17 +166,17 @@ function addSessionStartHook(hooks: Record<string, unknown[]>): void {
     );
   });
 
-  if (!alreadyHooked) {
-    sessionStartHooks.push({
-      matcher: 'startup|resume',
-      hooks: [{ type: 'command', command: hookCommand }],
-    });
-    hooks['SessionStart'] = sessionStartHooks;
-    log.info('Session start: Claude will recall relevant context automatically');
-  }
+  if (alreadyHooked) return hooks;
+
+  const entry = {
+    matcher: 'startup|resume',
+    hooks: [{ type: 'command', command: hookCommand }],
+  };
+  log.info('Session start: Claude will recall relevant context automatically');
+  return { ...hooks, SessionStart: [...sessionStartHooks, entry] };
 }
 
-function addSessionEndPushHook(hooks: Record<string, unknown[]>): void {
+function addSessionEndPushHook(hooks: Record<string, unknown[]>): Record<string, unknown[]> {
   const sessionEndHooks = (hooks['SessionEnd'] ?? []) as Record<string, unknown>[];
   const alreadyHooked = sessionEndHooks.some((h) => {
     const innerHooks = h['hooks'] as Record<string, unknown>[] | undefined;
@@ -170,18 +185,18 @@ function addSessionEndPushHook(hooks: Record<string, unknown[]>): void {
     );
   });
 
-  if (!alreadyHooked) {
-    sessionEndHooks.push({
-      hooks: [{ type: 'command', command: 'claude-launchpad memory push -y >/dev/null 2>&1 & exit 0' }],
-    });
-    hooks['SessionEnd'] = sessionEndHooks;
-    log.info('Session end: memories will auto-push to GitHub Gist');
-  }
+  if (alreadyHooked) return hooks;
+
+  const entry = {
+    hooks: [{ type: 'command', command: 'claude-launchpad memory push -y >/dev/null 2>&1 & exit 0' }],
+  };
+  log.info('Session end: memories will auto-push to GitHub Gist');
+  return { ...hooks, SessionEnd: [...sessionEndHooks, entry] };
 }
 
-function addToolPermissions(settings: Record<string, unknown>): void {
+function addToolPermissions(settings: Record<string, unknown>): Record<string, unknown> {
   const permissions = (settings['permissions'] ?? {}) as Record<string, unknown>;
-  const allowList = (permissions['allow'] ?? []) as string[];
+  const allowList = (permissions['allow'] ?? []) as readonly string[];
 
   const memoryTools = [
     'mcp__agentic-memory__memory_store',
@@ -193,19 +208,14 @@ function addToolPermissions(settings: Record<string, unknown>): void {
     'mcp__agentic-memory__memory_update',
   ];
 
-  let added = 0;
-  for (const tool of memoryTools) {
-    if (!allowList.includes(tool)) {
-      allowList.push(tool);
-      added++;
-    }
-  }
+  const missing = memoryTools.filter((t) => !allowList.includes(t));
+  if (missing.length === 0) return settings;
 
-  if (added > 0) {
-    permissions['allow'] = allowList;
-    settings['permissions'] = permissions;
-    log.info(`${added} memory tools auto-approved`);
-  }
+  log.info(`${missing.length} memory tools auto-approved`);
+  return {
+    ...settings,
+    permissions: { ...permissions, allow: [...allowList, ...missing] },
+  };
 }
 
 async function ensureNativeDeps(): Promise<void> {

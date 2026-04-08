@@ -31,21 +31,21 @@
 ## Current Sprint: Sprint 23 — Stability (path to v1.0.0)
 
 ### Sync Hardening
-- [ ] Add `deleteGistFile()` to gist-transport
-- [ ] `memory sync clean <project>` subcommand
-- [ ] `memory sync status` subcommand (local vs remote counts)
-- [ ] Pull warning when creating fresh DB for a project
+- [x] Add `deleteGistFile()` to gist-transport
+- [x] `memory sync clean <project>` subcommand
+- [x] `memory sync status` subcommand (local vs remote counts)
+- [x] Pull warning when creating fresh DB for a project
 
 ### Store Dedup Fix
-- [ ] Migration: add `content_hash` column + unique index
-- [ ] Compute SHA-256 in `MemoryRepo.create()`, use `INSERT OR IGNORE`
-- [ ] Keep in-memory dedup as fast-path optimization
+- [x] Migration: add `content_hash` column + unique index
+- [x] Compute SHA-256 in `MemoryRepo.create()`, use `INSERT OR IGNORE`
+- [x] Keep in-memory dedup as fast-path optimization
 
 ### Cleanup
-- [ ] Immutability violations in fixer.ts and install.ts
+- [x] Immutability violations in fixer.ts and install.ts
 
 ### Ship
-- [ ] Tests + benchmarks green
+- [x] Tests + benchmarks green
 - [ ] Code review
 - [ ] Publish v1.0.0
 

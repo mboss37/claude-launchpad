@@ -4,6 +4,14 @@ import { Command } from "commander";
 import { confirm } from "@inquirer/prompts";
 import { log } from "../../lib/output.js";
 
+async function handleSyncErrors(fn: () => Promise<void>): Promise<void> {
+  try {
+    await fn();
+  } catch (err) {
+    log.error(err instanceof Error ? err.message : String(err));
+  }
+}
+
 function isMemoryInstalled(): boolean {
   const cwd = process.cwd();
   return hasMemoryHook(join(cwd, ".claude", "settings.json"))
@@ -27,7 +35,7 @@ function hasMemoryHook(path: string): boolean {
 
 export function createMemoryCommand(): Command {
   const memory = new Command("memory")
-    .description("Knowledge base that Claude maintains across sessions")
+    .description("Project-scoped memory with decay, sync, and a TUI dashboard")
     .option("--dashboard", "Open the memory dashboard")
     .action(async (opts) => {
       if (opts.dashboard) {
@@ -117,8 +125,10 @@ export function createMemoryCommand(): Command {
       .option("--all", "Push all projects")
       .option("-y, --yes", "Skip confirmation prompt")
       .action(async (opts) => {
-        const { runPush } = await import("./subcommands/push.js");
-        await runPush(opts);
+        await handleSyncErrors(async () => {
+          const { runPush } = await import("./subcommands/push.js");
+          await runPush(opts);
+        });
       }),
   );
 
@@ -127,10 +137,42 @@ export function createMemoryCommand(): Command {
       .description("Pull current project's memories from GitHub Gist")
       .option("--all", "Pull all projects")
       .action(async (opts) => {
-        const { runPull } = await import("./subcommands/pull.js");
-        await runPull(opts);
+        await handleSyncErrors(async () => {
+          const { runPull } = await import("./subcommands/pull.js");
+          await runPull(opts);
+        });
       }),
   );
+
+  // Sync management commands
+  const sync = new Command("sync")
+    .description("Manage memory sync");
+
+  sync.addCommand(
+    new Command("status")
+      .description("Show local vs remote memory counts per project")
+      .action(async () => {
+        await handleSyncErrors(async () => {
+          const { runSyncStatus } = await import("./subcommands/sync-status.js");
+          await runSyncStatus();
+        });
+      }),
+  );
+
+  sync.addCommand(
+    new Command("clean")
+      .description("Remove a project from the sync gist")
+      .argument("<project>", "Project slug to remove")
+      .option("-y, --yes", "Skip confirmation prompt")
+      .action(async (project: string, opts) => {
+        await handleSyncErrors(async () => {
+          const { runSyncClean } = await import("./subcommands/sync-clean.js");
+          await runSyncClean(project, opts);
+        });
+      }),
+  );
+
+  memory.addCommand(sync);
 
   return memory;
 }

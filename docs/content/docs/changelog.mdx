@@ -5,6 +5,27 @@ description: Release history for Claude Launchpad.
 
 {/* Auto-generated from CHANGELOG.md - do not edit directly */}
 
+## [1.0.0] — 2026-04-08
+
+### Added
+- `memory sync status` subcommand: shows local vs remote memory counts per project
+- `memory sync clean <project>` subcommand: removes a project from the sync gist
+- Pull warning when creating a fresh database from remote for a project
+- Store dedup at database level: SHA-256 content hash with unique index prevents duplicates
+
+### Fixed
+- Immutability violations in fixer.ts, fixer-memory.ts, and install.ts
+- Clean error messages for all sync commands when `gh` is not authenticated
+
+### Changed
+- `MemoryRepo.create()` returns `null` on duplicate content (in-memory dedup kept as fast-path)
+
+## [0.16.1] — 2026-04-08
+
+### Fixed
+- MCP parser now reads `type` field from `.mcp.json` — fixes false warnings on HTTP MCP servers
+- Doctor footer no longer suggests `--fix` when remaining issues have no auto-fixer
+
 ## [0.16.0] — 2026-04-07
 
 ### Added

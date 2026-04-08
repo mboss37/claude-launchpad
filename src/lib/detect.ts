@@ -36,7 +36,7 @@ export async function detectProject(root: string): Promise<DetectedProject> {
   const language = detectLanguage(manifests);
   const framework = detectFramework(manifests);
   const packageManager = detectPackageManager(manifests, lockfiles);
-  const scripts = detectScripts({ pkgJson, pyProject, goMod, gemfile, composerJson, language });
+  const scripts = detectScripts({ pkgJson, pyProject, goMod, gemfile, composerJson, language, packageManager });
 
   return {
     name,
@@ -208,11 +208,12 @@ function detectScripts(m: {
   gemfile: boolean;
   composerJson: ComposerJson | null;
   language: string | null;
+  packageManager: string | null;
 }): DetectedScripts {
   // JS/TS: read from package.json scripts
   if (m.pkgJson) {
     const scripts = m.pkgJson.scripts ?? {};
-    const run = pmRun(m.pkgJson);
+    const run = pmRun(m.packageManager);
     return {
       devCommand: scripts.dev ? `${run} dev` : null,
       buildCommand: scripts.build ? `${run} build` : null,
@@ -236,11 +237,10 @@ function detectScripts(m: {
   return { devCommand: null, buildCommand: null, testCommand: null, lintCommand: null, formatCommand: null };
 }
 
-function pmRun(pkg: PackageJson): string {
-  const pm = pkg.packageManager;
-  if (pm?.startsWith("pnpm")) return "pnpm";
-  if (pm?.startsWith("yarn")) return "yarn";
-  if (pm?.startsWith("bun")) return "bun";
+function pmRun(packageManager: string | null): string {
+  if (packageManager === "pnpm") return "pnpm";
+  if (packageManager === "yarn") return "yarn";
+  if (packageManager === "bun") return "bun";
   return "npm run";
 }
 

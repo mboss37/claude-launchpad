@@ -233,11 +233,11 @@ export default function HomePage() {
         <div className="max-w-3xl">
           <Badge variant="outline" className="border-fd-border bg-fd-background/45">Claude Launchpad</Badge>
           <h1 className="mt-5 text-[2.35rem] font-bold leading-[1.02] tracking-tight sm:text-6xl">
-            Consistent developer experience
-            <span className="mt-2 block text-fd-muted-foreground">for Claude Code.</span>
+            Claude forgets everything
+            <span className="mt-2 block text-fd-muted-foreground">between sessions.</span>
           </h1>
           <p className="mt-4 max-w-2xl text-[15px] leading-7 text-fd-muted-foreground sm:text-lg">
-            Claude forgets everything between sessions, follows your rules ~80% of the time, and can read your SSH keys. Launchpad scores your setup, adds system-enforced hooks (100% compliance), and proves Claude follows your rules with test scenarios.
+            Claude follows your CLAUDE.md rules ~80% of the time, can read your SSH keys, and forgets everything when a session ends. Launchpad adds system-enforced hooks (100% compliance), scores your setup, and proves Claude follows your rules with test scenarios.
           </p>
 
           <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
@@ -319,7 +319,7 @@ export default function HomePage() {
             </TerminalPanel>
             <div className="mt-4">
               <Link href="/docs/doctor" className={buttonVariants({ variant: 'outline', className: 'rounded-xl px-5' })}>
-                See all 8 analyzers
+                See what doctor checks
                 <ArrowRightIcon className="h-4 w-4" />
               </Link>
             </div>
@@ -364,7 +364,7 @@ export default function HomePage() {
           <SectionHeading
             eyebrow="Optional add-on"
             title="A personal knowledge base for your project"
-            description="Claude builds a knowledge base about your codebase. It learns what matters, forgets what doesn't, and gets smarter every session."
+            description="Claude builds a knowledge base about your codebase. It learns what matters, forgets what doesn't, and remembers your decisions, conventions, and gotchas between sessions."
           />
 
           <div className="mt-8 grid gap-4 lg:grid-cols-[0.35fr_0.65fr] lg:items-stretch">
@@ -386,7 +386,7 @@ export default function HomePage() {
               </div>
               <div className="mt-5">
                 <Link href="/docs/memory" className={buttonVariants({ variant: 'outline', className: 'w-full rounded-lg' })}>
-                  Read docs
+                  Set up memory
                   <ArrowRightIcon className="h-4 w-4" />
                 </Link>
               </div>
