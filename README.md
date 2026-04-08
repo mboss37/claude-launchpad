@@ -201,7 +201,7 @@ Results save to `.claude/eval/` as structured markdown. Feed them back to Claude
 
 ## Memory
 
-Claude maintains a personal knowledge base about your project. It learns what matters, forgets what doesn't, and gets smarter every session.
+Claude's built-in memory resets per machine. Launchpad gives each project persistent, cross-device memory that syncs via a private GitHub Gist. Switch laptops and your decisions are already there.
 
 ```bash
 claude-launchpad memory

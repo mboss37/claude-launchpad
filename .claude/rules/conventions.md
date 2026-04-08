@@ -1,13 +1,12 @@
 # Project Conventions
 
-## Git Branching
-- **Features (`feat:`) MUST use a feature branch** — create `feat/<name>` from master before any code changes
-- **NEVER push a feature branch to origin until the sprint is complete** — local commits only until all tasks are done, reviewed, and ready for PR
-- Patches (`fix:`), docs, config, and refactors can commit directly to master
-- Feature branches are merged via PR after testing
+## Git (Trunk-Based)
+- All commits go directly to master — no feature branches for solo dev
+- Conventional commits: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`
+- Tag releases with `git tag v<version>` after publishing to npm
+- If contributors join: revisit and add feature branch + PR requirement
 
 ## Code Style
-- Conventional commits: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`
 - Immutable data patterns — never mutate, always return new objects
 - Functions < 50 lines, files < 400 lines
 - Named exports only, no `any` types

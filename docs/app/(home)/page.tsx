@@ -8,6 +8,9 @@ import {
   CheckIcon,
   CopyIcon,
   FlaskConicalIcon,
+  LaptopIcon,
+  LockIcon,
+  MonitorIcon,
   RocketIcon,
   SparklesIcon,
   StethoscopeIcon,
@@ -233,11 +236,11 @@ export default function HomePage() {
         <div className="max-w-3xl">
           <Badge variant="outline" className="border-fd-border bg-fd-background/45">Claude Launchpad</Badge>
           <h1 className="mt-5 text-[2.35rem] font-bold leading-[1.02] tracking-tight sm:text-6xl">
-            Claude forgets everything
-            <span className="mt-2 block text-fd-muted-foreground">between sessions.</span>
+            Consistent developer experience for
+            <span className="mt-2 block text-fd-muted-foreground sm:text-7xl">Claude Code.</span>
           </h1>
           <p className="mt-4 max-w-2xl text-[15px] leading-7 text-fd-muted-foreground sm:text-lg">
-            Claude follows your CLAUDE.md rules ~80% of the time, can read your SSH keys, and forgets everything when a session ends. Launchpad adds system-enforced hooks (100% compliance), scores your setup, and proves Claude follows your rules with test scenarios.
+            Your default Claude Code config has no hooks, no guardrails, and no structure. Rules get followed ~80% of the time. Credentials are readable. Sessions start from scratch. Launchpad scores your setup, enforces rules with hooks (100% compliance), adds sprint and backlog management, and gives you cross-device memory that syncs automatically.
           </p>
 
           <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
@@ -361,11 +364,61 @@ export default function HomePage() {
 
       <div className="border-y border-fd-border/80 bg-fd-card/22">
         <PageSection>
-          <SectionHeading
-            eyebrow="Optional add-on"
-            title="A personal knowledge base for your project"
-            description="Claude builds a knowledge base about your codebase. It learns what matters, forgets what doesn't, and remembers your decisions, conventions, and gotchas between sessions."
-          />
+          <div className="grid gap-8 lg:grid-cols-2 lg:items-center">
+            <SectionHeading
+              eyebrow="Optional add-on"
+              title="Your decisions follow you everywhere"
+              description="Claude's built-in memory resets per machine. Launchpad syncs memories to a private GitHub Gist. Switch laptops, pair on a teammate's machine, or set up a new dev environment. Your architecture decisions, bug patterns, and conventions are already there."
+            />
+            <div className="flex items-center justify-center">
+              <div className="relative flex items-center gap-0">
+                {/* Device A */}
+                <div className="flex flex-col items-center gap-2 z-10">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-xl border border-fd-border bg-fd-card/95 sm:h-20 sm:w-20">
+                    <LaptopIcon className="h-7 w-7 text-fd-muted-foreground sm:h-8 sm:w-8" />
+                  </div>
+                  <span className="font-mono text-[11px] font-medium text-fd-muted-foreground">Device A</span>
+                  <span className="font-mono text-[10px] text-fd-muted-foreground/40">14 memories</span>
+                </div>
+
+                {/* Left connector */}
+                <div className="flex flex-col items-center -mx-1 sm:mx-0">
+                  <span className="font-mono text-[10px] text-fd-muted-foreground/40 mb-1">push</span>
+                  <div className="flex items-center">
+                    <div className="h-px w-8 border-t border-dashed border-fd-muted-foreground/25 sm:w-14" />
+                    <span className="text-fd-muted-foreground/30 text-xs">›</span>
+                  </div>
+                </div>
+
+                {/* Gist hub */}
+                <div className="flex flex-col items-center gap-2 z-10">
+                  <div className="flex h-20 w-20 items-center justify-center rounded-2xl border-2 border-fd-border bg-fd-card shadow-[0_0_24px_rgba(59,130,246,0.06)] sm:h-24 sm:w-24">
+                    <LockIcon className="h-8 w-8 text-fd-foreground/70 sm:h-9 sm:w-9" />
+                  </div>
+                  <span className="font-mono text-[11px] font-medium text-fd-foreground/80">Private Gist</span>
+                  <span className="font-mono text-[10px] text-fd-muted-foreground/40">auto-syncs each session</span>
+                </div>
+
+                {/* Right connector */}
+                <div className="flex flex-col items-center -mx-1 sm:mx-0">
+                  <span className="font-mono text-[10px] text-fd-muted-foreground/40 mb-1">pull</span>
+                  <div className="flex items-center">
+                    <span className="text-fd-muted-foreground/30 text-xs">›</span>
+                    <div className="h-px w-8 border-t border-dashed border-fd-muted-foreground/25 sm:w-14" />
+                  </div>
+                </div>
+
+                {/* Device B */}
+                <div className="flex flex-col items-center gap-2 z-10">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-xl border border-fd-border bg-fd-card/95 sm:h-20 sm:w-20">
+                    <MonitorIcon className="h-7 w-7 text-fd-muted-foreground sm:h-8 sm:w-8" />
+                  </div>
+                  <span className="font-mono text-[11px] font-medium text-fd-muted-foreground">Device B</span>
+                  <span className="font-mono text-[10px] text-fd-muted-foreground/40">14 memories</span>
+                </div>
+              </div>
+            </div>
+          </div>
 
           <div className="mt-8 grid gap-4 lg:grid-cols-[0.35fr_0.65fr] lg:items-stretch">
             <div className="flex flex-col justify-between rounded-xl border border-fd-border bg-fd-card/95 p-5">
@@ -376,12 +429,12 @@ export default function HomePage() {
                 </div>
                 <p className="mt-3 text-sm text-fd-muted-foreground">One command to set up. Claude does the bookkeeping from there.</p>
                 <div className="mt-4 space-y-2 text-sm text-fd-muted-foreground">
-                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Learns decisions, conventions, and patterns from every session</div>
-                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Surfaces the right context at the right time</div>
-                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Stale knowledge fades so the knowledge base stays clean</div>
-                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Each project gets its own knowledge base</div>
-                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Browse and manage everything in a terminal dashboard</div>
-                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Auto-syncs when you start or end a session</div>
+                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Syncs across devices via private GitHub Gist</div>
+                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Relevant memories injected automatically at session start</div>
+                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Stale knowledge fades, important decisions persist</div>
+                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Each project gets its own scoped memory</div>
+                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Terminal dashboard to browse and manage</div>
+                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> One command to install, zero config after that</div>
                 </div>
               </div>
               <div className="mt-5">

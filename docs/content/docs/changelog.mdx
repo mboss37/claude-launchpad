@@ -10,20 +10,25 @@ description: Release history for Claude Launchpad.
 ### Added
 - `memory sync status` subcommand: shows local vs remote memory counts per project
 - `memory sync clean <project>` subcommand: removes a project from the sync gist
+- `deleteGistFile()` in gist-transport for removing individual files from sync gist
 - Pull warning when creating a fresh database from remote for a project
-- Store dedup at database level: SHA-256 content hash with unique index prevents duplicates
-
-### Fixed
-- Immutability violations in fixer.ts, fixer-memory.ts, and install.ts
+- Migration 003: `content_hash` column with unique index on memories table
+- Store dedup at database level: SHA-256 content hash with `INSERT OR IGNORE` prevents duplicates even across concurrent calls
 - Clean error messages for all sync commands when `gh` is not authenticated
 
+### Fixed
+- Immutability violations in fixer.ts, fixer-memory.ts, and install.ts (all mutations replaced with spread operators)
+- Sync upsert no longer silently deletes memories with duplicate content across different IDs
+- Migration backfill deduplicates existing rows before creating unique index (handles pre-existing duplicates)
+
 ### Changed
-- `MemoryRepo.create()` returns `null` on duplicate content (in-memory dedup kept as fast-path)
+- `MemoryRepo.create()` returns `null` instead of throwing on duplicate content (in-memory dedup kept as fast-path)
+- `upsertFromSync()` uses check-then-insert/update pattern instead of `INSERT OR REPLACE` to respect content_hash constraint
 
 ## [0.16.1] — 2026-04-08
 
 ### Fixed
-- MCP parser now reads `type` field from `.mcp.json` — fixes false warnings on HTTP MCP servers
+- MCP parser now reads `type` field from `.mcp.json` (Claude Code uses `type`, not `transport`) — fixes false "no command" warnings on HTTP MCP servers like Supabase
 - Doctor footer no longer suggests `--fix` when remaining issues have no auto-fixer
 
 ## [0.16.0] — 2026-04-07
@@ -40,10 +45,11 @@ description: Release history for Claude Launchpad.
 - DashboardDataSource unit tests (purge, delete, filtering, stats)
 
 ### Fixed
-- `getMemoryPlacement` no longer prompts on every `--fix` for pre-existing installs
+- `getMemoryPlacement` no longer prompts on every `--fix` for pre-existing installs -- infers placement from existing config
 - SessionEnd push hook backgrounded to avoid timeout kill by Claude Code hook runner
 - MCP fixer reads `.mcp.json` for server names (not just `settings.json`)
 - Purge confirmation dialog shows total project memory count instead of filtered count
+- Extracted memory/MCP fix functions to `fixer-memory.ts` (fixer.ts: 536 to 392 lines)
 
 ### Changed
 - TUI header is now responsive to terminal width
