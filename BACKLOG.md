@@ -5,16 +5,16 @@ Priority: P1 = soon, P2 = when relevant, P3 = if circumstances change.
 
 ---
 
-## [P2] Memory: MMR Diversity Selection
+## [P0] Memory: MMR Diversity Selection
 Maximal Marginal Relevance for injection. Prevents injecting 5 memories on the same topic. Picks the best one, penalizes similar ones, gives the slot to a different topic. Matters at 100+ memories.
 
-## [P2] Memory: Auto-Relation Discovery
+## [P0] Memory: Auto-Relation Discovery
 When storing a new memory, search for related existing memories and auto-create relations (relates_to, extends, contradicts). More connections improve injection scoring and decay resistance. Currently only contradiction detection is automated.
 
-## [P2] Memory: lp-migrate-memory Skill for Local Placement
+## [P0] Memory: lp-migrate-memory Skill for Local Placement
 Local scope memory install skips skill creation (skills go to `.claude/skills/` which is committed). Should install to `~/.claude/skills/` (global scope) instead so local users can still migrate legacy memories.
 
-## [P2] Memory: Show Content Preview for Untitled Memories
+## [P0] Memory: Show Content Preview for Untitled Memories
 Dashboard and context injection show "(untitled)" for memories stored without a title. Should display first ~30 chars of content instead, so they're identifiable without opening the detail view.
 
 ## [P3] Kill: Doctor --watch Mode
