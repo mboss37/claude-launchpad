@@ -29,9 +29,28 @@
 - **Sprint 22**: Purge + Doctor Modernization (v0.16.0) — TUI purge, SessionEnd/MCP checks, fixer extraction, 322 tests
 - **Sprint 23**: Stability (v1.0.0) — sync status/clean, content_hash dedup, immutability fixes, 57 manual tests, 10 bugs fixed, cross-device sync framing
 
-## Current Sprint: None — v1.0.0 shipped
+## Current Sprint: Sprint 24 — Memory Intelligence
 
-No active sprint. Pick from BACKLOG.md or launch campaign when ready.
+### MMR Diversity Selection
+- [ ] Implement MMR scoring that penalizes similar memories during injection
+- [ ] Prevent injecting multiple memories on the same topic
+- [ ] Benchmark: verify topic diversity improves with 100+ memories
+
+### Auto-Relation Discovery
+- [ ] On `memory_store`, search for related memories and auto-create relations
+- [ ] Support relates_to, extends, contradicts relation types
+- [ ] Benchmark: verify relation count increases organically
+
+### Local Placement: lp-migrate-memory Skill
+- [ ] Install skill to `~/.claude/skills/` for local placement users
+
+### Untitled Memory Preview
+- [ ] Dashboard: show first ~30 chars of content instead of "(untitled)"
+- [ ] Context injection: same preview for index-tier untitled memories
+
+### Ship
+- [ ] Tests + benchmarks green
+- [ ] Publish v1.1.0
 
 ## Session Log
 ### 2026-04-08 (session 32-33)
