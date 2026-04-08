@@ -27,35 +27,15 @@
 - **Sprint 20**: Outcome-First Docs — rewrote all docs/README/landing page for value not features
 - **Sprint 21**: Memory Bug Fixes — benchmark suite (54 tests), relation decay + type filter fixes
 - **Sprint 22**: Purge + Doctor Modernization (v0.16.0) — TUI purge, SessionEnd/MCP checks, fixer extraction, 322 tests
+- **Sprint 23**: Stability (v1.0.0) — sync status/clean, content_hash dedup, immutability fixes, 57 manual tests, 10 bugs fixed, cross-device sync framing
 
-## Current Sprint: Sprint 23 — Stability (path to v1.0.0)
+## Current Sprint: None — v1.0.0 shipped
 
-### Sync Hardening
-- [x] Add `deleteGistFile()` to gist-transport
-- [x] `memory sync clean <project>` subcommand
-- [x] `memory sync status` subcommand (local vs remote counts)
-- [x] Pull warning when creating fresh DB for a project
-
-### Store Dedup Fix
-- [x] Migration: add `content_hash` column + unique index
-- [x] Compute SHA-256 in `MemoryRepo.create()`, use `INSERT OR IGNORE`
-- [x] Keep in-memory dedup as fast-path optimization
-
-### Cleanup
-- [x] Immutability violations in fixer.ts and install.ts
-
-### Ship
-- [x] Tests + benchmarks green
-- [ ] Code review
-- [ ] Publish v1.0.0
+No active sprint. Pick from BACKLOG.md or launch campaign when ready.
 
 ## Session Log
-### 2026-04-07 (session 28-29)
-- Doctor modernization: SessionEnd detection, MCP allowedMcpServers check + fixer, hook analyzer cleanup.
-- TUI: project purge (`d`), remove single (`r`), responsive header, killed manual refresh + CLI purge command.
-### 2026-04-08 (session 30)
-- Fix: getMemoryPlacement inference, MCP fixer reads .mcp.json, SessionEnd push timeout. Published v0.16.0.
-### 2026-04-08 (session 31)
-- /lp-enhance: path-scoped rules for memory + doctor modules, updated architecture.md.
-- Backlog cleanup: killed 5 dead items, added hygiene rule, trimmed 64→42 lines.
-- Fix: MCP parser `type` vs `transport` field, doctor footer for unfixable issues. Published v0.16.1.
+### 2026-04-08 (session 32-33)
+- Sprint 23 complete: sync hardening, store dedup (content_hash), immutability cleanup.
+- 57 manual acceptance tests, 10 bugs found and fixed during testing.
+- Content: problem-first framing, memory section reframed around cross-device sync.
+- Published v1.0.0 to npm, tagged GitHub release, conventions switched to trunk-based.
