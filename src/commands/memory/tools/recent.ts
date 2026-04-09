@@ -6,6 +6,7 @@ import { MEMORY_TYPES } from '../types.js';
 const inputSchema = {
   limit: z.number().int().min(1).max(50).default(10).describe('Maximum memories to return'),
   type: z.enum(MEMORY_TYPES).optional().describe('Filter by memory type'),
+  project: z.string().max(200).optional().describe('Project scope. Omit for current project + global memories (default). Pass "*" for ALL projects. Pass a project name for that specific project.'),
 };
 
 export function registerRecent(server: McpServer, deps: ToolDeps): void {
@@ -15,14 +16,20 @@ export function registerRecent(server: McpServer, deps: ToolDeps): void {
       description:
         'Get caught up on what happened before this session. '
         + 'Returns memories relevant to the current branch/files, recent activity, and related context. '
-        + 'Typically called at session start to restore working context. No query needed — it uses git state to find what matters.',
+        + 'Typically called at session start to restore working context. No query needed — it uses git state to find what matters. '
+        + 'Project scoping: by default, returns memories for the current project + global memories. '
+        + 'Pass project="*" to include all projects.',
       inputSchema,
       annotations: { readOnlyHint: true, idempotentHint: true },
     },
     async (args) => {
+      const project = args.project === '*'
+        ? undefined
+        : (args.project ?? deps.project ?? undefined);
+
       const results = deps.retrievalService.loadSessionContext({
         limit: args.limit,
-        project: deps.project ?? undefined,
+        project,
         type: args.type,
       });
 

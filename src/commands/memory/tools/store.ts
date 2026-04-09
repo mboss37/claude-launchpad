@@ -58,7 +58,7 @@ const inputSchema = {
   importance: z.number().min(0).max(1).default(0.5).describe('0-0.3 ephemeral, 0.3-0.6 reference, 0.6-0.8 important, 0.8-1.0 critical'),
   context: z.string().optional().describe('JSON: {"files": [...], "branch": "...", "intent": "..."}. Auto-detected from git if omitted.'),
   source: z.enum(MEMORY_SOURCES).default('manual').describe('How this memory was created'),
-  project: z.string().max(200).optional().describe('Project scope (auto-detected from CWD if omitted)'),
+  project: z.string().max(200).optional().describe('Project scope. Omit to auto-detect from CWD (default). Pass a project name to scope the memory to that project. Omit for global/cross-project memories.'),
 };
 
 export function registerStore(server: McpServer, deps: ToolDeps): void {

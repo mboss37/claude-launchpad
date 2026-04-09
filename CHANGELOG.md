@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1] — 2026-04-09
+
+### Fixed
+- `memory_search` and `memory_recent` now expose an explicit `project` parameter so agents can control project scoping (was silently auto-detected with no way to override)
+- Pass `project="*"` to search across all projects, or a specific project name to target that project
+- `memory_store` project parameter description updated for consistency
+
 ## [1.0.0] — 2026-04-08
 
 ### Added

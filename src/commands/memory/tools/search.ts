@@ -10,6 +10,7 @@ const inputSchema = {
   tags: z.array(z.string()).max(10).optional().describe('Filter to memories containing ALL of these tags'),
   limit: z.number().int().min(1).max(50).default(10).describe('Maximum results to return'),
   min_importance: z.number().min(0).max(1).default(0).describe('Minimum importance threshold'),
+  project: z.string().max(200).optional().describe('Project scope. Omit to search current project + global memories (default). Pass "*" to search ALL projects. Pass a project name to search that specific project + global memories.'),
 };
 
 export function registerSearch(server: McpServer, deps: ToolDeps): void {
@@ -19,11 +20,19 @@ export function registerSearch(server: McpServer, deps: ToolDeps): void {
       description:
         'Look up what you already know. Query the knowledge base before solving a problem or storing new information. '
         + 'Use when: checking if something was already decided, finding how-to steps, recalling past bugs, or deduping before a store. '
-        + 'Related memories are surfaced automatically. Pass `id` for direct lookup, or filter by `type` and `tags`.',
+        + 'Related memories are surfaced automatically. Pass `id` for direct lookup, or filter by `type` and `tags`. '
+        + 'Project scoping: by default, returns memories for the current project + global (unscoped) memories. '
+        + 'Pass project="*" to search across all projects. Pass a specific project name to search that project instead.',
       inputSchema,
       annotations: { readOnlyHint: true, idempotentHint: true },
     },
     async (args) => {
+      // Project scoping: explicit param > auto-detected > undefined
+      // "*" means search all projects (no project filter)
+      const project = args.project === '*'
+        ? undefined
+        : (args.project ?? deps.project ?? undefined);
+
       const results = await deps.retrievalService.search({
         query: args.query,
         id: args.id,
@@ -31,7 +40,7 @@ export function registerSearch(server: McpServer, deps: ToolDeps): void {
         tags: args.tags,
         limit: args.limit,
         min_importance: args.min_importance,
-        project: deps.project ?? undefined,
+        project,
       });
 
       if (results.length === 0) {
