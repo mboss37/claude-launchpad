@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.1.0] — 2026-04-12
+
+### Added
+- "When Stuck" section in `init`, `doctor`, and `--fix`: scaffolds a stop-and-swarm rule so Claude spins up parallel agents after 3 failed iterations instead of guessing in circles
+
+### Fixed
+- MCP tags coercion: `memory_store`, `memory_search`, and `memory_update` now accept tags as both arrays and JSON-encoded strings (fixes harness serialization errors)
+- MCP dedup messaging: duplicate store responses now start with "OK:" instead of "Skipped:" so agents stop cross-checking with `memory_search`
+
 ## [1.0.1] — 2026-04-09
 
 ### Fixed
