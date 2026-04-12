@@ -57,8 +57,12 @@
 - [ ] Publish v1.1.0
 
 ## Session Log
+### 2026-04-12 (session 34)
+- Fixed MCP tags coercion (JSON string arrays) and dedup messaging ("OK:" instead of "Skipped:").
+- Added "When Stuck" stop-and-swarm rule to init/doctor/--fix, documented across all 4 content surfaces.
+- Published v1.1.0 to npm, tagged GitHub release.
+
 ### 2026-04-08 (session 32-33)
 - Sprint 23 complete: sync hardening, store dedup (content_hash), immutability cleanup.
 - 57 manual acceptance tests, 10 bugs found and fixed during testing.
-- Content: problem-first framing, memory section reframed around cross-device sync.
 - Published v1.0.0 to npm, tagged GitHub release, conventions switched to trunk-based.
