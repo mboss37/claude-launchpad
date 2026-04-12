@@ -70,6 +70,7 @@ const FIX_TABLE: ReadonlyArray<{ analyzer: string; match: string; fix: FixFn }> 
   }},
   { analyzer: "Quality", match: "Session Start", fix: (root) => addClaudeMdSection(root, "## Session Start", "- ALWAYS read @TASKS.md first - it tracks progress across sessions\n- Update TASKS.md as you complete work") },
   { analyzer: "Quality", match: "Backlog", fix: (root) => addClaudeMdSection(root, "## Backlog", "- When a feature is discussed but deferred, add it to BACKLOG.md immediately\n- Never leave future ideas only in TASKS.md or conversation — they get lost\n- BACKLOG.md is the single source of truth for parked features") },
+  { analyzer: "Quality", match: "When Stuck", fix: (root) => addClaudeMdSection(root, "## When Stuck", "Three failed iterations on the same problem = stop iterating alone.\nOn the fourth attempt, spin up at least 3 parallel agents via the Agent tool, each investigating from a different angle:\n1. Root-cause debug agent\n2. Upstream library/docs research agent\n3. Alternative architecture agent\nWait for all agents to return, synthesize their findings, then act.\nDon't keep guessing in circles — rotate perspectives.") },
   { analyzer: "Rules", match: "No BACKLOG.md", fix: (root) => createBacklogMd(root) },
   { analyzer: "Rules", match: "No .claudeignore", fix: (root, detected) => createClaudeignore(root, detected) },
   { analyzer: "Rules", match: "No .claude/rules/", fix: (root) => createStarterRules(root) },

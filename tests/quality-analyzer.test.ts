@@ -35,6 +35,8 @@ describe("analyzeQuality", () => {
 - Never hardcode secrets
 ## Backlog
 - Use BACKLOG.md for deferred features
+## When Stuck
+- Stop and swarm after 3 failed attempts
 ## Memory & Learnings
 - Use built-in memory system
 `;

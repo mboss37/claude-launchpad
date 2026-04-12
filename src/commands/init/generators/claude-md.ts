@@ -59,6 +59,16 @@ When all tasks in the current sprint are complete, do a quick quality check befo
   sections.push("", `## Conventions
 - Git: Conventional commits (\`feat:\`, \`fix:\`, \`docs:\`, \`refactor:\`, \`test:\`, \`chore:\`)`);
 
+  // When Stuck
+  sections.push("", `## When Stuck
+Three failed iterations on the same problem = stop iterating alone.
+On the fourth attempt, spin up at least 3 parallel agents via the Agent tool, each investigating from a different angle:
+1. Root-cause debug agent
+2. Upstream library/docs research agent
+3. Alternative architecture agent
+Wait for all agents to return, synthesize their findings, then act.
+Don't keep guessing in circles — rotate perspectives.`);
+
   // Off-Limits
   sections.push("", `## Off-Limits
 - Never hardcode secrets — use environment variables
