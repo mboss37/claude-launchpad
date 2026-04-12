@@ -134,6 +134,7 @@ Reads your manifest files (package.json, go.mod, pyproject.toml, etc.) and gener
 - Always: `CLAUDE.md`, `TASKS.md`, `BACKLOG.md`, `.claude/settings.json`
 - Creates when missing: `.claude/.gitignore`, `.claudeignore`, `.claude/rules/conventions.md`
 - Offers `/lp-enhance` install (project/global/skip) if not already present
+- CLAUDE.md includes a "When Stuck" stop-and-swarm rule: after 3 failed attempts, Claude spins up parallel agents instead of retrying the same approach
 
 **Supported stacks:** TypeScript, JavaScript, Python, Go, Ruby, Rust, Dart, PHP, Java, Kotlin, Swift, Elixir, C#. Detects frameworks: Next.js, FastAPI, Django, Rails, Laravel, Express, SvelteKit, Angular, NestJS, and 15+ more.
 
