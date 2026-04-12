@@ -14,6 +14,9 @@ When storing a new memory, search for related existing memories and auto-create 
 ## [P0] Memory: lp-migrate-memory Skill for Local Placement
 Local scope memory install skips skill creation (skills go to `.claude/skills/` which is committed). Should install to `~/.claude/skills/` (global scope) instead so local users can still migrate legacy memories.
 
+## [P0] Memory: Skip lp-migrate-memory for New Projects
+Install should check `~/.claude/projects/*/memory/` for files matching the current project slug. No legacy memory files = skip installing the migration skill. Avoids clutter for projects that never used built-in auto-memory.
+
 ## [P0] Memory: Show Content Preview for Untitled Memories
 Dashboard and context injection show "(untitled)" for memories stored without a title. Should display first ~30 chars of content instead, so they're identifiable without opening the detail view.
 

@@ -44,6 +44,10 @@
 ### Local Placement: lp-migrate-memory Skill
 - [ ] Install skill to `~/.claude/skills/` for local placement users
 
+### Skip lp-migrate-memory for New Projects
+- [ ] Check `~/.claude/projects/*/memory/` for current project slug during install
+- [ ] Skip skill install when no legacy memory files exist
+
 ### Untitled Memory Preview
 - [ ] Dashboard: show first ~30 chars of content instead of "(untitled)"
 - [ ] Context injection: same preview for index-tier untitled memories
