@@ -1,12 +1,13 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { ToolDeps } from './register.js';
+import { coerceStringArray } from '../types.js';
 
 const inputSchema = {
   id: z.string().describe('Memory ID to update (use memory_search to find it)'),
   title: z.string().max(200).optional().describe('Updated title'),
   content: z.string().min(1).max(10000).optional().describe('Updated content'),
-  tags: z.array(z.string()).max(20).optional().describe('Updated tags'),
+  tags: coerceStringArray.pipe(z.array(z.string()).max(20)).optional().describe('Updated tags'),
   importance: z.number().min(0).max(1).optional().describe('Updated importance (0-1)'),
   context: z.string().optional().describe('Updated context JSON'),
 };

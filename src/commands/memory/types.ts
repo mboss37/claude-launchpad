@@ -1,5 +1,21 @@
 import { z } from 'zod';
 
+// ── MCP Harness Coercion ─────────────────────────────────────
+// Claude Code's MCP harness sometimes serializes arrays as JSON-encoded strings
+// (e.g. tags arrives as '["tag1","tag2"]' instead of ["tag1","tag2"]).
+// This preprocess step accepts both forms.
+export const coerceStringArray = z.preprocess((val) => {
+  if (Array.isArray(val)) return val;
+  if (typeof val === 'string') {
+    try {
+      const parsed = JSON.parse(val);
+      if (Array.isArray(parsed)) return parsed;
+    } catch { /* not JSON, treat as single-element array */ }
+    return val.trim() ? [val] : [];
+  }
+  return val;
+}, z.array(z.string()));
+
 // ── Memory Types ──────────────────────────────────────────────
 
 export const MEMORY_TYPES = ['working', 'episodic', 'semantic', 'procedural', 'pattern'] as const;
@@ -86,7 +102,7 @@ export const StoreInputSchema = z.object({
   type: z.enum(MEMORY_TYPES),
   content: z.string().min(1),
   title: z.string().max(200).optional(),
-  tags: z.array(z.string()).max(20).default([]),
+  tags: coerceStringArray.pipe(z.array(z.string()).max(20)).default([]),
   importance: z.number().min(0).max(1).default(0.5),
   context: z.string().optional(),
   source: z.enum(MEMORY_SOURCES).default('manual'),
@@ -98,7 +114,7 @@ export const SearchInputSchema = z.object({
   query: z.string().min(1).max(500),
   id: z.string().optional(),
   type: z.enum(MEMORY_TYPES).optional(),
-  tags: z.array(z.string()).max(10).optional(),
+  tags: coerceStringArray.pipe(z.array(z.string()).max(10)).optional(),
   limit: z.number().int().min(1).max(50).default(10),
   min_importance: z.number().min(0).max(1).default(0),
   project: z.string().max(200).optional(),

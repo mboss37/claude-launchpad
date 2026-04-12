@@ -1,13 +1,13 @@
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { ToolDeps } from './register.js';
-import { MEMORY_TYPES } from '../types.js';
+import { MEMORY_TYPES, coerceStringArray } from '../types.js';
 
 const inputSchema = {
   query: z.string().min(1).max(500).describe('Search query (natural language or keywords)'),
   id: z.string().optional().describe('Direct lookup by memory ID (bypasses search)'),
   type: z.enum(MEMORY_TYPES).optional().describe('Filter by memory type'),
-  tags: z.array(z.string()).max(10).optional().describe('Filter to memories containing ALL of these tags'),
+  tags: coerceStringArray.pipe(z.array(z.string()).max(10)).optional().describe('Filter to memories containing ALL of these tags'),
   limit: z.number().int().min(1).max(50).default(10).describe('Maximum results to return'),
   min_importance: z.number().min(0).max(1).default(0).describe('Minimum importance threshold'),
   project: z.string().max(200).optional().describe('Project scope. Omit to search current project + global memories (default). Pass "*" to search ALL projects. Pass a project name to search that specific project + global memories.'),

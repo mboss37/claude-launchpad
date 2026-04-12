@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { ToolDeps } from './register.js';
 import { MEMORY_TYPES, MEMORY_SOURCES } from '../types.js';
+import { coerceStringArray } from '../types.js';
 import { getGitContext } from '../utils/git-context.js';
 import { validateMemoryContent } from '../utils/content-validation.js';
 import { checkContradiction } from '../utils/contradiction.js';
@@ -54,7 +55,7 @@ const inputSchema = {
   type: z.enum(MEMORY_TYPES).describe('Memory type: working, episodic, semantic, procedural, or pattern'),
   content: z.string().min(1).describe('The memory content (aim for ~2000 chars / ~500 tokens). Keep memories concise: capture the decision or insight, not the full context. Split large topics into separate memories.'),
   title: z.string().max(200).optional().describe('Short title for the memory'),
-  tags: z.array(z.string()).max(20).default([]).describe('Tags for categorization. Suggested: #bug, #decision, #gotcha, #howto, #pattern'),
+  tags: coerceStringArray.pipe(z.array(z.string()).max(20)).default([]).describe('Tags for categorization. Suggested: #bug, #decision, #gotcha, #howto, #pattern'),
   importance: z.number().min(0).max(1).default(0.5).describe('0-0.3 ephemeral, 0.3-0.6 reference, 0.6-0.8 important, 0.8-1.0 critical'),
   context: z.string().optional().describe('JSON: {"files": [...], "branch": "...", "intent": "..."}. Auto-detected from git if omitted.'),
   source: z.enum(MEMORY_SOURCES).default('manual').describe('How this memory was created'),
@@ -71,7 +72,7 @@ export function registerStore(server: McpServer, deps: ToolDeps): void {
         + 'Always search first to avoid duplicates — update existing memories when possible. '
         + 'Types: semantic (facts/decisions), procedural (how-to), episodic (what happened), pattern (recurring), working (scratch). '
         + 'Importance: 0.1 trivial, 0.5 useful, 0.8 important, 1.0 critical. '
-        + 'Tags and git context are auto-detected if omitted. "Skipped" responses mean a duplicate was caught — not an error.',
+        + 'Tags and git context are auto-detected if omitted. "OK" responses mean the memory already exists — no follow-up needed.',
       inputSchema,
       annotations: { idempotentHint: false },
     },
@@ -97,12 +98,12 @@ export function registerStore(server: McpServer, deps: ToolDeps): void {
       const lastStored = recentStores.get(contentHash);
       if (lastStored && (now - lastStored) < DEDUP_WINDOW_MS) {
         return {
-          content: [{ type: 'text' as const, text: 'Skipped: identical memory already exists (stored moments ago).' }],
+          content: [{ type: 'text' as const, text: 'OK: this memory already exists in the knowledge base (duplicate detected). No action needed.' }],
         };
       }
       if (pendingStores.has(contentHash)) {
         return {
-          content: [{ type: 'text' as const, text: 'Skipped: identical memory is being stored by another call.' }],
+          content: [{ type: 'text' as const, text: 'OK: this memory is already being stored by a parallel call. No action needed.' }],
         };
       }
       pendingStores.add(contentHash);
@@ -154,7 +155,7 @@ export function registerStore(server: McpServer, deps: ToolDeps): void {
 
       if (!memory) {
         return {
-          content: [{ type: 'text' as const, text: 'Skipped: identical memory already exists in the knowledge base.' }],
+          content: [{ type: 'text' as const, text: 'OK: this memory already exists in the knowledge base (content_hash match). No action needed.' }],
         };
       }
 
