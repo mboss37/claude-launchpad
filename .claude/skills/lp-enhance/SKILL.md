@@ -8,7 +8,7 @@ allowed-tools: Read, Glob, Grep, Edit, Write
 argument-hint: (no arguments needed)
 ---
 
-<!-- lp-enhance-version: 5 -->
+<!-- lp-enhance-version: 6 -->
 
 # lp-enhance - AI-powered CLAUDE.md improver
 
@@ -22,10 +22,10 @@ Read CLAUDE.md and the project's codebase, then update CLAUDE.md to fill in miss
 4. Read .claude/settings.local.json (local settings, if it exists)
 5. Read .claude/rules/*.md (existing rules)
 6. Read .claudeignore (if it exists)
-5. Scan src/ directory structure (top-level dirs, key files)
-6. Read package.json / go.mod / pyproject.toml for stack detection
-7. Check for monorepo indicators (workspaces, nx.json, lerna.json)
-8. Check scenarios/ directory for existing eval scenarios
+7. Scan src/ directory structure (top-level dirs, key files)
+8. Read package.json / go.mod / pyproject.toml for stack detection
+9. Check for monorepo indicators (workspaces, nx.json, lerna.json)
+10. Check scenarios/ directory for existing eval scenarios
 
 **Done when:** you have a mental model of the stack, architecture, and existing config.
 
@@ -37,7 +37,7 @@ Count current CLAUDE.md actionable lines. Budget is 200 lines max. Plan which se
 2. **## Architecture** - 3-5 bullets describing codebase shape
 3. **## Conventions** - max 8 key patterns. Overflow to .claude/rules/conventions.md
 4. **## Off-Limits** - max 8 guardrails specific to this project
-5. **## Memory** - ONLY if agentic-memory is configured in settings.json or settings.local.json. If memory config is in settings.local.json, write ## Memory to .claude/CLAUDE.md (not root CLAUDE.md). Max 6 bullets.
+5. **## Memory** - ONLY if agentic-memory is configured in settings.json. Max 6 bullets.
 6. **## Key Decisions** - only decisions that affect how Claude works in this codebase
 
 7. **Skill Authoring** - if .claude/rules/conventions.md lacks a Skill Authoring section, plan to add one
@@ -114,9 +114,11 @@ If .claude/rules/conventions.md exists but has no Skill Authoring section, add t
 
 When creating Claude Code skills (.claude/skills/*/SKILL.md):
 
-- Add TRIGGER when / DO NOT TRIGGER when clauses in the description for auto-invocation
+- Keep SKILL.md under 500 lines - move reference material to supporting files in the same directory
+- Front-load description (first 250 chars shown in listings) with TRIGGER when / DO NOT TRIGGER when clauses
 - Add allowed-tools in frontmatter to restrict tool access (e.g. Read, Glob, Grep for read-only skills)
-- Add argument-hint in frontmatter showing the expected input format
+- Add argument-hint in frontmatter showing the expected input format (use $ARGUMENTS or $0, $1 for dynamic input)
+- Set disable-model-invocation: true for skills with side effects (deploy, send messages)
 - Structure as phases: Research, Plan, Execute, Verify with "Done when:" success criteria per phase
 - Handle edge cases and preconditions before execution
 
