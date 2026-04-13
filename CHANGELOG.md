@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.2.0] — 2026-04-13
+
+### Added
+- Doctor now checks for skill authoring conventions in `.claude/rules/` files
+- `--fix` adds a Skill Authoring section to `conventions.md` when missing
+- Starter rules created by `--fix` now include skill authoring (consistent with `init`)
+- Skill authoring conventions updated to match official Claude Code docs: 500-line limit, 250-char description cap, `$ARGUMENTS` substitution, `disable-model-invocation` for side-effect skills
+- Bumped `/lp-enhance` skill to v6 (doctor will flag stale installs)
+- 6 new tests (328 total)
+
 ## [1.1.0] — 2026-04-12
 
 ### Added

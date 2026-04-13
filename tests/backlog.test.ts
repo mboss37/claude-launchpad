@@ -71,6 +71,62 @@ describe("rules analyzer checks for BACKLOG.md", () => {
   });
 });
 
+describe("rules analyzer checks for skill authoring conventions", () => {
+  let testDir: string;
+
+  beforeEach(async () => {
+    testDir = join(tmpdir(), `skill-authoring-test-${randomUUID()}`);
+    await mkdir(testDir, { recursive: true });
+    await mkdir(join(testDir, ".claude", "rules"), { recursive: true });
+  });
+
+  it("flags missing skill authoring conventions", async () => {
+    await writeFile(
+      join(testDir, ".claude", "rules", "conventions.md"),
+      "# Conventions\n\n- Use conventional commits\n",
+    );
+    const config = makeConfig({
+      claudeMdPath: join(testDir, "CLAUDE.md"),
+      rules: [join(testDir, ".claude", "rules", "conventions.md")],
+    });
+    const result = await analyzeRules(config);
+    expect(result.issues.some((i) => i.message.includes("skill authoring"))).toBe(true);
+  });
+
+  it("does not flag when skill authoring section exists", async () => {
+    await writeFile(
+      join(testDir, ".claude", "rules", "conventions.md"),
+      "# Conventions\n\n## Skill Authoring\n\n- Follow patterns\n",
+    );
+    const config = makeConfig({
+      claudeMdPath: join(testDir, "CLAUDE.md"),
+      rules: [join(testDir, ".claude", "rules", "conventions.md")],
+    });
+    const result = await analyzeRules(config);
+    expect(result.issues.some((i) => i.message.includes("skill authoring"))).toBe(false);
+  });
+
+  it("detects skill authoring in any rules file", async () => {
+    await writeFile(
+      join(testDir, ".claude", "rules", "conventions.md"),
+      "# Conventions\n\n- Plain rules\n",
+    );
+    await writeFile(
+      join(testDir, ".claude", "rules", "skills.md"),
+      "# Skills\n\n## Skill Authoring\n\n- TRIGGER when clauses\n",
+    );
+    const config = makeConfig({
+      claudeMdPath: join(testDir, "CLAUDE.md"),
+      rules: [
+        join(testDir, ".claude", "rules", "conventions.md"),
+        join(testDir, ".claude", "rules", "skills.md"),
+      ],
+    });
+    const result = await analyzeRules(config);
+    expect(result.issues.some((i) => i.message.includes("skill authoring"))).toBe(false);
+  });
+});
+
 describe("fixer creates BACKLOG.md", () => {
   let testDir: string;
 

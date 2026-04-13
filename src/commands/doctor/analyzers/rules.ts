@@ -67,6 +67,28 @@ export async function analyzeRules(config: ClaudeConfig): Promise<AnalyzerResult
     return { name: "Rules", issues, score: 60 };
   }
 
+  // Check for skill authoring conventions in any rules file
+  let hasSkillAuthoring = false;
+  for (const rulePath of config.rules) {
+    try {
+      const content = await readFile(rulePath, "utf-8");
+      if (/^##\s+Skill\s+Authoring/im.test(content)) {
+        hasSkillAuthoring = true;
+        break;
+      }
+    } catch {
+      continue;
+    }
+  }
+  if (!hasSkillAuthoring) {
+    issues.push({
+      analyzer: "Rules",
+      severity: "low",
+      message: "No skill authoring conventions found in .claude/rules/",
+      fix: "Run `doctor --fix` to add a Skill Authoring section to conventions.md",
+    });
+  }
+
   // Check for empty or near-empty rule files
   for (const rulePath of config.rules) {
     try {

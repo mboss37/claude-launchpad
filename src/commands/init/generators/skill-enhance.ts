@@ -2,7 +2,7 @@
  * Skill schema version. Bump this when the skill content changes.
  * Doctor compares this against installed skills to detect stale versions.
  */
-export const ENHANCE_SKILL_VERSION = 5;
+export const ENHANCE_SKILL_VERSION = 6;
 
 /**
  * Generates the /lp-enhance skill markdown content.
@@ -125,9 +125,11 @@ export function generateEnhanceSkill(): string {
     '',
     'When creating Claude Code skills (.claude/skills/*/SKILL.md):',
     '',
-    '- Add TRIGGER when / DO NOT TRIGGER when clauses in the description for auto-invocation',
+    '- Keep SKILL.md under 500 lines - move reference material to supporting files in the same directory',
+    '- Front-load description (first 250 chars shown in listings) with TRIGGER when / DO NOT TRIGGER when clauses',
     '- Add allowed-tools in frontmatter to restrict tool access (e.g. Read, Glob, Grep for read-only skills)',
-    '- Add argument-hint in frontmatter showing the expected input format',
+    '- Add argument-hint in frontmatter showing the expected input format (use $ARGUMENTS or $0, $1 for dynamic input)',
+    '- Set disable-model-invocation: true for skills with side effects (deploy, send messages)',
     '- Structure as phases: Research, Plan, Execute, Verify with "Done when:" success criteria per phase',
     '- Handle edge cases and preconditions before execution',
     '',

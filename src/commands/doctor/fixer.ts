@@ -80,6 +80,7 @@ const FIX_TABLE: ReadonlyArray<{ analyzer: string; match: string; fix: FixFn }> 
   { analyzer: "Permissions", match: "Bypass permissions mode", fix: (root) => addBypassDisable(root) },
   { analyzer: "Permissions", match: "Sandbox not enabled", fix: (root) => addSandboxSettings(root) },
   { analyzer: "Permissions", match: ".env is protected by hooks but not in .claudeignore", fix: (root) => addEnvToClaudeignore(root) },
+  { analyzer: "Rules", match: "No skill authoring conventions", fix: (root) => addSkillAuthoringConventions(root) },
   { analyzer: "Rules", match: "No /lp-enhance skill", fix: (root) => createEnhanceSkill(root) },
   { analyzer: "Rules", match: "lp-enhance skill is outdated", fix: (root) => updateEnhanceSkill(root) },
   { analyzer: "Settings", match: "Deprecated includeCoAuthoredBy", fix: (root) => migrateAttribution(root) },
@@ -336,6 +337,20 @@ async function createClaudeignore(root: string, detected: DetectedProject): Prom
   return true;
 }
 
+const SKILL_AUTHORING_SECTION = `
+## Skill Authoring
+
+When creating Claude Code skills (.claude/skills/*/SKILL.md):
+
+- Keep SKILL.md under 500 lines — move reference material to supporting files in the same directory
+- Front-load description (first 250 chars shown in listings) with TRIGGER when / DO NOT TRIGGER when clauses
+- Add allowed-tools in frontmatter to restrict tool access (e.g. Read, Glob, Grep for read-only skills)
+- Add argument-hint in frontmatter showing the expected input format (use $ARGUMENTS or $0, $1 for dynamic input)
+- Set disable-model-invocation: true for skills with side effects (deploy, send messages)
+- Structure as phases: Research, Plan, Execute, Verify with "Done when:" success criteria per phase
+- Handle edge cases and preconditions before execution
+`;
+
 async function createStarterRules(root: string): Promise<boolean> {
   const rulesDir = join(root, ".claude", "rules");
   try {
@@ -355,13 +370,29 @@ async function createStarterRules(root: string): Promise<boolean> {
 - Keep files under 400 lines, functions under 50 lines
 - Handle errors explicitly — no empty catch blocks
 - Validate input at system boundaries
-`,
+${SKILL_AUTHORING_SECTION}`,
   );
 
   log.success("Created .claude/rules/conventions.md with starter rules");
   return true;
 }
 
+async function addSkillAuthoringConventions(root: string): Promise<boolean> {
+  const conventionsPath = join(root, ".claude", "rules", "conventions.md");
+  let content: string;
+  try {
+    content = await readFile(conventionsPath, "utf-8");
+  } catch {
+    // No conventions.md — createStarterRules will handle it
+    return false;
+  }
+
+  if (/^##\s+Skill\s+Authoring/im.test(content)) return false;
+
+  await writeFile(conventionsPath, content.trimEnd() + "\n" + SKILL_AUTHORING_SECTION);
+  log.success("Added Skill Authoring section to .claude/rules/conventions.md");
+  return true;
+}
 
 async function createEnhanceSkill(root: string): Promise<boolean> {
   const skillDir = join(root, ".claude", "skills", "lp-enhance");

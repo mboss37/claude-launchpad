@@ -267,6 +267,68 @@ describe("applyFixes", () => {
     expect(result.fixed).toBe(0);
   });
 
+  it("includes skill authoring in starter rules", async () => {
+    const issues: DiagnosticIssue[] = [{
+      analyzer: "Rules",
+      severity: "low",
+      message: "No .claude/rules/ files found",
+      fix: "Create rules",
+    }];
+
+    await applyFixes(issues, testDir);
+
+    const content = await readFile(
+      join(testDir, ".claude", "rules", "conventions.md"),
+      "utf-8",
+    );
+    expect(content).toContain("Skill Authoring");
+    expect(content).toContain("TRIGGER when");
+    expect(content).toContain("allowed-tools");
+  });
+
+  it("adds skill authoring to existing conventions.md", async () => {
+    await mkdir(join(testDir, ".claude", "rules"), { recursive: true });
+    await writeFile(
+      join(testDir, ".claude", "rules", "conventions.md"),
+      "# Conventions\n\n- Use conventional commits\n",
+    );
+
+    const issues: DiagnosticIssue[] = [{
+      analyzer: "Rules",
+      severity: "low",
+      message: "No skill authoring conventions found in .claude/rules/",
+      fix: "",
+    }];
+
+    const result = await applyFixes(issues, testDir);
+    expect(result.fixed).toBe(1);
+
+    const content = await readFile(
+      join(testDir, ".claude", "rules", "conventions.md"),
+      "utf-8",
+    );
+    expect(content).toContain("Skill Authoring");
+    expect(content).toContain("TRIGGER when");
+  });
+
+  it("does not duplicate skill authoring section", async () => {
+    await mkdir(join(testDir, ".claude", "rules"), { recursive: true });
+    await writeFile(
+      join(testDir, ".claude", "rules", "conventions.md"),
+      "# Conventions\n\n## Skill Authoring\n\n- Existing content\n",
+    );
+
+    const issues: DiagnosticIssue[] = [{
+      analyzer: "Rules",
+      severity: "low",
+      message: "No skill authoring conventions found in .claude/rules/",
+      fix: "",
+    }];
+
+    const result = await applyFixes(issues, testDir);
+    expect(result.fixed).toBe(0);
+  });
+
   it("migrates includeCoAuthoredBy to attribution object", async () => {
     await mkdir(join(testDir, ".claude"), { recursive: true });
     await writeFile(
