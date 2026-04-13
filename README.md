@@ -236,6 +236,25 @@ Data stays in `~/.agentic-memory/memory.db`. Sync requires the [GitHub CLI](http
 
 Sync stores one file per project inside a single private gist. Push/pull auto-detects the current project from your working directory. On a new device, the gist is auto-discovered from your GitHub account (no config to copy).
 
+## Hooks
+
+CLAUDE.md rules are ~80% reliable. Hooks are 100% enforced by the harness. Init and `--fix` set up these hooks automatically:
+
+| Hook | Trigger | What it does |
+|---|---|---|
+| **.env protection** | Before any Read/Write/Edit | Blocks Claude from reading `.env` files that contain secrets |
+| **Force-push protection** | Before any Bash command | Blocks `git push --force` to prevent destroying remote history |
+| **Auto-format** | After any Write/Edit | Runs your language's formatter (prettier, ruff, gofmt, rustfmt, etc.) |
+| **SessionStart** | Session opens | Injects TASKS.md so Claude knows where you left off |
+| **PostCompact** | After context compression | Re-injects TASKS.md so Claude doesn't lose sprint state mid-session |
+
+Memory projects get two additional hooks:
+
+| Hook | Trigger | What it does |
+|---|---|---|
+| **SessionStart pull** | Session opens | Auto-pulls memories from GitHub Gist |
+| **SessionEnd push** | Session closes | Auto-pushes new memories to GitHub Gist |
+
 ## Use in CI
 
 Block PRs that degrade your Claude Code config quality:
