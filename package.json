@@ -1,6 +1,6 @@
 {
   "name": "claude-launchpad",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "CLI toolkit for Claude Code — scaffold CLAUDE.md, diagnose config, enforce hooks, test with eval, add persistent memory",
   "type": "module",
   "bin": {

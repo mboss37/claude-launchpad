@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.2.2] — 2026-04-13
+
+### Fixed
+- Bumped /lp-enhance skill version to v7 (v6 users missed local config restore from v1.2.1)
+
 ## [1.2.1] — 2026-04-13
 
 ### Fixed

@@ -2,7 +2,7 @@
  * Skill schema version. Bump this when the skill content changes.
  * Doctor compares this against installed skills to detect stale versions.
  */
-export const ENHANCE_SKILL_VERSION = 6;
+export const ENHANCE_SKILL_VERSION = 7;
 
 /**
  * Generates the /lp-enhance skill markdown content.
