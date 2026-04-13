@@ -54,12 +54,17 @@
 
 ### Ship
 - [ ] Tests + benchmarks green
-- [ ] Publish v1.1.0
+- [ ] Publish next version
 
 ## Session Log
+### 2026-04-13 (session 35)
+- Doctor now checks for skill authoring conventions in rules files, fixer adds section (v1.2.0).
+- Updated skill authoring to match official Claude Code docs (500-line limit, 250-char desc, $ARGUMENTS, disable-model-invocation).
+- Renamed "When Stuck" to "Stop-and-Swarm" across all surfaces, restored local config steps in /lp-enhance (v1.2.1).
+
 ### 2026-04-12 (session 34)
 - Fixed MCP tags coercion (JSON string arrays) and dedup messaging ("OK:" instead of "Skipped:").
-- Added "When Stuck" stop-and-swarm rule to init/doctor/--fix, documented across all 4 content surfaces.
+- Added stop-and-swarm rule to init/doctor/--fix, documented across all 4 content surfaces.
 - Published v1.1.0 to npm, tagged GitHub release.
 
 ### 2026-04-08 (session 32-33)
