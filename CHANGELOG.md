@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.2.3] — 2026-04-13
+
+### Fixed
+- Session Start fixer was missing "Check the Session Log" bullet and used hyphens instead of em dashes
+- Extracted shared section content to `lib/sections.ts` so init and fixer can't drift independently
+- Added skill version hash test to catch content changes without version bumps
+
+### Added
+- Hooks section in README explaining all auto-configured hooks
+
 ## [1.2.2] — 2026-04-13
 
 ### Fixed
