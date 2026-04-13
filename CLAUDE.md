@@ -79,6 +79,16 @@ See `.claude/rules/conventions.md` — sprint review with code review agent is M
 - Never hardcode stack-specific logic — auto-detect or stay generic
 - Never add dependencies without justification — CLI must stay fast (<2s startup)
 
+
+## Stop-and-Swarm
+Three failed iterations on the same problem = stop iterating alone.
+On the fourth attempt, spin up at least 3 parallel agents via the Agent tool, each investigating from a different angle:
+1. Root-cause debug agent
+2. Upstream library/docs research agent
+3. Alternative architecture agent
+Wait for all agents to return, synthesize their findings, then act.
+Don't keep guessing in circles — rotate perspectives.
+
 ## Key Decisions
 - Stack-agnostic: auto-detects project type instead of offering a fixed menu
 - No ECC dependency: generates its own hooks and settings

@@ -512,7 +512,7 @@ export default function HomePage() {
                 ['Generate .claudeignore', true, true, false, false, false],
                 ['Score config 0-100', false, true, false, false, false],
                 ['Fix missing sections, rules, permissions', false, true, false, false, false],
-                ['Add stop-and-swarm rule (When Stuck)', true, true, false, false, false],
+                ['Add stop-and-swarm rule', true, true, false, false, false],
                 ['Rewrite CLAUDE.md with real project content', false, false, true, false, false],
                 ['Suggest hooks, MCP servers, path-scoped rules', false, false, true, false, false],
                 ['Overflow conventions to .claude/rules/', false, false, true, false, false],

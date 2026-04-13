@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.2.1] — 2026-04-13
+
+### Fixed
+- Renamed "When Stuck" to "Stop-and-Swarm" across all surfaces (init, doctor, fixer, docs, README, landing page)
+- Restored missing local config steps in /lp-enhance skill (`.claude/CLAUDE.md` and `.claude/settings.local.json` dropped during Sprint 18 rewrite)
+
 ## [1.2.0] — 2026-04-13
 
 ### Added
@@ -13,7 +19,7 @@
 ## [1.1.0] — 2026-04-12
 
 ### Added
-- "When Stuck" section in `init`, `doctor`, and `--fix`: scaffolds a stop-and-swarm rule so Claude spins up parallel agents after 3 failed iterations instead of guessing in circles
+- Stop-and-swarm section in `init`, `doctor`, and `--fix`: scaffolds a rule so Claude spins up parallel agents after 3 failed iterations instead of guessing in circles
 
 ### Fixed
 - MCP tags coercion: `memory_store`, `memory_search`, and `memory_update` now accept tags as both arrays and JSON-encoded strings (fixes harness serialization errors)

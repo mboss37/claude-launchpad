@@ -29,7 +29,7 @@ claude-launchpad doctor
 | Analyzer | What it catches |
 |---|---|
 | **Instruction Budget** | Past ~200 lines, Claude stops reliably following rules at the bottom of CLAUDE.md. Doctor warns before you hit that limit. |
-| **CLAUDE.md Quality** | Missing sections mean Claude guesses your stack, conventions, and boundaries. Vague instructions ("write good code") waste budget with zero signal. Also checks for a "When Stuck" section so Claude spins up parallel agents after 3 failed attempts instead of retrying the same approach. |
+| **CLAUDE.md Quality** | Missing sections mean Claude guesses your stack, conventions, and boundaries. Vague instructions ("write good code") waste budget with zero signal. Also checks for a stop-and-swarm section so Claude spins up parallel agents after 3 failed attempts instead of retrying the same approach. |
 | **Settings** | Missing hooks, deprecated settings, auto-memory conflicts. Without proper settings, Claude runs without guardrails. |
 | **Hooks** | Missing SessionStart = Claude forgets where you left off. Missing PostCompact = Claude loses context mid-session. Missing SessionEnd = memories never sync. Missing auto-format = inconsistent code style. |
 | **Rules** | Missing BACKLOG.md, dead rule files, stale references. Without structure, deferred features get lost in conversation. |
@@ -55,7 +55,7 @@ claude-launchpad doctor
     - SessionEnd hook with memory push (memory projects only, auto-syncs memories when session closes)
   </Accordion>
   <Accordion title="CLAUDE.md">
-    - Missing sections: Stack, Commands, Architecture, Off-Limits, Session Start, Backlog, When Stuck, Memory & Learnings
+    - Missing sections: Stack, Commands, Architecture, Off-Limits, Session Start, Backlog, Stop-and-Swarm, Memory & Learnings
     - Attribution migration (includeCoAuthoredBy → attribution object)
   </Accordion>
   <Accordion title="Files">
