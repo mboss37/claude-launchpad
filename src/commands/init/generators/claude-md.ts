@@ -1,4 +1,7 @@
 import type { InitOptions, DetectedProject } from "../../../types/index.js";
+import {
+  SESSION_START_CONTENT, BACKLOG_CONTENT, STOP_AND_SWARM_CONTENT, OFF_LIMITS_CONTENT,
+} from "../../../lib/sections.js";
 
 export function generateClaudeMd(options: InitOptions, detected: DetectedProject): string {
   const sections: string[] = [];
@@ -36,15 +39,10 @@ export function generateClaudeMd(options: InitOptions, detected: DetectedProject
   }
 
   // Session Start
-  sections.push("", `## Session Start
-- ALWAYS read @TASKS.md first — it tracks progress across sessions
-- Check the Session Log at the bottom of TASKS.md for where we left off
-- Update TASKS.md as you complete work
+  sections.push("", `## Session Start\n${SESSION_START_CONTENT}`);
 
-## Backlog
-- When a feature is discussed but deferred, add it to BACKLOG.md immediately
-- Never leave future ideas only in TASKS.md or conversation — they get lost
-- BACKLOG.md is the single source of truth for parked features`);
+  // Backlog
+  sections.push("", `## Backlog\n${BACKLOG_CONTENT}`);
 
   // Sprint Reviews
   sections.push("", `## Sprint Reviews
@@ -60,20 +58,10 @@ When all tasks in the current sprint are complete, do a quick quality check befo
 - Git: Conventional commits (\`feat:\`, \`fix:\`, \`docs:\`, \`refactor:\`, \`test:\`, \`chore:\`)`);
 
   // Stop-and-Swarm
-  sections.push("", `## Stop-and-Swarm
-Three failed iterations on the same problem = stop iterating alone.
-On the fourth attempt, spin up at least 3 parallel agents via the Agent tool, each investigating from a different angle:
-1. Root-cause debug agent
-2. Upstream library/docs research agent
-3. Alternative architecture agent
-Wait for all agents to return, synthesize their findings, then act.
-Don't keep guessing in circles — rotate perspectives.`);
+  sections.push("", `## Stop-and-Swarm\n${STOP_AND_SWARM_CONTENT}`);
 
   // Off-Limits
-  sections.push("", `## Off-Limits
-- Never hardcode secrets — use environment variables
-- Never write to \`.env\` files
-- Never expose internal error details in API responses`);
+  sections.push("", `## Off-Limits\n${OFF_LIMITS_CONTENT}`);
 
   // Key Decisions
   sections.push("", `## Key Decisions

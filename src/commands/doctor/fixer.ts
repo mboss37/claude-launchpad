@@ -2,6 +2,10 @@ import { readFile, writeFile, mkdir, access } from "node:fs/promises";
 import { join } from "node:path";
 import { homedir } from "node:os";
 import { log } from "../../lib/output.js";
+import {
+  SESSION_START_CONTENT, BACKLOG_CONTENT, STOP_AND_SWARM_CONTENT,
+  OFF_LIMITS_CONTENT, SKILL_AUTHORING_CONTENT,
+} from "../../lib/sections.js";
 import { fileExists } from "../../lib/fs-utils.js";
 import { detectProject } from "../../lib/detect.js";
 import { generateClaudeignore } from "../init/generators/claudeignore.js";
@@ -60,7 +64,7 @@ const FIX_TABLE: ReadonlyArray<{ analyzer: string; match: string; fix: FixFn }> 
   { analyzer: "Hooks", match: "auto-format", fix: (root, detected) => addAutoFormatHook(root, detected) },
   { analyzer: "Hooks", match: "No PreToolUse", fix: (root) => addEnvProtectionHook(root) },
   { analyzer: "Quality", match: "Architecture", fix: (root) => addClaudeMdSection(root, "## Architecture", "<!-- TODO: Describe your codebase structure. Run `/lp-enhance` to auto-fill this. -->") },
-  { analyzer: "Quality", match: "Off-Limits", fix: (root) => addClaudeMdSection(root, "## Off-Limits", "- Never hardcode secrets - use environment variables\n- Never write to `.env` files\n- Never expose internal error details in API responses") },
+  { analyzer: "Quality", match: "Off-Limits", fix: (root) => addClaudeMdSection(root, "## Off-Limits", OFF_LIMITS_CONTENT) },
   { analyzer: "Quality", match: "Commands", fix: (root) => addClaudeMdSection(root, "## Commands", "<!-- TODO: Add your dev/build/test commands -->") },
   { analyzer: "Quality", match: "Stack", fix: (root, detected) => {
     const content = detected.language
@@ -68,9 +72,9 @@ const FIX_TABLE: ReadonlyArray<{ analyzer: string; match: string; fix: FixFn }> 
       : "<!-- TODO: Define your tech stack -->";
     return addClaudeMdSection(root, "## Stack", content);
   }},
-  { analyzer: "Quality", match: "Session Start", fix: (root) => addClaudeMdSection(root, "## Session Start", "- ALWAYS read @TASKS.md first - it tracks progress across sessions\n- Update TASKS.md as you complete work") },
-  { analyzer: "Quality", match: "Backlog", fix: (root) => addClaudeMdSection(root, "## Backlog", "- When a feature is discussed but deferred, add it to BACKLOG.md immediately\n- Never leave future ideas only in TASKS.md or conversation — they get lost\n- BACKLOG.md is the single source of truth for parked features") },
-  { analyzer: "Quality", match: "Stop-and-Swarm", fix: (root) => addClaudeMdSection(root, "## Stop-and-Swarm", "Three failed iterations on the same problem = stop iterating alone.\nOn the fourth attempt, spin up at least 3 parallel agents via the Agent tool, each investigating from a different angle:\n1. Root-cause debug agent\n2. Upstream library/docs research agent\n3. Alternative architecture agent\nWait for all agents to return, synthesize their findings, then act.\nDon't keep guessing in circles — rotate perspectives.") },
+  { analyzer: "Quality", match: "Session Start", fix: (root) => addClaudeMdSection(root, "## Session Start", SESSION_START_CONTENT) },
+  { analyzer: "Quality", match: "Backlog", fix: (root) => addClaudeMdSection(root, "## Backlog", BACKLOG_CONTENT) },
+  { analyzer: "Quality", match: "Stop-and-Swarm", fix: (root) => addClaudeMdSection(root, "## Stop-and-Swarm", STOP_AND_SWARM_CONTENT) },
   { analyzer: "Rules", match: "No BACKLOG.md", fix: (root) => createBacklogMd(root) },
   { analyzer: "Rules", match: "No .claudeignore", fix: (root, detected) => createClaudeignore(root, detected) },
   { analyzer: "Rules", match: "No .claude/rules/", fix: (root) => createStarterRules(root) },
@@ -337,19 +341,7 @@ async function createClaudeignore(root: string, detected: DetectedProject): Prom
   return true;
 }
 
-const SKILL_AUTHORING_SECTION = `
-## Skill Authoring
-
-When creating Claude Code skills (.claude/skills/*/SKILL.md):
-
-- Keep SKILL.md under 500 lines — move reference material to supporting files in the same directory
-- Front-load description (first 250 chars shown in listings) with TRIGGER when / DO NOT TRIGGER when clauses
-- Add allowed-tools in frontmatter to restrict tool access (e.g. Read, Glob, Grep for read-only skills)
-- Add argument-hint in frontmatter showing the expected input format (use $ARGUMENTS or $0, $1 for dynamic input)
-- Set disable-model-invocation: true for skills with side effects (deploy, send messages)
-- Structure as phases: Research, Plan, Execute, Verify with "Done when:" success criteria per phase
-- Handle edge cases and preconditions before execution
-`;
+const SKILL_AUTHORING_SECTION = `\n## Skill Authoring\n\n${SKILL_AUTHORING_CONTENT}\n`;
 
 async function createStarterRules(root: string): Promise<boolean> {
   const rulesDir = join(root, ".claude", "rules");

@@ -13,6 +13,7 @@ import { generateSettings } from "./generators/settings.js";
 import { generateClaudeignore } from "./generators/claudeignore.js";
 import { generateEnhanceSkill } from "./generators/skill-enhance.js";
 import { generateBacklogMd } from "./generators/backlog.js";
+import { SKILL_AUTHORING_CONTENT } from "../../lib/sections.js";
 
 export function createInitCommand(): Command {
   return new Command("init")
@@ -181,20 +182,7 @@ function generateStarterRules(detected: DetectedProject): string {
   }
 
   // Skill authoring conventions
-  lines.push(
-    "",
-    "## Skill Authoring",
-    "",
-    "When creating Claude Code skills (.claude/skills/*/SKILL.md):",
-    "",
-    "- Keep SKILL.md under 500 lines - move reference material to supporting files in the same directory",
-    "- Front-load description (first 250 chars shown in listings) with TRIGGER when / DO NOT TRIGGER when clauses",
-    "- Add allowed-tools in frontmatter to restrict tool access (e.g. Read, Glob, Grep for read-only skills)",
-    "- Add argument-hint in frontmatter showing the expected input format (use $ARGUMENTS or $0, $1 for dynamic input)",
-    "- Set disable-model-invocation: true for skills with side effects (deploy, send messages)",
-    "- Structure as phases: Research, Plan, Execute, Verify with \"Done when:\" success criteria per phase",
-    "- Handle edge cases and preconditions before execution",
-  );
+  lines.push("", "## Skill Authoring", "", SKILL_AUTHORING_CONTENT);
 
   lines.push("");
   return lines.join("\n");
