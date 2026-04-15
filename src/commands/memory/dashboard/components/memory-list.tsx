@@ -21,7 +21,8 @@ const LIFE_COLORS: Record<string, LifeColor> = {
 };
 
 export function MemoryList({ memories, selectedIndex, isFocused, height }: MemoryListProps): React.ReactNode {
-  const viewportHeight = Math.max(1, height - 2);
+  // Reserve 2 rows for top+bottom borders and 1 for the title — visible rows are what's left.
+  const viewportHeight = Math.max(1, height - 3);
 
   const scrollOffset = useMemo(() => {
     if (selectedIndex < 0) return 0;
@@ -39,6 +40,7 @@ export function MemoryList({ memories, selectedIndex, isFocused, height }: Memor
       flexDirection="column"
       borderStyle="round"
       borderColor={isFocused ? 'cyan' : 'gray'}
+      height={height}
     >
       <Text bold color={isFocused ? 'cyan' : 'gray'}>{label}</Text>
       {visible.length === 0 && <Text dimColor>  No memories found</Text>}

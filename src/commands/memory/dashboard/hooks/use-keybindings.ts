@@ -24,14 +24,16 @@ export interface KeybindingActions {
   readonly showHelp: () => void;
   readonly removeMemory: () => void;
   readonly purgeProject: () => void;
+  readonly expandMemory: () => void;
   readonly quit: () => void;
 }
 
 export function useKeybindings(
   actions: KeybindingActions,
-  opts: { searchActive: boolean; pickerOpen: boolean },
+  opts: { searchActive: boolean; pickerOpen: boolean; expandOpen: boolean },
 ): void {
   useInput((input, key) => {
+    if (opts.expandOpen) return;
     if (opts.searchActive) {
       if (key.escape) actions.closeSearch();
       return;
@@ -56,6 +58,7 @@ export function useKeybindings(
     if (input === 'r') actions.removeMemory();
     if (input === 'd') actions.purgeProject();
     if (input === '?') actions.showHelp();
+    if (key.return) actions.expandMemory();
     if (input === 'q') actions.quit();
   });
 }

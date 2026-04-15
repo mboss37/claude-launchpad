@@ -6,34 +6,29 @@ export interface ValidationResult {
   readonly warnings: readonly string[];
 }
 
-const SOFT_LENGTH_LIMIT = 1500;
-const HARD_LENGTH_LIMIT = 5000;
+// Soft 1200 chars ≈ 300 tokens, very-long 2500 ≈ 600 tokens. No hard reject on length.
+export const SOFT_LENGTH_LIMIT = 1200;
+export const VERY_LONG_LENGTH_LIMIT = 2500;
 const CODE_RATIO_THRESHOLD = 0.5;
 
 /**
  * Validate memory content before storage.
- * Returns hard rejections (don't store) and soft warnings (store but warn).
+ * Rejects only junk (git log, code-heavy). Length is warned, never rejected.
  */
 export function validateMemoryContent(content: string): ValidationResult {
   const warnings: string[] = [];
 
-  // Hard reject: git log output
   if (isGitLog(content)) {
     return { valid: false, reason: 'Content looks like raw git log output. Use git log directly — don\'t store it as memory.', warnings: [] };
   }
 
-  // Hard reject: code-heavy content
   if (isCodeHeavy(content)) {
     return { valid: false, reason: 'Content is >50% code blocks. Code belongs in files, not memory. Store the insight or decision instead.', warnings: [] };
   }
 
-  // Hard reject: too long
-  if (content.length > HARD_LENGTH_LIMIT) {
-    return { valid: false, reason: `Content is ${content.length} chars (limit: ${HARD_LENGTH_LIMIT}). Break it into smaller, atomic memories.`, warnings: [] };
-  }
-
-  // Soft warn: lengthy
-  if (content.length > SOFT_LENGTH_LIMIT) {
+  if (content.length > VERY_LONG_LENGTH_LIMIT) {
+    warnings.push(`Content is ${content.length} chars — very long. Next time, split this into smaller atomic memories (~500-1000 chars each) so they retrieve better and don't bloat the context window.`);
+  } else if (content.length > SOFT_LENGTH_LIMIT) {
     warnings.push(`Content is ${content.length} chars. Shorter memories (<${SOFT_LENGTH_LIMIT} chars) are easier to retrieve and less likely to decay.`);
   }
 

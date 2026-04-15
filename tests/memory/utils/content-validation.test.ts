@@ -34,23 +34,33 @@ describe('validateMemoryContent', () => {
     expect(result.reason).toContain('git log');
   });
 
-  it('rejects content over hard limit', () => {
+  it('accepts very long content with a strong warning (never rejects on length)', () => {
     const content = 'a'.repeat(5001);
-    const result = validateMemoryContent(content);
-    expect(result.valid).toBe(false);
-    expect(result.reason).toContain('5001 chars');
-  });
-
-  it('warns on content over soft limit', () => {
-    const content = 'a'.repeat(1501);
     const result = validateMemoryContent(content);
     expect(result.valid).toBe(true);
     expect(result.warnings).toHaveLength(1);
-    expect(result.warnings[0]).toContain('1501 chars');
+    expect(result.warnings[0]).toContain('very long');
+    expect(result.warnings[0]).toContain('5001 chars');
+  });
+
+  it('warns on content over soft limit', () => {
+    const content = 'a'.repeat(1500);
+    const result = validateMemoryContent(content);
+    expect(result.valid).toBe(true);
+    expect(result.warnings).toHaveLength(1);
+    expect(result.warnings[0]).toContain('1500 chars');
+  });
+
+  it('warns strongly on content over very-long limit', () => {
+    const content = 'a'.repeat(2501);
+    const result = validateMemoryContent(content);
+    expect(result.valid).toBe(true);
+    expect(result.warnings).toHaveLength(1);
+    expect(result.warnings[0]).toContain('very long');
   });
 
   it('accepts content at exactly soft limit', () => {
-    const content = 'a'.repeat(1500);
+    const content = 'a'.repeat(1200);
     const result = validateMemoryContent(content);
     expect(result.valid).toBe(true);
     expect(result.warnings).toHaveLength(0);

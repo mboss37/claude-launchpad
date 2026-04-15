@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.3.0] — 2026-04-15
+
+### Fixed
+- `memory pull` now accepts `-y` flag — heals SessionStart auto-pull hook that was silently failing with "unknown option '-y'" for every session
+- TUI memory list selection marker (`▸`) now tracks past entry ~35 — MemoryList viewport reserved the wrong number of chrome rows, clipping the selected row past the bottom border
+- TUI dashboard no longer jumps layout when navigating between memories with very different content sizes — Detail pane now has a strict height and truncates content to fit
+- SearchBar no longer shifts the layout by 1 row when opened — `contentHeight` accounts for its presence
+
+### Added
+- Enter-to-expand overlay in TUI dashboard: press `Enter` on a selected memory to see full content in a scrollable full-screen view (`j`/`k` line scroll, `space`/`PgDn` page, `g`/`G` top/bottom, `q`/`Esc` close)
+- `memory pull --all` now skips projects with zero local memories (prevents pulling memories for projects not set up on this machine) and reports them at the end with a hint
+- `memory pull --all` shows per-project breakdown when memories were inserted/updated/related
+- Per-project `memory pull` output now prefixes the project name and shows a `--all` tip
+
+### Changed
+- TUI three-panel layout (Memories, Projects, Detail) now locked to strict bottom alignment — Projects panel capped at `min(contentHeight/3, 12)` rows with `… +N more` when overflowing
+- Memory content truncation in Detail pane is now dynamic (fills available rows) and wrap-aware instead of a fixed 500-char cap
+- Content validation no longer hard-rejects on length — replaced with a two-tier soft warning (>1200 chars warns, >2500 chars warns strongly). Git log and code-heavy content are still rejected
+- `memory_store` MCP tool description tightened: target 500-1000 chars per memory; thresholds templated from shared constants so description and validation can't drift
+- Narrow terminal layout (< 80 cols) splits `contentHeight` 60/40 between MemoryList and MemoryDetail instead of letting both overflow the terminal
+
 ## [1.2.3] — 2026-04-13
 
 ### Fixed

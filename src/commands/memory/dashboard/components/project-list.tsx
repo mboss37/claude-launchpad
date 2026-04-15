@@ -7,6 +7,7 @@ interface ProjectListProps {
   readonly memories: readonly Memory[];
   readonly activeProject?: string;
   readonly isFocused: boolean;
+  readonly height: number;
 }
 
 interface ProjectRow {
@@ -15,17 +16,23 @@ interface ProjectRow {
   readonly healthPct: number;
 }
 
-export function ProjectList({ memories, activeProject, isFocused }: ProjectListProps): React.ReactNode {
+export function ProjectList({ memories, activeProject, isFocused, height }: ProjectListProps): React.ReactNode {
   const rows = useMemo(() => buildProjectRows(memories), [memories]);
+  // Reserve rows for title + borders; leave one for "+N more" if truncated
+  const visibleRows = Math.max(1, height - 3);
+  const truncated = rows.length > visibleRows;
+  const displayed = truncated ? rows.slice(0, visibleRows - 1) : rows;
+  const hidden = rows.length - displayed.length;
 
   return (
     <Box
       flexDirection="column"
       borderStyle="round"
       borderColor={isFocused ? 'magenta' : 'gray'}
+      height={height}
     >
       <Text bold color={isFocused ? 'magenta' : 'gray'}> Projects </Text>
-      {rows.map((row) => {
+      {displayed.map((row) => {
         const isActive = row.project === activeProject || (row.project === undefined && !activeProject);
         const name = (row.project ?? 'All projects').padEnd(20).slice(0, 20);
         const healthColor = row.healthPct > 62 ? 'green' : row.healthPct > 32 ? 'yellow' : 'red';
@@ -39,6 +46,7 @@ export function ProjectList({ memories, activeProject, isFocused }: ProjectListP
           </Box>
         );
       })}
+      {truncated && <Text dimColor>  … +{hidden} more</Text>}
     </Box>
   );
 }

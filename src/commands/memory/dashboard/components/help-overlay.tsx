@@ -7,7 +7,7 @@ interface HelpOverlayProps {
 
 const BINDINGS = [
   ['j / k / ↑↓', 'Navigate list'],
-  ['Enter', 'Select memory'],
+  ['Enter', 'Expand memory (full content + scroll)'],
   ['/', 'Search (live filter)'],
   ['Esc', 'Clear search'],
   ['1-5', 'Filter by type (0 = all)'],

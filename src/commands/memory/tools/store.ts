@@ -5,7 +5,7 @@ import type { ToolDeps } from './register.js';
 import { MEMORY_TYPES, MEMORY_SOURCES } from '../types.js';
 import { coerceStringArray } from '../types.js';
 import { getGitContext } from '../utils/git-context.js';
-import { validateMemoryContent } from '../utils/content-validation.js';
+import { validateMemoryContent, SOFT_LENGTH_LIMIT, VERY_LONG_LENGTH_LIMIT } from '../utils/content-validation.js';
 import { checkContradiction } from '../utils/contradiction.js';
 
 // In-memory dedup: content hash → timestamp. Catches parallel calls within same request.
@@ -53,7 +53,7 @@ function autoTag(content: string, existingTags: readonly string[]): string[] {
 
 const inputSchema = {
   type: z.enum(MEMORY_TYPES).describe('Memory type: working, episodic, semantic, procedural, or pattern'),
-  content: z.string().min(1).describe('The memory content (aim for ~2000 chars / ~500 tokens). Keep memories concise: capture the decision or insight, not the full context. Split large topics into separate memories.'),
+  content: z.string().min(1).describe(`The memory content. Aim for 500-1000 chars — one atomic insight per memory. Capture the decision or conclusion, not the full narrative or code. Memories over ${SOFT_LENGTH_LIMIT} chars get a warning; over ${VERY_LONG_LENGTH_LIMIT} chars get a strong warning to split. Use memory_relate to link split memories.`),
   title: z.string().max(200).optional().describe('Short title for the memory'),
   tags: coerceStringArray.pipe(z.array(z.string()).max(20)).default([]).describe('Tags for categorization. Suggested: #bug, #decision, #gotcha, #howto, #pattern'),
   importance: z.number().min(0).max(1).default(0.5).describe('0-0.3 ephemeral, 0.3-0.6 reference, 0.6-0.8 important, 0.8-1.0 critical'),
@@ -70,6 +70,7 @@ export function registerStore(server: McpServer, deps: ToolDeps): void {
         'Save something worth remembering to the knowledge base. '
         + 'Use when you learn a fact, make a decision, hit a bug, or discover a pattern that future sessions should know. '
         + 'Always search first to avoid duplicates — update existing memories when possible. '
+        + `Keep each memory atomic and short: aim for 500-1000 chars, warnings start at ${SOFT_LENGTH_LIMIT}, strong warnings at ${VERY_LONG_LENGTH_LIMIT}. Long explanations belong in docs or files, not memory. Split large topics into multiple linked memories. `
         + 'Types: semantic (facts/decisions), procedural (how-to), episodic (what happened), pattern (recurring), working (scratch). '
         + 'Importance: 0.1 trivial, 0.5 useful, 0.8 important, 1.0 critical. '
         + 'Tags and git context are auto-detected if omitted. "OK" responses mean the memory already exists — no follow-up needed.',

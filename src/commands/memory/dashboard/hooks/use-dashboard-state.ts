@@ -26,6 +26,7 @@ export function useDashboardState(dataSource: DashboardDataSource) {
   const [showProjectPicker, setShowProjectPicker] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showPurgeConfirm, setShowPurgeConfirm] = useState(false);
+  const [showExpand, setShowExpand] = useState(false);
 
   useEffect(() => {
     dataSource.refresh();
@@ -133,16 +134,20 @@ export function useDashboardState(dataSource: DashboardDataSource) {
     setRevision((r) => r + 1);
   }, [dataSource, currentProject]);
   const cancelPurge = useCallback(() => setShowPurgeConfirm(false), []);
+  const expandMemory = useCallback(() => {
+    if (selectedMemory) setShowExpand(true);
+  }, [selectedMemory]);
+  const closeExpand = useCallback(() => setShowExpand(false), []);
 
   return {
     typeFilter, lifespanFilter, searchQuery, searchActive, currentProject,
-    sortMode, selectedIndex, focusedPane, showHelp, showProjectPicker, showDeleteConfirm, showPurgeConfirm,
+    sortMode, selectedIndex, focusedPane, showHelp, showProjectPicker, showDeleteConfirm, showPurgeConfirm, showExpand,
     filteredMemories, selectedMemory, relations, projects, stats,
     setSearchQuery, setCurrentProject, setSelectedIndex, setShowHelp, setShowProjectPicker,
     navigateUp, navigateDown, cycleSort, cycleLifespan,
     cycleProjectNext, cycleProjectPrev, focusNext, filterByType,
     openSearch, closeSearch, promptDelete, confirmDelete, cancelDelete,
-    promptPurge, confirmPurge, cancelPurge,
+    promptPurge, confirmPurge, cancelPurge, expandMemory, closeExpand,
   };
 }
 

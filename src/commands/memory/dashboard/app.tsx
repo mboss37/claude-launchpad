@@ -15,6 +15,7 @@ import { HelpOverlay } from './components/help-overlay.js';
 import { ProjectPicker } from './components/project-picker.js';
 import { DeleteConfirm } from './components/delete-confirm.js';
 import { PurgeConfirm } from './components/purge-confirm.js';
+import { ExpandMemory } from './components/expand-memory.js';
 
 interface AppProps {
   readonly dataSource: DashboardDataSource;
@@ -22,7 +23,7 @@ interface AppProps {
 
 export function App({ dataSource }: AppProps): React.ReactNode {
   const { exit } = useApp();
-  const { rows, layout } = useTerminalSize();
+  const { columns, rows, layout } = useTerminalSize();
   const state = useDashboardState(dataSource);
 
   useKeybindings({
@@ -40,14 +41,26 @@ export function App({ dataSource }: AppProps): React.ReactNode {
     purgeProject: state.promptPurge,
     openProjectPicker: () => state.setShowProjectPicker((v) => !v),
     showHelp: () => state.setShowHelp((v) => !v),
+    expandMemory: state.expandMemory,
     quit: exit,
   }, {
     searchActive: state.searchActive,
     pickerOpen: state.showProjectPicker,
+    expandOpen: state.showExpand,
   });
 
   if (state.showHelp) {
     return <HelpOverlay onClose={() => state.setShowHelp(false)} />;
+  }
+
+  if (state.showExpand && state.selectedMemory) {
+    return (
+      <ExpandMemory
+        memory={state.selectedMemory}
+        relations={state.relations}
+        onClose={state.closeExpand}
+      />
+    );
   }
 
   if (state.showProjectPicker) {
@@ -82,8 +95,20 @@ export function App({ dataSource }: AppProps): React.ReactNode {
     );
   }
 
-  const contentHeight = Math.max(4, rows - 6);
+  const contentHeight = Math.max(4, rows - 6 - (state.searchActive ? 1 : 0));
   const isNarrow = layout === 'narrow';
+  const listWidth = Math.floor(columns * 0.6);
+  const rightWidth = columns - listWidth;
+  // Target split: projects ≤ 1/3 of right column (capped at 12), detail takes the rest
+  const projectsCount = new Set(state.filteredMemories.map((m) => m.project ?? '(none)')).size + 1;
+  const projectListHeight = isNarrow
+    ? 0
+    : Math.min(Math.max(4, Math.floor(contentHeight / 3)), projectsCount + 3, 12);
+  // Narrow layout stacks list + detail vertically — split contentHeight between them
+  const listHeight = isNarrow ? Math.max(6, Math.floor(contentHeight * 0.6)) : contentHeight;
+  const detailHeight = isNarrow
+    ? Math.max(6, contentHeight - listHeight)
+    : Math.max(6, contentHeight - projectListHeight);
 
   return (
     <Box flexDirection="column">
@@ -103,13 +128,13 @@ export function App({ dataSource }: AppProps): React.ReactNode {
           onClose={() => state.setSearchQuery(state.searchQuery)}
         />
       )}
-      <Box flexDirection={isNarrow ? 'column' : 'row'}>
+      <Box flexDirection={isNarrow ? 'column' : 'row'} height={isNarrow ? undefined : contentHeight}>
         <Box width={isNarrow ? '100%' : '60%'}>
           <MemoryList
             memories={state.filteredMemories}
             selectedIndex={state.selectedIndex}
             isFocused={state.focusedPane === 'list'}
-            height={contentHeight}
+            height={listHeight}
           />
         </Box>
         <Box flexDirection="column" width={isNarrow ? '100%' : '40%'}>
@@ -118,12 +143,15 @@ export function App({ dataSource }: AppProps): React.ReactNode {
               memories={state.filteredMemories}
               activeProject={state.currentProject}
               isFocused={state.focusedPane === 'projects'}
+              height={projectListHeight}
             />
           )}
           <MemoryDetail
             memory={state.selectedMemory}
             relations={state.relations}
             isFocused={state.focusedPane === 'detail'}
+            height={detailHeight}
+            width={rightWidth}
           />
         </Box>
       </Box>

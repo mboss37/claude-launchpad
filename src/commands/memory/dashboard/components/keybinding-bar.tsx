@@ -3,6 +3,7 @@ import { Box, Text } from 'ink';
 
 const HINTS = [
   ['j/k', 'navigate'],
+  ['Enter', 'expand'],
   ['/', 'search'],
   ['p', 'projects'],
   ['1-5', 'type'],

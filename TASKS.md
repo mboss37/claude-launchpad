@@ -57,6 +57,11 @@
 - [ ] Publish next version
 
 ## Session Log
+### 2026-04-15 (session 36)
+- Fixed silently broken SessionStart auto-pull (`-y` flag), TUI content jump on big memories, viewport off-by-one past entry 35.
+- Added Enter-to-expand memory overlay with scroll, `pull --all` skips projects not set up locally, per-project pull output clarity.
+- Softened content-validation (no hard-reject on length), locked TUI three-panel layout to strict height. Published v1.3.0.
+
 ### 2026-04-13 (session 35)
 - Doctor now checks for skill authoring conventions in rules files, fixer adds section (v1.2.0).
 - Updated skill authoring to match official Claude Code docs (500-line limit, 250-char desc, $ARGUMENTS, disable-model-invocation).
@@ -66,8 +71,3 @@
 - Fixed MCP tags coercion (JSON string arrays) and dedup messaging ("OK:" instead of "Skipped:").
 - Added stop-and-swarm rule to init/doctor/--fix, documented across all 4 content surfaces.
 - Published v1.1.0 to npm, tagged GitHub release.
-
-### 2026-04-08 (session 32-33)
-- Sprint 23 complete: sync hardening, store dedup (content_hash), immutability cleanup.
-- 57 manual acceptance tests, 10 bugs found and fixed during testing.
-- Published v1.0.0 to npm, tagged GitHub release, conventions switched to trunk-based.

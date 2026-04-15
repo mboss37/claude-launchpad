@@ -136,6 +136,7 @@ export function createMemoryCommand(): Command {
     new Command("pull")
       .description("Pull current project's memories from GitHub Gist")
       .option("--all", "Pull all projects")
+      .option("-y, --yes", "Non-interactive (accepted for symmetry with push; pull never prompts)")
       .action(async (opts) => {
         await handleSyncErrors(async () => {
           const { runPull } = await import("./subcommands/pull.js");
