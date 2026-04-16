@@ -59,8 +59,8 @@
 ## Session Log
 ### 2026-04-16 (session 37)
 - Fixed two-machine sync resurrection bug: tombstones now ride in sync payload v2, phased merge (tombstones → memories → relations), delete wins on timestamp tie.
-- Migration 004 adds `memory_tombstones` table; hardDelete/deleteByType/deleteByProject write tombstones atomically.
-- Fixed SessionEnd push hook getting killed (backgrounded `& exit 0` → synchronous `; exit 0`); doctor detects and upgrades stale hooks. Committed v1.4.0 locally.
+- Migration 004 adds `memory_tombstones` table; hardDelete/deleteByType/deleteByProject write tombstones atomically. Doctor detects + upgrades stale backgrounded SessionEnd hooks (`& exit 0` → `; exit 0`).
+- Verified end-to-end with a real-gist round-trip (5 scenarios, isolated DBs). Docs synced (changelog 4 releases behind caught up). Published v1.4.0.
 
 ### 2026-04-15 (session 36)
 - Fixed silently broken SessionStart auto-pull (`-y` flag), TUI content jump on big memories, viewport off-by-one past entry 35.
