@@ -5,6 +5,92 @@ description: Release history for Claude Launchpad.
 
 {/* Auto-generated from CHANGELOG.md - do not edit directly */}
 
+## [1.4.0] — 2026-04-16
+
+### Fixed
+- SessionEnd push hook was backgrounded (`& exit 0`) — push got killed before the gist upload completed, so deletions never propagated between machines. Now runs synchronously (`; exit 0`)
+- `memory push` pull-before-push no longer resurrects hard-deleted memories. Previous union-merge treated "not present locally" as "insert from remote", so deleting on machine A would reappear after pull-before-push
+
+### Added
+- Tombstone sync: hard-deletes now write a tombstone row that rides along in the sync payload. Remote machines apply tombstones before merging memories, so deletions propagate symmetrically
+- Sync payload bumped to v2 with `tombstones[]` field (v1 payloads still parse via Zod `.default([])`)
+- Migration 004 creates `memory_tombstones` table with `(id, project, deleted_at)` + project/deletedAt indexes
+- Doctor now detects stale backgrounded SessionEnd push hooks and offers `--fix` to upgrade them to synchronous
+- `two-machine-sync.test.ts` — 5 end-to-end scenarios verifying both machines always converge to the same memory set (parity, deletion propagation, no-resurrection, delete-vs-update conflicts, bulk project purge)
+
+### Changed
+- `MemoryRepo.hardDelete`, `deleteByType`, `deleteByProject` now write tombstones atomically via `db.transaction()`
+- `mergeFromRemote` is now three phases: apply remote tombstones → merge memories (skipping locally-tombstoned ids) → link relations
+- Tie-break rule: when tombstone `deleted_at` equals memory `updated_at`, delete wins (matches intent — a later delete at the same millisecond should not be overridden by a simultaneous update)
+
+## [1.3.0] — 2026-04-15
+
+### Fixed
+- `memory pull` now accepts `-y` flag — heals SessionStart auto-pull hook that was silently failing with "unknown option '-y'" for every session
+- TUI memory list selection marker (`▸`) now tracks past entry ~35 — MemoryList viewport reserved the wrong number of chrome rows, clipping the selected row past the bottom border
+- TUI dashboard no longer jumps layout when navigating between memories with very different content sizes — Detail pane now has a strict height and truncates content to fit
+- SearchBar no longer shifts the layout by 1 row when opened — `contentHeight` accounts for its presence
+
+### Added
+- Enter-to-expand overlay in TUI dashboard: press `Enter` on a selected memory to see full content in a scrollable full-screen view (`j`/`k` line scroll, `space`/`PgDn` page, `g`/`G` top/bottom, `q`/`Esc` close)
+- `memory pull --all` now skips projects with zero local memories (prevents pulling memories for projects not set up on this machine) and reports them at the end with a hint
+- `memory pull --all` shows per-project breakdown when memories were inserted/updated/related
+- Per-project `memory pull` output now prefixes the project name and shows a `--all` tip
+
+### Changed
+- TUI three-panel layout (Memories, Projects, Detail) now locked to strict bottom alignment — Projects panel capped at `min(contentHeight/3, 12)` rows with `… +N more` when overflowing
+- Memory content truncation in Detail pane is now dynamic (fills available rows) and wrap-aware instead of a fixed 500-char cap
+- Content validation no longer hard-rejects on length — replaced with a two-tier soft warning (>1200 chars warns, >2500 chars warns strongly). Git log and code-heavy content are still rejected
+- `memory_store` MCP tool description tightened: target 500-1000 chars per memory; thresholds templated from shared constants so description and validation can't drift
+- Narrow terminal layout (< 80 cols) splits `contentHeight` 60/40 between MemoryList and MemoryDetail instead of letting both overflow the terminal
+
+## [1.2.3] — 2026-04-13
+
+### Fixed
+- Session Start fixer was missing "Check the Session Log" bullet and used hyphens instead of em dashes
+- Extracted shared section content to `lib/sections.ts` so init and fixer can't drift independently
+- Added skill version hash test to catch content changes without version bumps
+
+### Added
+- Hooks section in README explaining all auto-configured hooks
+
+## [1.2.2] — 2026-04-13
+
+### Fixed
+- Bumped /lp-enhance skill version to v7 (v6 users missed local config restore from v1.2.1)
+
+## [1.2.1] — 2026-04-13
+
+### Fixed
+- Renamed "When Stuck" to "Stop-and-Swarm" across all surfaces (init, doctor, fixer, docs, README, landing page)
+- Restored missing local config steps in /lp-enhance skill (`.claude/CLAUDE.md` and `.claude/settings.local.json` dropped during Sprint 18 rewrite)
+
+## [1.2.0] — 2026-04-13
+
+### Added
+- Doctor now checks for skill authoring conventions in `.claude/rules/` files
+- `--fix` adds a Skill Authoring section to `conventions.md` when missing
+- Starter rules created by `--fix` now include skill authoring (consistent with `init`)
+- Skill authoring conventions updated to match official Claude Code docs: 500-line limit, 250-char description cap, `$ARGUMENTS` substitution, `disable-model-invocation` for side-effect skills
+- Bumped `/lp-enhance` skill to v6 (doctor will flag stale installs)
+- 6 new tests (328 total)
+
+## [1.1.0] — 2026-04-12
+
+### Added
+- Stop-and-swarm section in `init`, `doctor`, and `--fix`: scaffolds a rule so Claude spins up parallel agents after 3 failed iterations instead of guessing in circles
+
+### Fixed
+- MCP tags coercion: `memory_store`, `memory_search`, and `memory_update` now accept tags as both arrays and JSON-encoded strings (fixes harness serialization errors)
+- MCP dedup messaging: duplicate store responses now start with "OK:" instead of "Skipped:" so agents stop cross-checking with `memory_search`
+
+## [1.0.1] — 2026-04-09
+
+### Fixed
+- `memory_search` and `memory_recent` now expose an explicit `project` parameter so agents can control project scoping (was silently auto-detected with no way to override)
+- Pass `project="*"` to search across all projects, or a specific project name to target that project
+- `memory_store` project parameter description updated for consistency
+
 ## [1.0.0] — 2026-04-08
 
 ### Added

@@ -4,7 +4,7 @@ import { MemoryRepo } from '../../src/commands/memory/storage/memory-repo.js';
 import { RelationRepo } from '../../src/commands/memory/storage/relation-repo.js';
 import { mergeFromRemote, memoryToSyncRow } from '../../src/commands/memory/utils/sync-merge.js';
 import type Database from 'better-sqlite3';
-import type { SyncPayload, SyncMemoryRow } from '../../src/commands/memory/types.js';
+import type { SyncPayload, SyncMemoryRow, SyncTombstone } from '../../src/commands/memory/types.js';
 
 function makeSyncMemory(overrides: Partial<SyncMemoryRow> = {}): SyncMemoryRow {
   const id = overrides.id ?? 'test-id-1';
@@ -30,13 +30,15 @@ function makeSyncMemory(overrides: Partial<SyncMemoryRow> = {}): SyncMemoryRow {
 function makePayload(
   memories: readonly SyncMemoryRow[] = [],
   relations: SyncPayload['relations'] = [],
+  tombstones: readonly SyncTombstone[] = [],
 ): SyncPayload {
   return {
-    version: 1,
+    version: 2,
     machine_id: 'test-machine',
     pushed_at: new Date().toISOString(),
     memories,
     relations,
+    tombstones,
   };
 }
 
@@ -173,6 +175,98 @@ describe('sync-merge', () => {
 
       expect(result2.relationsAdded).toBe(0);
       expect(relationRepo.count()).toBe(1);
+    });
+  });
+
+  describe('tombstone handling', () => {
+    it('should hard-delete local memory when remote tombstone is newer', () => {
+      const existing = makeSyncMemory({
+        id: 'to-delete',
+        updated_at: '2026-01-01T00:00:00.000Z',
+      });
+      memoryRepo.upsertFromSync(existing);
+      expect(memoryRepo.getById('to-delete')).toBeDefined();
+
+      const tombstone: SyncTombstone = {
+        id: 'to-delete',
+        project: 'test-project',
+        deleted_at: '2026-02-01T00:00:00.000Z',
+      };
+      const result = mergeFromRemote(memoryRepo, relationRepo, makePayload([], [], [tombstone]));
+
+      expect(result.deleted).toBe(1);
+      expect(memoryRepo.getById('to-delete')).toBeUndefined();
+      expect(memoryRepo.getTombstone('to-delete')).not.toBeNull();
+    });
+
+    it('should not resurrect a locally-tombstoned memory from remote payload', () => {
+      memoryRepo.upsertFromSync(makeSyncMemory({ id: 'deleted-1' }));
+      memoryRepo.hardDelete('deleted-1');
+      expect(memoryRepo.getById('deleted-1')).toBeUndefined();
+      expect(memoryRepo.getTombstone('deleted-1')).not.toBeNull();
+
+      const remote = makeSyncMemory({
+        id: 'deleted-1',
+        updated_at: '2020-01-01T00:00:00.000Z',
+      });
+      const result = mergeFromRemote(memoryRepo, relationRepo, makePayload([remote]));
+
+      expect(result.inserted).toBe(0);
+      expect(memoryRepo.getById('deleted-1')).toBeUndefined();
+    });
+
+    it('should resurrect memory when remote update is newer than local tombstone', () => {
+      const original = makeSyncMemory({
+        id: 'resurrect',
+        updated_at: '2026-01-01T00:00:00.000Z',
+      });
+      memoryRepo.upsertFromSync(original);
+      memoryRepo.hardDelete('resurrect');
+      expect(memoryRepo.getById('resurrect')).toBeUndefined();
+      expect(memoryRepo.getTombstone('resurrect')).not.toBeNull();
+
+      const remoteNewer = makeSyncMemory({
+        id: 'resurrect',
+        content: 'refreshed on the other machine',
+        updated_at: '2099-01-01T00:00:00.000Z',
+      });
+      const result = mergeFromRemote(memoryRepo, relationRepo, makePayload([remoteNewer]));
+
+      expect(result.inserted).toBe(1);
+      const got = memoryRepo.getById('resurrect');
+      expect(got?.content).toBe('refreshed on the other machine');
+      expect(memoryRepo.getTombstone('resurrect')).toBeNull();
+    });
+
+    it('should keep local memory when local update is newer than remote tombstone', () => {
+      const local = makeSyncMemory({
+        id: 'contested',
+        content: 'local value',
+        updated_at: '2099-01-01T00:00:00.000Z',
+      });
+      memoryRepo.upsertFromSync(local);
+
+      const staleDelete: SyncTombstone = {
+        id: 'contested',
+        project: 'test-project',
+        deleted_at: '2026-01-01T00:00:00.000Z',
+      };
+      const result = mergeFromRemote(memoryRepo, relationRepo, makePayload([], [], [staleDelete]));
+
+      expect(result.deleted).toBe(0);
+      expect(memoryRepo.getById('contested')).toBeDefined();
+    });
+
+    it('should persist incoming tombstones even when the memory is absent', () => {
+      const tombstone: SyncTombstone = {
+        id: 'never-seen',
+        project: 'test-project',
+        deleted_at: '2026-02-01T00:00:00.000Z',
+      };
+      const result = mergeFromRemote(memoryRepo, relationRepo, makePayload([], [], [tombstone]));
+
+      expect(result.deleted).toBe(0);
+      expect(memoryRepo.getTombstone('never-seen')).not.toBeNull();
     });
   });
 

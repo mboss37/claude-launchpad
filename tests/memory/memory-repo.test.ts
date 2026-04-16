@@ -187,6 +187,17 @@ describe('MemoryRepo', () => {
       ).all();
       expect(ftsResults).toHaveLength(0);
     });
+
+    it('should write a tombstone when hard-deleting', () => {
+      const created = repo.create({ ...baseInput, project: 'proj-x' }, null);
+
+      repo.hardDelete(created.id);
+      const ts = repo.getTombstone(created.id);
+      expect(ts).not.toBeNull();
+      expect(ts!.id).toBe(created.id);
+      expect(ts!.project).toBe('proj-x');
+      expect(new Date(ts!.deletedAt).getTime()).toBeGreaterThan(0);
+    });
   });
 
   describe('deleteByType', () => {
@@ -198,6 +209,31 @@ describe('MemoryRepo', () => {
       const deleted = repo.deleteByType('working');
       expect(deleted).toBe(2);
       expect(repo.count()).toBe(1);
+    });
+
+    it('should write tombstones for every deleted memory', () => {
+      const a = repo.create({ ...baseInput, type: 'working', content: 'a' }, null);
+      const b = repo.create({ ...baseInput, type: 'working', content: 'b' }, null);
+      repo.create({ ...baseInput, type: 'semantic', content: 'keep me' }, null);
+
+      repo.deleteByType('working');
+      expect(repo.getTombstone(a.id)).not.toBeNull();
+      expect(repo.getTombstone(b.id)).not.toBeNull();
+      expect(repo.getAllTombstones()).toHaveLength(2);
+    });
+  });
+
+  describe('deleteByProject', () => {
+    it('should write tombstones for every memory in the project', () => {
+      const a = repo.create({ ...baseInput, content: 'a', project: 'doomed' }, null);
+      const b = repo.create({ ...baseInput, content: 'b', project: 'doomed' }, null);
+      const c = repo.create({ ...baseInput, content: 'c', project: 'safe' }, null);
+
+      const deleted = repo.deleteByProject('doomed');
+      expect(deleted).toBe(2);
+      expect(repo.getTombstone(a.id)?.project).toBe('doomed');
+      expect(repo.getTombstone(b.id)?.project).toBe('doomed');
+      expect(repo.getTombstone(c.id)).toBeNull();
     });
   });
 

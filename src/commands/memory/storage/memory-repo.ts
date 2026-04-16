@@ -1,6 +1,16 @@
 import type Database from 'better-sqlite3';
-import type { Memory, MemoryType, MemorySource, StoreInput, SyncMemoryRow } from '../types.js';
+import type { Memory, MemoryType, MemorySource, StoreInput, SyncMemoryRow, Tombstone } from '../types.js';
 import { randomUUID, createHash } from 'node:crypto';
+
+interface TombstoneRow {
+  id: string;
+  project: string | null;
+  deleted_at: string;
+}
+
+function rowToTombstone(row: TombstoneRow): Tombstone {
+  return { id: row.id, project: row.project, deletedAt: row.deleted_at };
+}
 
 function safeParseTags(raw: string): string[] {
   try {
@@ -118,6 +128,22 @@ export class MemoryRepo {
       getAllStrictProject: db.prepare(
         'SELECT * FROM memories WHERE project = ? ORDER BY created_at DESC'
       ),
+      getIdProjectByType: db.prepare('SELECT id, project FROM memories WHERE type = ?'),
+      getIdProjectByProject: db.prepare('SELECT id, project FROM memories WHERE project = ?'),
+      tombstoneUpsert: db.prepare(`
+        INSERT INTO memory_tombstones (id, project, deleted_at)
+        VALUES (?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+          project = excluded.project,
+          deleted_at = excluded.deleted_at
+        WHERE excluded.deleted_at > memory_tombstones.deleted_at
+      `),
+      tombstoneGetById: db.prepare('SELECT * FROM memory_tombstones WHERE id = ?'),
+      tombstoneGetAll: db.prepare('SELECT * FROM memory_tombstones ORDER BY deleted_at DESC'),
+      tombstoneGetByProjectStrict: db.prepare(
+        'SELECT * FROM memory_tombstones WHERE project = ? ORDER BY deleted_at DESC'
+      ),
+      tombstoneDelete: db.prepare('DELETE FROM memory_tombstones WHERE id = ?'),
     };
   }
 
@@ -257,18 +283,60 @@ export class MemoryRepo {
   }
 
   hardDelete(id: string): boolean {
-    const result = this.#stmts.hardDelete.run(id);
-    return result.changes > 0;
+    const deleteAndTombstone = this.db.transaction((memoryId: string) => {
+      const memory = this.getById(memoryId);
+      if (!memory) return 0;
+      this.#stmts.tombstoneUpsert.run(memoryId, memory.project, new Date().toISOString());
+      return this.#stmts.hardDelete.run(memoryId).changes;
+    });
+    return deleteAndTombstone(id) > 0;
   }
 
   deleteByType(type: MemoryType): number {
-    const result = this.#stmts.deleteByType.run(type);
-    return result.changes;
+    const deleteAndTombstone = this.db.transaction((t: MemoryType) => {
+      const rows = this.#stmts.getIdProjectByType.all(t) as { id: string; project: string | null }[];
+      const now = new Date().toISOString();
+      for (const row of rows) {
+        this.#stmts.tombstoneUpsert.run(row.id, row.project, now);
+      }
+      return this.#stmts.deleteByType.run(t).changes;
+    });
+    return deleteAndTombstone(type);
   }
 
   deleteByProject(project: string): number {
-    const result = this.#stmts.deleteByProject.run(project);
-    return result.changes;
+    const deleteAndTombstone = this.db.transaction((p: string) => {
+      const rows = this.#stmts.getIdProjectByProject.all(p) as { id: string; project: string | null }[];
+      const now = new Date().toISOString();
+      for (const row of rows) {
+        this.#stmts.tombstoneUpsert.run(row.id, row.project, now);
+      }
+      return this.#stmts.deleteByProject.run(p).changes;
+    });
+    return deleteAndTombstone(project);
+  }
+
+  getTombstone(id: string): Tombstone | null {
+    const row = this.#stmts.tombstoneGetById.get(id) as TombstoneRow | undefined;
+    return row ? rowToTombstone(row) : null;
+  }
+
+  getAllTombstones(): readonly Tombstone[] {
+    const rows = this.#stmts.tombstoneGetAll.all() as TombstoneRow[];
+    return rows.map(rowToTombstone);
+  }
+
+  getTombstonesByProject(project: string): readonly Tombstone[] {
+    const rows = this.#stmts.tombstoneGetByProjectStrict.all(project) as TombstoneRow[];
+    return rows.map(rowToTombstone);
+  }
+
+  upsertTombstone(id: string, project: string | null, deletedAt: string): void {
+    this.#stmts.tombstoneUpsert.run(id, project, deletedAt);
+  }
+
+  deleteTombstone(id: string): void {
+    this.#stmts.tombstoneDelete.run(id);
   }
 
   count(project?: string): number {

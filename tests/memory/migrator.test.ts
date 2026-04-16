@@ -15,7 +15,7 @@ describe('migrator', () => {
   });
 
   it('should run initial migration and set schema version', () => {
-    expect(getSchemaVersion(db)).toBe(3);
+    expect(getSchemaVersion(db)).toBe(4);
   });
 
   it('should create memories table with correct columns', () => {
@@ -77,6 +77,14 @@ describe('migrator', () => {
   it('should be idempotent (running migrate twice is safe)', async () => {
     const { migrate } = await import('../../src/commands/memory/storage/migrator.js');
     migrate(db);
-    expect(getSchemaVersion(db)).toBe(3);
+    expect(getSchemaVersion(db)).toBe(4);
+  });
+
+  it('should create memory_tombstones table', () => {
+    const info = db.prepare("PRAGMA table_info('memory_tombstones')").all() as { name: string }[];
+    const columns = info.map(c => c.name);
+    expect(columns).toContain('id');
+    expect(columns).toContain('project');
+    expect(columns).toContain('deleted_at');
   });
 });

@@ -134,6 +134,21 @@ export async function analyzeMemory(config: ClaudeConfig): Promise<AnalyzerResul
         fix: "Run `doctor --fix` to add a SessionEnd hook that pushes memories automatically",
       });
     }
+
+    // Detect the stale backgrounded variant ("& exit 0") that gets killed mid-flight.
+    const hasStaleBackgroundedPush = config.hooks.some(
+      (h) => h.event === "SessionEnd"
+        && h.command?.includes("memory push")
+        && /&\s*exit\s+0\s*$/.test(h.command),
+    );
+    if (hasStaleBackgroundedPush) {
+      issues.push({
+        analyzer: "Memory",
+        severity: "high",
+        message: "SessionEnd push hook is backgrounded — push gets killed before reaching the gist, deletions never sync",
+        fix: "Run `doctor --fix` to upgrade the hook to a synchronous push",
+      });
+    }
   }
 
   const critical = issues.filter((i) => i.severity === "critical").length;

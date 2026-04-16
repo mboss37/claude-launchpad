@@ -178,15 +178,20 @@ Project-scoped push/pull only touches that project's file. Other projects are ne
 
 **Pull-before-push:** every push pulls first, so remote changes are never silently overwritten.
 
-**Merge strategy:** newer version of each memory wins (by `updated_at`). New memories are inserted. Relations are added, never removed.
+**Merge strategy:** newer version of each memory wins (by `updated_at`). New memories are inserted, existing ones are updated in place, and relations are added (never removed by the merger).
+
+**Deletions follow you across machines.** When you delete a memory, Launchpad records the deletion (id, project, time) and includes it in the next push. The other machine applies the deletion on pull, so a hard-delete never comes back. Both machines always converge to the same set — never more, never less.
+
+**`pull --all` skips projects with no local memories** (they're listed at the end). To start tracking a new project on this machine, `cd` into it and run `memory pull` without `--all`.
 
 | Subcommand | What it does |
 |---|---|
 | `memory push` | Push current project's memories |
 | `memory pull` | Pull current project's memories |
 | `memory push --all` | Push all projects |
-| `memory pull --all` | Pull all projects |
+| `memory pull --all` | Pull every project already set up on this machine (skips others) |
 | `memory push -y` | Skip confirmation prompt (for scripts) |
+| `memory pull -y` | No-op — pull never prompts |
 | `memory sync status` | Show local vs remote memory counts per project |
 | `memory sync clean <project>` | Remove a project from the sync gist |
 | `memory sync clean <project> -y` | Skip confirmation prompt |

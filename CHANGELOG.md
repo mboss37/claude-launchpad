@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.4.0] — 2026-04-16
+
+### Fixed
+- SessionEnd push hook was backgrounded (`& exit 0`) — push got killed before the gist upload completed, so deletions never propagated between machines. Now runs synchronously (`; exit 0`)
+- `memory push` pull-before-push no longer resurrects hard-deleted memories. Previous union-merge treated "not present locally" as "insert from remote", so deleting on machine A would reappear after pull-before-push
+
+### Added
+- Tombstone sync: hard-deletes now write a tombstone row that rides along in the sync payload. Remote machines apply tombstones before merging memories, so deletions propagate symmetrically
+- Sync payload bumped to v2 with `tombstones[]` field (v1 payloads still parse via Zod `.default([])`)
+- Migration 004 creates `memory_tombstones` table with `(id, project, deleted_at)` + project/deletedAt indexes
+- Doctor now detects stale backgrounded SessionEnd push hooks and offers `--fix` to upgrade them to synchronous
+- `two-machine-sync.test.ts` — 5 end-to-end scenarios verifying both machines always converge to the same memory set (parity, deletion propagation, no-resurrection, delete-vs-update conflicts, bulk project purge)
+
+### Changed
+- `MemoryRepo.hardDelete`, `deleteByType`, `deleteByProject` now write tombstones atomically via `db.transaction()`
+- `mergeFromRemote` is now three phases: apply remote tombstones → merge memories (skipping locally-tombstoned ids) → link relations
+- Tie-break rule: when tombstone `deleted_at` equals memory `updated_at`, delete wins (matches intent — a later delete at the same millisecond should not be overridden by a simultaneous update)
+
 ## [1.3.0] — 2026-04-15
 
 ### Fixed

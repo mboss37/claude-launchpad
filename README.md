@@ -229,12 +229,12 @@ Data stays in `~/.agentic-memory/memory.db`. Sync requires the [GitHub CLI](http
 | `push` | Push current project's memories to a private GitHub Gist |
 | `pull` | Pull current project's memories from a private GitHub Gist |
 | `push --all` | Push all projects |
-| `pull --all` | Pull all projects |
+| `pull --all` | Pull every project already set up on this machine (skips new ones) |
 | `push -y` | Skip confirmation prompt |
 | `sync status` | Show local vs remote memory counts |
 | `sync clean <project>` | Remove a project from the sync gist |
 
-Sync stores one file per project inside a single private gist. Push/pull auto-detects the current project from your working directory. On a new device, the gist is auto-discovered from your GitHub account (no config to copy).
+Sync stores one file per project inside a single private gist. Push/pull auto-detects the current project from your working directory. On a new device, the gist is auto-discovered from your GitHub account (no config to copy). Deletions propagate. Delete on one machine; the next machine to pull drops it too.
 
 ## Hooks
 

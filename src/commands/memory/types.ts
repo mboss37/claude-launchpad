@@ -55,6 +55,12 @@ export interface Relation {
   readonly createdAt: string;
 }
 
+export interface Tombstone {
+  readonly id: string;
+  readonly project: string | null;
+  readonly deletedAt: string;
+}
+
 // ── Search Types ──────────────────────────────────────────────
 
 export interface SearchResult {
@@ -142,6 +148,13 @@ export interface SyncPayload {
   readonly pushed_at: string;
   readonly memories: readonly SyncMemoryRow[];
   readonly relations: readonly SyncRelationRow[];
+  readonly tombstones: readonly SyncTombstone[];
+}
+
+export interface SyncTombstone {
+  readonly id: string;
+  readonly project: string | null;
+  readonly deleted_at: string;
 }
 
 export interface SyncMemoryRow {
@@ -194,6 +207,11 @@ export const SyncPayloadSchema = z.object({
     relation_type: z.enum(RELATION_TYPES),
     created_at: z.string(),
   })),
+  tombstones: z.array(z.object({
+    id: z.string(),
+    project: z.string().nullable(),
+    deleted_at: z.string(),
+  })).default([]),
 });
 
 export interface SyncConfig {
@@ -204,6 +222,7 @@ export interface MergeResult {
   readonly inserted: number;
   readonly updated: number;
   readonly relationsAdded: number;
+  readonly deleted: number;
 }
 
 // ── Stats ─────────────────────────────────────────────────────
