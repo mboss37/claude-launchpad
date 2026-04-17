@@ -5,20 +5,23 @@ Priority: P1 = soon, P2 = when relevant, P3 = if circumstances change.
 
 ---
 
-## [P0] Memory: MMR Diversity Selection
+## [P1] Memory: MMR Diversity Selection
 Maximal Marginal Relevance for injection. Prevents injecting 5 memories on the same topic. Picks the best one, penalizes similar ones, gives the slot to a different topic. Matters at 100+ memories.
 
-## [P0] Memory: Auto-Relation Discovery
-When storing a new memory, search for related existing memories and auto-create relations (relates_to, extends, contradicts). More connections improve injection scoring and decay resistance. Currently only contradiction detection is automated.
+## [P1] Memory: Auto-Relation Discovery
+When storing a new memory, search for related existing memories and auto-create relations (relates_to, extends, contradicts). More connections improve injection scoring and decay resistance.
 
-## [P0] Memory: lp-migrate-memory Skill for Local Placement
-Local scope memory install skips skill creation (skills go to `.claude/skills/` which is committed). Should install to `~/.claude/skills/` (global scope) instead so local users can still migrate legacy memories.
+## [P1] Memory: lp-migrate-memory Skill for Local Placement
+Local scope memory install skips skill creation (skills go to `.claude/skills/` which is committed). Should install to `~/.claude/skills/` (global scope) instead.
 
-## [P0] Memory: Skip lp-migrate-memory for New Projects
-Install should check `~/.claude/projects/*/memory/` for files matching the current project slug. No legacy memory files = skip installing the migration skill. Avoids clutter for projects that never used built-in auto-memory.
+## [P1] Memory: Skip lp-migrate-memory for New Projects
+Install should check `~/.claude/projects/*/memory/` for files matching the current project slug. No legacy files = skip installing the migration skill.
 
-## [P0] Memory: Show Content Preview for Untitled Memories
-Dashboard and context injection show "(untitled)" for memories stored without a title. Should display first ~30 chars of content instead, so they're identifiable without opening the detail view.
+## [P1] Memory: Show Content Preview for Untitled Memories
+Dashboard and context injection show "(untitled)" for memories stored without a title. Show first ~30 chars of content instead.
+
+## [P2] Doctor: Plan/Apply Architecture (v2.0.0 breaking)
+Replace `doctor --fix` direct-write with Terraform-style plan/apply. Every change rendered as a diff before writing. ChangeRecord refactor (~40 FIX_TABLE entries → `Promise<ChangeRecord[]>`), interactive renderer, resumable apply state, hash revalidation with CRLF/BOM normalization, legacy `--fix` deprecated. Ship only if users complain about static fixes mangling mature CLAUDE.md files after Sprint 25 lands. Sprint-scale: 32-36h, breaking release.
 
 ## [P3] Kill: Doctor --watch Mode
 Nobody watches their Claude config for changes. Consider removing or hiding behind an undocumented flag.

@@ -29,32 +29,29 @@
 - **Sprint 22**: Purge + Doctor Modernization (v0.16.0) — TUI purge, SessionEnd/MCP checks, fixer extraction, 322 tests
 - **Sprint 23**: Stability (v1.0.0) — sync status/clean, content_hash dedup, immutability fixes, 57 manual tests, 10 bugs fixed, cross-device sync framing
 
-## Current Sprint: Sprint 24 — Memory Intelligence
+## Current Sprint: Sprint 25 — Doctor Intent Detection (v1.5.0)
 
-### MMR Diversity Selection
-- [ ] Implement MMR scoring that penalizes similar memories during injection
-- [ ] Prevent injecting multiple memories on the same topic
-- [ ] Benchmark: verify topic diversity improves with 100+ memories
+Fixes false-positive section flags on mature CLAUDE.md files. Discovered on swissazan: `doctor` flags "Missing ## Session Start" even though `## Sprint Planning` covers the intent. Replaces regex-exact heading matching with keyword-based intent rules. Non-breaking.
 
-### Auto-Relation Discovery
-- [ ] On `memory_store`, search for related memories and auto-create relations
-- [ ] Support relates_to, extends, contradicts relation types
-- [ ] Benchmark: verify relation count increases organically
+### Formal LP-STUB Markers
+- [ ] Update `addClaudeMdSection` to wrap AI-recommended stubs in `<!-- LP-STUB: ai-recommended -->` ... `<!-- /LP-STUB -->`
+- [ ] Update FIX_TABLE entries for Session Start, Backlog, Stop-and-Swarm, Architecture to use marker format
 
-### Local Placement: lp-migrate-memory Skill
-- [ ] Install skill to `~/.claude/skills/` for local placement users
+### Intent Analyzer
+- [ ] Create `src/commands/doctor/analyzers/quality-intents.ts` with `INTENT_RULES` for 7 sections
+- [ ] `parseSections(content)` helper — split on `^## ` markers, detect LP-STUB marker
+- [ ] Replace `BASE_SECTIONS` regex loop in `analyzers/quality.ts`
+- [ ] Preserve issue message wording (`Missing "## X" section`) so FIX_TABLE substring match still works
 
-### Skip lp-migrate-memory for New Projects
-- [ ] Check `~/.claude/projects/*/memory/` for current project slug during install
-- [ ] Skip skill install when no legacy memory files exist
-
-### Untitled Memory Preview
-- [ ] Dashboard: show first ~30 chars of content instead of "(untitled)"
-- [ ] Context injection: same preview for index-tier untitled memories
+### Tests
+- [ ] Synthesize `tests/fixtures/mature-project.md` — `## Sprint Planning` body satisfies Session Start intent, no stubs
+- [ ] Synthesize `tests/fixtures/new-project.md` — LP-STUB-marked sections, must flag as unsatisfied
+- [ ] New `tests/quality-intents.test.ts` — ~8 assertions covering satisfied / missing / stub-not-satisfied cases
 
 ### Ship
-- [ ] Tests + benchmarks green
-- [ ] Publish next version
+- [ ] All tests green
+- [ ] CHANGELOG v1.5.0 with marker format callout (users will see new markers after `--fix`)
+- [ ] Publish v1.5.0
 
 ## Session Log
 ### 2026-04-16 (session 37)
