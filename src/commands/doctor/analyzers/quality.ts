@@ -1,17 +1,11 @@
 import type { ClaudeConfig, AnalyzerResult, DiagnosticIssue } from "../../../types/index.js";
 import { hasMemoryIndicators } from "./memory.js";
-
-const BASE_SECTIONS = [
-  { pattern: /^##\s+(Tech )?Stack/m, name: "Stack", why: "Claude performs worse without knowing the tech stack" },
-  { pattern: /^##\s+Commands/m, name: "Commands", why: "Claude guesses wrong without explicit dev/build/test commands" },
-  { pattern: /^##\s+Session Start/m, name: "Session Start", why: "Without this, Claude won't read TASKS.md or maintain continuity" },
-  { pattern: /^##\s+Off.?Limits/m, name: "Off-Limits", why: "Without guardrails, Claude has no boundaries beyond defaults" },
-  { pattern: /^##\s+(Architecture|Project Structure)/m, name: "Architecture/Structure", why: "Claude makes better decisions when it understands the codebase shape" },
-  { pattern: /^##\s+Backlog/m, name: "Backlog", why: "Without backlog instructions, deferred features get lost in conversation history" },
-  { pattern: /^##\s+(Stop.and.Swarm|When Stuck|Debug)/m, name: "Stop-and-Swarm", why: "Without a stop-and-swarm rule, Claude keeps guessing in circles instead of parallelizing research" },
-] as const;
-
-const MEMORY_SECTION = { pattern: /^##\s+Memory/m, name: "Memory & Learnings", why: "Without memory instructions, Claude forgets learnings and repeats mistakes across sessions" } as const;
+import {
+  INTENT_RULES,
+  MEMORY_INTENT,
+  parseSections,
+  documentSatisfiesIntent,
+} from "./quality-intents.js";
 
 const VAGUE_PATTERNS = [
   { pattern: /write (good|clean|quality|nice) code/i, label: "write good code" },
@@ -41,21 +35,20 @@ export async function analyzeQuality(config: ClaudeConfig): Promise<AnalyzerResu
     return { name: "CLAUDE.md Quality", issues, score: 0 };
   }
 
-  // Check essential sections (Memory only checked if memory is installed)
-  const sections = hasMemoryIndicators(config)
-    ? [...BASE_SECTIONS, MEMORY_SECTION]
-    : [...BASE_SECTIONS];
-  const combinedContent = [content, config.localClaudeMdContent].filter(Boolean).join("\n");
-  let sectionsFound = 0;
-  for (const section of sections) {
-    if (section.pattern.test(combinedContent)) {
-      sectionsFound++;
-    } else {
+  // Check essential sections via intent detection (keyword-based, not exact heading match).
+  // Memory intent only checked if memory is installed.
+  const rules = hasMemoryIndicators(config)
+    ? [...INTENT_RULES, MEMORY_INTENT]
+    : [...INTENT_RULES];
+  const combinedContent = [content, config.localClaudeMdContent].filter(Boolean).join("\n\n");
+  const sections = parseSections(combinedContent);
+  for (const rule of rules) {
+    if (!documentSatisfiesIntent(sections, rule)) {
       issues.push({
         analyzer: "Quality",
         severity: "medium",
-        message: `Missing "## ${section.name}" section — ${section.why}`,
-        fix: `Add a ## ${section.name} section to CLAUDE.md`,
+        message: `Missing "## ${rule.name}" section — ${rule.why}`,
+        fix: `Add a ## ${rule.name} section to CLAUDE.md`,
       });
     }
   }

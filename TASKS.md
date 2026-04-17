@@ -28,32 +28,16 @@
 - **Sprint 21**: Memory Bug Fixes — benchmark suite (54 tests), relation decay + type filter fixes
 - **Sprint 22**: Purge + Doctor Modernization (v0.16.0) — TUI purge, SessionEnd/MCP checks, fixer extraction, 322 tests
 - **Sprint 23**: Stability (v1.0.0) — sync status/clean, content_hash dedup, immutability fixes, 57 manual tests, 10 bugs fixed, cross-device sync framing
+- **Sprint 25**: Doctor Intent Detection (v1.5.0) — keyword-based section detection replaces regex-exact heading loop, 8 FIX_TABLE entries wrap boilerplate in LP-STUB markers (stubs never satisfy intent), 360 tests (+12), mature-project + new-project fixtures, swissazan-style `## Sprint Planning` now correctly satisfies Session Start intent
 
-## Current Sprint: Sprint 25 — Doctor Intent Detection (v1.5.0)
-
-Fixes false-positive section flags on mature CLAUDE.md files. Discovered on swissazan: `doctor` flags "Missing ## Session Start" even though `## Sprint Planning` covers the intent. Replaces regex-exact heading matching with keyword-based intent rules. Non-breaking.
-
-### Formal LP-STUB Markers
-- [ ] Update `addClaudeMdSection` to wrap AI-recommended stubs in `<!-- LP-STUB: ai-recommended -->` ... `<!-- /LP-STUB -->`
-- [ ] Update FIX_TABLE entries for Session Start, Backlog, Stop-and-Swarm, Architecture to use marker format
-
-### Intent Analyzer
-- [ ] Create `src/commands/doctor/analyzers/quality-intents.ts` with `INTENT_RULES` for 7 sections
-- [ ] `parseSections(content)` helper — split on `^## ` markers, detect LP-STUB marker
-- [ ] Replace `BASE_SECTIONS` regex loop in `analyzers/quality.ts`
-- [ ] Preserve issue message wording (`Missing "## X" section`) so FIX_TABLE substring match still works
-
-### Tests
-- [ ] Synthesize `tests/fixtures/mature-project.md` — `## Sprint Planning` body satisfies Session Start intent, no stubs
-- [ ] Synthesize `tests/fixtures/new-project.md` — LP-STUB-marked sections, must flag as unsatisfied
-- [ ] New `tests/quality-intents.test.ts` — ~8 assertions covering satisfied / missing / stub-not-satisfied cases
-
-### Ship
-- [ ] All tests green
-- [ ] CHANGELOG v1.5.0 with marker format callout (users will see new markers after `--fix`)
-- [ ] Publish v1.5.0
+## Current Sprint: none — pick next from BACKLOG.md
 
 ## Session Log
+### 2026-04-17 (session 38)
+- Sprint 25 shipped: intent-based CLAUDE.md section detection replaces regex-exact heading matching. Heading aliases OR body keywords satisfy intent; stub-wrapped sections never do.
+- LP-STUB markers now wrap all 8 AI-boilerplate injections (Architecture, Off-Limits, Commands, Stack TODO fallback, Session Start, Backlog, Stop-and-Swarm, Memory). Code review caught Off-Limits asymmetry + two regex bugs (`.` vs `-`, tree-draw false positive) pre-tests.
+- 360 tests (+12), 100% self-score maintained, published v1.5.0.
+
 ### 2026-04-16 (session 37)
 - Fixed two-machine sync resurrection bug: tombstones now ride in sync payload v2, phased merge (tombstones → memories → relations), delete wins on timestamp tie.
 - Migration 004 adds `memory_tombstones` table; hardDelete/deleteByType/deleteByProject write tombstones atomically. Doctor detects + upgrades stale backgrounded SessionEnd hooks (`& exit 0` → `; exit 0`).

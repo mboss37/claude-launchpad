@@ -12,6 +12,7 @@ import { generateClaudeignore } from "../init/generators/claudeignore.js";
 import { generateEnhanceSkill } from "../init/generators/skill-enhance.js";
 import { readSettingsJson, writeSettingsJson } from "../../lib/settings.js";
 import { getMemoryPlacement } from "../../lib/memory-placement.js";
+import { wrapStub } from "../../lib/stub-marker.js";
 import {
   disableAutoMemory, addMemoryToolPermissions, addAllowedMcpServers,
   addSessionStartPullHook, addSessionEndPushHook, upgradeStaleSessionEndPushHook, removeStaleStopHook,
@@ -63,18 +64,20 @@ const FIX_TABLE: ReadonlyArray<{ analyzer: string; match: string; fix: FixFn }> 
   { analyzer: "Hooks", match: ".env file protection", fix: (root) => addEnvProtectionHook(root) },
   { analyzer: "Hooks", match: "auto-format", fix: (root, detected) => addAutoFormatHook(root, detected) },
   { analyzer: "Hooks", match: "No PreToolUse", fix: (root) => addEnvProtectionHook(root) },
-  { analyzer: "Quality", match: "Architecture", fix: (root) => addClaudeMdSection(root, "## Architecture", "<!-- TODO: Describe your codebase structure. Run `/lp-enhance` to auto-fill this. -->") },
-  { analyzer: "Quality", match: "Off-Limits", fix: (root) => addClaudeMdSection(root, "## Off-Limits", OFF_LIMITS_CONTENT) },
-  { analyzer: "Quality", match: "Commands", fix: (root) => addClaudeMdSection(root, "## Commands", "<!-- TODO: Add your dev/build/test commands -->") },
+  { analyzer: "Quality", match: "Architecture", fix: (root) => addClaudeMdSection(root, "## Architecture", wrapStub("<!-- TODO: Describe your codebase structure. Run `/lp-enhance` to auto-fill this. -->")) },
+  { analyzer: "Quality", match: "Off-Limits", fix: (root) => addClaudeMdSection(root, "## Off-Limits", wrapStub(OFF_LIMITS_CONTENT)) },
+  { analyzer: "Quality", match: "Commands", fix: (root) => addClaudeMdSection(root, "## Commands", wrapStub("<!-- TODO: Add your dev/build/test commands -->")) },
   { analyzer: "Quality", match: "Stack", fix: (root, detected) => {
-    const content = detected.language
-      ? `- **Language**: ${detected.language}${detected.framework ? `\n- **Framework**: ${detected.framework}` : ""}${detected.packageManager ? `\n- **Package Manager**: ${detected.packageManager}` : ""}`
-      : "<!-- TODO: Define your tech stack -->";
-    return addClaudeMdSection(root, "## Stack", content);
+    // Detected stack is real content; TODO fallback is a stub.
+    if (detected.language) {
+      const content = `- **Language**: ${detected.language}${detected.framework ? `\n- **Framework**: ${detected.framework}` : ""}${detected.packageManager ? `\n- **Package Manager**: ${detected.packageManager}` : ""}`;
+      return addClaudeMdSection(root, "## Stack", content);
+    }
+    return addClaudeMdSection(root, "## Stack", wrapStub("<!-- TODO: Define your tech stack -->"));
   }},
-  { analyzer: "Quality", match: "Session Start", fix: (root) => addClaudeMdSection(root, "## Session Start", SESSION_START_CONTENT) },
-  { analyzer: "Quality", match: "Backlog", fix: (root) => addClaudeMdSection(root, "## Backlog", BACKLOG_CONTENT) },
-  { analyzer: "Quality", match: "Stop-and-Swarm", fix: (root) => addClaudeMdSection(root, "## Stop-and-Swarm", STOP_AND_SWARM_CONTENT) },
+  { analyzer: "Quality", match: "Session Start", fix: (root) => addClaudeMdSection(root, "## Session Start", wrapStub(SESSION_START_CONTENT)) },
+  { analyzer: "Quality", match: "Backlog", fix: (root) => addClaudeMdSection(root, "## Backlog", wrapStub(BACKLOG_CONTENT)) },
+  { analyzer: "Quality", match: "Stop-and-Swarm", fix: (root) => addClaudeMdSection(root, "## Stop-and-Swarm", wrapStub(STOP_AND_SWARM_CONTENT)) },
   { analyzer: "Rules", match: "No BACKLOG.md", fix: (root) => createBacklogMd(root) },
   { analyzer: "Rules", match: "No .claudeignore", fix: (root, detected) => createClaudeignore(root, detected) },
   { analyzer: "Rules", match: "No .claude/rules/", fix: (root) => createStarterRules(root) },
@@ -99,7 +102,7 @@ const FIX_TABLE: ReadonlyArray<{ analyzer: string; match: string; fix: FixFn }> 
   { analyzer: "Memory", match: "CLAUDE.md missing memory guidance", fix: (root, _det, placement) => {
     const content = "Use agentic-memory to persist knowledge across sessions:\n- Memories are automatically injected at session start\n- STORE IMMEDIATELY when: a dependency strategy changes, an architecture decision is made, a convention is established, a bug pattern is discovered, or a feature is killed/added\n- Use memory_search before memory_store to check for duplicates\n- NEVER store credentials, API keys, tokens, or secrets in memories";
     const target = placement === "local" ? join(root, ".claude", "CLAUDE.md") : undefined;
-    return addClaudeMdSection(root, "## Memory", content, target);
+    return addClaudeMdSection(root, "## Memory", wrapStub(content), target);
   }},
 ];
 

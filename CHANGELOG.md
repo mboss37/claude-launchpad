@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.5.0] — 2026-04-17
+
+### Fixed
+- `doctor` no longer false-positive flags `Missing "## Session Start"` (or Backlog, Stop-and-Swarm, Off-Limits, Architecture, Stack, Commands) when the mature CLAUDE.md already expresses that intent through a differently-named section. Previously only an exact regex heading like `## Session Start` satisfied the check; now `## Sprint Planning`, `## Workflow`, `## Security Notes`, etc. are recognised when their heading or body keywords match the intent
+
+### Added
+- Intent-based section detection (`src/commands/doctor/analyzers/quality-intents.ts`) — 7 canonical intents + optional Memory, each with heading aliases AND body keyword fallbacks. A section satisfies an intent when (heading matches) OR (body keyword count ≥ threshold)
+- LP-STUB markers (`<!-- LP-STUB: ai-recommended --> ... <!-- /LP-STUB -->`) wrap every AI-boilerplate injection from `doctor --fix`. Stub-marked sections never satisfy an intent, so users keep seeing the flag until they replace the stub with real content (or delete the markers)
+- All 8 boilerplate injections in FIX_TABLE now use `wrapStub()`: Architecture, Off-Limits, Commands, Stack (TODO fallback only), Session Start, Backlog, Stop-and-Swarm, Memory
+- `tests/fixtures/mature-project.md` + `tests/fixtures/new-project.md` + 12 new assertions in `quality-intents.test.ts` covering heading aliases, keyword fallback, stub rejection, and full-document integration (348 → 360 tests)
+
+### Changed
+- `BASE_SECTIONS` regex loop in `analyzers/quality.ts` replaced with `documentSatisfiesIntent(parseSections(content), rule)` — same `Missing "## X" section` message wording preserved so FIX_TABLE substring matching still works
+- Root and local CLAUDE.md are now joined with `\n\n` instead of `\n` before parsing, so a missing trailing newline can't collapse two sections into one
+
 ## [1.4.0] — 2026-04-16
 
 ### Fixed
