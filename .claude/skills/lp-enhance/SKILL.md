@@ -8,7 +8,7 @@ allowed-tools: Read, Glob, Grep, Edit, Write
 argument-hint: (no arguments needed)
 ---
 
-<!-- lp-enhance-version: 6 -->
+<!-- lp-enhance-version: 7 -->
 
 # lp-enhance - AI-powered CLAUDE.md improver
 

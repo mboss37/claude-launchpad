@@ -97,7 +97,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "claude-launchpad memory push -y >/dev/null 2>&1 & exit 0"
+            "command": "claude-launchpad memory push -y >/dev/null 2>&1 ; exit 0"
           }
         ]
       }
