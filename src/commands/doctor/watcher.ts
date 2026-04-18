@@ -85,7 +85,7 @@ async function runAndDisplay(projectRoot: string): Promise<void> {
 
   const results: AnalyzerResult[] = await Promise.all([
     analyzeBudget(config),
-    analyzeQuality(config),
+    analyzeQuality(config, projectRoot),
     analyzeSettings(config),
     analyzeHooks(config),
     analyzeRules(config),

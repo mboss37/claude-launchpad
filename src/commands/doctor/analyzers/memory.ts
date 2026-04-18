@@ -1,5 +1,10 @@
 import type { ClaudeConfig, AnalyzerResult, DiagnosticIssue } from "../../../types/index.js";
 import { readSyncConfig } from "../../memory/utils/gist-transport.js";
+import {
+  resolveHookCommand,
+  effectiveCommandText,
+  type ResolvedHookCommand,
+} from "./hook-resolver.js";
 
 const MEMORY_MCP_TOOLS = [
   "mcp__agentic-memory__memory_store",
@@ -11,7 +16,17 @@ const MEMORY_MCP_TOOLS = [
   "mcp__agentic-memory__memory_update",
 ] as const;
 
-export function hasMemoryIndicators(config: ClaudeConfig): boolean {
+async function resolveAllHooks(
+  hooks: ClaudeConfig["hooks"],
+  projectRoot: string,
+): Promise<ResolvedHookCommand[]> {
+  return Promise.all(hooks.map((h) => resolveHookCommand(h, projectRoot)));
+}
+
+export async function hasMemoryIndicators(
+  config: ClaudeConfig,
+  projectRoot: string,
+): Promise<boolean> {
   // MCP server in project settings (shared or local)
   if (config.mcpServers.some((s) => s.name === "agentic-memory")) return true;
 
@@ -24,24 +39,30 @@ export function hasMemoryIndicators(config: ClaudeConfig): boolean {
   ];
   if (allowList.some((t) => t.startsWith("mcp__agentic-memory__"))) return true;
 
-  // SessionStart hook referencing memory context injection
-  if (config.hooks.some((h) => h.event === "SessionStart" && h.command?.includes("memory context"))) return true;
-
-  return false;
+  // SessionStart hook referencing memory context injection — see through 1-level wrappers
+  const resolved = await resolveAllHooks(config.hooks, projectRoot);
+  return config.hooks.some((h, i) =>
+    h.event === "SessionStart" && effectiveCommandText(resolved[i]).includes("memory context"),
+  );
 }
 
 /**
  * Analyzes agentic-memory configuration.
  * Returns null if memory is not detected — doctor skips it for non-memory users.
  */
-export async function analyzeMemory(config: ClaudeConfig): Promise<AnalyzerResult | null> {
-  if (!hasMemoryIndicators(config)) return null;
+export async function analyzeMemory(
+  config: ClaudeConfig,
+  projectRoot: string,
+): Promise<AnalyzerResult | null> {
+  if (!await hasMemoryIndicators(config, projectRoot)) return null;
 
   const issues: DiagnosticIssue[] = [];
+  const resolved = await resolveAllHooks(config.hooks, projectRoot);
+  const effectiveAt = (i: number): string => effectiveCommandText(resolved[i]);
 
-  // 1. SessionStart hook with memory context
+  // 1. SessionStart hook with memory context (wrapper-aware)
   const hasSessionStart = config.hooks.some(
-    (h) => h.event === "SessionStart" && h.command?.includes("memory context"),
+    (h, i) => h.event === "SessionStart" && effectiveAt(i).includes("memory context"),
   );
   if (!hasSessionStart) {
     issues.push({
@@ -54,7 +75,7 @@ export async function analyzeMemory(config: ClaudeConfig): Promise<AnalyzerResul
 
   // 2. Deprecated Stop hook with memory extract (removed in v0.14.0)
   const hasStaleStopHook = config.hooks.some(
-    (h) => h.event === "Stop" && h.command?.includes("memory extract"),
+    (h, i) => h.event === "Stop" && effectiveAt(i).includes("memory extract"),
   );
   if (hasStaleStopHook) {
     issues.push({
@@ -108,11 +129,11 @@ export async function analyzeMemory(config: ClaudeConfig): Promise<AnalyzerResul
     });
   }
 
-  // 7. Sync hooks when sync is configured
+  // 7. Sync hooks when sync is configured (wrapper-aware)
   const syncConfig = readSyncConfig();
   if (syncConfig) {
     const hasSessionStartPull = config.hooks.some(
-      (h) => h.event === "SessionStart" && h.command?.includes("memory pull"),
+      (h, i) => h.event === "SessionStart" && effectiveAt(i).includes("memory pull"),
     );
     if (!hasSessionStartPull) {
       issues.push({
@@ -124,7 +145,7 @@ export async function analyzeMemory(config: ClaudeConfig): Promise<AnalyzerResul
     }
 
     const hasSessionEndPush = config.hooks.some(
-      (h) => h.event === "SessionEnd" && h.command?.includes("memory push"),
+      (h, i) => h.event === "SessionEnd" && effectiveAt(i).includes("memory push"),
     );
     if (!hasSessionEndPush) {
       issues.push({
@@ -135,7 +156,8 @@ export async function analyzeMemory(config: ClaudeConfig): Promise<AnalyzerResul
       });
     }
 
-    // Detect the stale backgrounded variant ("& exit 0") that gets killed mid-flight.
+    // Backgrounded-push check stays on the literal command — the `&` is always at the hook level,
+    // wrappers never prefix their own command with & exit 0.
     const hasStaleBackgroundedPush = config.hooks.some(
       (h) => h.event === "SessionEnd"
         && h.command?.includes("memory push")
@@ -147,6 +169,21 @@ export async function analyzeMemory(config: ClaudeConfig): Promise<AnalyzerResul
         severity: "high",
         message: "SessionEnd push hook is backgrounded — push gets killed before reaching the gist, deletions never sync",
         fix: "Run `doctor --fix` to upgrade the hook to a synchronous push",
+      });
+    }
+  }
+
+  // 8. Broken wrappers — hook references a .sh script inside the project that doesn't exist.
+  // Only report for SessionStart/SessionEnd hooks (the ones this analyzer inspects).
+  for (let i = 0; i < config.hooks.length; i++) {
+    const h = config.hooks[i];
+    if (h.event !== "SessionStart" && h.event !== "SessionEnd") continue;
+    for (const missing of resolved[i].missingScripts) {
+      issues.push({
+        analyzer: "Memory",
+        severity: "low",
+        message: `${h.event} hook references \`${missing}\` but the file is missing — wrapper can't run`,
+        fix: `Create ${missing} or remove the broken hook from .claude/settings.json`,
       });
     }
   }

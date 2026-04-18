@@ -33,10 +33,10 @@
 ## Current Sprint: none — pick next from BACKLOG.md
 
 ## Session Log
-### 2026-04-17 (session 38)
-- Sprint 25 shipped: intent-based CLAUDE.md section detection replaces regex-exact heading matching. Heading aliases OR body keywords satisfy intent; stub-wrapped sections never do.
-- LP-STUB markers now wrap all 8 AI-boilerplate injections (Architecture, Off-Limits, Commands, Stack TODO fallback, Session Start, Backlog, Stop-and-Swarm, Memory). Code review caught Off-Limits asymmetry + two regex bugs (`.` vs `-`, tree-draw false positive) pre-tests.
-- 360 tests (+12), 100% self-score maintained, published v1.5.0.
+### 2026-04-18 (session 38)
+- Sprint 25 shipped: intent-based CLAUDE.md section detection replaces regex-exact heading matching. Heading aliases OR body keywords satisfy intent; stub-wrapped sections never do. LP-STUB markers wrap all 8 AI-boilerplate injections.
+- Hook command resolver added (shell-quote + realpath boundary): memory analyzer now sees through `bash .claude/x.sh` wrappers, emits low-sev issue for broken wrappers. Swissazan went 87% → 91% (memory 70% → 100%, HIGH false positive gone).
+- 372 tests (+24), two code reviews (one pre-test intent analyzer, one challenger-reviewed resolver plan), 100% self-score maintained, published v1.5.0.
 
 ### 2026-04-16 (session 37)
 - Fixed two-machine sync resurrection bug: tombstones now ride in sync payload v2, phased merge (tombstones → memories → relations), delete wins on timestamp tie.

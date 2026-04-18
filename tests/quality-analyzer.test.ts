@@ -40,7 +40,7 @@ describe("analyzeQuality", () => {
 ## Memory & Learnings
 - Use built-in memory system
 `;
-    const result = await analyzeQuality(makeConfig(content));
+    const result = await analyzeQuality(makeConfig(content), "/test");
     expect(result.score).toBe(100);
     expect(result.issues).toHaveLength(0);
   });
@@ -49,7 +49,7 @@ describe("analyzeQuality", () => {
     const content = `# My Project
 Just some random text with no sections.
 `;
-    const result = await analyzeQuality(makeConfig(content));
+    const result = await analyzeQuality(makeConfig(content), "/test");
     expect(result.issues.length).toBeGreaterThanOrEqual(4);
     expect(result.issues.some((i) => i.message.includes("Stack"))).toBe(true);
     expect(result.issues.some((i) => i.message.includes("Commands"))).toBe(true);
@@ -65,7 +65,7 @@ Just some random text with no sections.
 ## Architecture
 Always follow best practices and write good code.
 `;
-    const result = await analyzeQuality(makeConfig(content));
+    const result = await analyzeQuality(makeConfig(content), "/test");
     expect(result.issues.some((i) => i.message.includes("Vague"))).toBe(true);
   });
 
@@ -74,12 +74,12 @@ Always follow best practices and write good code.
 ## Stack
 API key: sk-abcdefghijklmnopqrstuvwxyz1234
 `;
-    const result = await analyzeQuality(makeConfig(content));
+    const result = await analyzeQuality(makeConfig(content), "/test");
     expect(result.issues.some((i) => i.severity === "critical")).toBe(true);
   });
 
   it("returns score 0 when no CLAUDE.md exists", async () => {
-    const result = await analyzeQuality(makeConfig(null));
+    const result = await analyzeQuality(makeConfig(null), "/test");
     expect(result.score).toBe(0);
   });
 
@@ -96,7 +96,7 @@ API key: sk-abcdefghijklmnopqrstuvwxyz1234
 ## Architecture
 <!-- TODO: fill in -->
 `;
-    const result = await analyzeQuality(makeConfig(content));
+    const result = await analyzeQuality(makeConfig(content), "/test");
     expect(result.issues.some((i) => i.message.includes("TODO"))).toBe(true);
   });
 });

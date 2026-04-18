@@ -21,7 +21,7 @@ const SECRET_PATTERNS = [
   { pattern: /xoxb-[0-9]+-[a-zA-Z0-9]+/, label: "Slack bot token" },
 ] as const;
 
-export async function analyzeQuality(config: ClaudeConfig): Promise<AnalyzerResult> {
+export async function analyzeQuality(config: ClaudeConfig, projectRoot: string): Promise<AnalyzerResult> {
   const issues: DiagnosticIssue[] = [];
   const content = config.claudeMdContent;
 
@@ -37,7 +37,7 @@ export async function analyzeQuality(config: ClaudeConfig): Promise<AnalyzerResu
 
   // Check essential sections via intent detection (keyword-based, not exact heading match).
   // Memory intent only checked if memory is installed.
-  const rules = hasMemoryIndicators(config)
+  const rules = await hasMemoryIndicators(config, projectRoot)
     ? [...INTENT_RULES, MEMORY_INTENT]
     : [...INTENT_RULES];
   const combinedContent = [content, config.localClaudeMdContent].filter(Boolean).join("\n\n");

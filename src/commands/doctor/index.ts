@@ -45,7 +45,7 @@ export function createDoctorCommand(): Command {
 
       const results: AnalyzerResult[] = await Promise.all([
         analyzeBudget(config),
-        analyzeQuality(config),
+        analyzeQuality(config, opts.path),
         analyzeSettings(config),
         analyzeHooks(config),
         analyzeRules(config),
@@ -53,7 +53,7 @@ export function createDoctorCommand(): Command {
         analyzeMcp(config),
       ]);
 
-      const memoryResult = await analyzeMemory(config);
+      const memoryResult = await analyzeMemory(config, opts.path);
       if (memoryResult) {
         results.push(memoryResult);
       }
@@ -113,7 +113,7 @@ export function createDoctorCommand(): Command {
           const updatedConfig = await parseClaudeConfig(opts.path);
           const updatedResults: AnalyzerResult[] = await Promise.all([
             analyzeBudget(updatedConfig),
-            analyzeQuality(updatedConfig),
+            analyzeQuality(updatedConfig, opts.path),
             analyzeSettings(updatedConfig),
             analyzeHooks(updatedConfig),
             analyzeRules(updatedConfig),
@@ -121,7 +121,7 @@ export function createDoctorCommand(): Command {
             analyzeMcp(updatedConfig),
           ]);
 
-          const updatedMemoryResult = await analyzeMemory(updatedConfig);
+          const updatedMemoryResult = await analyzeMemory(updatedConfig, opts.path);
           if (updatedMemoryResult) {
             updatedResults.push(updatedMemoryResult);
           }

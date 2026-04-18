@@ -1,19 +1,24 @@
 # Changelog
 
-## [1.5.0] — 2026-04-17
+## [1.5.0] — 2026-04-18
 
 ### Fixed
 - `doctor` no longer false-positive flags `Missing "## Session Start"` (or Backlog, Stop-and-Swarm, Off-Limits, Architecture, Stack, Commands) when the mature CLAUDE.md already expresses that intent through a differently-named section. Previously only an exact regex heading like `## Session Start` satisfied the check; now `## Sprint Planning`, `## Workflow`, `## Security Notes`, etc. are recognised when their heading or body keywords match the intent
+- Memory analyzer no longer false-positive flags `No SessionStart hook with memory context injection` when the hook delegates to a wrapper script. Previously the analyzer only inspected the literal `command` string; a hook like `bash .claude/session-start.sh` that itself ran `claude-launchpad memory context` was invisible. The new resolver reads `.sh` wrapper bodies inside the project root and treats them as part of the hook's effective command
 
 ### Added
 - Intent-based section detection (`src/commands/doctor/analyzers/quality-intents.ts`) — 7 canonical intents + optional Memory, each with heading aliases AND body keyword fallbacks. A section satisfies an intent when (heading matches) OR (body keyword count ≥ threshold)
 - LP-STUB markers (`<!-- LP-STUB: ai-recommended --> ... <!-- /LP-STUB -->`) wrap every AI-boilerplate injection from `doctor --fix`. Stub-marked sections never satisfy an intent, so users keep seeing the flag until they replace the stub with real content (or delete the markers)
 - All 8 boilerplate injections in FIX_TABLE now use `wrapStub()`: Architecture, Off-Limits, Commands, Stack (TODO fallback only), Session Start, Backlog, Stop-and-Swarm, Memory
-- `tests/fixtures/mature-project.md` + `tests/fixtures/new-project.md` + 12 new assertions in `quality-intents.test.ts` covering heading aliases, keyword fallback, stub rejection, and full-document integration (348 → 360 tests)
+- Hook command resolver (`src/commands/doctor/analyzers/hook-resolver.ts`) — tokenises hook commands with `shell-quote`, follows one level of `.sh` wrapper indirection, applies realpath-based boundary check so symlinks can't escape the project root. Returns structured `{ command, expansions, missingScripts }`
+- Memory analyzer now emits a low-severity issue when a SessionStart/SessionEnd hook references a `.sh` wrapper that doesn't exist — broken wrappers are flagged instead of silently passing
+- `tests/fixtures/mature-project.md` + `tests/fixtures/new-project.md` + 12 new assertions in `quality-intents.test.ts`; 9 resolver tests + 3 wrapper-integration tests in `memory-analyzer.test.ts` (348 → 372 tests)
+- `shell-quote` dependency (2KB, MIT) for canonical shell tokenisation
 
 ### Changed
 - `BASE_SECTIONS` regex loop in `analyzers/quality.ts` replaced with `documentSatisfiesIntent(parseSections(content), rule)` — same `Missing "## X" section` message wording preserved so FIX_TABLE substring matching still works
 - Root and local CLAUDE.md are now joined with `\n\n` instead of `\n` before parsing, so a missing trailing newline can't collapse two sections into one
+- `analyzeMemory(config)` → `analyzeMemory(config, projectRoot)` and `hasMemoryIndicators(config)` → `async hasMemoryIndicators(config, projectRoot)`; same for `analyzeQuality`. Callers in `doctor/index.ts` and `doctor/watcher.ts` updated. Memory hooks are resolved once per run and shared across the 5 capability checks (no I/O multiplication)
 
 ## [1.4.0] — 2026-04-16
 

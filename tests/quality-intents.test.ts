@@ -98,13 +98,13 @@ describe("documentSatisfiesIntent + analyzeQuality", () => {
   });
 
   it("analyzeQuality on mature project flags no missing sections", async () => {
-    const result = await analyzeQuality(makeConfig(MATURE));
+    const result = await analyzeQuality(makeConfig(MATURE), "/test");
     const missingSections = result.issues.filter((i) => i.message.startsWith("Missing"));
     expect(missingSections).toHaveLength(0);
   });
 
   it("analyzeQuality on new project flags all base sections as missing", async () => {
-    const result = await analyzeQuality(makeConfig(NEW_PROJECT));
+    const result = await analyzeQuality(makeConfig(NEW_PROJECT), "/test");
     const missingSections = result.issues.filter((i) => i.message.startsWith("Missing"));
     expect(missingSections).toHaveLength(INTENT_RULES.length);
     expect(missingSections.some((i) => i.message.includes("Session Start"))).toBe(true);

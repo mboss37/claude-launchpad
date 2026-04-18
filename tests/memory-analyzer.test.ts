@@ -1,4 +1,7 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
 import { analyzeMemory } from "../src/commands/doctor/analyzers/memory.js";
 import type { ClaudeConfig, HookConfig, McpServerConfig } from "../src/types/index.js";
 
@@ -56,25 +59,25 @@ const ALL_TOOLS = [
 
 describe("analyzeMemory", () => {
   it("returns null when no memory indicators in config", async () => {
-    const result = await analyzeMemory(makeConfig());
+    const result = await analyzeMemory(makeConfig(), "/test");
     expect(result).toBeNull();
   });
 
   it("returns null when hooks have no memory references", async () => {
     const result = await analyzeMemory(makeConfig({
       hooks: [{ event: "SessionStart", type: "command", command: "cat TASKS.md" }],
-    }));
+    }), "/test");
     expect(result).toBeNull();
   });
 
   it("detects memory via MCP server", async () => {
-    const result = await analyzeMemory(makeConfig({ mcpServers: [memoryServer] }));
+    const result = await analyzeMemory(makeConfig({ mcpServers: [memoryServer] }), "/test");
     expect(result).not.toBeNull();
     expect(result!.name).toBe("Memory");
   });
 
   it("detects memory via SessionStart hook even without MCP server entry", async () => {
-    const result = await analyzeMemory(makeConfig({ hooks: [sessionStartHook] }));
+    const result = await analyzeMemory(makeConfig({ hooks: [sessionStartHook] }), "/test");
     expect(result).not.toBeNull();
     expect(result!.name).toBe("Memory");
   });
@@ -82,13 +85,13 @@ describe("analyzeMemory", () => {
   it("detects memory via tool permissions even without MCP server entry", async () => {
     const result = await analyzeMemory(makeConfig({
       settings: { permissions: { allow: ["mcp__agentic-memory__memory_store"] } },
-    }));
+    }), "/test");
     expect(result).not.toBeNull();
     expect(result!.name).toBe("Memory");
   });
 
   it("flags missing SessionStart hook as high severity", async () => {
-    const result = await analyzeMemory(makeConfig({ mcpServers: [memoryServer] }));
+    const result = await analyzeMemory(makeConfig({ mcpServers: [memoryServer] }), "/test");
     expect(result!.issues.some(
       (i) => i.severity === "high" && i.message.includes("SessionStart"),
     )).toBe(true);
@@ -98,7 +101,7 @@ describe("analyzeMemory", () => {
     const result = await analyzeMemory(makeConfig({
       mcpServers: [memoryServer],
       settings: {},
-    }));
+    }), "/test");
     expect(result!.issues.some(
       (i) => i.severity === "medium" && i.message.includes("autoMemoryEnabled"),
     )).toBe(true);
@@ -108,7 +111,7 @@ describe("analyzeMemory", () => {
     const result = await analyzeMemory(makeConfig({
       mcpServers: [memoryServer],
       settings: { autoMemoryEnabled: false },
-    }));
+    }), "/test");
     expect(result!.issues.some(
       (i) => i.message.includes("autoMemoryEnabled"),
     )).toBe(false);
@@ -118,7 +121,7 @@ describe("analyzeMemory", () => {
     const result = await analyzeMemory(makeConfig({
       mcpServers: [memoryServer],
       claudeMdContent: "# Test project",
-    }));
+    }), "/test");
     expect(result!.issues.some(
       (i) => i.severity === "low" && i.message.includes("memory guidance"),
     )).toBe(true);
@@ -128,7 +131,7 @@ describe("analyzeMemory", () => {
     const result = await analyzeMemory(makeConfig({
       mcpServers: [memoryServer],
       claudeMdContent: "# Test\n## Memory\nUse agentic-memory",
-    }));
+    }), "/test");
     expect(result!.issues.some(
       (i) => i.message.includes("memory guidance"),
     )).toBe(false);
@@ -138,7 +141,7 @@ describe("analyzeMemory", () => {
     const result = await analyzeMemory(makeConfig({
       mcpServers: [memoryServer],
       claudeMdContent: "# Test\nUse agentic-memory for persistence",
-    }));
+    }), "/test");
     expect(result!.issues.some(
       (i) => i.message.includes("memory guidance"),
     )).toBe(false);
@@ -148,7 +151,7 @@ describe("analyzeMemory", () => {
     const result = await analyzeMemory(makeConfig({
       mcpServers: [memoryServer],
       settings: { permissions: { allow: [] } },
-    }));
+    }), "/test");
     expect(result!.issues.some(
       (i) => i.severity === "low" && i.message.includes("tool permission"),
     )).toBe(true);
@@ -158,7 +161,7 @@ describe("analyzeMemory", () => {
     const result = await analyzeMemory(makeConfig({
       mcpServers: [memoryServer],
       settings: { permissions: { allow: ALL_TOOLS } },
-    }));
+    }), "/test");
     expect(result!.issues.some(
       (i) => i.message.includes("tool permission"),
     )).toBe(false);
@@ -170,7 +173,7 @@ describe("analyzeMemory", () => {
       hooks: [sessionStartHook],
       settings: { autoMemoryEnabled: false, permissions: { allow: ALL_TOOLS } },
       claudeMdContent: "# Test\n## Memory\nUse agentic-memory",
-    }));
+    }), "/test");
     expect(result!.score).toBe(100);
     expect(result!.issues).toHaveLength(0);
   });
@@ -182,7 +185,7 @@ describe("analyzeMemory", () => {
       mcpServers: [memoryServer],
       settings: {},
       localSettings: { autoMemoryEnabled: false },
-    }));
+    }), "/test");
     expect(result!.issues.some(
       (i) => i.message.includes("autoMemoryEnabled"),
     )).toBe(false);
@@ -193,7 +196,7 @@ describe("analyzeMemory", () => {
       mcpServers: [memoryServer],
       claudeMdContent: "# Test project",
       localClaudeMdContent: "## Memory\nUse agentic-memory",
-    }));
+    }), "/test");
     expect(result!.issues.some(
       (i) => i.message.includes("memory guidance"),
     )).toBe(false);
@@ -204,7 +207,7 @@ describe("analyzeMemory", () => {
       mcpServers: [memoryServer],
       settings: { permissions: { allow: [] } },
       localSettings: { permissions: { allow: ALL_TOOLS } },
-    }));
+    }), "/test");
     expect(result!.issues.some(
       (i) => i.message.includes("tool permission"),
     )).toBe(false);
@@ -217,7 +220,7 @@ describe("analyzeMemory", () => {
       mcpServers: [memoryServer],
       settings: { permissions: { allow: half1 } },
       localSettings: { permissions: { allow: half2 } },
-    }));
+    }), "/test");
     expect(result!.issues.some(
       (i) => i.message.includes("tool permission"),
     )).toBe(false);
@@ -225,7 +228,7 @@ describe("analyzeMemory", () => {
 
   it("calculates score correctly with mixed severities", async () => {
     // Only MCP server, nothing else → high (SessionStart) + medium (autoMemory) + low (guidance) + low (tools)
-    const result = await analyzeMemory(makeConfig({ mcpServers: [memoryServer] }));
+    const result = await analyzeMemory(makeConfig({ mcpServers: [memoryServer] }), "/test");
     // 100 - (20 + 10 + 5 + 5) = 60
     expect(result!.score).toBe(60);
   });
@@ -236,7 +239,7 @@ describe("analyzeMemory", () => {
     const result = await analyzeMemory(makeConfig({
       mcpServers: [memoryServer],
       hooks: [sessionStartHook],
-    }));
+    }), "/test");
     expect(result!.issues.some((i) => i.message.includes("SessionEnd"))).toBe(false);
   });
 
@@ -246,7 +249,7 @@ describe("analyzeMemory", () => {
     const result = await analyzeMemory(makeConfig({
       mcpServers: [memoryServer],
       hooks: [sessionStartHook],
-    }));
+    }), "/test");
     expect(result!.issues.some((i) => i.message.includes("SessionEnd"))).toBe(true);
   });
 
@@ -261,7 +264,7 @@ describe("analyzeMemory", () => {
     const result = await analyzeMemory(makeConfig({
       mcpServers: [memoryServer],
       hooks: [sessionStartHook, sessionEndPush],
-    }));
+    }), "/test");
     expect(result!.issues.some((i) => i.message.includes("SessionEnd"))).toBe(false);
   });
 
@@ -271,7 +274,7 @@ describe("analyzeMemory", () => {
     const result = await analyzeMemory(makeConfig({
       mcpServers: [memoryServer],
       hooks: [sessionStartHook],
-    }));
+    }), "/test");
     expect(result!.issues.some((i) => i.message.includes("auto-pull"))).toBe(false);
   });
 
@@ -281,7 +284,7 @@ describe("analyzeMemory", () => {
     const result = await analyzeMemory(makeConfig({
       mcpServers: [memoryServer],
       hooks: [sessionStartHook],
-    }));
+    }), "/test");
     expect(result!.issues.some(
       (i) => i.severity === "medium" && i.message.includes("auto-pull"),
     )).toBe(true);
@@ -298,7 +301,74 @@ describe("analyzeMemory", () => {
     const result = await analyzeMemory(makeConfig({
       mcpServers: [memoryServer],
       hooks: [sessionStartHook, sessionStartPull],
-    }));
+    }), "/test");
     expect(result!.issues.some((i) => i.message.includes("auto-pull"))).toBe(false);
+  });
+});
+
+describe("analyzeMemory — wrapper-aware hook resolution", () => {
+  let root: string;
+
+  beforeEach(async () => {
+    root = await mkdtemp(join(tmpdir(), "lp-memory-wrapper-"));
+    await mkdir(join(root, ".claude"), { recursive: true });
+  });
+
+  afterEach(async () => {
+    await rm(root, { recursive: true, force: true });
+  });
+
+  it("recognises memory context in a wrapper .sh file (swissazan scenario)", async () => {
+    await writeFile(
+      join(root, ".claude", "session-start.sh"),
+      "#!/bin/bash\ncat TASKS.md\nclaude-launchpad memory context --json\n",
+    );
+    const wrappedHook: HookConfig = {
+      event: "SessionStart",
+      type: "command",
+      command: "bash .claude/session-start.sh 2>/dev/null; exit 0",
+    };
+    const result = await analyzeMemory(makeConfig({
+      mcpServers: [memoryServer],
+      hooks: [wrappedHook],
+    }), root);
+    expect(result).not.toBeNull();
+    expect(result!.issues.some(
+      (i) => i.message.includes("No SessionStart hook with memory context"),
+    )).toBe(false);
+  });
+
+  it("still flags when the wrapper script exists but does not inject memory context", async () => {
+    await writeFile(
+      join(root, ".claude", "session-start.sh"),
+      "#!/bin/bash\ncat TASKS.md\n",
+    );
+    const wrappedHook: HookConfig = {
+      event: "SessionStart",
+      type: "command",
+      command: "bash .claude/session-start.sh",
+    };
+    const result = await analyzeMemory(makeConfig({
+      mcpServers: [memoryServer],
+      hooks: [wrappedHook],
+    }), root);
+    expect(result!.issues.some(
+      (i) => i.severity === "high" && i.message.includes("memory context"),
+    )).toBe(true);
+  });
+
+  it("flags a broken wrapper (hook points at a missing .sh file)", async () => {
+    const wrappedHook: HookConfig = {
+      event: "SessionStart",
+      type: "command",
+      command: "bash .claude/does-not-exist.sh",
+    };
+    const result = await analyzeMemory(makeConfig({
+      mcpServers: [memoryServer],
+      hooks: [wrappedHook],
+    }), root);
+    expect(result!.issues.some(
+      (i) => i.severity === "low" && i.message.includes("file is missing"),
+    )).toBe(true);
   });
 });
