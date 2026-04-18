@@ -13,8 +13,13 @@ import {
   INJECTION_HEADER_TOKENS,
   INJECTION_MAX_SAME_TYPE_FULL,
   INJECTION_PINNED_BUDGET_PCT,
+  INJECTION_PINNED_IMPORTANCE,
+  INJECTION_MMR_LAMBDA,
+  INJECTION_MMR_MAX_RERANK,
+  INJECTION_MMR_SIM_WEIGHTS,
 } from "../config.js";
 import { computeContextScore, type GitContext } from "../utils/git-context.js";
+import { applyMMR } from "../utils/mmr.js";
 
 // ── Types ──────────────────────────────────────────────────────
 
@@ -75,8 +80,20 @@ export class InjectionService {
       .filter((s) => s.score >= minScore)
       .sort((a, b) => b.score - a.score);
 
+    // MMR diversity re-ranking on non-pinned pool; pinned keep relevance order
+    // so oracle-preferred high-importance memories are not demoted by duplicates.
+    const pinned = scored.filter((s) => s.memory.importance >= INJECTION_PINNED_IMPORTANCE);
+    const nonPinned = scored.filter((s) => s.memory.importance < INJECTION_PINNED_IMPORTANCE);
+    const diversified = applyMMR(nonPinned, {
+      lambda: INJECTION_MMR_LAMBDA,
+      maxRerank: INJECTION_MMR_MAX_RERANK,
+      contentWeight: INJECTION_MMR_SIM_WEIGHTS.content,
+      tagsWeight: INJECTION_MMR_SIM_WEIGHTS.tags,
+    });
+    const ordered = [...pinned, ...diversified];
+
     // Greedy token-budget packing with tier assignment
-    return this.#packBudget(scored, tokenBudget, totalCount);
+    return this.#packBudget(ordered, tokenBudget, totalCount);
   }
 
   formatInjection(result: InjectionResult): string {
@@ -217,7 +234,7 @@ export class InjectionService {
     // Phase 1: pinned memories get guaranteed slots
     const pinnedBudget = INJECTION_HEADER_TOKENS + Math.floor(tokenBudget * INJECTION_PINNED_BUDGET_PCT);
     for (const { memory, score } of scored) {
-      if (memory.importance < 0.8 || tokensUsed >= pinnedBudget) continue;
+      if (memory.importance < INJECTION_PINNED_IMPORTANCE || tokensUsed >= pinnedBudget) continue;
       const cost = this.#estimateTierTokens(memory, "full");
       if (tokensUsed + cost > pinnedBudget) continue;
       selected.push({ memory, score, tier: "full", tokenCost: cost });

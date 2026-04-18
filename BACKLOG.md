@@ -5,9 +5,6 @@ Priority: P1 = soon, P2 = when relevant, P3 = if circumstances change.
 
 ---
 
-## [P1] Memory: MMR Diversity Selection
-Maximal Marginal Relevance for injection. Prevents injecting 5 memories on the same topic. Picks the best one, penalizes similar ones, gives the slot to a different topic. Matters at 100+ memories.
-
 ## [P1] Memory: Auto-Relation Discovery
 When storing a new memory, search for related existing memories and auto-create relations (relates_to, extends, contradicts). More connections improve injection scoring and decay resistance.
 

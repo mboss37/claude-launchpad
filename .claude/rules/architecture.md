@@ -27,7 +27,7 @@
 │   │       ├── tools/             # 7 MCP tool handlers
 │   │       ├── subcommands/       # install, stats, context, doctor, push, pull
 │   │       ├── dashboard/         # Ink TUI (lazy-loaded via --dashboard)
-│   │       └── utils/             # require-deps, git-context, content-validation, gist-transport, sync-merge
+│   │       └── utils/             # require-deps, git-context, content-validation, gist-transport, sync-merge, similarity, mmr
 │   ├── lib/
 │   │   ├── detect.ts              # Project auto-detection (language, framework, tools)
 │   │   ├── parser.ts              # Parse .claude/ directory structure
@@ -36,7 +36,7 @@
 │   └── types/index.ts             # Core type definitions (doctor, eval, init)
 ├── scenarios/                     # Built-in eval scenarios (YAML: security/, conventions/, workflow/)
 ├── tests/                         # Vitest tests (322+)
-└── tests/memory/                  # Memory-specific tests (storage, services, sync, utils) + benchmarks (54)
+└── tests/memory/                  # Memory-specific tests (storage, services, sync, utils) + benchmarks (57)
 ```
 
 ## Command Flow

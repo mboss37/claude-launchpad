@@ -245,6 +245,10 @@ These are listed for transparency. You do not need to configure or think about t
 | Type bonus | 5% | Procedural and pattern knowledge prioritized over episodic events |
 | Noise penalty | 5% | Penalizes memories injected many times without being accessed |
 
+### Diversity re-ranking (MMR)
+
+At scale, pure relevance ranking can pack the top slots with near-duplicate memories on the same topic — five `pnpm` memories crowding out everything else. Injection re-ranks non-pinned candidates with Maximal Marginal Relevance: pick the most relevant, then for each next slot penalize candidates too similar (by content keywords + tags) to what's already chosen. Pinned high-importance memories (≥ 0.8) bypass re-ranking so critical knowledge never loses its seat. Same token budget, more topic coverage.
+
 ### Self-tuning
 
 The system learns from usage without configuration. When Claude searches for a memory, that memory rises in rank for future sessions. When a memory gets injected repeatedly but Claude never references it, the noise penalty kicks in and it gradually stops appearing. No ML models, no manual tuning — just a feedback loop through the value signal and noise penalty.

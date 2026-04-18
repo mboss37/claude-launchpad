@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.6.0] — 2026-04-18
+
+### Added
+- MMR (Maximal Marginal Relevance) diversity re-ranking in `InjectionService`. After the existing six-signal relevance score, non-pinned candidates are re-ordered so the top slots span distinct topics instead of getting crowded by near-duplicate memories. Pinned high-importance memories (≥ 0.8) bypass MMR so critical knowledge keeps its seat. λ=0.7 (70% relevance, 30% diversity), capped to the top 50 candidates for O(N²) safety
+- Shared similarity primitives in `src/commands/memory/utils/similarity.ts` — `extractKeywords`, `jaccardOverlap`, `smallerSetOverlap`. Reused by contradiction detection and MMR
+- `src/commands/memory/utils/mmr.ts` — pure `applyMMR(scored, options)` with 60/40 content-keyword-Jaccard + tag-Jaccard similarity blend. Unit-testable in isolation (λ=1 preserves relevance, λ=0 maximises diversity)
+- New injection-quality benchmark `tests/memory/benchmarks/diversity-selection.bench.ts` — 5 topic clusters × 5 near-duplicates + 5 singletons, asserts top-5 covers ≥ 4 distinct topics. Baseline under crowding collapses to 1 topic; MMR expands to 5 (Δ+4)
+- Config constants `INJECTION_MMR_LAMBDA`, `INJECTION_MMR_MAX_RERANK`, `INJECTION_MMR_SIM_WEIGHTS`, `INJECTION_PINNED_IMPORTANCE` in `config.ts`. Tuning is a one-line change, no algorithm edit required
+
+### Changed
+- `utils/contradiction.ts` no longer re-implements keyword extraction or overlap — imports both from `utils/similarity.ts`. Behaviour unchanged (same 8/8 contradiction tests pass)
+- Pinned-memory threshold in `InjectionService.#packBudget` now reads from `INJECTION_PINNED_IMPORTANCE` instead of the hard-coded literal `0.8`
+- 399 unit tests (+27: 17 similarity, 9 MMR, 1 injection diversity) and 57 benchmarks (+3 diversity)
+
+### Fixed
+- Removed dead `lint` script from `package.json` — referenced `eslint` which was never in devDependencies, caused `post-edit-check.sh` hook to fail on every write. Project uses `tsc --noEmit` for static checks; no linter was ever configured
+
 ## [1.5.0] — 2026-04-18
 
 ### Fixed

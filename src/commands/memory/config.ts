@@ -92,6 +92,16 @@ export const INJECTION_COLD_START_RAMP_END = 20;
 export const INJECTION_HEADER_TOKENS = 50;
 export const INJECTION_MAX_SAME_TYPE_FULL = 2;
 export const INJECTION_PINNED_BUDGET_PCT = 0.10;
+export const INJECTION_PINNED_IMPORTANCE = 0.8;
+
+// MMR diversity re-ranking for non-pinned candidates.
+// lambda=1 ≡ pure relevance, lambda=0 ≡ max diversity.
+export const INJECTION_MMR_LAMBDA = 0.7;
+export const INJECTION_MMR_MAX_RERANK = 50;
+export const INJECTION_MMR_SIM_WEIGHTS = {
+  content: 0.6,
+  tags: 0.4,
+} as const;
 
 // ── Config Loader ─────────────────────────────────────────────
 

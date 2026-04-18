@@ -29,10 +29,16 @@
 - **Sprint 22**: Purge + Doctor Modernization (v0.16.0) — TUI purge, SessionEnd/MCP checks, fixer extraction, 322 tests
 - **Sprint 23**: Stability (v1.0.0) — sync status/clean, content_hash dedup, immutability fixes, 57 manual tests, 10 bugs fixed, cross-device sync framing
 - **Sprint 25**: Doctor Intent Detection (v1.5.0) — keyword-based section detection replaces regex-exact heading loop, 8 FIX_TABLE entries wrap boilerplate in LP-STUB markers (stubs never satisfy intent), 360 tests (+12), mature-project + new-project fixtures, swissazan-style `## Sprint Planning` now correctly satisfies Session Start intent
+- **Sprint 26**: Memory MMR Diversity (v1.6.0) — Maximal Marginal Relevance re-ranks non-pinned injection candidates so top-N spans topics instead of near-duplicates. λ=0.7, 60/40 content+tag Jaccard. New utils/similarity.ts + utils/mmr.ts (pure). 399 tests (+27), 57 benchmarks (+3). Under crowding, top-5 coverage goes 1→5 topics (Δ+4) with no oracle regression (71.7%).
 
 ## Current Sprint: none — pick next from BACKLOG.md
 
 ## Session Log
+### 2026-04-18 (session 39)
+- Sprint 26 shipped: MMR diversity re-ranking in InjectionService. Non-pinned scope, λ=0.7, 60/40 content+tag Jaccard. Extracted shared similarity primitives (utils/similarity.ts), added pure applyMMR module (utils/mmr.ts).
+- New diversity benchmark: under crowded scoring (one cluster dominant), baseline top-5 collapses to 1 topic, MMR expands to 5 (Δ+4). 399 tests (+27), 57 benchmarks (+3), oracle still 71.7%.
+- Removed dead `lint` script from package.json (referenced uninstalled eslint, was blocking post-edit hook). Published v1.6.0.
+
 ### 2026-04-18 (session 38)
 - Sprint 25 shipped: intent-based CLAUDE.md section detection replaces regex-exact heading matching. Heading aliases OR body keywords satisfy intent; stub-wrapped sections never do. LP-STUB markers wrap all 8 AI-boilerplate injections.
 - Hook command resolver added (shell-quote + realpath boundary): memory analyzer now sees through `bash .claude/x.sh` wrappers, emits low-sev issue for broken wrappers. Swissazan went 87% → 91% (memory 70% → 100%, HIGH false positive gone).
@@ -43,12 +49,3 @@
 - Migration 004 adds `memory_tombstones` table; hardDelete/deleteByType/deleteByProject write tombstones atomically. Doctor detects + upgrades stale backgrounded SessionEnd hooks (`& exit 0` → `; exit 0`).
 - Verified end-to-end with a real-gist round-trip (5 scenarios, isolated DBs). Docs synced (changelog 4 releases behind caught up). Published v1.4.0.
 
-### 2026-04-15 (session 36)
-- Fixed silently broken SessionStart auto-pull (`-y` flag), TUI content jump on big memories, viewport off-by-one past entry 35.
-- Added Enter-to-expand memory overlay with scroll, `pull --all` skips projects not set up locally, per-project pull output clarity.
-- Softened content-validation (no hard-reject on length), locked TUI three-panel layout to strict height. Published v1.3.0.
-
-### 2026-04-13 (session 35)
-- Doctor now checks for skill authoring conventions in rules files, fixer adds section (v1.2.0).
-- Updated skill authoring to match official Claude Code docs (500-line limit, 250-char desc, $ARGUMENTS, disable-model-invocation).
-- Renamed "When Stuck" to "Stop-and-Swarm" across all surfaces, restored local config steps in /lp-enhance (v1.2.1).

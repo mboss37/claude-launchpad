@@ -115,6 +115,29 @@ describe("InjectionService", () => {
       expect(importances[0]).toBeGreaterThanOrEqual(importances[1]!);
     });
 
+    it("diversifies top picks when near-duplicates crowd the pool", () => {
+      for (let i = 0; i < 5; i++) {
+        makeMemory(`pnpm package manager strict pnpm not npm variant ${i}`, "semantic", 0.5, {
+          tags: ["pnpm", "tooling"],
+        });
+      }
+      makeMemory("react server components hydration boundary strategy", "semantic", 0.5, { tags: ["react"] });
+      makeMemory("prisma schema migrations pooling config strategy", "semantic", 0.5, { tags: ["prisma"] });
+      makeMemory("tailwind mobile first responsive design breakpoints", "semantic", 0.5, { tags: ["tailwind"] });
+      makeMemory("typescript strict mode noImplicitAny unknown narrowing", "semantic", 0.5, { tags: ["typescript"] });
+      makeMemory("vitest parallel test execution worker pool isolation", "semantic", 0.5, { tags: ["testing"] });
+
+      const service = new InjectionService({ memoryRepo, relationRepo });
+      const result = service.selectForInjection(3000);
+
+      const top3 = result.memories.slice(0, 3);
+      const pnpmInTop3 = top3.filter((m) => m.memory.tags.includes("pnpm")).length;
+      expect(pnpmInTop3).toBeLessThanOrEqual(2);
+
+      const top5Tags = new Set(result.memories.slice(0, 5).flatMap((m) => m.memory.tags));
+      expect(top5Tags.size).toBeGreaterThanOrEqual(3);
+    });
+
     it("penalizes memories injected many times without access", () => {
       const noisy = makeMemory("Noisy memory", "semantic", 0.5);
       const fresh = makeMemory("Fresh memory", "semantic", 0.5);

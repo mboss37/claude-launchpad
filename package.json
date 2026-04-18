@@ -1,6 +1,6 @@
 {
   "name": "claude-launchpad",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "CLI toolkit for Claude Code — scaffold CLAUDE.md, diagnose config, enforce hooks, test with eval, add persistent memory",
   "type": "module",
   "bin": {
@@ -12,7 +12,6 @@
     "start": "tsx src/cli.ts",
     "test": "vitest",
     "test:run": "vitest run",
-    "lint": "eslint src/ --ext .ts",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "pnpm build",
     "publish:dev": "npm version prerelease --preid=dev --no-git-tag-version && node scripts/sync-version.mjs && npm publish --tag dev",
