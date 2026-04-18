@@ -56,7 +56,7 @@ claude-launchpad doctor
   </Accordion>
   <Accordion title="CLAUDE.md">
     - Missing sections: Stack, Commands, Architecture, Off-Limits, Session Start, Backlog, Stop-and-Swarm, Memory & Learnings
-    - Section detection is intent-based: a heading like `## Sprint Planning`, `## Workflow`, or `## Security Notes` satisfies the matching intent even without the canonical name. Doctor looks at heading aliases first, body keywords second.
+    - Detects sections by intent, not just by exact heading name. `## Sprint Planning`, `## Workflow`, or `## Security Notes` all count as Session Start. Doctor matches heading aliases first, then falls back to body keywords.
     - Attribution migration (includeCoAuthoredBy → attribution object)
   </Accordion>
   <Accordion title="Files">
@@ -76,7 +76,7 @@ claude-launchpad doctor
 </Callout>
 
 <Callout type="info">
-  **LP-STUB markers.** Sections injected by `--fix` are wrapped in `<!-- LP-STUB: ai-recommended -->` markers. Doctor treats a stub-wrapped section as unsatisfied, so the flag keeps showing until you replace the boilerplate with your own content (or delete the markers). Running `/lp-enhance` rewrites the section and removes the markers in one pass.
+  **LP-STUB markers.** `--fix` wraps injected sections in `<!-- LP-STUB: ai-recommended -->` markers. A stub-wrapped section still flags as missing. The marker tells doctor the content is scaffolding, not real. Replace the boilerplate (or delete the markers) to clear the flag. Running `/lp-enhance` does both in one pass.
 </Callout>
 
 ## When to re-run

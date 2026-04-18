@@ -51,7 +51,7 @@ Running `claude-launchpad memory` without flags uses a smart default:
 ## What it installs
 
 - SQLite database at `~/.agentic-memory/` (shared across projects, scoped per project internally)
-- SessionStart hook that injects relevant memories at session start. The hook command can delegate to a wrapper `.sh` script inside your project — doctor reads one level of wrapper body, so `bash .claude/session-start.sh` that internally runs `claude-launchpad memory context` passes the check.
+- SessionStart hook that injects relevant memories at session start. Your hook can call a `.sh` wrapper instead of running the command directly. Doctor reads one level inside the script, so `bash .claude/session-start.sh` satisfies the check as long as the script itself runs `claude-launchpad memory context`.
 - SessionStart pull hook and SessionEnd push hook (when sync is configured) for automatic cross-device sync
 - 7 MCP tools for storing, searching, and managing memories
 - Memory guidance section in CLAUDE.md (or `.claude/CLAUDE.md` for local placement)
