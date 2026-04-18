@@ -56,6 +56,7 @@ claude-launchpad doctor
   </Accordion>
   <Accordion title="CLAUDE.md">
     - Missing sections: Stack, Commands, Architecture, Off-Limits, Session Start, Backlog, Stop-and-Swarm, Memory & Learnings
+    - Section detection is intent-based: a heading like `## Sprint Planning`, `## Workflow`, or `## Security Notes` satisfies the matching intent even without the canonical name. Doctor looks at heading aliases first, body keywords second.
     - Attribution migration (includeCoAuthoredBy → attribution object)
   </Accordion>
   <Accordion title="Files">
@@ -72,6 +73,10 @@ claude-launchpad doctor
 
 <Callout type="info">
   After `--fix`, use `/lp-enhance` inside Claude Code to restructure your CLAUDE.md. The fixer appends sections mechanically - the skill rewrites them into clean, project-specific content.
+</Callout>
+
+<Callout type="info">
+  **LP-STUB markers.** Sections injected by `--fix` are wrapped in `<!-- LP-STUB: ai-recommended -->` markers. Doctor treats a stub-wrapped section as unsatisfied, so the flag keeps showing until you replace the boilerplate with your own content (or delete the markers). Running `/lp-enhance` rewrites the section and removes the markers in one pass.
 </Callout>
 
 ## When to re-run
