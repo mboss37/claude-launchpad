@@ -5,6 +5,15 @@ Priority: P1 = big bug or must-have feature, P2 = real pain with clear evidence,
 
 ---
 
+## [P1] Memory Install: Respect allowedMcpServers Allowlist
+`claude-launchpad memory install` calls `claude mcp add agentic-memory` which silently fails with "not allowed by enterprise policy" when `settings.json` has an `allowedMcpServers` allowlist that doesn't include `agentic-memory`. Install prints "Could not enable memory tools automatically" and moves on, leaving a half-configured project. Fix: before registering, read `allowedMcpServers` from settings, and if it exists and doesn't include `agentic-memory`, add it. Reproduced on hyperterminal 2026-04-19.
+
+## [P2] Doctor: Detect Orphaned MCP Permission Entries
+MCP analyzer currently checks server registration in isolation. It doesn't cross-reference `permissions.allow` entries of shape `mcp__<server>__*` against actual registered servers. A stale entry (e.g. `mcp__old-name__*` after a rename) silently blocks all tool calls. Add a check: for every distinct `<server>` in `permissions.allow`, verify it appears in `.mcp.json` or settings `mcpServers`. Report unregistered ones as warnings.
+
+## [P2] Doctor: Detect MCP Allowlist Excluding Memory
+When memory hooks (`claude-launchpad memory context/pull/push`) are wired in settings but `allowedMcpServers` is present without `agentic-memory`, the user has a functionally broken memory setup — hooks fire but tools never appear in Claude Code. Add a check that cross-references memory-hook presence with allowlist membership.
+
 ## [P3] Memory: Auto-Relation Discovery
 When storing a new memory, search for related existing memories and auto-create relations (relates_to, extends, contradicts). Speculative — no user complaint, Sprint 26 benchmark already at 71.7% oracle. Revisit if injection quality regresses.
 
