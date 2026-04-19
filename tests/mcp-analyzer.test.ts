@@ -52,18 +52,6 @@ describe("analyzeMcp", () => {
     expect(result.score).toBe(75);
   });
 
-  it("flags sandbox without network config for HTTP MCP servers", async () => {
-    const result = await analyzeMcp(makeConfig({
-      settings: { sandbox: { enabled: true }, allowedMcpServers: [{ serverName: "api" }] },
-      mcpServers: [{
-        name: "api",
-        transport: "http",
-        url: "https://api.example.com/mcp",
-      }],
-    }));
-    expect(result.issues.some((i) => i.message.includes("network restrictions"))).toBe(true);
-  });
-
   it("flags stdio server without command", async () => {
     const result = await analyzeMcp(makeConfig({
       mcpServers: [{

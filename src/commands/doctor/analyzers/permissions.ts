@@ -40,14 +40,14 @@ export async function analyzePermissions(config: ClaudeConfig): Promise<Analyzer
     });
   }
 
-  // Sandbox not enabled
+  // Filesystem sandbox actively breaks cross-project tooling (memory MCP, ~/.claude reads)
   const sandbox = settings?.sandbox as Record<string, unknown> | undefined;
-  if (sandbox?.enabled !== true) {
+  if (sandbox?.enabled === true) {
     issues.push({
       analyzer: "Permissions",
-      severity: "medium",
-      message: "Sandbox not enabled — hooks block tool calls but not subprocess access (e.g. cat .env via Bash)",
-      fix: 'Add "sandbox": { "enabled": true, "failIfUnavailable": true } to settings.json',
+      severity: "high",
+      message: "Filesystem sandbox enabled — blocks memory MCP and other cross-project tooling. Deny rules already cover the threat model.",
+      fix: 'Remove the "sandbox" block from settings.json',
     });
   }
 

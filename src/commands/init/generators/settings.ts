@@ -17,10 +17,6 @@ interface ClaudeSettings {
   };
   readonly hooks?: Record<string, ReadonlyArray<HookGroup>>;
   readonly disableBypassPermissionsMode?: "disable";
-  readonly sandbox?: {
-    readonly enabled: boolean;
-    readonly failIfUnavailable: boolean;
-  };
 }
 
 /**
@@ -104,10 +100,6 @@ export function generateSettings(detected: DetectedProject): ClaudeSettings {
     },
     hooks,
     disableBypassPermissionsMode: "disable",
-    sandbox: {
-      enabled: true,
-      failIfUnavailable: true,
-    },
   };
 }
 

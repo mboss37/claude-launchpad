@@ -1,4 +1,6 @@
 import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
+import { realpathSync } from 'node:fs';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 
@@ -64,8 +66,23 @@ export async function startServer(deps?: Partial<ServerDeps>): Promise<void> {
   process.on('SIGTERM', () => void shutdown());
 }
 
-// Auto-start when invoked directly as MCP server entry point
-startServer().catch((err) => {
-  process.stderr.write(`[agentic-memory] ${err}\n`);
-  process.exit(1);
-});
+// Auto-start only when this file is run directly as the entry point
+// (e.g. `node dist/memory/server.js`). When imported by cli.ts's `memory serve`
+// command, the action handler calls startServer() explicitly — auto-starting
+// here too would spawn two instances on the same stdio pipe and break MCP.
+function isMainEntry(): boolean {
+  const argv1 = process.argv[1];
+  if (!argv1) return false;
+  try {
+    return fileURLToPath(import.meta.url) === realpathSync(argv1);
+  } catch {
+    return false;
+  }
+}
+
+if (isMainEntry()) {
+  startServer().catch((err) => {
+    process.stderr.write(`[agentic-memory] ${err}\n`);
+    process.exit(1);
+  });
+}

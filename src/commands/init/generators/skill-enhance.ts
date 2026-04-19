@@ -2,7 +2,7 @@
  * Skill schema version. Bump this when the skill content changes.
  * Doctor compares this against installed skills to detect stale versions.
  */
-export const ENHANCE_SKILL_VERSION = 7;
+export const ENHANCE_SKILL_VERSION = 8;
 
 /**
  * Generates the /lp-enhance skill markdown content.
@@ -211,7 +211,6 @@ export function generateEnhanceSkill(): string {
     '',
     '## Other advanced configuration',
     '',
-    '- If the project uses external APIs, suggest sandbox.network.allowedDomains',
     '- If you detect a monorepo, suggest claudeMdExcludes in settings.json',
   ].join('\n');
 }

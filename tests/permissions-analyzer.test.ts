@@ -95,18 +95,20 @@ describe("analyzePermissions", () => {
     expect(result.issues.some((i) => i.message.includes("Bypass"))).toBe(false);
   });
 
-  it("flags sandbox not enabled", async () => {
+  it("flags filesystem sandbox when enabled", async () => {
+    const result = await analyzePermissions(makeConfig({
+      settings: { sandbox: { enabled: true, failIfUnavailable: true } },
+    }));
+    const issue = result.issues.find((i) => i.message.includes("Filesystem sandbox enabled"));
+    expect(issue).toBeDefined();
+    expect(issue?.severity).toBe("high");
+  });
+
+  it("does not flag when no sandbox block is present", async () => {
     const result = await analyzePermissions(makeConfig({
       settings: {},
     }));
-    expect(result.issues.some((i) => i.message.includes("Sandbox not enabled"))).toBe(true);
-  });
-
-  it("does not flag when sandbox is enabled", async () => {
-    const result = await analyzePermissions(makeConfig({
-      settings: { sandbox: { enabled: true } },
-    }));
-    expect(result.issues.some((i) => i.message.includes("Sandbox"))).toBe(false);
+    expect(result.issues.some((i) => i.message.toLowerCase().includes("sandbox"))).toBe(false);
   });
 
   it("flags .env gap when hooks protect but claudeignore does not", async () => {

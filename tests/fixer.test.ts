@@ -170,11 +170,17 @@ describe("applyFixes", () => {
     expect(settings.disableBypassPermissionsMode).toBe("disable");
   });
 
-  it("adds sandbox settings to settings.json", async () => {
+  it("removes sandbox block from settings.json", async () => {
+    await mkdir(join(testDir, ".claude"), { recursive: true });
+    await writeFile(
+      join(testDir, ".claude", "settings.json"),
+      JSON.stringify({ sandbox: { enabled: true, failIfUnavailable: true } }, null, 2),
+    );
+
     const issues: DiagnosticIssue[] = [{
       analyzer: "Permissions",
-      severity: "medium",
-      message: "Sandbox not enabled",
+      severity: "high",
+      message: "Filesystem sandbox enabled",
       fix: "",
     }];
 
@@ -184,8 +190,7 @@ describe("applyFixes", () => {
     const settings = JSON.parse(
       await readFile(join(testDir, ".claude", "settings.json"), "utf-8"),
     );
-    expect(settings.sandbox.enabled).toBe(true);
-    expect(settings.sandbox.failIfUnavailable).toBe(true);
+    expect(settings.sandbox).toBeUndefined();
   });
 
   it("adds .env to .claudeignore", async () => {

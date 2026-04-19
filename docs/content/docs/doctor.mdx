@@ -17,7 +17,7 @@ claude-launchpad doctor
 
 | Flag | Description |
 |---|---|
-| `--fix` | Auto-fix: hooks, CLAUDE.md sections, rules, .claudeignore, credentials, sandbox |
+| `--fix` | Auto-fix: hooks, CLAUDE.md sections, rules, .claudeignore, credentials |
 | `--fix --dry-run` | Preview what --fix would change without applying |
 | `--watch` | Re-runs every second when config files change |
 | `--min-score <n>` | Exit code 1 if below threshold (for CI) |
@@ -33,7 +33,7 @@ claude-launchpad doctor
 | **Settings** | Missing hooks, deprecated settings, auto-memory conflicts. Without proper settings, Claude runs without guardrails. |
 | **Hooks** | Missing SessionStart = Claude forgets where you left off. Missing PostCompact = Claude loses context mid-session. Missing SessionEnd = memories never sync. Missing auto-format = inconsistent code style. |
 | **Rules** | Missing BACKLOG.md, dead rule files, stale references. Without structure, deferred features get lost in conversation. |
-| **Permissions** | Credential exposure (SSH keys, AWS creds), bypass mode enabled, sandbox disabled. Security gaps that let Claude access what it shouldn't. |
+| **Permissions** | Credential exposure (SSH keys, AWS creds), bypass mode enabled, filesystem sandbox enabled (blocks memory MCP and cross-project tooling). Security gaps that let Claude access what it shouldn't — or our own config choices that actively break it. |
 | **MCP Servers** | Invalid transport configs, missing commands/URLs, MCP servers not in `allowedMcpServers` whitelist. `allowedMcpServers` is a security setting that restricts which MCP servers Claude can use -- without it, any server added to `.mcp.json` or settings is auto-trusted. `--fix` populates it from your configured servers. |
 | **Memory** (optional) | MCP server config, hooks, autoMemory conflicts, CLAUDE.md guidance, tool permissions. Only runs when agentic-memory is detected. |
 
@@ -43,7 +43,6 @@ claude-launchpad doctor
   <Accordion title="Security">
     - Credential deny rules (~/.ssh/*, ~/.aws/*, ~/.npmrc) so Claude can't read your keys even if it tries to debug
     - Bypass permissions mode disabled so `--dangerously-skip-permissions` can't undo your safety settings
-    - Sandbox enabled with failIfUnavailable for subprocess isolation
     - `allowedMcpServers` populated from your defined MCP servers
     - .env added to .claudeignore (defense in depth alongside the hook)
   </Accordion>

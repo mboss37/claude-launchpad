@@ -8,7 +8,7 @@ allowed-tools: Read, Glob, Grep, Edit, Write
 argument-hint: (no arguments needed)
 ---
 
-<!-- lp-enhance-version: 7 -->
+<!-- lp-enhance-version: 8 -->
 
 # lp-enhance - AI-powered CLAUDE.md improver
 
@@ -198,5 +198,4 @@ runs: 3
 
 ## Other advanced configuration
 
-- If the project uses external APIs, suggest sandbox.network.allowedDomains
 - If you detect a monorepo, suggest claudeMdExcludes in settings.json

@@ -39,10 +39,9 @@ describe("generateSettings", () => {
     expect(settings.disableBypassPermissionsMode).toBe("disable");
   });
 
-  it("enables sandbox with failIfUnavailable", () => {
+  it("does not generate a sandbox block", () => {
     const settings = generateSettings(baseProject);
-    expect(settings.sandbox?.enabled).toBe(true);
-    expect(settings.sandbox?.failIfUnavailable).toBe(true);
+    expect((settings as Record<string, unknown>).sandbox).toBeUndefined();
   });
 
   it("generates 8 deny rules total", () => {

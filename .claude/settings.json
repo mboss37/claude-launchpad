@@ -120,10 +120,6 @@
     ]
   },
   "disableBypassPermissionsMode": "disable",
-  "sandbox": {
-    "enabled": true,
-    "failIfUnavailable": true
-  },
   "autoMemoryEnabled": false,
   "allowedMcpServers": [
     {

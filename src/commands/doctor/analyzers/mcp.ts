@@ -65,21 +65,6 @@ export async function analyzeMcp(config: ClaudeConfig): Promise<AnalyzerResult> 
     }
   }
 
-  // Check for sandbox network config when HTTP/SSE MCP servers exist
-  if (servers.length > 0) {
-    const sandbox = (config.settings?.sandbox ?? config.localSettings?.sandbox) as Record<string, unknown> | undefined;
-    const hasNetwork = sandbox?.network !== undefined;
-    const httpServers = servers.filter((s) => s.transport === "sse" || s.transport === "http");
-    if (sandbox?.enabled === true && httpServers.length > 0 && !hasNetwork) {
-      issues.push({
-        analyzer: "MCP",
-        severity: "low",
-        message: "Sandbox enabled with HTTP MCP servers but no network restrictions configured",
-        fix: "Add sandbox.network.allowedHosts to restrict which hosts MCP servers can reach",
-      });
-    }
-  }
-
   const score = Math.max(0, 100 - issues.filter((i) => i.severity !== "info").length * 25);
   return { name: "MCP Servers", issues, score };
 }

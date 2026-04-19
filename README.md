@@ -96,7 +96,7 @@ Runs 7 analyzers against your `.claude/` directory and CLAUDE.md. No API calls, 
 | **Settings** | No hooks configured, dangerous tool access without safety nets |
 | **Hooks** | Missing auto-format, no .env protection, no PostCompact hook, no auto-sync on session end |
 | **Rules** | Dead rule files, stale references, empty configs |
-| **Permissions** | Credential exposure (~/.ssh, ~/.aws), blanket Bash approval, sandbox disabled |
+| **Permissions** | Credential exposure (~/.ssh, ~/.aws), blanket Bash approval, bypass-mode unprotected |
 | **MCP Servers** | Invalid transport configs, missing commands/URLs |
 
 An optional Memory analyzer runs when agentic memory is detected.
@@ -183,7 +183,7 @@ Results save to `.claude/eval/` as structured markdown. Feed them back to Claude
 
 | Suite | Scenarios | What it tests |
 |---|---|---|
-| `security` | 6 | SQL injection, .env protection, secret exposure, input validation, credential read, sandbox escape |
+| `security` | 6 | SQL injection, .env protection, secret exposure, input validation, credential read, env exfil via Bash |
 | `conventions` | 5 | Error handling, immutability, file size, naming, no hardcoded values |
 | `workflow` | 4 | Git conventions, session continuity, memory persistence, deferred tracking |
 

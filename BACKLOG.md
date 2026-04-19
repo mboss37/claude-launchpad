@@ -5,6 +5,9 @@ Priority: P1 = big bug or must-have feature, P2 = real pain with clear evidence,
 
 ---
 
+## [P1] Memory: Bare `memory` Command Shows Stats Even When MCP Not Registered
+`claude-launchpad memory` decides "installed" by checking for the `memory context` SessionStart hook in settings — never checks whether the MCP server is actually registered (`.mcp.json` or user/local scope). Projects can have hooks + permissions + populated DB but no MCP registration, yet bare `memory` shows stats as if healthy and there's no explicit `memory install` subcommand to force re-registration. Fix: either (a) `isMemoryInstalled()` must also verify MCP registration before returning true, or (b) add explicit `memory install` subcommand that always runs the flow. Ideally both. Reproduced on lna-agentforce-statista 2026-04-19.
+
 ## [P1] Memory Install: Respect allowedMcpServers Allowlist
 `claude-launchpad memory install` calls `claude mcp add agentic-memory` which silently fails with "not allowed by enterprise policy" when `settings.json` has an `allowedMcpServers` allowlist excluding it. Install prints "Could not enable memory tools automatically" and exits 0, leaving a half-configured project. Fix: read allowlist before `mcp add`, prepend `agentic-memory` if missing. Reproduced on hyperterminal 2026-04-19.
 

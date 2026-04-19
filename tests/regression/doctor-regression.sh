@@ -97,7 +97,6 @@ cat > .claude/settings.json <<'EOF'
     "deny": ["Read(~/.ssh/*)", "Read(~/.aws/*)", "Read(~/.npmrc)"]
   },
   "disableBypassPermissionsMode": "disable",
-  "sandbox": {"enabled": true, "failIfUnavailable": true},
   "mcpServers": {
     "agentic-memory": {
       "transport": "stdio",
@@ -175,8 +174,7 @@ cat > .claude/settings.json <<'EOF'
   "permissions": {
     "deny": ["Read(~/.ssh/*)", "Read(~/.aws/*)", "Read(~/.npmrc)"]
   },
-  "disableBypassPermissionsMode": "disable",
-  "sandbox": {"enabled": true, "failIfUnavailable": true}
+  "disableBypassPermissionsMode": "disable"
 }
 EOF
 

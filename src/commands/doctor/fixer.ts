@@ -85,7 +85,7 @@ const FIX_TABLE: ReadonlyArray<{ analyzer: string; match: string; fix: FixFn }> 
   { analyzer: "Permissions", match: "force-push", fix: (root) => addForcePushProtection(root) },
   { analyzer: "Permissions", match: "Credential files not blocked", fix: (root) => addCredentialDenyRules(root) },
   { analyzer: "Permissions", match: "Bypass permissions mode", fix: (root) => addBypassDisable(root) },
-  { analyzer: "Permissions", match: "Sandbox not enabled", fix: (root) => addSandboxSettings(root) },
+  { analyzer: "Permissions", match: "Filesystem sandbox enabled", fix: (root) => removeSandboxSettings(root) },
   { analyzer: "Permissions", match: ".env is protected by hooks but not in .claudeignore", fix: (root) => addEnvToClaudeignore(root) },
   { analyzer: "Rules", match: "No skill authoring conventions", fix: (root) => addSkillAuthoringConventions(root) },
   { analyzer: "Rules", match: "No /lp-enhance skill", fix: (root) => createEnhanceSkill(root) },
@@ -254,14 +254,13 @@ async function addBypassDisable(root: string): Promise<boolean> {
   return true;
 }
 
-async function addSandboxSettings(root: string): Promise<boolean> {
+async function removeSandboxSettings(root: string): Promise<boolean> {
   const settings = await readSettingsJson(root);
-  const sandbox = settings.sandbox as Record<string, unknown> | undefined;
-  if (sandbox?.enabled === true) return false;
+  if (settings.sandbox === undefined) return false;
 
-  const updated = { ...settings, sandbox: { enabled: true, failIfUnavailable: true } };
-  await writeSettingsJson(root, updated);
-  log.success("Enabled sandbox with failIfUnavailable");
+  const { sandbox: _sandbox, ...rest } = settings;
+  await writeSettingsJson(root, rest);
+  log.success("Removed sandbox block from settings.json");
   return true;
 }
 

@@ -41,7 +41,7 @@ Always writes these files, and creates additional files only when they do not al
 - **CLAUDE.md**: stack, commands, conventions, guardrails, backlog instructions, stop-and-swarm debugging rule
 - **TASKS.md**: sprint tracking that stays concise (one-line completed sprints, max 3 session entries). The SessionStart hook loads this every session so Claude picks up where you left off.
 - **BACKLOG.md**: parked features with priority tiers (P0/P1/P2). Keeps future ideas from getting lost.
-- **settings.json**: schema, credential blocks (~/.ssh, ~/.aws, ~/.npmrc), sandbox enabled, bypass mode disabled, and hooks. Hooks run at 100% reliability (unlike CLAUDE.md rules at ~80%). The SessionStart hook loads TASKS.md every session. PostCompact re-loads it after context compression. Includes: .env protection, destructive command blocking, auto-format, sprint review, SessionStart (new + resume), PostCompact.
+- **settings.json**: schema, credential blocks (~/.ssh, ~/.aws, ~/.npmrc), bypass mode disabled, and hooks. Hooks run at 100% reliability (unlike CLAUDE.md rules at ~80%). The SessionStart hook loads TASKS.md every session. PostCompact re-loads it after context compression. Includes: .env protection, destructive command blocking, auto-format, sprint review, SessionStart (new + resume), PostCompact.
 - **.gitignore**: prevents local settings, plans, memory from being committed
 - **.claudeignore**: language-specific ignore patterns
 - **lp-enhance skill**: AI-powered CLAUDE.md improver. Installed during init in either project scope (`.claude/skills/lp-enhance/SKILL.md`) or global scope (`~/.claude/skills/lp-enhance/SKILL.md`) when not already present.
