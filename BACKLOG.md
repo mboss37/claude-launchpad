@@ -29,6 +29,9 @@ Hook-patching logic duplicated 3 ways: `install.ts` (addSessionStart/End/Pull), 
 ## [P2] Code: Settings Parse Error Inconsistency
 `lib/settings.ts::readSettingsJson` returns `{}` on JSON parse error; `lib/parser.ts:91-94` returns `null` for the same case. Callers check `!== null` vs `!== undefined` inconsistently. Corrupted settings.json silently loses hooks/permissions in one path, surfaces as null in the other. Fix: standardize on null + `log.warn()`.
 
+## [P2] Memory Sync Status: Remote Count Includes Tombstoned Memories
+`sync-status.ts` sets remote count to `payload.memories.length`, which includes memories already tombstoned on this machine. Display shows drift (e.g. `swissazan 16 local / 23 remote`) but `pull --all` correctly returns "Already in sync" because `mergeFromRemote` skips tombstoned ids. Fix: subtract count of remote memories matched by a local tombstone, or count only mergeable rows. Cosmetic but confusing. Observed 2026-04-21 after v1.7.1 self-heal surfaced correct remote reads.
+
 ## [P2] Memory Install: Preflight Checks
 `runInstall` calls `claude mcp add` and checks `isGhAuthenticated()` mid-flow. If Claude CLI missing, steps 1–2 succeed, step 3 fails silently. Add preflight: check `claude` on PATH, warn on missing `gh` (sync optional). Pattern exists in `eval/index.ts:248`.
 
