@@ -176,6 +176,8 @@ Project-scoped push/pull only touches that project's file. Other projects are ne
 
 **New device:** the gist is auto-discovered from your GitHub account. No config file to copy.
 
+**Deleted gist:** if the stored gist was deleted from GitHub (via the web UI or `gh gist delete`), the next sync command detects the 404, clears the stale config, and re-runs discovery. If a fresh gist exists, it reconnects automatically; if not, your next push creates a new one.
+
 **Pull-before-push:** every push pulls first, so remote changes are never silently overwritten.
 
 **Merge strategy:** newer version of each memory wins (by `updated_at`). New memories are inserted, existing ones are updated in place, and relations are added (never removed by the merger).

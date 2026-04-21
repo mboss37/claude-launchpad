@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.7.1] — 2026-04-21
+
+### Fixed
+- **Stale sync-config silently hides all remote memories.** `~/.agentic-memory/sync-config.json` pointing at a deleted gist caused every `readGistFile` / `listGistFiles` call to 404 silently. `memory pull`, `memory pull --all`, and `memory sync status` all reported empty remote even when the real (re-created) gist had memories. `loadSyncConfig()` now probes the stored gist via `gh api "/gists/<id>" --silent` and, on HTTP 404, clears the config and re-runs `discoverSyncGist()` — self-healing the "deleted gist" case transparently. Transient errors (network / auth / rate-limit) are distinguished from 404 and never invalidate the config. Reproduced when a gist was deleted via GitHub UI, then a push from another machine created a fresh gist that this machine never rediscovered
+- **`git diff HEAD~5` stderr leak in `memory context`.** `src/commands/memory/utils/git-context.ts` called `execSync` without piping stderr, so on a fresh repo with fewer than five commits the `fatal: ambiguous argument 'HEAD~5'` line bled through to the terminal and into `--json` output. Both git calls in `getGitContext()` now pipe stderr. The SessionStart hook had been masking this with `2>/dev/null`; manual invocations (and any caller not swallowing stderr) no longer see the leak
+
 ## [1.7.0] — 2026-04-19
 
 ### Removed

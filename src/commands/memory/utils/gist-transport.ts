@@ -3,6 +3,7 @@ import { readFileSync, writeFileSync, unlinkSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
 import { homedir } from 'node:os';
+import { log } from '../../../lib/output.js';
 
 export interface SyncConfig {
   readonly gistId: string;
@@ -68,20 +69,48 @@ export function readSyncConfig(): SyncConfig | null {
 }
 
 export function loadSyncConfig(): SyncConfig | null {
-  try {
-    const raw = readFileSync(syncConfigPath(), 'utf-8');
-    const parsed = JSON.parse(raw) as Record<string, unknown>;
-    if (typeof parsed.gistId === 'string' && /^[a-f0-9]+$/.test(parsed.gistId)) {
-      return { gistId: parsed.gistId };
+  const stored = readSyncConfig();
+  if (stored) {
+    const status = probeGist(stored.gistId);
+    if (status === 'alive') return stored;
+    if (status === 'missing') {
+      log.warn(`Sync gist ${stored.gistId} no longer exists. Re-discovering...`);
+      clearSyncConfig();
+      // fall through to discovery
+    } else {
+      // unknown error (network, auth, rate limit) — trust stored config
+      return stored;
     }
-  } catch { /* no local config */ }
+  }
 
   const discovered = discoverSyncGist();
   if (discovered) {
     saveSyncConfig({ gistId: discovered });
+    if (stored) log.success(`Reconnected to sync gist ${discovered}`);
     return { gistId: discovered };
   }
   return null;
+}
+
+function probeGist(gistId: string): 'alive' | 'missing' | 'unknown' {
+  try {
+    execSync(
+      `gh api "/gists/${gistId}" --silent`,
+      { ...EXEC_OPTS, stdio: ['pipe', 'pipe', 'pipe'] },
+    );
+    return 'alive';
+  } catch (err) {
+    const stderr = (err as { stderr?: Buffer | string }).stderr?.toString() ?? '';
+    const msg = err instanceof Error ? err.message : String(err);
+    if (/HTTP 404/i.test(stderr) || /HTTP 404/i.test(msg) || /Not Found/i.test(stderr)) {
+      return 'missing';
+    }
+    return 'unknown';
+  }
+}
+
+function clearSyncConfig(): void {
+  try { unlinkSync(syncConfigPath()); } catch { /* already gone */ }
 }
 
 function discoverSyncGist(): string | null {

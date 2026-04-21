@@ -35,6 +35,11 @@
 ## Current Sprint: none — pick next from BACKLOG.md
 
 ## Session Log
+### 2026-04-21 (session 41)
+- v1.7.1 bugfix: stale sync-config self-heal + git stderr leak. `readGistFile`/`listGistFiles` silently 404'd against a deleted gist, making `pull`/`pull --all`/`sync status` report empty remote even when the real gist had memories. `loadSyncConfig()` now probes via `gh api --silent`, distinguishes 404 from transient errors, and re-runs discovery on dead gists.
+- Second fix: `git diff HEAD~5` stderr now pipes instead of leaking `fatal:` lines on fresh repos (SessionStart hook was masking with `2>/dev/null`; manual invocations weren't).
+- 398 tests, 57 benchmarks, typecheck + build green. Explore-agent review clean. Docs/CHANGELOG updated.
+
 ### 2026-04-19 (session 40)
 - Sprint 27 shipped: killed the filesystem sandbox feature AND fixed the real MCP blocker — double-spawned server. Debug log revealed `Received a response for an unknown message ID: {"id":0,...}` caused by auto-start firing at both module-import and CLI action time. Gated with `isMainEntry()`.
 - Patched 6 local projects' settings.json to remove sandbox blocks. BACKLOG cleaned of wrong hypotheses (npx-PATH and trust-wiring — both were red herrings next to the actual double-spawn).
@@ -44,9 +49,4 @@
 - Sprint 26 shipped: MMR diversity re-ranking in InjectionService. Non-pinned scope, λ=0.7, 60/40 content+tag Jaccard. Extracted shared similarity primitives (utils/similarity.ts), added pure applyMMR module (utils/mmr.ts).
 - New diversity benchmark: under crowded scoring (one cluster dominant), baseline top-5 collapses to 1 topic, MMR expands to 5 (Δ+4). 399 tests (+27), 57 benchmarks (+3), oracle still 71.7%.
 - Removed dead `lint` script from package.json (referenced uninstalled eslint, was blocking post-edit hook). Published v1.6.0.
-
-### 2026-04-18 (session 38)
-- Sprint 25 shipped: intent-based CLAUDE.md section detection replaces regex-exact heading matching. Heading aliases OR body keywords satisfy intent; stub-wrapped sections never do. LP-STUB markers wrap all 8 AI-boilerplate injections.
-- Hook command resolver added (shell-quote + realpath boundary): memory analyzer now sees through `bash .claude/x.sh` wrappers, emits low-sev issue for broken wrappers. Swissazan went 87% → 91% (memory 70% → 100%, HIGH false positive gone).
-- 372 tests (+24), two code reviews (one pre-test intent analyzer, one challenger-reviewed resolver plan), 100% self-score maintained, published v1.5.0.
 

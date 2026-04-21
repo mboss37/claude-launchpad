@@ -13,14 +13,16 @@ export function getGitContext(): GitContext {
   let branch: string | null = null;
   let recentFiles: string[] = [];
 
+  const GIT_OPTS = { encoding: 'utf-8' as const, timeout: 3000, stdio: ['pipe', 'pipe', 'pipe'] as ('pipe' | 'ignore' | 'inherit')[] };
+
   try {
-    branch = execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf-8', timeout: 3000 }).trim() || null;
+    branch = execSync('git rev-parse --abbrev-ref HEAD', GIT_OPTS).trim() || null;
   } catch { /* not in a git repo or git not available */ }
 
   try {
-    const raw = execSync('git diff --name-only HEAD~5', { encoding: 'utf-8', timeout: 3000 }).trim();
+    const raw = execSync('git diff --name-only HEAD~5', GIT_OPTS).trim();
     recentFiles = raw ? raw.split('\n').filter(Boolean) : [];
-  } catch { /* shallow clone or no commits */ }
+  } catch { /* shallow clone or fewer than 5 commits */ }
 
   cached = { branch, recentFiles };
   return cached;
