@@ -87,7 +87,7 @@ export async function addSessionStartPullHook(root: string, placement: MemoryPla
 export async function addSessionEndPushHook(root: string, placement: MemoryPlacement): Promise<boolean> {
   const target = placement === "local" ? "settings.local.json" : "settings.json";
   return addPlacementHook(root, placement, "SessionEnd", "memory push", {
-    hooks: [{ type: "command", command: "claude-launchpad memory push -y >/dev/null 2>&1; exit 0" }],
+    hooks: [{ type: "command", command: "nohup claude-launchpad memory push -y </dev/null >/dev/null 2>&1 & exit 0" }],
   }, false, `Added SessionEnd hook for memory sync to ${target}`);
 }
 
@@ -107,9 +107,9 @@ export async function upgradeStaleSessionEndPushHook(root: string): Promise<bool
       if (!inner) return group;
       const rewritten = inner.map((h) => {
         const cmd = typeof h.command === "string" ? h.command : "";
-        if (!cmd.includes("memory push") || !/&\s*exit\s+0\s*$/.test(cmd)) return h;
+        if (!cmd.includes("memory push") || cmd.includes("nohup")) return h;
         changed = true;
-        return { ...h, command: cmd.replace(/&\s*exit\s+0\s*$/, "; exit 0") };
+        return { ...h, command: "nohup claude-launchpad memory push -y </dev/null >/dev/null 2>&1 & exit 0" };
       });
       return { ...group, hooks: rewritten };
     });
@@ -118,7 +118,7 @@ export async function upgradeStaleSessionEndPushHook(root: string): Promise<bool
     const updated = { ...settings, hooks: { ...hooks, SessionEnd: upgraded } };
     await write(root, updated);
     const target = placement === "local" ? "settings.local.json" : "settings.json";
-    log.success(`Upgraded SessionEnd push hook in ${target} (now synchronous)`);
+    log.success(`Upgraded SessionEnd push hook in ${target} (now nohup-wrapped)`);
     changedAny = true;
   }
   return changedAny;

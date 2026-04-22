@@ -35,6 +35,10 @@
 ## Current Sprint: none — pick next from BACKLOG.md
 
 ## Session Log
+### 2026-04-22 (session 42)
+- v1.7.2 bugfix: SessionEnd push hook was synchronous — Claude Code SIGTERM'd it before the ~3s GitHub push completed. Wrapped in `nohup ... </dev/null >/dev/null 2>&1 & exit 0` so it detaches and survives. Analyzer/fixer/install all updated; 3 existing projects patched in place.
+- 399 tests (+1), typecheck + build green. Explore-agent review clean.
+
 ### 2026-04-21 (session 41)
 - v1.7.1 bugfix: stale sync-config self-heal + git stderr leak. `readGistFile`/`listGistFiles` silently 404'd against a deleted gist, making `pull`/`pull --all`/`sync status` report empty remote even when the real gist had memories. `loadSyncConfig()` now probes via `gh api --silent`, distinguishes 404 from transient errors, and re-runs discovery on dead gists.
 - Second fix: `git diff HEAD~5` stderr now pipes instead of leaking `fatal:` lines on fresh repos (SessionStart hook was masking with `2>/dev/null`; manual invocations weren't).

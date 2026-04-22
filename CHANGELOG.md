@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.7.2] — 2026-04-22
+
+### Fixed
+- **SessionEnd push hook cancelled before completing.** The `memory push` command takes ~3 seconds (GitHub API call). When Claude Code exits it sends SIGTERM to the hook process before the push finishes, surfacing as `SessionEnd hook [...] failed: Hook cancelled`. The hook is now wrapped in `nohup ... </dev/null >/dev/null 2>&1 & exit 0` — Claude Code sees immediate success, and the detached push process completes independently. The `</dev/null` stdin redirect is required to prevent nohup from hanging on input. `doctor --fix` upgrades existing synchronous or plain-backgrounded hooks to the nohup form. Previously installed hooks in existing projects need one `doctor --fix` run to upgrade (or restart Claude Code after manual edit)
+
 ## [1.7.1] — 2026-04-21
 
 ### Fixed

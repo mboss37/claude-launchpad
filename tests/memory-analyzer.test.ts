@@ -253,19 +253,34 @@ describe("analyzeMemory", () => {
     expect(result!.issues.some((i) => i.message.includes("SessionEnd"))).toBe(true);
   });
 
-  it("does not flag when SessionEnd push hook exists and sync is configured", async () => {
+  it("does not flag when SessionEnd push hook is nohup-wrapped and sync is configured", async () => {
     mockReadSyncConfig.mockReturnValueOnce({ gistId: "abc123" });
 
     const sessionEndPush: HookConfig = {
       event: "SessionEnd",
       type: "command",
-      command: "claude-launchpad memory push -y",
+      command: "nohup claude-launchpad memory push -y </dev/null >/dev/null 2>&1 & exit 0",
     };
     const result = await analyzeMemory(makeConfig({
       mcpServers: [memoryServer],
       hooks: [sessionStartHook, sessionEndPush],
     }), "/test");
     expect(result!.issues.some((i) => i.message.includes("SessionEnd"))).toBe(false);
+  });
+
+  it("flags SessionEnd push hook that is not nohup-wrapped", async () => {
+    mockReadSyncConfig.mockReturnValueOnce({ gistId: "abc123" });
+
+    const sessionEndPush: HookConfig = {
+      event: "SessionEnd",
+      type: "command",
+      command: "claude-launchpad memory push -y >/dev/null 2>&1; exit 0",
+    };
+    const result = await analyzeMemory(makeConfig({
+      mcpServers: [memoryServer],
+      hooks: [sessionStartHook, sessionEndPush],
+    }), "/test");
+    expect(result!.issues.some((i) => i.message.includes("not nohup-wrapped"))).toBe(true);
   });
 
   // ─── SessionStart pull hook ───

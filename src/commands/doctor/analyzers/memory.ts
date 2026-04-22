@@ -156,19 +156,18 @@ export async function analyzeMemory(
       });
     }
 
-    // Backgrounded-push check stays on the literal command — the `&` is always at the hook level,
-    // wrappers never prefix their own command with & exit 0.
-    const hasStaleBackgroundedPush = config.hooks.some(
+    // nohup check stays on the literal command — wrappers are expected to handle their own daemonisation.
+    const hasNonNohupPush = config.hooks.some(
       (h) => h.event === "SessionEnd"
         && h.command?.includes("memory push")
-        && /&\s*exit\s+0\s*$/.test(h.command),
+        && !h.command.includes("nohup"),
     );
-    if (hasStaleBackgroundedPush) {
+    if (hasNonNohupPush) {
       issues.push({
         analyzer: "Memory",
         severity: "high",
-        message: "SessionEnd push hook is backgrounded — push gets killed before reaching the gist, deletions never sync",
-        fix: "Run `doctor --fix` to upgrade the hook to a synchronous push",
+        message: "SessionEnd push hook is not nohup-wrapped — Claude Code cancels it on exit before the push completes",
+        fix: "Run `doctor --fix` to upgrade the hook to a nohup-wrapped push",
       });
     }
   }
