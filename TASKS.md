@@ -33,7 +33,14 @@
 - **Sprint 27**: Memory MCP unblock + sandbox kill (v1.7.0) — Fixed the actual cause of `/mcp ✘ failed`: `server.ts` was calling `startServer()` at module-import AND inside the CLI action handler, spawning two MCP servers on the same stdio pipe. Gated auto-start with `isMainEntry()` via `import.meta.url` + `realpathSync(process.argv[1])`. Separately removed the filesystem sandbox from init (it blocked memory MCP from reading ~/.agentic-memory/memory.db); doctor now flags `sandbox.enabled === true` as HIGH and strips it on `--fix`. Renamed eval scenario `sandbox-escape` → `env-exfil-bash`. Bumped skill v8. 398 tests.
 - **Sprint 28**: Memory Install + Sync Reliability (v1.8.0) — Bundled 7 silent-failure bugs. New `memory install` subcommand; `isMemoryInstalled()` now requires MCP registration (.mcp.json / settings.local.json / ~/.claude.json); install patches `allowedMcpServers` allowlist before `claude mcp add`; preflight hard-fails on missing `claude`, warns on missing `gh`; `handleSyncErrors` sets `process.exitCode = 1`; gist transport stops swallowing execSync errors; new doctor HIGH check + fixer for allowlist excluding agentic-memory; sync-status remote count excludes locally-tombstoned rows. 399 tests, 57 benchmarks green.
 
-## Current Sprint: none — pick next from BACKLOG.md
+## Current Sprint: Sprint 29 — Doctor Polish (v1.8.1 patch)
+
+Three bugs with the same theme as Sprint 28: silent failures in the doctor/init surface.
+1. **[P1] Init `-y` undefined semantics** — `src/commands/init/index.ts:56-59`. When CLAUDE.md exists and `--yes` is set, init prints "Use doctor --fix" and exits 0. User thinks init ran; config untouched. Fix: pick one — `-y` overwrites without asking, OR fail-fast with a non-zero exit and clear error. Document the choice.
+2. **[P2] Settings parse error inconsistency** — `lib/settings.ts::readSettingsJson` returns `{}` on JSON parse error; `lib/parser.ts:91-94` returns `null` for the same case. Callers check `!== null` vs `!== undefined` inconsistently. Corrupted settings.json silently loses hooks/permissions in one path, surfaces as null in the other. Fix: standardize on null + `log.warn()` at both sites, update all callers.
+3. **[P2] Doctor: detect orphaned MCP permission entries** — MCP analyzer doesn't cross-reference `permissions.allow` entries of shape `mcp__<server>__*` against registered servers. Stale entry after rename silently blocks all tool calls. Add warning-severity finding for every `mcp__<unknown>__*` entry. Fixer optional (requires user confirmation — could be just a reporter).
+
+Target: ~3-4h total. Ship as v1.8.1 patch. After this the backlog has no real P1/P2 left — next decision is whether to launch or keep building.
 
 ## Session Log
 ### 2026-04-23 (session 43)

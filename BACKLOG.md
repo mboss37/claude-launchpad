@@ -5,20 +5,11 @@ Priority: P1 = big bug or must-have feature, P2 = real pain with clear evidence,
 
 ---
 
-## [P1] Init: `-y` on Existing Project Has Undefined Semantics
-`src/commands/init/index.ts:56-59` — when CLAUDE.md exists and `--yes` is set, init prints "Use doctor --fix" and exits. User thinks init ran; config untouched. Fix: either (a) `-y` means overwrite without asking, or (b) fail-fast with a clear error. Current behavior is neither.
-
 ## [P2] Story Tightening: Unify the Pitch Across Surfaces
 Landing page leads with outcome ("credentials readable, rules 80%"), README with technical fact ("80%/100%"), CLI help with vague "measurably good", package.json lists 5 co-equal features. Memory gets 54 README lines vs doctor's 24 — optional feature drowning core pipeline. Fix: rewrite package.json description to front the pipeline, lift landing's outcome framing into README opener, sharpen CLI help, demote memory to "optional add-on" everywhere.
 
 ## [P2] Code: Extract Shared hook-builder.ts
 Hook-patching logic duplicated 3 ways: `install.ts` (addSessionStart/End/Pull), `fixer.ts` (12 hook-adding fns), `fixer-memory.ts` (placement-aware variants). Dedup check repeated 4+ times. Extract `src/lib/hook-builder.ts` with single `addOrUpdateHook(settings, placement, event, matcher, dedup, prepend?)` used by all three. Prereq for safely adding new hooks.
-
-## [P2] Code: Settings Parse Error Inconsistency
-`lib/settings.ts::readSettingsJson` returns `{}` on JSON parse error; `lib/parser.ts:91-94` returns `null` for the same case. Callers check `!== null` vs `!== undefined` inconsistently. Corrupted settings.json silently loses hooks/permissions in one path, surfaces as null in the other. Fix: standardize on null + `log.warn()`.
-
-## [P2] Doctor: Detect Orphaned MCP Permission Entries
-MCP analyzer doesn't cross-reference `permissions.allow` entries of shape `mcp__<server>__*` against registered servers. Stale entry after rename silently blocks all tool calls. Report unregistered server references as warnings.
 
 ## [P3] Eval: Precondition Check
 `eval` runs scenarios even when project has no CLAUDE.md/settings. Reports "0 passed" with no hint the project isn't initialized. Add `parseClaudeConfig` check at start (same pattern as doctor), fail-fast with "Run init first".
