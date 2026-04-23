@@ -24,17 +24,23 @@ export async function runSyncStatus(): Promise<void> {
 
   try {
     const localCounts = ctx.memoryRepo.projectCounts();
+    const localTombstoneIds = new Set(ctx.memoryRepo.getAllTombstones().map((t) => t.id));
     const remoteFiles = listGistFiles(syncConfig.gistId);
-    const remoteProjects = remoteFiles
-      .map((f) => filenameToProject(f))
-      .filter((p): p is string => p !== null);
 
+    // Cosmetic display only: a local tombstone may still be resurrected by a newer remote
+    // updated_at, but mergeFromRemote handles that. Excluding tombstoned ids here keeps
+    // the reported delta close to what `pull --all` actually ingests most of the time.
     const remoteCounts = new Map<string, number>();
     for (const file of remoteFiles) {
       const project = filenameToProject(file);
       if (!project) continue;
       const payload = parsePayload(readGistFile(syncConfig.gistId, file));
-      remoteCounts.set(project, payload?.memories.length ?? 0);
+      if (!payload) {
+        remoteCounts.set(project, 0);
+        continue;
+      }
+      const mergeable = payload.memories.filter((m) => !localTombstoneIds.has(m.id)).length;
+      remoteCounts.set(project, mergeable);
     }
 
     const allProjects = new Set([...localCounts.keys(), ...remoteCounts.keys()]);

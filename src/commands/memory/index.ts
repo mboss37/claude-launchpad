@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { homedir } from "node:os";
 import { Command } from "commander";
 import { confirm } from "@inquirer/prompts";
 import { log } from "../../lib/output.js";
@@ -9,13 +10,55 @@ async function handleSyncErrors(fn: () => Promise<void>): Promise<void> {
     await fn();
   } catch (err) {
     log.error(err instanceof Error ? err.message : String(err));
+    process.exitCode = 1;
   }
 }
 
-function isMemoryInstalled(): boolean {
+/**
+ * Memory is "installed" when BOTH:
+ * (1) the SessionStart context hook is present in project settings
+ * (2) the agentic-memory MCP server is registered in project (.mcp.json),
+ *     local (settings.local.json), or user scope (~/.claude.json)
+ * Missing either half means the setup is half-broken (hooks fire but no tools, or tools present but no context injection).
+ */
+export function isMemoryInstalled(): boolean {
   const cwd = process.cwd();
-  return hasMemoryHook(join(cwd, ".claude", "settings.json"))
+  const hookPresent = hasMemoryHook(join(cwd, ".claude", "settings.json"))
     || hasMemoryHook(join(cwd, ".claude", "settings.local.json"));
+  if (!hookPresent) return false;
+  return isMemoryMcpRegistered(cwd);
+}
+
+export function isMemoryMcpRegistered(projectRoot: string): boolean {
+  return hasMemoryServerInJson(join(projectRoot, ".mcp.json"), "mcpServers")
+    || hasMemoryServerInJson(join(projectRoot, ".claude", "settings.local.json"), "mcpServers")
+    || hasMemoryServerInUserConfig(projectRoot);
+}
+
+function hasMemoryServerInJson(path: string, key: string): boolean {
+  try {
+    const parsed = JSON.parse(readFileSync(path, "utf-8")) as Record<string, unknown>;
+    const servers = parsed[key] as Record<string, unknown> | undefined;
+    return !!servers && typeof servers === "object" && "agentic-memory" in servers;
+  } catch {
+    return false;
+  }
+}
+
+function hasMemoryServerInUserConfig(projectRoot: string): boolean {
+  try {
+    const parsed = JSON.parse(readFileSync(join(homedir(), ".claude.json"), "utf-8")) as Record<string, unknown>;
+    // User-scope registration lives under projects[projectRoot].mcpServers
+    const projects = parsed.projects as Record<string, unknown> | undefined;
+    const project = projects?.[projectRoot] as Record<string, unknown> | undefined;
+    const scoped = project?.mcpServers as Record<string, unknown> | undefined;
+    if (scoped && "agentic-memory" in scoped) return true;
+    // Global user scope (~/.claude.json top-level mcpServers, if Claude Code ever uses it)
+    const global = parsed.mcpServers as Record<string, unknown> | undefined;
+    return !!global && "agentic-memory" in global;
+  } catch {
+    return false;
+  }
 }
 
 function hasMemoryHook(path: string): boolean {
@@ -55,13 +98,14 @@ export function createMemoryCommand(): Command {
         // Check if config was already written (e.g. by doctor --fix) even though db isn't set up
         const { detectExistingSetup } = await import("./subcommands/install.js");
         const existing = detectExistingSetup(process.cwd());
+        const mcpMissing = existing !== null && !isMemoryMcpRegistered(process.cwd());
         if (existing) {
           const location = existing === "local"
             ? ".claude/CLAUDE.md + settings.local.json"
             : "CLAUDE.md + settings.json";
           log.blank();
-          log.success(`Memory config found (${location}) but database not set up.`);
-          log.info("Run the install to complete setup.");
+          log.success(`Memory config found (${location}) but ${mcpMissing ? "MCP server not registered" : "database not set up"}.`);
+          log.info("Run `claude-launchpad memory install` to complete setup.");
           log.blank();
         } else {
           log.blank();
@@ -93,6 +137,18 @@ export function createMemoryCommand(): Command {
         await runStats({});
       }
     });
+
+  // Explicit install subcommand — always re-runs the flow.
+  // Use when `memory` detects a half-broken state (hook OK, MCP missing, etc.) or after a purge.
+  memory.addCommand(
+    new Command("install")
+      .description("Install (or re-install) the knowledge base for this project")
+      .option("--db-path <path>", "Override the default data directory")
+      .action(async (opts) => {
+        const { runInstall } = await import("./subcommands/install.js");
+        await runInstall(opts.dbPath ? { dbPath: opts.dbPath } : {});
+      }),
+  );
 
   // Hidden internal commands (used by hooks and MCP, not user-facing)
   memory.addCommand(

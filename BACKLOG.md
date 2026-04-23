@@ -5,18 +5,6 @@ Priority: P1 = big bug or must-have feature, P2 = real pain with clear evidence,
 
 ---
 
-## [P1] Memory: Bare `memory` Command Shows Stats Even When MCP Not Registered
-`claude-launchpad memory` decides "installed" by checking for the `memory context` SessionStart hook in settings — never checks whether the MCP server is actually registered (`.mcp.json` or user/local scope). Projects can have hooks + permissions + populated DB but no MCP registration, yet bare `memory` shows stats as if healthy and there's no explicit `memory install` subcommand to force re-registration. Fix: either (a) `isMemoryInstalled()` must also verify MCP registration before returning true, or (b) add explicit `memory install` subcommand that always runs the flow. Ideally both. Reproduced on lna-agentforce-statista 2026-04-19.
-
-## [P1] Memory Install: Respect allowedMcpServers Allowlist
-`claude-launchpad memory install` calls `claude mcp add agentic-memory` which silently fails with "not allowed by enterprise policy" when `settings.json` has an `allowedMcpServers` allowlist excluding it. Install prints "Could not enable memory tools automatically" and exits 0, leaving a half-configured project. Fix: read allowlist before `mcp add`, prepend `agentic-memory` if missing. Reproduced on hyperterminal 2026-04-19.
-
-## [P1] Memory Sync: Silent Failure on Expired gh Auth
-`memory push` / `memory pull` log the error via `handleSyncErrors` but return cleanly with exit 0 when `gh` auth token is expired. User thinks sync succeeded; memories drift across devices. Fix: re-throw or `process.exit(1)` in `src/commands/memory/index.ts:7-13`. Data-integrity risk.
-
-## [P1] Memory Sync: Gist Transport Swallows execSync Errors
-`utils/gist-transport.ts` (readGistFile, listGistFiles, updateGistFiles) wraps execSync in try/catch returning null/[]. Network blip during push → function returns undefined → runPush prints "Push complete" with no actual gist write. Next pull on another machine fetches stale data. Fix: let errors bubble, remove sentinel returns.
-
 ## [P1] Init: `-y` on Existing Project Has Undefined Semantics
 `src/commands/init/index.ts:56-59` — when CLAUDE.md exists and `--yes` is set, init prints "Use doctor --fix" and exits. User thinks init ran; config untouched. Fix: either (a) `-y` means overwrite without asking, or (b) fail-fast with a clear error. Current behavior is neither.
 
@@ -29,17 +17,8 @@ Hook-patching logic duplicated 3 ways: `install.ts` (addSessionStart/End/Pull), 
 ## [P2] Code: Settings Parse Error Inconsistency
 `lib/settings.ts::readSettingsJson` returns `{}` on JSON parse error; `lib/parser.ts:91-94` returns `null` for the same case. Callers check `!== null` vs `!== undefined` inconsistently. Corrupted settings.json silently loses hooks/permissions in one path, surfaces as null in the other. Fix: standardize on null + `log.warn()`.
 
-## [P2] Memory Sync Status: Remote Count Includes Tombstoned Memories
-`sync-status.ts` sets remote count to `payload.memories.length`, which includes memories already tombstoned on this machine. Display shows drift (e.g. `swissazan 16 local / 23 remote`) but `pull --all` correctly returns "Already in sync" because `mergeFromRemote` skips tombstoned ids. Fix: subtract count of remote memories matched by a local tombstone, or count only mergeable rows. Cosmetic but confusing. Observed 2026-04-21 after v1.7.1 self-heal surfaced correct remote reads.
-
-## [P2] Memory Install: Preflight Checks
-`runInstall` calls `claude mcp add` and checks `isGhAuthenticated()` mid-flow. If Claude CLI missing, steps 1–2 succeed, step 3 fails silently. Add preflight: check `claude` on PATH, warn on missing `gh` (sync optional). Pattern exists in `eval/index.ts:248`.
-
 ## [P2] Doctor: Detect Orphaned MCP Permission Entries
 MCP analyzer doesn't cross-reference `permissions.allow` entries of shape `mcp__<server>__*` against registered servers. Stale entry after rename silently blocks all tool calls. Report unregistered server references as warnings.
-
-## [P2] Doctor: Detect MCP Allowlist Excluding Memory
-When memory hooks are wired but `allowedMcpServers` is present without `agentic-memory`, setup is functionally broken (hooks fire, tools absent). Add cross-check between memory-hook presence and allowlist membership.
 
 ## [P3] Eval: Precondition Check
 `eval` runs scenarios even when project has no CLAUDE.md/settings. Reports "0 passed" with no hint the project isn't initialized. Add `parseClaudeConfig` check at start (same pattern as doctor), fail-fast with "Run init first".

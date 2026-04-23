@@ -156,28 +156,32 @@ export function createGist(filename: string, content: string): string {
   }
 }
 
+/**
+ * Read a file from a gist.
+ * Returns null when the gist exists but does not contain this file (legitimate first push).
+ * Throws on transport failures (network, auth, 404 on the gist itself, rate limits).
+ */
 export function readGistFile(gistId: string, filename: string): string | null {
-  try {
-    const escapedFilename = JSON.stringify(filename);
-    return execSync(
-      `gh api "/gists/${gistId}" --jq '.files[${escapedFilename}].content'`,
-      { ...EXEC_OPTS, stdio: ['pipe', 'pipe', 'pipe'] },
-    ).trimEnd();
-  } catch {
-    return null;
-  }
+  const escapedFilename = JSON.stringify(filename);
+  const output = execSync(
+    `gh api "/gists/${gistId}" --jq '.files[${escapedFilename}].content'`,
+    { ...EXEC_OPTS, stdio: ['pipe', 'pipe', 'pipe'] },
+  ).trimEnd();
+  // jq returns the literal string "null" when the requested field is absent.
+  if (output === 'null' || output === '') return null;
+  return output;
 }
 
+/**
+ * List filenames in a gist.
+ * Throws on transport failures. Returns [] only when the gist is legitimately empty.
+ */
 export function listGistFiles(gistId: string): readonly string[] {
-  try {
-    const output = execSync(
-      `gh api "/gists/${gistId}" --jq '.files | keys[]'`,
-      { ...EXEC_OPTS, stdio: ['pipe', 'pipe', 'pipe'] },
-    );
-    return output.trim().split('\n').filter(Boolean);
-  } catch {
-    return [];
-  }
+  const output = execSync(
+    `gh api "/gists/${gistId}" --jq '.files | keys[]'`,
+    { ...EXEC_OPTS, stdio: ['pipe', 'pipe', 'pipe'] },
+  );
+  return output.trim().split('\n').filter(Boolean);
 }
 
 export function deleteGistFile(gistId: string, filename: string): void {

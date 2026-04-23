@@ -18,6 +18,39 @@ function isGhAuthenticated(): boolean {
   }
 }
 
+function isClaudeCliOnPath(): boolean {
+  try {
+    execSync('claude --version', { stdio: 'pipe', timeout: 5000 });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function isGhOnPath(): boolean {
+  try {
+    execSync('gh --version', { stdio: 'pipe', timeout: 5000 });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function preflight(): void {
+  if (!isClaudeCliOnPath()) {
+    log.error('The `claude` CLI was not found on PATH.');
+    log.blank();
+    log.info('The knowledge base installs as a Claude Code MCP server, so the CLI is required.');
+    log.info('Install: https://docs.claude.com/en/docs/claude-code');
+    process.exit(1);
+  }
+  if (!isGhOnPath()) {
+    log.warn('The GitHub CLI (`gh`) was not found on PATH — cross-device memory sync will be disabled.');
+    log.info('Install later for sync: https://cli.github.com/ then `gh auth login`.');
+    log.blank();
+  }
+}
+
 interface InstallOpts {
   readonly dbPath?: string;
 }
@@ -26,6 +59,9 @@ export async function runInstall(opts: InstallOpts): Promise<void> {
   log.blank();
   log.step('Setting up your knowledge base');
   log.blank();
+
+  // Preflight: `claude` CLI is hard-required; `gh` is a soft warning for sync.
+  preflight();
 
   // Step 0: Ensure native deps are installed globally
   await ensureNativeDeps();
@@ -53,6 +89,8 @@ export async function runInstall(opts: InstallOpts): Promise<void> {
   // Step 3: Register MCP server (project scope for shared, local scope for local)
   log.step('[3/5] Enabling memory tools...');
   const mcpScope = placement === "local" ? "local" : "project";
+  // Must run BEFORE `claude mcp add` — otherwise the add silently fails with "not allowed by policy"
+  await ensureAllowedMcpServerIncludesMemory(process.cwd(), placement);
   const registered = registerMcpServer(mcpScope);
   if (registered) {
     log.success('Memory tools available in Claude Code');
@@ -240,6 +278,30 @@ async function ensureNativeDeps(): Promise<void> {
     log.info('Requires a C++ compiler (Xcode on macOS, build-essential on Linux).');
     process.exit(1);
   }
+}
+
+async function ensureAllowedMcpServerIncludesMemory(
+  projectDir: string,
+  placement: MemoryPlacement,
+): Promise<void> {
+  const read = placement === "local" ? readSettingsLocalJson : readSettingsJson;
+  const write = placement === "local" ? writeSettingsLocalJson : writeSettingsJson;
+  const settings = await read(projectDir);
+  const existing = settings.allowedMcpServers as unknown;
+  // No allowlist configured — nothing to patch; Claude Code trusts any added server by default.
+  if (!Array.isArray(existing)) return;
+
+  const list = existing as Array<{ serverName?: unknown }>;
+  const hasMemory = list.some((e) => e && typeof e === "object" && e.serverName === "agentic-memory");
+  if (hasMemory) return;
+
+  const updated = {
+    ...settings,
+    allowedMcpServers: [{ serverName: "agentic-memory" }, ...list],
+  };
+  await write(projectDir, updated);
+  const target = placement === "local" ? "settings.local.json" : "settings.json";
+  log.info(`Added agentic-memory to allowedMcpServers in ${target}`);
 }
 
 function registerMcpServer(scope: "project" | "local"): boolean {

@@ -129,6 +129,26 @@ export async function analyzeMemory(
     });
   }
 
+  // 6b. allowedMcpServers present but missing agentic-memory — silently blocks MCP registration
+  const sharedAllowed = config.settings?.allowedMcpServers as unknown;
+  const localAllowed = config.localSettings?.allowedMcpServers as unknown;
+  const allowedServers = [
+    ...(Array.isArray(sharedAllowed) ? sharedAllowed : []),
+    ...(Array.isArray(localAllowed) ? localAllowed : []),
+  ] as Array<{ serverName?: unknown }>;
+  const hasAllowlist = Array.isArray(sharedAllowed) || Array.isArray(localAllowed);
+  const memoryInAllowlist = allowedServers.some(
+    (e) => e && typeof e === "object" && e.serverName === "agentic-memory",
+  );
+  if (hasAllowlist && !memoryInAllowlist) {
+    issues.push({
+      analyzer: "Memory",
+      severity: "high",
+      message: "allowedMcpServers is set but does not include agentic-memory — MCP registration will be blocked",
+      fix: "Run `doctor --fix` to add agentic-memory to allowedMcpServers",
+    });
+  }
+
   // 7. Sync hooks when sync is configured (wrapper-aware)
   const syncConfig = readSyncConfig();
   if (syncConfig) {

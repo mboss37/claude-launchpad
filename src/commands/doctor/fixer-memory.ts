@@ -150,6 +150,35 @@ export async function removeStaleStopHook(root: string): Promise<boolean> {
 
 // ─── MCP Fix Functions ───
 
+/**
+ * Prepend agentic-memory to allowedMcpServers when the allowlist is present but excludes it.
+ * Only touches whichever placement already holds the allowlist — does not create one.
+ */
+export async function addMemoryToAllowedMcpServers(root: string): Promise<boolean> {
+  let changed = false;
+  for (const placement of ["shared", "local"] as const) {
+    const read = placement === "local" ? readSettingsLocalJson : readSettingsJson;
+    const write = placement === "local" ? writeSettingsLocalJson : writeSettingsJson;
+    const settings = await read(root);
+    const existing = settings.allowedMcpServers as unknown;
+    if (!Array.isArray(existing)) continue;
+
+    const list = existing as Array<{ serverName?: unknown }>;
+    const hasMemory = list.some((e) => e && typeof e === "object" && e.serverName === "agentic-memory");
+    if (hasMemory) continue;
+
+    const updated = {
+      ...settings,
+      allowedMcpServers: [{ serverName: "agentic-memory" }, ...list],
+    };
+    await write(root, updated);
+    const target = placement === "local" ? "settings.local.json" : "settings.json";
+    log.success(`Added agentic-memory to allowedMcpServers in ${target}`);
+    changed = true;
+  }
+  return changed;
+}
+
 export async function addAllowedMcpServers(root: string, placement: MemoryPlacement): Promise<boolean> {
   const read = placement === "local" ? readSettingsLocalJson : readSettingsJson;
   const write = placement === "local" ? writeSettingsLocalJson : writeSettingsJson;

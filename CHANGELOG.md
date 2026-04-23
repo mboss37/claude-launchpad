@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.8.0] — 2026-04-23
+
+### Added
+- **`memory install` subcommand.** Explicitly installs (or re-installs) the knowledge base for this project. Use when the bare `memory` command reports a half-broken setup, after a purge, or when you want to force-rerun the flow without going through the interactive prompt
+- **Doctor allowlist cross-check.** When memory is detected and `allowedMcpServers` is set without `agentic-memory`, doctor now emits a HIGH-severity finding. `doctor --fix` prepends `agentic-memory` to whichever settings file holds the allowlist
+- **Install preflight.** `memory install` now hard-fails if the `claude` CLI is missing and warns (non-fatal) if `gh` is missing — stopping half-configured installs before any side effects are written
+
+### Fixed
+- **Memory considered installed despite missing MCP server.** `isMemoryInstalled()` only checked for the SessionStart context hook. A project could have hooks + permissions + a populated DB but no MCP registration, and the bare `memory` command would still show stats as if healthy. It now also requires the `agentic-memory` MCP server to be registered in `.mcp.json`, `settings.local.json`, or `~/.claude.json` (any scope). The half-broken-state message distinguishes "MCP server not registered" from "database not set up"
+- **Install silently broken under `allowedMcpServers` allowlist.** When `settings.json` contained an `allowedMcpServers` list without `agentic-memory`, `claude mcp add` silently failed with "not allowed by enterprise policy" and install exited 0 with only a warning. Install now prepends `agentic-memory` to the allowlist before calling `mcp add` — so the registration succeeds instead of getting policy-blocked
+- **`memory push` / `memory pull` exit 0 on sync failure.** `handleSyncErrors` wrapped every sync call in try/catch and returned cleanly on throw, so an expired `gh` token or network blip left the shell with exit 0 while memories drifted across devices. Failures now set `process.exitCode = 1`. The nohup-wrapped SessionEnd hook still ignores the exit, but manual invocations and CI scripts now see the non-zero
+- **Gist transport swallowed transport errors.** `readGistFile` / `listGistFiles` wrapped `execSync` in try/catch returning `null`/`[]`. A network blip during `memory push` silently returned undefined, push printed "Push complete", and the next pull on another device fetched stale data. Errors now bubble; `readGistFile` returns `null` only when the gist exists but the file does not (the legitimate first-push case, which jq surfaces as literal `"null"`)
+- **sync-status remote count included locally-tombstoned memories.** The remote column reported `payload.memories.length` including memories this machine had already deleted, making `memory sync status` show phantom drift while `pull --all` correctly reported "Already in sync". The count now filters out memories whose id matches a local tombstone
+
 ## [1.7.2] — 2026-04-22
 
 ### Fixed

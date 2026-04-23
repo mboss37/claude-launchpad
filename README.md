@@ -208,7 +208,7 @@ Claude's built-in memory resets per machine. Launchpad gives each project persis
 claude-launchpad memory
 ```
 
-If memory is not installed, it runs interactive setup. If installed, it shows stats. Requires native deps first: `npm install better-sqlite3 sqlite-vec`.
+If memory is not installed, it runs interactive setup. If fully installed (SessionStart hook **and** MCP server registered), it shows stats. If partially installed, it points you at `memory install` to fix the missing piece. Requires native deps first: `npm install better-sqlite3 sqlite-vec`.
 
 During setup, you choose where memory config lives:
 
@@ -226,6 +226,7 @@ Data stays in `~/.agentic-memory/memory.db`. Sync requires the [GitHub CLI](http
 | Flag / Subcommand | What it does |
 |---|---|
 | `--dashboard` | Opens the interactive TUI dashboard |
+| `install` | Explicitly (re-)run the install flow — useful after a partial/broken setup |
 | `push` | Push current project's memories to a private GitHub Gist |
 | `pull` | Pull current project's memories from a private GitHub Gist |
 | `push --all` | Push all projects |

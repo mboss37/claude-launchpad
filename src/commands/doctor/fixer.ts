@@ -14,7 +14,7 @@ import { readSettingsJson, writeSettingsJson } from "../../lib/settings.js";
 import { getMemoryPlacement } from "../../lib/memory-placement.js";
 import { wrapStub } from "../../lib/stub-marker.js";
 import {
-  disableAutoMemory, addMemoryToolPermissions, addAllowedMcpServers,
+  disableAutoMemory, addMemoryToolPermissions, addAllowedMcpServers, addMemoryToAllowedMcpServers,
   addSessionStartPullHook, addSessionEndPushHook, upgradeStaleSessionEndPushHook, removeStaleStopHook,
 } from "./fixer-memory.js";
 import type { DiagnosticIssue, DetectedProject, MemoryPlacement } from "../../types/index.js";
@@ -96,6 +96,7 @@ const FIX_TABLE: ReadonlyArray<{ analyzer: string; match: string; fix: FixFn }> 
   { analyzer: "Memory", match: "autoMemoryEnabled not disabled", fix: (root, _det, placement) => disableAutoMemory(root, placement) },
   { analyzer: "Memory", match: "MCP tool permission", fix: (root, _det, placement) => addMemoryToolPermissions(root, placement) },
   { analyzer: "MCP", match: "no allowedMcpServers", fix: (root, _det, placement) => addAllowedMcpServers(root, placement) },
+  { analyzer: "Memory", match: "allowedMcpServers is set but does not include agentic-memory", fix: (root) => addMemoryToAllowedMcpServers(root) },
   { analyzer: "Memory", match: "SessionStart hook to auto-pull", fix: (root, _det, placement) => addSessionStartPullHook(root, placement) },
   { analyzer: "Memory", match: "SessionEnd hook to auto-push", fix: (root, _det, placement) => addSessionEndPushHook(root, placement) },
   { analyzer: "Memory", match: "SessionEnd push hook is not nohup-wrapped", fix: (root) => upgradeStaleSessionEndPushHook(root) },

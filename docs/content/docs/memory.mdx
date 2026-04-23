@@ -33,20 +33,24 @@ npm install better-sqlite3 sqlite-vec
 
 This requires a C++ compiler (Xcode on macOS, build-essential on Linux). The CLI will prompt you if these are missing.
 
-## Flags
+## Flags and subcommands
 
-| Flag | Description |
+| Flag / Subcommand | Description |
 |---|---|
 | `--dashboard` | Open the interactive memory TUI dashboard |
+| `install` | Explicitly (re-)run the install flow — useful when the setup is half-broken or after a purge |
 
 ## Default behavior
 
 Running `claude-launchpad memory` without flags uses a smart default:
 
 - If memory is not installed, it starts the interactive installer
-- If memory is already installed, it shows memory stats
+- If memory is partially installed (e.g. config written but MCP server not registered, or database missing), it tells you what's wrong and points at `memory install`
+- If memory is fully installed, it shows memory stats
 
-`claude-launchpad memory --dashboard` requires memory to be installed first.
+Memory counts as fully installed only when **both** the SessionStart context hook **and** the `agentic-memory` MCP registration are present (checked across `.mcp.json`, `settings.local.json`, and `~/.claude.json`). Earlier versions only looked at the hook, which could report "healthy" on a setup with no MCP server registered.
+
+`claude-launchpad memory --dashboard` requires memory to be fully installed first.
 
 ## What it installs
 
@@ -198,6 +202,8 @@ Project-scoped push/pull only touches that project's file. Other projects are ne
 | `memory sync clean <project>` | Remove a project from the sync gist |
 | `memory sync clean <project> -y` | Skip confirmation prompt |
 
+Push and pull exit non-zero on failure (expired `gh` auth, network error, 404 on the gist itself). Earlier versions swallowed these errors and exited 0, which made sync drift invisible — now CI and manual invocations see the failure.
+
 Data is validated with Zod on both push and pull. Corrupt or incompatible data is rejected with a clear error.
 
 ## Migrating from built-in memory
@@ -214,7 +220,7 @@ When memory is detected, `doctor` adds a Memory analyzer that checks:
 - Built-in auto-memory disabled
 - CLAUDE.md guidance present
 - MCP tool permissions set
-- `allowedMcpServers` includes `agentic-memory`
+- `allowedMcpServers` (when present) includes `agentic-memory` — HIGH severity if missing, because `claude mcp add` is silently policy-blocked without it
 
 `doctor --fix` auto-repairs missing permissions and auto-memory settings. The fixer respects your placement choice, writing to the local or shared files accordingly.
 
