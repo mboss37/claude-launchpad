@@ -74,6 +74,35 @@ export async function analyzeHooks(config: ClaudeConfig): Promise<AnalyzerResult
     });
   }
 
+  // Sprint workflow hygiene — only relevant when the project uses TASKS.md
+  const usesTasksMd = hooks.some((h) => h.command?.includes("TASKS.md"));
+  if (usesTasksMd) {
+    if (!hooks.some((h) => h.command?.includes("sprint-size-check.sh"))) {
+      issues.push({
+        analyzer: "Hooks",
+        severity: "low",
+        message: "No sprint-size-check hook — sprints aren't enforced for size (sweet spot 3-6 work packages)",
+        fix: "Add SessionStart hook calling .claude/hooks/sprint-size-check.sh",
+      });
+    }
+    if (!hooks.some((h) => h.command?.includes("sprint-open-check.sh"))) {
+      issues.push({
+        analyzer: "Hooks",
+        severity: "low",
+        message: "No sprint-open-check hook — opening a new sprint without removing pulled WPs from BACKLOG silently drifts",
+        fix: "Add PreToolUse Bash hook calling .claude/hooks/sprint-open-check.sh",
+      });
+    }
+    if (!hooks.some((h) => h.command?.includes("Sprint complete"))) {
+      issues.push({
+        analyzer: "Hooks",
+        severity: "low",
+        message: "No sprint-complete nudge — finishing all sprint tasks goes unnoticed",
+        fix: "Add PostToolUse hook that nudges when all current-sprint checkboxes flip to [x]",
+      });
+    }
+  }
+
   const score = Math.max(0, 100 - issues.length * 15);
   return { name: "Hooks", issues, score };
 }

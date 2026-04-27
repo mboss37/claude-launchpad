@@ -49,10 +49,10 @@ describe("generateSettings", () => {
     expect(settings.permissions?.deny).toHaveLength(8);
   });
 
-  it("includes SessionStart hook", () => {
+  it("includes SessionStart hooks (TASKS.md inject + sprint-size-check)", () => {
     const settings = generateSettings(baseProject);
     const hooks = settings.hooks as Record<string, unknown[]>;
     expect(hooks.SessionStart).toBeDefined();
-    expect(hooks.SessionStart).toHaveLength(1);
+    expect(hooks.SessionStart).toHaveLength(2);
   });
 });

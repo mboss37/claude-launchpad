@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { log } from "../../lib/output.js";
 import { readSettingsJson, writeSettingsJson, readSettingsLocalJson, writeSettingsLocalJson } from "../../lib/settings.js";
+import { addOrUpdateHook, type HookEntry } from "../../lib/hook-builder.js";
 import type { MemoryPlacement } from "../../types/index.js";
 
 // ─── Shared Hook Helper (placement-aware) ───
@@ -19,18 +20,17 @@ async function addPlacementHook(
   const write = placement === "local" ? writeSettingsLocalJson : writeSettingsJson;
   const settings = await read(root);
   if (settings === null) return false;
-  const hooks = (settings.hooks ?? {}) as Record<string, unknown[]>;
-  const hookList = (hooks[event] as Record<string, unknown>[] | undefined) ?? [];
+  const existingHooks = settings.hooks as Record<string, unknown[]> | undefined;
 
-  const alreadyHas = hookList.some((g) => {
-    const nested = g.hooks as Record<string, unknown>[] | undefined;
-    return nested?.some((h) => String(h.command ?? "").includes(dedupKeyword));
+  const result = addOrUpdateHook(existingHooks, {
+    event,
+    dedupKeyword,
+    entry: entry as unknown as HookEntry,
+    prepend,
   });
-  if (alreadyHas) return false;
+  if (!result.added) return false;
 
-  const updatedList = prepend ? [entry, ...hookList] : [...hookList, entry];
-  const updatedSettings = { ...settings, hooks: { ...hooks, [event]: updatedList } };
-  await write(root, updatedSettings);
+  await write(root, { ...settings, hooks: result.hooks });
   log.success(successMsg);
   return true;
 }

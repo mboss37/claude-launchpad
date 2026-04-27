@@ -33,29 +33,22 @@
 - **Sprint 27**: Memory MCP unblock + sandbox kill (v1.7.0) — Fixed the actual cause of `/mcp ✘ failed`: `server.ts` was calling `startServer()` at module-import AND inside the CLI action handler, spawning two MCP servers on the same stdio pipe. Gated auto-start with `isMainEntry()` via `import.meta.url` + `realpathSync(process.argv[1])`. Separately removed the filesystem sandbox from init (it blocked memory MCP from reading ~/.agentic-memory/memory.db); doctor now flags `sandbox.enabled === true` as HIGH and strips it on `--fix`. Renamed eval scenario `sandbox-escape` → `env-exfil-bash`. Bumped skill v8. 398 tests.
 - **Sprint 28**: Memory Install + Sync Reliability (v1.8.0) — Bundled 7 silent-failure bugs. New `memory install` subcommand; `isMemoryInstalled()` now requires MCP registration (.mcp.json / settings.local.json / ~/.claude.json); install patches `allowedMcpServers` allowlist before `claude mcp add`; preflight hard-fails on missing `claude`, warns on missing `gh`; `handleSyncErrors` sets `process.exitCode = 1`; gist transport stops swallowing execSync errors; new doctor HIGH check + fixer for allowlist excluding agentic-memory; sync-status remote count excludes locally-tombstoned rows. 399 tests, 57 benchmarks green.
 - **Sprint 29**: Doctor Polish (v1.8.1) — init `-y` + new `--force` flag (industry-standard split, exits 1 with clear error on existing CLAUDE.md); `readSettingsJson`/`Local` return null + log.warn on corrupted JSON (14 callers updated, mutation paths bail); doctor flags orphaned `mcp__<server>__*` perm entries (reporter only); `log.warnOnce` dedupes parse-error noise. 408 tests (+9). Manually validated end-to-end.
+- **Sprint 30**: Hackathon Hooks (v1.9.0) — extracted `lib/hook-builder.ts` pure primitive (`addOrUpdateHook`) + `addHookToSettings` I/O wrapper, replacing 3 duplicated dedup paths (fixer/install/fixer-memory). New `.worktreeinclude` template + MEDIUM doctor check on `.git/worktrees/` activity. Sprint hygiene: `sprint-size-check.sh` (microsprint/oversized) + `sprint-open-check.sh` (BACKLOG drift), 3 LOW doctor findings. Sprint-complete nudge on TASKS.md `[x]` flip. Item 5 (`.env` R/W/E block) was already shipped in earlier versions — audit was wrong. fixer.ts split (350 lines) → fixer-hooks.ts + fixer-sprint.ts. 415 tests (+7), validated end-to-end.
 
-## Current Sprint: Sprint 30 — Hackathon Hooks (ships in v1.9.0)
+## Next Sprint: TBD
 
-5 items pulled from semantic-gps-hackathon battle-testing. Full detail in BACKLOG.md "v1.9.0 Sprint Candidate".
-
-1. **[P1] Extract `lib/hook-builder.ts`** — hook-patching duplicated 3 ways (install.ts, fixer.ts, fixer-memory.ts). Hard prereq for the 4 new hooks below.
-2. **[P1] `.worktreeinclude` template + doctor check** — 2-line file lets git-worktree subagents inherit `.env`/`.env.local` without committing. Init generates; doctor warns when worktrees used + file missing.
-3. **[P1] Sprint hygiene hooks** — `sprint-size-check.sh` (warn <3 or >7 WPs), `sprint-open-check.sh` (warn when TASKS.md adds new sprint block but BACKLOG.md has no staged deletions). Warn-don't-block.
-4. **[P1] PostToolUse sprint-complete nudge** — when current-sprint checkboxes all flip to `[x]`, hook prints "Run /wrap-sprint."
-5. **[P1] PreToolUse `.env` R/W/E block** — current `permissions.deny` only blocks Read; extend to Write/Edit. `.env.example` exception.
-
-Target: ~6-8h. Ships as v1.9.0 minor.
+After v1.9.0 the BACKLOG has no P1 items left. v1.10.0 candidate (path-scoped rules + pre-commit-gate) is opinionated workflow work — pick up only if we want to keep building. Otherwise pivot to launch (Launch Campaign in BACKLOG.md).
 
 ## Release Plan
 - **v1.8.1** ✅ shipped — Sprint 29 patch (doctor/init silent-failure fixes)
-- **v1.9.0** = Sprint 30 hackathon hooks (5 items, minor)
-- **v1.10.0** = Sprint 31, path-scoped rules + pre-commit-gate workflow (separate release — opinionated, new skill, deserves own narrative)
+- **v1.9.0** ✅ shipped — Sprint 30 hackathon hooks (hook-builder, sprint hygiene, worktree, sprint-complete)
+- **v1.10.0** = Sprint 31 candidate, path-scoped rules + pre-commit-gate workflow (opinionated, new skill — defer if launching)
 - **v2.0.0** not scheduled. Reserved for the doctor plan/apply rewrite if/when we commit to it.
 
 ## Session Log
 ### 2026-04-27 (session 44)
-- Sprint 29 shipped v1.8.1: init `-f, --force` flag (canonical split, `-y` alone exits 1 on existing CLAUDE.md); `readSettingsJson`/`Local` return null + warnOnce on corrupted JSON (14 callers updated); doctor flags orphan `mcp__<server>__*` perm entries.
-- Audited semantic-gps-hackathon `.claude/` setup, parked 5 P1 hackathon-hook items as v1.9.0 candidate and 2 items as v1.10.0 candidate (path-scoped rules + pre-commit-gate). Initially planned to bundle v1.8.1 into v1.9.0 — reversed: shipped v1.8.1 immediately because real bug fixes shouldn't wait on feature work. 408 tests, typecheck + build green, manually validated end-to-end.
+- Shipped v1.8.1 (Sprint 29 — doctor/init silent-failure polish) and v1.9.0 (Sprint 30 — hackathon hooks). Sprint 29: init `--force` flag, settings parse warns, MCP orphan detection. Sprint 30: hook-builder primitive + 3-way dedup unification, sprint hygiene scripts, worktree check, sprint-complete nudge, fixer.ts split into fixer-hooks/fixer-sprint to stay under 400 lines.
+- Item 5 of Sprint 30 (`.env` R/W/E block) was found already shipped — audit overcorrected. 415 tests, typecheck + build green, validated end-to-end. Initial bundle plan reversed mid-session: bug fixes shouldn't wait on feature work.
 
 ### 2026-04-23 (session 43)
 - Sprint 28 shipped v1.8.0: 7 memory install/sync reliability bugs bundled in one pass. All four original P1s (half-installed detection, allowlist policy block, sync exit-0-on-failure, swallowed gist errors) plus 3 P2 ride-alongs (preflight, doctor allowlist check, sync-status tombstone accounting).

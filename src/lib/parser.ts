@@ -14,7 +14,7 @@ export async function parseClaudeConfig(projectRoot: string): Promise<ClaudeConf
   const root = resolve(projectRoot);
   const claudeDir = join(root, CLAUDE_DIR);
 
-  const [claudeMd, localClaudeMd, settings, localSettings, hooks, rules, mcpServers, skills, claudeignore] = await Promise.all([
+  const [claudeMd, localClaudeMd, settings, localSettings, hooks, rules, mcpServers, skills, claudeignore, worktreeInclude, gitWorktreesActive] = await Promise.all([
     readClaudeMd(root),
     readFileOrNull(join(claudeDir, CLAUDE_MD)),
     readSettings(claudeDir),
@@ -24,6 +24,8 @@ export async function parseClaudeConfig(projectRoot: string): Promise<ClaudeConf
     readMcpServers(claudeDir, root),
     readSkills(claudeDir),
     readFileOrNull(join(root, ".claudeignore")),
+    readFileOrNull(join(root, ".worktreeinclude")),
+    detectGitWorktrees(root),
   ]);
 
   const instructionCount = claudeMd
@@ -44,7 +46,19 @@ export async function parseClaudeConfig(projectRoot: string): Promise<ClaudeConf
     skills,
     claudeignorePath: claudeignore !== null ? join(root, ".claudeignore") : null,
     claudeignoreContent: claudeignore,
+    worktreeIncludePath: worktreeInclude !== null ? join(root, ".worktreeinclude") : null,
+    worktreeIncludeContent: worktreeInclude,
+    gitWorktreesActive,
   };
+}
+
+async function detectGitWorktrees(root: string): Promise<boolean> {
+  try {
+    const entries = await readdir(join(root, ".git", "worktrees"));
+    return entries.length > 0;
+  } catch {
+    return false;
+  }
 }
 
 // ─── CLAUDE.md ───

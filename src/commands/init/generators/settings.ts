@@ -56,16 +56,31 @@ export function generateSettings(detected: DetectedProject): ClaudeSettings {
     matcher: "Edit|Write",
     hooks: [{
       type: "command",
-      command: "echo \"$TOOL_INPUT_FILE_PATH\" | grep -q TASKS.md || exit 0; section=$(sed -n '/^## Current Sprint/,/^## /p' TASKS.md 2>/dev/null); [ -z \"$section\" ] && exit 0; unchecked=$(echo \"$section\" | grep -cF '- [ ]' || true); checked=$(echo \"$section\" | grep -cF '- [x]' || true); [ \"$unchecked\" -eq 0 ] && [ \"$checked\" -gt 0 ] && echo 'Sprint complete — all current tasks done. Consider a quick quality check before committing: scan for dead code, debug artifacts, TODO hacks, and convention violations. Run tests if available. Skip if trivial.'; exit 0",
+      command: "echo \"$TOOL_INPUT_FILE_PATH\" | grep -q TASKS.md || exit 0; section=$(sed -n '/^## Current/,/^## /p' TASKS.md 2>/dev/null); [ -z \"$section\" ] && exit 0; unchecked=$(echo \"$section\" | grep -cF '- [ ]' || true); checked=$(echo \"$section\" | grep -cF '- [x]' || true); [ \"$unchecked\" -eq 0 ] && [ \"$checked\" -gt 0 ] && echo 'Sprint complete — all current tasks done. Consider a quick quality check before committing: scan for dead code, debug artifacts, TODO hacks, and convention violations. Run tests if available. Skip if trivial.'; exit 0",
     }],
   });
 
-  // SessionStart: inject TASKS.md at session startup
+  // Sprint-open hygiene: warn on `git commit` when TASKS.md adds new sprint without BACKLOG deletions
+  preToolUse.push({
+    matcher: "Bash",
+    hooks: [{
+      type: "command",
+      command: "bash .claude/hooks/sprint-open-check.sh 2>/dev/null; exit 0",
+    }],
+  });
+
+  // SessionStart: inject TASKS.md at session startup, run sprint-size check
   const sessionStart: HookGroup[] = [{
     matcher: "startup|resume",
     hooks: [{
       type: "command",
       command: "cat TASKS.md 2>/dev/null; exit 0",
+    }],
+  }, {
+    matcher: "startup|resume",
+    hooks: [{
+      type: "command",
+      command: "bash .claude/hooks/sprint-size-check.sh TASKS.md 2>/dev/null; exit 0",
     }],
   }];
 

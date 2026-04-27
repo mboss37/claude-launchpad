@@ -15,6 +15,11 @@ function makeConfig(overrides: Partial<ClaudeConfig> = {}): ClaudeConfig {
     rules: [],
     mcpServers: [],
     skills: [],
+    claudeignorePath: null,
+    claudeignoreContent: null,
+    worktreeIncludePath: null,
+    worktreeIncludeContent: null,
+    gitWorktreesActive: false,
     ...overrides,
   };
 }

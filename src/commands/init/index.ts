@@ -14,6 +14,7 @@ import { generateClaudeignore } from "./generators/claudeignore.js";
 import { generateEnhanceSkill } from "./generators/skill-enhance.js";
 import { generateBacklogMd } from "./generators/backlog.js";
 import { SKILL_AUTHORING_CONTENT } from "../../lib/sections.js";
+import { writeSprintHygieneScripts } from "../../lib/hook-scripts.js";
 
 export function createInitCommand(): Command {
   return new Command("init")
@@ -139,6 +140,7 @@ async function scaffold(root: string, options: InitOptions, detected: DetectedPr
   }
 
   await Promise.all(writes);
+  await writeSprintHygieneScripts(root);
 
   log.success("Generated CLAUDE.md");
   log.success("Generated TASKS.md");
@@ -147,6 +149,7 @@ async function scaffold(root: string, options: InitOptions, detected: DetectedPr
   if (!hasClaudeGitignore) log.success("Generated .claude/.gitignore");
   if (!hasClaudeignore) log.success("Generated .claudeignore");
   if (!hasRules) log.success("Generated .claude/rules/conventions.md");
+  log.success("Generated .claude/hooks/sprint-{size,open}-check.sh");
 
   // Offer to create the /lp-enhance skill
   await createEnhanceSkillPrompt(root, skipPrompts);

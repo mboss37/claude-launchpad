@@ -5,6 +5,7 @@ import { createDatabase, closeDatabase } from '../storage/database.js';
 import { migrate } from '../storage/migrator.js';
 import { loadConfig, resolveDataDir } from '../config.js';
 import { readSettingsJson, writeSettingsJson, readSettingsLocalJson, writeSettingsLocalJson } from '../../../lib/settings.js';
+import { addOrUpdateHook } from '../../../lib/hook-builder.js';
 import { getMemoryPlacement } from '../../../lib/memory-placement.js';
 import { log } from '../../../lib/output.js';
 import type { MemoryPlacement } from '../../../types/index.js';
@@ -177,62 +178,42 @@ async function configureSettings(projectDir: string, placement: MemoryPlacement)
 }
 
 function addSessionStartPullHook(hooks: Record<string, unknown[]>): Record<string, unknown[]> {
-  const sessionStartHooks = (hooks['SessionStart'] ?? []) as Record<string, unknown>[];
-  const alreadyHooked = sessionStartHooks.some((h) => {
-    const innerHooks = h['hooks'] as Record<string, unknown>[] | undefined;
-    return innerHooks?.some(
-      ih => typeof ih['command'] === 'string' && (ih['command'] as string).includes('memory pull'),
-    );
+  const result = addOrUpdateHook(hooks, {
+    event: 'SessionStart',
+    dedupKeyword: 'memory pull',
+    entry: {
+      matcher: 'startup',
+      hooks: [{ type: 'command', command: 'claude-launchpad memory pull -y 2>/dev/null; exit 0' }],
+    },
+    prepend: true,
   });
-
-  if (alreadyHooked) return hooks;
-
-  // Insert at the beginning so pull runs before context injection
-  const entry = {
-    matcher: 'startup',
-    hooks: [{ type: 'command', command: 'claude-launchpad memory pull -y 2>/dev/null; exit 0' }],
-  };
-  log.info('Session start: memories will auto-pull from GitHub Gist');
-  return { ...hooks, SessionStart: [entry, ...sessionStartHooks] };
+  if (result.added) log.info('Session start: memories will auto-pull from GitHub Gist');
+  return result.hooks;
 }
 
 function addSessionStartHook(hooks: Record<string, unknown[]>): Record<string, unknown[]> {
-  const sessionStartHooks = (hooks['SessionStart'] ?? []) as Record<string, unknown>[];
-  const hookCommand = 'npx claude-launchpad memory context --json 2>/dev/null; exit 0';
-
-  const alreadyHooked = sessionStartHooks.some((h) => {
-    const innerHooks = h['hooks'] as Record<string, unknown>[] | undefined;
-    return innerHooks?.some(
-      ih => typeof ih['command'] === 'string' && (ih['command'] as string).includes('claude-launchpad memory context'),
-    );
+  const result = addOrUpdateHook(hooks, {
+    event: 'SessionStart',
+    dedupKeyword: 'claude-launchpad memory context',
+    entry: {
+      matcher: 'startup|resume',
+      hooks: [{ type: 'command', command: 'npx claude-launchpad memory context --json 2>/dev/null; exit 0' }],
+    },
   });
-
-  if (alreadyHooked) return hooks;
-
-  const entry = {
-    matcher: 'startup|resume',
-    hooks: [{ type: 'command', command: hookCommand }],
-  };
-  log.info('Session start: Claude will recall relevant context automatically');
-  return { ...hooks, SessionStart: [...sessionStartHooks, entry] };
+  if (result.added) log.info('Session start: Claude will recall relevant context automatically');
+  return result.hooks;
 }
 
 function addSessionEndPushHook(hooks: Record<string, unknown[]>): Record<string, unknown[]> {
-  const sessionEndHooks = (hooks['SessionEnd'] ?? []) as Record<string, unknown>[];
-  const alreadyHooked = sessionEndHooks.some((h) => {
-    const innerHooks = h['hooks'] as Record<string, unknown>[] | undefined;
-    return innerHooks?.some(
-      ih => typeof ih['command'] === 'string' && (ih['command'] as string).includes('memory push'),
-    );
+  const result = addOrUpdateHook(hooks, {
+    event: 'SessionEnd',
+    dedupKeyword: 'memory push',
+    entry: {
+      hooks: [{ type: 'command', command: 'nohup claude-launchpad memory push -y </dev/null >/dev/null 2>&1 & exit 0' }],
+    },
   });
-
-  if (alreadyHooked) return hooks;
-
-  const entry = {
-    hooks: [{ type: 'command', command: 'nohup claude-launchpad memory push -y </dev/null >/dev/null 2>&1 & exit 0' }],
-  };
-  log.info('Session end: memories will auto-push to GitHub Gist');
-  return { ...hooks, SessionEnd: [...sessionEndHooks, entry] };
+  if (result.added) log.info('Session end: memories will auto-push to GitHub Gist');
+  return result.hooks;
 }
 
 function addToolPermissions(settings: Record<string, unknown>): Record<string, unknown> {

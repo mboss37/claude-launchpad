@@ -110,6 +110,23 @@ export async function analyzePermissions(config: ClaudeConfig): Promise<Analyzer
     }
   }
 
+  // Worktree subagents need .worktreeinclude to inherit gitignored env files
+  if (config.gitWorktreesActive) {
+    const content = config.worktreeIncludeContent;
+    const hasEntries = content !== null && content.split("\n").some((l) => {
+      const trimmed = l.trim();
+      return trimmed.length > 0 && !trimmed.startsWith("#");
+    });
+    if (!hasEntries) {
+      issues.push({
+        analyzer: "Permissions",
+        severity: "medium",
+        message: "Git worktrees in use but .worktreeinclude is missing or empty — subagent worktrees won't inherit gitignored .env files and tests fail silently",
+        fix: "Create .worktreeinclude listing files (one per line) to copy into worktrees, e.g. .env.local",
+      });
+    }
+  }
+
   const score = Math.max(0, 100 - issues.length * 15);
   return { name: "Permissions", issues, score };
 }

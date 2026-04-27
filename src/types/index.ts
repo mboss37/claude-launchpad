@@ -107,6 +107,9 @@ export interface ClaudeConfig {
   readonly skills: ReadonlyArray<string>;
   readonly claudeignorePath: string | null;
   readonly claudeignoreContent: string | null;
+  readonly worktreeIncludePath: string | null;
+  readonly worktreeIncludeContent: string | null;
+  readonly gitWorktreesActive: boolean;
 }
 
 export type HookEvent = "PreToolUse" | "PostToolUse" | "SessionStart" | "SessionEnd" | "PostCompact" | "Stop";

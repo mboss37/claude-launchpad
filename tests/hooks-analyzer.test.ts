@@ -17,6 +17,9 @@ function makeConfig(hooks: HookConfig[] = []): ClaudeConfig {
     skills: [],
     claudeignorePath: null,
     claudeignoreContent: null,
+    worktreeIncludePath: null,
+    worktreeIncludeContent: null,
+    gitWorktreesActive: false,
   };
 }
 
@@ -33,6 +36,9 @@ describe("analyzeHooks", () => {
       { event: "PreToolUse", type: "command", matcher: "Read|Write", command: "check .env files" },
       { event: "PostCompact", type: "command", matcher: "", command: "cat TASKS.md" },
       { event: "SessionStart", type: "command", matcher: "startup", command: "cat TASKS.md" },
+      { event: "SessionStart", type: "command", matcher: "startup|resume", command: "bash .claude/hooks/sprint-size-check.sh TASKS.md" },
+      { event: "PreToolUse", type: "command", matcher: "Bash", command: "bash .claude/hooks/sprint-open-check.sh" },
+      { event: "PostToolUse", type: "command", matcher: "Edit|Write", command: "echo 'Sprint complete — all current tasks done'" },
     ]));
     expect(result.score).toBe(100);
   });

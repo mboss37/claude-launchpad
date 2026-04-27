@@ -14,6 +14,13 @@ import { readSettingsJson, writeSettingsJson } from "../../lib/settings.js";
 import { getMemoryPlacement } from "../../lib/memory-placement.js";
 import { wrapStub } from "../../lib/stub-marker.js";
 import {
+  createWorktreeInclude, addSprintSizeHook, addSprintOpenHook, addSprintCompleteNudge,
+} from "./fixer-sprint.js";
+import {
+  addEnvProtectionHook, addAutoFormatHook, addForcePushProtection,
+  addPostCompactHook, addSessionStartHook,
+} from "./fixer-hooks.js";
+import {
   disableAutoMemory, addMemoryToolPermissions, addAllowedMcpServers, addMemoryToAllowedMcpServers,
   addSessionStartPullHook, addSessionEndPushHook, upgradeStaleSessionEndPushHook, removeStaleStopHook,
 } from "./fixer-memory.js";
@@ -87,6 +94,10 @@ const FIX_TABLE: ReadonlyArray<{ analyzer: string; match: string; fix: FixFn }> 
   { analyzer: "Permissions", match: "Bypass permissions mode", fix: (root) => addBypassDisable(root) },
   { analyzer: "Permissions", match: "Filesystem sandbox enabled", fix: (root) => removeSandboxSettings(root) },
   { analyzer: "Permissions", match: ".env is protected by hooks but not in .claudeignore", fix: (root) => addEnvToClaudeignore(root) },
+  { analyzer: "Permissions", match: ".worktreeinclude is missing or empty", fix: (root) => createWorktreeInclude(root) },
+  { analyzer: "Hooks", match: "sprint-size-check", fix: (root) => addSprintSizeHook(root) },
+  { analyzer: "Hooks", match: "sprint-open-check", fix: (root) => addSprintOpenHook(root) },
+  { analyzer: "Hooks", match: "sprint-complete nudge", fix: (root) => addSprintCompleteNudge(root) },
   { analyzer: "Rules", match: "No skill authoring conventions", fix: (root) => addSkillAuthoringConventions(root) },
   { analyzer: "Rules", match: "No /lp-enhance skill", fix: (root) => createEnhanceSkill(root) },
   { analyzer: "Rules", match: "lp-enhance skill is outdated", fix: (root) => updateEnhanceSkill(root) },
@@ -125,100 +136,7 @@ async function tryFix(
   return entry ? entry.fix(root, detected, placement) : false;
 }
 
-// ─── Hook Helper ───
-
-async function addHook(
-  root: string,
-  event: string,
-  dedupKeyword: string,
-  entry: Record<string, unknown>,
-  successMsg: string,
-): Promise<boolean> {
-  const settings = await readSettingsJson(root);
-  if (settings === null) return false;
-  const hooks = (settings.hooks ?? {}) as Record<string, unknown>;
-  const hookList = (hooks[event] as Record<string, unknown>[] | undefined) ?? [];
-
-  const alreadyHas = hookList.some((g: Record<string, unknown>) => {
-    const nested = g.hooks as Record<string, unknown>[] | undefined;
-    return nested?.some((h) => String(h.command ?? "").includes(dedupKeyword));
-  });
-  if (alreadyHas) return false;
-
-  const updated = [...hookList, entry];
-  const updatedSettings = { ...settings, hooks: { ...hooks, [event]: updated } };
-  await writeSettingsJson(root, updatedSettings);
-  log.success(successMsg);
-  return true;
-}
-
 // ─── Fix Implementations ───
-
-async function addEnvProtectionHook(root: string): Promise<boolean> {
-  return addHook(root, "PreToolUse", ".env", {
-    matcher: "Read|Write|Edit",
-    hooks: [{
-      type: "command",
-      command: "echo \"$TOOL_INPUT_FILE_PATH\" | grep -qE '\\.(env|env\\..*)$' && ! echo \"$TOOL_INPUT_FILE_PATH\" | grep -q '.env.example' && echo 'BLOCKED: .env files contain secrets' && exit 1; exit 0",
-    }],
-  }, "Added .env file protection hook (PreToolUse)");
-}
-
-async function addAutoFormatHook(root: string, detected: DetectedProject): Promise<boolean> {
-  if (!detected.language) return false;
-
-  const formatters: Record<string, { extensions: string[]; command: string }> = {
-    TypeScript: { extensions: ["ts", "tsx"], command: "npx prettier --write" },
-    JavaScript: { extensions: ["js", "jsx"], command: "npx prettier --write" },
-    Python: { extensions: ["py"], command: "ruff format" },
-    Go: { extensions: ["go"], command: "gofmt -w" },
-    Rust: { extensions: ["rs"], command: "rustfmt" },
-    Ruby: { extensions: ["rb"], command: "rubocop -A" },
-    PHP: { extensions: ["php"], command: "vendor/bin/pint" },
-  };
-
-  const config = formatters[detected.language];
-  if (!config) return false;
-
-  const extChecks = config.extensions.map((ext) => `[ "$ext" = "${ext}" ]`).join(" || ");
-  return addHook(root, "PostToolUse", "format", {
-    matcher: "Write|Edit",
-    hooks: [{
-      type: "command",
-      command: `ext=\${TOOL_INPUT_FILE_PATH##*.}; (${extChecks}) && ${config.command} "$TOOL_INPUT_FILE_PATH" 2>/dev/null; exit 0`,
-    }],
-  }, `Added auto-format hook (PostToolUse → ${config.command})`);
-}
-
-async function addForcePushProtection(root: string): Promise<boolean> {
-  return addHook(root, "PreToolUse", "force", {
-    matcher: "Bash",
-    hooks: [{
-      type: "command",
-      command: "echo \"$TOOL_INPUT_COMMAND\" | grep -qE 'push.*--force|push.*-f' && echo 'WARNING: Force push detected — this can destroy remote history' && exit 1; exit 0",
-    }],
-  }, "Added force-push protection hook (PreToolUse → Bash)");
-}
-
-async function addPostCompactHook(root: string): Promise<boolean> {
-  return addHook(root, "PostCompact", "TASKS.md", {
-    matcher: "",
-    hooks: [{
-      type: "command",
-      command: "cat TASKS.md 2>/dev/null; exit 0",
-    }],
-  }, "Added PostCompact hook (re-injects TASKS.md after compaction)");
-}
-
-async function addSessionStartHook(root: string): Promise<boolean> {
-  return addHook(root, "SessionStart", "TASKS.md", {
-    matcher: "startup|resume",
-    hooks: [{
-      type: "command",
-      command: "cat TASKS.md 2>/dev/null; exit 0",
-    }],
-  }, "Added SessionStart hook (injects TASKS.md at startup)");
-}
 
 async function migrateAttribution(root: string): Promise<boolean> {
   const settings = await readSettingsJson(root);
@@ -349,6 +267,7 @@ async function createClaudeignore(root: string, detected: DetectedProject): Prom
   log.success("Generated .claudeignore with language-specific ignore patterns");
   return true;
 }
+
 
 const SKILL_AUTHORING_SECTION = `\n## Skill Authoring\n\n${SKILL_AUTHORING_CONTENT}\n`;
 
