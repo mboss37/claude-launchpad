@@ -19,7 +19,8 @@ export function createInitCommand(): Command {
   return new Command("init")
     .description("Set up Claude Code configuration for any project")
     .option("-n, --name <name>", "Project name")
-    .option("-y, --yes", "Accept all defaults")
+    .option("-y, --yes", "Accept all defaults (does not overwrite existing files)")
+    .option("-f, --force", "Overwrite existing CLAUDE.md")
     .action(async (opts) => {
       printBanner();
 
@@ -54,19 +55,25 @@ export function createInitCommand(): Command {
       // Check for existing files
       const hasClaudeMd = await fileExists(join(root, "CLAUDE.md"));
       if (hasClaudeMd) {
-        if (opts.yes) {
-          log.info("CLAUDE.md already exists. Use `doctor --fix` to update, or re-run without --yes to overwrite.");
+        if (opts.force) {
+          log.warn("Overwriting existing CLAUDE.md (--force)");
+        } else if (opts.yes) {
+          log.error("CLAUDE.md already exists. `--yes` will not overwrite existing files.");
+          log.info("Run `claude-launchpad doctor --fix` to update in place,");
+          log.info("or re-run with `--force` to overwrite.");
+          process.exitCode = 1;
           return;
-        }
-        const overwrite = await confirm({
-          message: "CLAUDE.md already exists. Overwrite?",
-          default: false,
-        });
-        if (!overwrite) {
-          log.info("Keeping existing CLAUDE.md");
-          await createEnhanceSkillPrompt(root, false);
-          log.step("Tip: run `claude-launchpad doctor` to check your existing config");
-          return;
+        } else {
+          const overwrite = await confirm({
+            message: "CLAUDE.md already exists. Overwrite?",
+            default: false,
+          });
+          if (!overwrite) {
+            log.info("Keeping existing CLAUDE.md");
+            await createEnhanceSkillPrompt(root, false);
+            log.step("Tip: run `claude-launchpad doctor` to check your existing config");
+            return;
+          }
         }
       }
 

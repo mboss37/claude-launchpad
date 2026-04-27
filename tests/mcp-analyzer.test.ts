@@ -71,4 +71,78 @@ describe("analyzeMcp", () => {
     }));
     expect(result.issues.some((i) => i.severity === "high")).toBe(true);
   });
+
+  it("flags orphaned mcp__<server>__* permission entries when server is not registered", async () => {
+    const result = await analyzeMcp(makeConfig({
+      settings: {
+        allowedMcpServers: [{ serverName: "github" }],
+        permissions: {
+          allow: ["mcp__stale-server__some_tool", "mcp__github__create_issue"],
+        },
+      },
+      mcpServers: [{
+        name: "github",
+        transport: "stdio",
+        command: "npx @modelcontextprotocol/server-github",
+      }],
+    }));
+    const orphan = result.issues.find((i) => i.message.includes("stale-server"));
+    expect(orphan).toBeDefined();
+    expect(orphan?.severity).toBe("medium");
+    expect(orphan?.message).toContain("stale entries silently block tool calls");
+  });
+
+  it("does not flag mcp__<server>__* entries when server is registered", async () => {
+    const result = await analyzeMcp(makeConfig({
+      settings: {
+        allowedMcpServers: [{ serverName: "github" }],
+        permissions: {
+          allow: ["mcp__github__create_issue", "mcp__github__list_repos"],
+        },
+      },
+      mcpServers: [{
+        name: "github",
+        transport: "stdio",
+        command: "npx @modelcontextprotocol/server-github",
+      }],
+    }));
+    expect(result.issues.some((i) => i.message.includes("stale entries"))).toBe(false);
+  });
+
+  it("dedupes multiple orphan entries for the same server into one finding", async () => {
+    const result = await analyzeMcp(makeConfig({
+      settings: {
+        allowedMcpServers: [{ serverName: "github" }],
+        permissions: {
+          allow: ["mcp__ghost__a", "mcp__ghost__b", "mcp__ghost__c"],
+        },
+      },
+      mcpServers: [{
+        name: "github",
+        transport: "stdio",
+        command: "npx @modelcontextprotocol/server-github",
+      }],
+    }));
+    const orphanFindings = result.issues.filter((i) => i.message.includes("ghost"));
+    expect(orphanFindings).toHaveLength(1);
+  });
+
+  it("detects orphans across both shared and local settings", async () => {
+    const result = await analyzeMcp(makeConfig({
+      settings: {
+        allowedMcpServers: [{ serverName: "github" }],
+        permissions: { allow: ["mcp__shared-orphan__x"] },
+      },
+      localSettings: {
+        permissions: { allow: ["mcp__local-orphan__y"] },
+      },
+      mcpServers: [{
+        name: "github",
+        transport: "stdio",
+        command: "npx @modelcontextprotocol/server-github",
+      }],
+    }));
+    expect(result.issues.some((i) => i.message.includes("shared-orphan"))).toBe(true);
+    expect(result.issues.some((i) => i.message.includes("local-orphan"))).toBe(true);
+  });
 });

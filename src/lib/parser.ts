@@ -1,6 +1,7 @@
 import { readdir, access } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { readFileOrNull } from "./fs-utils.js";
+import { log } from "./output.js";
 import type { ClaudeConfig, HookConfig, McpServerConfig } from "../types/index.js";
 
 const CLAUDE_MD = "CLAUDE.md";
@@ -85,11 +86,13 @@ async function readSettings(claudeDir: string): Promise<Record<string, unknown> 
 }
 
 async function readSettingsFromFile(claudeDir: string, filename: string): Promise<Record<string, unknown> | null> {
-  const raw = await readFileOrNull(join(claudeDir, filename));
+  const path = join(claudeDir, filename);
+  const raw = await readFileOrNull(path);
   if (raw === null) return null;
   try {
     return JSON.parse(raw) as Record<string, unknown>;
-  } catch {
+  } catch (err) {
+    log.warn(`${path} is not valid JSON: ${(err as Error).message}. Treating as unreadable to avoid clobbering it.`);
     return null;
   }
 }

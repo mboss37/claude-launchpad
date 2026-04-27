@@ -135,6 +135,7 @@ async function addHook(
   successMsg: string,
 ): Promise<boolean> {
   const settings = await readSettingsJson(root);
+  if (settings === null) return false;
   const hooks = (settings.hooks ?? {}) as Record<string, unknown>;
   const hookList = (hooks[event] as Record<string, unknown>[] | undefined) ?? [];
 
@@ -221,6 +222,7 @@ async function addSessionStartHook(root: string): Promise<boolean> {
 
 async function migrateAttribution(root: string): Promise<boolean> {
   const settings = await readSettingsJson(root);
+  if (settings === null) return false;
   if (settings.includeCoAuthoredBy === undefined) return false;
 
   const { includeCoAuthoredBy: _, ...rest } = settings;
@@ -232,6 +234,7 @@ async function migrateAttribution(root: string): Promise<boolean> {
 
 async function addCredentialDenyRules(root: string): Promise<boolean> {
   const settings = await readSettingsJson(root);
+  if (settings === null) return false;
   const permissions = (settings.permissions ?? {}) as Record<string, unknown>;
   const deny = (permissions.deny as string[] | undefined) ?? [];
 
@@ -247,6 +250,7 @@ async function addCredentialDenyRules(root: string): Promise<boolean> {
 
 async function addBypassDisable(root: string): Promise<boolean> {
   const settings = await readSettingsJson(root);
+  if (settings === null) return false;
   if (settings.disableBypassPermissionsMode === "disable") return false;
 
   const updated = { ...settings, disableBypassPermissionsMode: "disable" };
@@ -257,6 +261,7 @@ async function addBypassDisable(root: string): Promise<boolean> {
 
 async function removeSandboxSettings(root: string): Promise<boolean> {
   const settings = await readSettingsJson(root);
+  if (settings === null) return false;
   if (settings.sandbox === undefined) return false;
 
   const { sandbox: _sandbox, ...rest } = settings;

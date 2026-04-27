@@ -65,6 +65,41 @@ export async function analyzeMcp(config: ClaudeConfig): Promise<AnalyzerResult> 
     }
   }
 
+  // Detect orphaned mcp__<server>__* permission entries (stale after rename/removal)
+  const orphanedServers = findOrphanedMcpPermissions(config, servers.map((s) => s.name));
+  for (const orphan of orphanedServers) {
+    issues.push({
+      analyzer: "MCP",
+      severity: "medium",
+      message: `permissions.allow contains "mcp__${orphan}__*" entries but no MCP server named "${orphan}" is registered — stale entries silently block tool calls`,
+      fix: `Register the "${orphan}" MCP server, or remove its mcp__${orphan}__* entries from permissions.allow`,
+    });
+  }
+
   const score = Math.max(0, 100 - issues.filter((i) => i.severity !== "info").length * 25);
   return { name: "MCP Servers", issues, score };
+}
+
+function findOrphanedMcpPermissions(config: ClaudeConfig, registeredNames: ReadonlyArray<string>): ReadonlyArray<string> {
+  const registered = new Set(registeredNames);
+  const allowEntries: string[] = [
+    ...extractAllow(config.settings),
+    ...extractAllow(config.localSettings),
+  ];
+
+  const orphaned = new Set<string>();
+  for (const entry of allowEntries) {
+    const parts = entry.split("__");
+    if (parts.length < 3 || parts[0] !== "mcp") continue;
+    const serverName = parts[1];
+    if (!serverName || registered.has(serverName)) continue;
+    orphaned.add(serverName);
+  }
+  return [...orphaned];
+}
+
+function extractAllow(settings: Record<string, unknown> | null | undefined): ReadonlyArray<string> {
+  const permissions = settings?.permissions as Record<string, unknown> | undefined;
+  const allow = permissions?.allow as unknown;
+  return Array.isArray(allow) ? allow.filter((e): e is string => typeof e === "string") : [];
 }

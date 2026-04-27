@@ -18,6 +18,7 @@ async function addPlacementHook(
   const read = placement === "local" ? readSettingsLocalJson : readSettingsJson;
   const write = placement === "local" ? writeSettingsLocalJson : writeSettingsJson;
   const settings = await read(root);
+  if (settings === null) return false;
   const hooks = (settings.hooks ?? {}) as Record<string, unknown[]>;
   const hookList = (hooks[event] as Record<string, unknown>[] | undefined) ?? [];
 
@@ -40,6 +41,7 @@ export async function disableAutoMemory(root: string, placement: MemoryPlacement
   const read = placement === "local" ? readSettingsLocalJson : readSettingsJson;
   const write = placement === "local" ? writeSettingsLocalJson : writeSettingsJson;
   const settings = await read(root);
+  if (settings === null) return false;
   if (settings.autoMemoryEnabled === false) return false;
 
   const updated = { ...settings, autoMemoryEnabled: false };
@@ -53,6 +55,7 @@ export async function addMemoryToolPermissions(root: string, placement: MemoryPl
   const read = placement === "local" ? readSettingsLocalJson : readSettingsJson;
   const write = placement === "local" ? writeSettingsLocalJson : writeSettingsJson;
   const settings = await read(root);
+  if (settings === null) return false;
   const permissions = (settings.permissions ?? {}) as Record<string, unknown>;
   const allow = (permissions.allow as string[] | undefined) ?? [];
 
@@ -97,6 +100,7 @@ export async function upgradeStaleSessionEndPushHook(root: string): Promise<bool
     const read = placement === "local" ? readSettingsLocalJson : readSettingsJson;
     const write = placement === "local" ? writeSettingsLocalJson : writeSettingsJson;
     const settings = await read(root);
+    if (settings === null) continue;
     const hooks = settings.hooks as Record<string, unknown[]> | undefined;
     const sessionEnd = hooks?.SessionEnd as Record<string, unknown>[] | undefined;
     if (!sessionEnd) continue;
@@ -126,6 +130,7 @@ export async function upgradeStaleSessionEndPushHook(root: string): Promise<bool
 
 export async function removeStaleStopHook(root: string): Promise<boolean> {
   const settings = await readSettingsJson(root);
+  if (settings === null) return false;
   const hooks = settings.hooks as Record<string, unknown[]> | undefined;
   if (!hooks?.Stop) return false;
 
@@ -160,6 +165,7 @@ export async function addMemoryToAllowedMcpServers(root: string): Promise<boolea
     const read = placement === "local" ? readSettingsLocalJson : readSettingsJson;
     const write = placement === "local" ? writeSettingsLocalJson : writeSettingsJson;
     const settings = await read(root);
+    if (settings === null) continue;
     const existing = settings.allowedMcpServers as unknown;
     if (!Array.isArray(existing)) continue;
 
@@ -183,8 +189,10 @@ export async function addAllowedMcpServers(root: string, placement: MemoryPlacem
   const read = placement === "local" ? readSettingsLocalJson : readSettingsJson;
   const write = placement === "local" ? writeSettingsLocalJson : writeSettingsJson;
   const settings = await read(root);
+  if (settings === null) return false;
   if (settings.allowedMcpServers) return false;
   const other = placement === "local" ? await readSettingsJson(root) : await readSettingsLocalJson(root);
+  if (other === null) return false;
   if (other.allowedMcpServers) return false;
 
   const serverNames = new Set<string>();

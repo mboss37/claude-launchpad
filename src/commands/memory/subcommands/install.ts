@@ -149,6 +149,9 @@ async function configureSettings(projectDir: string, placement: MemoryPlacement)
   const read = placement === "local" ? readSettingsLocalJson : readSettingsJson;
   const write = placement === "local" ? writeSettingsLocalJson : writeSettingsJson;
   const settings = await read(projectDir);
+  if (settings === null) {
+    throw new Error("settings.json is unreadable; repair or remove it before installing memory.");
+  }
 
   // Disable built-in auto-memory
   log.info('Built-in auto-memory disabled (replaced by knowledge base)');
@@ -287,6 +290,7 @@ async function ensureAllowedMcpServerIncludesMemory(
   const read = placement === "local" ? readSettingsLocalJson : readSettingsJson;
   const write = placement === "local" ? writeSettingsLocalJson : writeSettingsJson;
   const settings = await read(projectDir);
+  if (settings === null) return;
   const existing = settings.allowedMcpServers as unknown;
   // No allowlist configured — nothing to patch; Claude Code trusts any added server by default.
   if (!Array.isArray(existing)) return;

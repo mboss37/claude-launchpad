@@ -9,7 +9,7 @@ function hasMemoryPermissions(settings: Record<string, unknown>): boolean {
 }
 
 export async function getMemoryPlacement(root: string, skipPrompt = false): Promise<MemoryPlacement> {
-  const local = await readSettingsLocalJson(root);
+  const local = (await readSettingsLocalJson(root)) ?? {};
   const persisted = local.memoryPlacement;
   if (persisted === "shared" || persisted === "local") {
     return persisted;
@@ -20,7 +20,7 @@ export async function getMemoryPlacement(root: string, skipPrompt = false): Prom
     await writeSettingsLocalJson(root, { ...local, memoryPlacement: "local" });
     return "local";
   }
-  const shared = await readSettingsJson(root);
+  const shared = (await readSettingsJson(root)) ?? {};
   if (hasMemoryPermissions(shared)) {
     await writeSettingsLocalJson(root, { ...local, memoryPlacement: "shared" });
     return "shared";
