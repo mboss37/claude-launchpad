@@ -9,13 +9,13 @@ async function readJsonFile(path: string): Promise<Record<string, unknown> | nul
   } catch (err) {
     const code = (err as NodeJS.ErrnoException).code;
     if (code === "ENOENT") return {};
-    log.warn(`Could not read ${path}: ${(err as Error).message}`);
+    log.warnOnce(`read:${path}`, `Could not read ${path}: ${(err as Error).message}`);
     return null;
   }
   try {
     return JSON.parse(raw) as Record<string, unknown>;
   } catch (err) {
-    log.warn(`${path} is not valid JSON: ${(err as Error).message}. Treating as unreadable to avoid clobbering it.`);
+    log.warnOnce(`parse:${path}`, `${path} is not valid JSON: ${(err as Error).message}. Treating as unreadable to avoid clobbering it.`);
     return null;
   }
 }

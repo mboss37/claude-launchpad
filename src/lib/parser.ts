@@ -92,7 +92,7 @@ async function readSettingsFromFile(claudeDir: string, filename: string): Promis
   try {
     return JSON.parse(raw) as Record<string, unknown>;
   } catch (err) {
-    log.warn(`${path} is not valid JSON: ${(err as Error).message}. Treating as unreadable to avoid clobbering it.`);
+    log.warnOnce(`parse:${path}`, `${path} is not valid JSON: ${(err as Error).message}. Treating as unreadable to avoid clobbering it.`);
     return null;
   }
 }
