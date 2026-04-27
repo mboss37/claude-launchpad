@@ -32,11 +32,7 @@
 - **Sprint 26**: Memory MMR Diversity (v1.6.0) — Maximal Marginal Relevance re-ranks non-pinned injection candidates so top-N spans topics instead of near-duplicates. λ=0.7, 60/40 content+tag Jaccard. New utils/similarity.ts + utils/mmr.ts (pure). 399 tests (+27), 57 benchmarks (+3). Under crowding, top-5 coverage goes 1→5 topics (Δ+4) with no oracle regression (71.7%).
 - **Sprint 27**: Memory MCP unblock + sandbox kill (v1.7.0) — Fixed the actual cause of `/mcp ✘ failed`: `server.ts` was calling `startServer()` at module-import AND inside the CLI action handler, spawning two MCP servers on the same stdio pipe. Gated auto-start with `isMainEntry()` via `import.meta.url` + `realpathSync(process.argv[1])`. Separately removed the filesystem sandbox from init (it blocked memory MCP from reading ~/.agentic-memory/memory.db); doctor now flags `sandbox.enabled === true` as HIGH and strips it on `--fix`. Renamed eval scenario `sandbox-escape` → `env-exfil-bash`. Bumped skill v8. 398 tests.
 - **Sprint 28**: Memory Install + Sync Reliability (v1.8.0) — Bundled 7 silent-failure bugs. New `memory install` subcommand; `isMemoryInstalled()` now requires MCP registration (.mcp.json / settings.local.json / ~/.claude.json); install patches `allowedMcpServers` allowlist before `claude mcp add`; preflight hard-fails on missing `claude`, warns on missing `gh`; `handleSyncErrors` sets `process.exitCode = 1`; gist transport stops swallowing execSync errors; new doctor HIGH check + fixer for allowlist excluding agentic-memory; sync-status remote count excludes locally-tombstoned rows. 399 tests, 57 benchmarks green.
-
-## Recently Done (awaiting v1.9.0 release): Sprint 29 — Doctor Polish
-- [x] **[P1] Init `-y` semantics** — added `-f, --force` flag (industry-standard split). `-y` alone on existing CLAUDE.md now exits 1 with clear error pointing to `--force` or `doctor --fix`.
-- [x] **[P2] Settings parse error** — `readSettingsJson`/`readSettingsLocalJson` now return null + log.warn on corrupted JSON. ENOENT still returns `{}`. All 14 callers updated; mutation paths bail, read-only coalesce. parser.ts also warns on parse error.
-- [x] **[P2] MCP orphan detection** — doctor flags every `mcp__<server>__*` entry in permissions.allow when server is not registered. Reporter only (requires user judgment on rename vs delete). 9 new tests, 408 total.
+- **Sprint 29**: Doctor Polish (v1.8.1) — init `-y` + new `--force` flag (industry-standard split, exits 1 with clear error on existing CLAUDE.md); `readSettingsJson`/`Local` return null + log.warn on corrupted JSON (14 callers updated, mutation paths bail); doctor flags orphaned `mcp__<server>__*` perm entries (reporter only); `log.warnOnce` dedupes parse-error noise. 408 tests (+9). Manually validated end-to-end.
 
 ## Current Sprint: Sprint 30 — Hackathon Hooks (ships in v1.9.0)
 
@@ -48,17 +44,18 @@
 4. **[P1] PostToolUse sprint-complete nudge** — when current-sprint checkboxes all flip to `[x]`, hook prints "Run /wrap-sprint."
 5. **[P1] PreToolUse `.env` R/W/E block** — current `permissions.deny` only blocks Read; extend to Write/Edit. `.env.example` exception.
 
-Target: ~6-8h. Then v1.9.0 release bundles Sprint 29 fix: + Sprint 30 feat: into one minor.
+Target: ~6-8h. Ships as v1.9.0 minor.
 
 ## Release Plan
-- **v1.9.0** = Sprint 29 (`fix:`) + Sprint 30 (`feat:`) bundled, ~8 items total
+- **v1.8.1** ✅ shipped — Sprint 29 patch (doctor/init silent-failure fixes)
+- **v1.9.0** = Sprint 30 hackathon hooks (5 items, minor)
 - **v1.10.0** = Sprint 31, path-scoped rules + pre-commit-gate workflow (separate release — opinionated, new skill, deserves own narrative)
 - **v2.0.0** not scheduled. Reserved for the doctor plan/apply rewrite if/when we commit to it.
 
 ## Session Log
 ### 2026-04-27 (session 44)
-- Sprint 29 done in code (awaiting v1.9.0 bundle with Sprint 30): init `-y` adds `--force` flag with industry-standard split; `readSettingsJson`/`Local` return null+log.warn on corrupted JSON, 14 callers updated; doctor MCP analyzer flags orphaned `mcp__<server>__*` entries.
-- Audited semantic-gps-hackathon `.claude/` setup, parked 5 P1 hackathon-hook items as Sprint 30 candidate (v1.9.0) and 2 items as v1.10.0 candidate (path-scoped rules + pre-commit-gate). Decided to skip v1.8.1 patch — bundle Sprint 29 fix: into v1.9.0 with Sprint 30 feat:. 408 tests, typecheck + build green, Explore-agent review clean.
+- Sprint 29 shipped v1.8.1: init `-f, --force` flag (canonical split, `-y` alone exits 1 on existing CLAUDE.md); `readSettingsJson`/`Local` return null + warnOnce on corrupted JSON (14 callers updated); doctor flags orphan `mcp__<server>__*` perm entries.
+- Audited semantic-gps-hackathon `.claude/` setup, parked 5 P1 hackathon-hook items as v1.9.0 candidate and 2 items as v1.10.0 candidate (path-scoped rules + pre-commit-gate). Initially planned to bundle v1.8.1 into v1.9.0 — reversed: shipped v1.8.1 immediately because real bug fixes shouldn't wait on feature work. 408 tests, typecheck + build green, manually validated end-to-end.
 
 ### 2026-04-23 (session 43)
 - Sprint 28 shipped v1.8.0: 7 memory install/sync reliability bugs bundled in one pass. All four original P1s (half-installed detection, allowlist policy block, sync exit-0-on-failure, swallowed gist errors) plus 3 P2 ride-alongs (preflight, doctor allowlist check, sync-status tombstone accounting).

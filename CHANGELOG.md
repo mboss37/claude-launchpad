@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.8.1] — 2026-04-27
+
+### Added
+- **`init -f, --force` flag.** Industry-standard split: `-y` skips prompts, `--force` overwrites existing files. Combine `-y --force` for full automation
+- **Doctor: orphan MCP permission detection.** Flags every `mcp__<server>__*` entry in `permissions.allow` when no MCP server with that name is registered in `.mcp.json`, `settings.json`, or `settings.local.json`. Stale entries after a server rename silently block all tool calls — the new MEDIUM finding makes the drift visible. Reporter only; no auto-fix because the right action (rename vs delete) requires user judgment
+
+### Fixed
+- **`init -y` silently exits 0 on existing CLAUDE.md.** When CLAUDE.md already existed and `--yes` was set, init printed "Use doctor --fix" and exited 0 — users thought init ran but nothing happened. `-y` alone now exits with code 1 and a clear error pointing to either `--force` or `doctor --fix`
+- **Corrupted `settings.json` silently treated as empty.** `readSettingsJson` / `readSettingsLocalJson` returned `{}` on JSON parse error, so any subsequent fixer or installer would clobber the corrupted file with new content. The functions now return `null` and emit a single warning naming the path. ENOENT still returns `{}` so create-if-missing flows continue to work. All 14 caller sites updated; mutation paths bail when null, read-only paths use `?? {}`. `parser.ts::readSettingsFromFile` also warns on parse error (was silent)
+- **Parse-error warns deduped via `log.warnOnce`.** A corrupted `settings.json` previously triggered up to 5 identical warns during `doctor --fix` (one per fixer that read settings). New `log.warnOnce(key, msg)` helper suppresses repeats by key within a process — 1 warn per corrupted file regardless of how many fixers run
+
 ## [1.8.0] — 2026-04-23
 
 ### Added
