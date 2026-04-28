@@ -30,6 +30,9 @@ function makeConfig(content: string): ClaudeConfig {
     skills: [],
     claudeignorePath: null,
     claudeignoreContent: null,
+    worktreeIncludePath: null,
+    worktreeIncludeContent: null,
+    gitWorktreesActive: false,
   };
 }
 
@@ -66,12 +69,20 @@ describe("sectionSatisfiesIntent", () => {
     expect(sectionSatisfiesIntent(custom, sessionStart)).toBe(true);
   });
 
-  it("does not satisfy when section is stub-wrapped, even if heading matches", () => {
+  it("does not satisfy when stub body is only TODO/HTML comments (placeholder-only)", () => {
     const [stub] = parseSections(
-      "## Session Start\n<!-- LP-STUB: ai-recommended -->\nReal content here.\n<!-- /LP-STUB -->",
+      "## Session Start\n<!-- LP-STUB: ai-recommended -->\n<!-- TODO: fill this in -->\n<!-- /LP-STUB -->",
     );
     expect(stub.isStub).toBe(true);
     expect(sectionSatisfiesIntent(stub, sessionStart)).toBe(false);
+  });
+
+  it("DOES satisfy when stub body is canonical instructional content (heading match still wins)", () => {
+    const [stub] = parseSections(
+      "## Session Start\n<!-- LP-STUB: ai-recommended -->\n- ALWAYS read @TASKS.md first\n- Update TASKS.md as you work\n<!-- /LP-STUB -->",
+    );
+    expect(stub.isStub).toBe(true);
+    expect(sectionSatisfiesIntent(stub, sessionStart)).toBe(true);
   });
 
   it("matches Off-Limits via 'Security Notes' heading alias", () => {
@@ -90,11 +101,18 @@ describe("documentSatisfiesIntent + analyzeQuality", () => {
     }
   });
 
-  it("new project (all stubs) fails every base intent", () => {
+  it("new project: TODO-only stubs fail intent, canonical-content stubs satisfy", () => {
     const sections = parseSections(NEW_PROJECT);
+    // TODO-only stubs (Stack/Commands/Architecture) — body is only `<!-- TODO ... -->`
+    const placeholderOnly = ["Stack", "Commands", "Architecture/Structure"];
+    // Canonical-content stubs (Session Start/Off-Limits/Backlog/Stop-and-Swarm)
+    const canonical = ["Session Start", "Off-Limits", "Backlog", "Stop-and-Swarm"];
+
     for (const rule of INTENT_RULES) {
-      expect(documentSatisfiesIntent(sections, rule), `intent: ${rule.name}`).toBe(false);
+      const expected = canonical.includes(rule.name);
+      expect(documentSatisfiesIntent(sections, rule), `intent: ${rule.name} should ${expected ? "" : "NOT "}satisfy`).toBe(expected);
     }
+    expect(placeholderOnly.length + canonical.length).toBe(INTENT_RULES.length);
   });
 
   it("analyzeQuality on mature project flags no missing sections", async () => {
@@ -103,12 +121,17 @@ describe("documentSatisfiesIntent + analyzeQuality", () => {
     expect(missingSections).toHaveLength(0);
   });
 
-  it("analyzeQuality on new project flags all base sections as missing", async () => {
+  it("analyzeQuality on new project flags only the placeholder-only stubs as missing", async () => {
     const result = await analyzeQuality(makeConfig(NEW_PROJECT), "/test");
     const missingSections = result.issues.filter((i) => i.message.startsWith("Missing"));
-    expect(missingSections).toHaveLength(INTENT_RULES.length);
-    expect(missingSections.some((i) => i.message.includes("Session Start"))).toBe(true);
-    expect(missingSections.some((i) => i.message.includes("Stop-and-Swarm"))).toBe(true);
+    // Stack / Commands / Architecture are TODO-only stubs — must be flagged
+    expect(missingSections.some((i) => i.message.includes("Stack"))).toBe(true);
+    expect(missingSections.some((i) => i.message.includes("Commands"))).toBe(true);
+    expect(missingSections.some((i) => i.message.includes("Architecture"))).toBe(true);
+    // Session Start / Backlog / Stop-and-Swarm wrap canonical content — must NOT be flagged
+    expect(missingSections.some((i) => i.message.includes("Session Start"))).toBe(false);
+    expect(missingSections.some((i) => i.message.includes("Backlog"))).toBe(false);
+    expect(missingSections.some((i) => i.message.includes("Stop-and-Swarm"))).toBe(false);
   });
 
   it("Memory intent matches on canonical heading or keyword", () => {

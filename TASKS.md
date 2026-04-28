@@ -42,6 +42,7 @@ After v1.9.0 the BACKLOG has no P1 items left. v1.10.0 candidate (path-scoped ru
 ## Release Plan
 - **v1.8.1** ✅ shipped — Sprint 29 patch (doctor/init silent-failure fixes)
 - **v1.9.0** ✅ shipped — Sprint 30 hackathon hooks (hook-builder, sprint hygiene, worktree, sprint-complete)
+- **v1.9.1** ✅ shipped — LP-STUB false positive: canonical-content stubs (Session Start/Backlog/Stop-and-Swarm/Off-Limits) now satisfy intent; only TODO-only stubs hard-fail
 - **v1.10.0** = Sprint 31 candidate, path-scoped rules + pre-commit-gate workflow (opinionated, new skill — defer if launching)
 - **v2.0.0** not scheduled. Reserved for the doctor plan/apply rewrite if/when we commit to it.
 

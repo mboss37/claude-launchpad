@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.9.1] — 2026-04-28
+
+### Fixed
+- **Doctor flagged `## Session Start` and `## Backlog` as missing even when `--fix` had just generated them.** Sprint 25's LP-STUB rule ("stubs never satisfy intent") was too coarse — it conflated real placeholders (Commands, Stack, Architecture, where the stub body is `<!-- TODO: ... -->` and the user must customize) with canonical instructions (Session Start, Backlog, Stop-and-Swarm, Off-Limits, where the stub body IS the right answer and there's nothing to customize). `--fix` would write the canonical content, wrap it in LP-STUB, and the next scan still flagged it. Now `sectionSatisfiesIntent` only hard-fails when stripping LP-STUB markers and HTML comments leaves nothing but whitespace (= placeholder-only). Stubs that wrap real markdown content satisfy intent normally. New regression test + reworked fixture-based tests
+
 ## [1.9.0] — 2026-04-27
 
 ### Added
