@@ -10,7 +10,7 @@
 
 **Claude follows CLAUDE.md ~80% of the time. Hooks run at 100%. Most setups have zero hooks.**
 
-Claude Launchpad adds the hooks, scores your config, and tests that Claude actually follows your rules.
+Launchpad scores your Claude Code config, fixes the gaps with hooks and permissions, and runs scenarios to prove Claude follows your rules.
 
 For developers using Claude Code who want consistent results: solo devs, vibe coders, AI-first teams.
 
@@ -200,43 +200,6 @@ Results save to `.claude/eval/` as structured markdown. Feed them back to Claude
 | `--json` | JSON output |
 | `--timeout <ms>` | Timeout per run (default 120000) |
 
-## Memory
-
-Claude's built-in memory resets per machine. Launchpad gives each project persistent, cross-device memory that syncs via a private GitHub Gist. Switch laptops and your decisions are already there.
-
-```bash
-claude-launchpad memory
-```
-
-If memory is not installed, it runs interactive setup. If fully installed (SessionStart hook **and** MCP server registered), it shows stats. If partially installed, it points you at `memory install` to fix the missing piece. Requires native deps first: `npm install better-sqlite3 sqlite-vec`.
-
-During setup, you choose where memory config lives:
-
-- **Shared** (default) — config goes to `CLAUDE.md` + `settings.json` (committed, team sees it)
-- **Local** — config goes to `.claude/CLAUDE.md` + `settings.local.json` (gitignored, only you)
-
-Use "local" when co-devs have different memory setups (e.g. you use agentic-memory, they use built-in). Your choice is persisted so `doctor --fix` won't re-ask.
-
-Every session, Claude loads what it needs to know and stores new knowledge as it works. Stale facts fade on their own. Knowledge Claude actually uses gets reinforced. Each project has its own isolated memory. When a session ends, memories auto-sync to a private GitHub Gist so they're available on any machine.
-
-Browse everything with `--dashboard`, a terminal UI with vim navigation, filtering, and search.
-
-Data stays in `~/.agentic-memory/memory.db`. Sync requires the [GitHub CLI](https://cli.github.com/) (`gh`).
-
-| Flag / Subcommand | What it does |
-|---|---|
-| `--dashboard` | Opens the interactive TUI dashboard |
-| `install` | Explicitly (re-)run the install flow — useful after a partial/broken setup |
-| `push` | Push current project's memories to a private GitHub Gist |
-| `pull` | Pull current project's memories from a private GitHub Gist |
-| `push --all` | Push all projects |
-| `pull --all` | Pull every project already set up on this machine (skips new ones) |
-| `push -y` | Skip confirmation prompt |
-| `sync status` | Show local vs remote memory counts |
-| `sync clean <project>` | Remove a project from the sync gist |
-
-Sync stores one file per project inside a single private gist. Push/pull auto-detects the current project from your working directory. On a new device, the gist is auto-discovered from your GitHub account (no config to copy). Deletions propagate. Delete on one machine; the next machine to pull drops it too.
-
 ## Hooks
 
 CLAUDE.md rules are ~80% reliable. Hooks are 100% enforced by the harness. Init and `--fix` set up these hooks automatically:
@@ -255,6 +218,23 @@ Memory projects get two additional hooks:
 |---|---|---|
 | **SessionStart pull** | Session opens | Auto-pulls memories from GitHub Gist |
 | **SessionEnd push** | Session closes | Auto-pushes new memories to GitHub Gist |
+
+## Memory (optional)
+
+Claude's built-in memory resets per machine. Launchpad gives each project persistent, cross-device memory that syncs via a private GitHub Gist. Switch laptops and your decisions are already there.
+
+```bash
+claude-launchpad memory
+```
+
+Interactive setup if not installed, stats if it is. Requires native deps first: `npm install better-sqlite3 sqlite-vec`. Sync requires the [GitHub CLI](https://cli.github.com/).
+
+- Relevant memories auto-injected at session start, new memories stored as Claude works
+- Stale knowledge fades, important decisions persist
+- Each project has its own scoped memory
+- `--dashboard` opens a terminal UI with vim nav, filtering, and search
+
+Full flag and subcommand reference in [the memory docs](https://mboss37.github.io/claude-launchpad/docs/memory).
 
 ## Use in CI
 

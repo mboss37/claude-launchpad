@@ -5,17 +5,6 @@ Priority: P1 = big bug or must-have feature, P2 = real pain with clear evidence,
 
 ---
 
-## v1.9.0 Sprint Candidate: Hackathon Hooks
-Battle-tested in `semantic-gps-hackathon` over 5 days (100+ marker runs in `.claude/state/`). All five generic, fit existing TASKS.md/BACKLOG.md philosophy, close real holes.
-
-- **[P1] Extract `lib/hook-builder.ts`** — hook-patching duplicated 3 ways (install.ts addSessionStart/End/Pull, fixer.ts 12 hook-adding fns, fixer-memory.ts placement variants). Single `addOrUpdateHook(settings, placement, event, matcher, dedup, prepend?)`. Hard prereq for the 4 new hooks below.
-- **[P1] `.worktreeinclude` template + doctor check** — 2-line file (`.env.local`, `.env`) lets git-worktree subagents inherit secrets without committing them. Without it, worktree subagents fail tests silently. Init generates; doctor warns when worktrees used + file missing/empty.
-- **[P1] Sprint hygiene hooks** — `sprint-size-check.sh` warns on <3 (microsprint) or >7 (oversized) `## Current:` work packages. `sprint-open-check.sh` warns when TASKS.md adds new sprint block but BACKLOG.md has no staged deletions. Both warn-don't-block, pure bash, init-generated.
-- **[P1] PostToolUse sprint-complete nudge** — when TASKS.md edited and current-sprint checkboxes all flip to `[x]`, hook prints "Sprint complete, run /wrap-sprint." One-liner hook, big UX.
-- **[P1] PreToolUse `.env` Read/Write/Edit block** — current `permissions.deny` only blocks Read; Write/Edit can still nuke `.env`. Match path on R/W/E, exit 1, allow `.env.example` through.
-
----
-
 ## v1.10.0 Candidate: Rules Governance + Code Review (opinionated workflows)
 
 - **[P2] Path-scoped rules with YAML frontmatter** — rules start with `--- paths: ["lib/security/**"] ---`, scope rule to file patterns. Cleaner than monolithic conventions.md. lp-enhance writes rules with `paths:`; doctor warns on rule files missing it.
@@ -28,9 +17,6 @@ Landing page leads with outcome ("credentials readable, rules 80%"), README with
 
 ## [P3] Eval: Precondition Check
 `eval` runs scenarios even with no CLAUDE.md/settings. Reports "0 passed" with no hint. Add `parseClaudeConfig` check at start, fail-fast with "Run init first".
-
-## [P3] Code: Split fixer.ts
-426 lines, 48 FIX_TABLE entries + inline impls. Move to `fixers/{hooks,quality,rules,permissions}.ts`. Pairs well with hook-builder.ts extraction in v1.9.0.
 
 ## [P3] Code: watcher.ts Type Cast + Dead Backlog Generator
 `watcher.ts:53` uses `as unknown as { parentPath?: string }` for Node readdir. Also verify `init/generators/backlog.ts::generateBacklogMd` is called; delete if dead.
