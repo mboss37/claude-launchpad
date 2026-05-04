@@ -91,7 +91,7 @@ const beforeIssues = [
   'Credentials (SSH, AWS) readable',
   'No .claudeignore, reads noise files',
   'Rules followed ~80% of the time',
-  'Loses track mid-session after compaction',
+  'BACKLOG drifts, same WP in both files',
   'No guardrails or conventions enforced',
 ] as const;
 
@@ -100,8 +100,8 @@ const afterOutcomes = [
   'Credentials blocked system-wide',
   '.claudeignore filters noise',
   'Hooks enforce rules at 100%',
-  'PostCompact re-injects context',
-  'CLAUDE.md + rules guide every action',
+  'workflow-check warns on BACKLOG/TASKS drift',
+  'Path-scoped rules load on the right files',
 ] as const;
 
 function PageSection({ children, className }: { children: ReactNode; className?: string }) {
@@ -505,11 +505,14 @@ export default function HomePage() {
             <tbody className="text-fd-muted-foreground">
               {[
                 ['Detect stack and framework', true, false, false, false, false],
-                ['Generate CLAUDE.md, TASKS.md, BACKLOG.md', true, false, false, false, false],
+                ['Generate CLAUDE.md, TASKS.md, BACKLOG.md (WP template)', true, false, false, false, false],
                 ['Generate settings.json and hooks', true, true, false, false, false],
                 ['Generate .claudeignore', true, true, false, false, false],
+                ['Generate .claude/rules/workflow.md (path-scoped)', true, true, false, false, false],
+                ['Install workflow-check hook (staleness warnings)', true, true, false, false, false],
                 ['Score config 0-100', false, true, false, false, false],
                 ['Fix missing sections, rules, permissions', false, true, false, false, false],
+                ['Collapse duplicate ## Memory headings', false, true, false, false, false],
                 ['Add stop-and-swarm rule', true, true, false, false, false],
                 ['Rewrite CLAUDE.md with real project content', false, false, true, false, false],
                 ['Suggest hooks, MCP servers, path-scoped rules', false, false, true, false, false],

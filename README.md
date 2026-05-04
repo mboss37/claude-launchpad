@@ -54,7 +54,7 @@ npx claude-launchpad doctor --fix
 
 Scores your config, auto-repairs everything it can.
 
-## The Three-File System
+## The Three-File System + Workflow Rules
 
 Without structure, CLAUDE.md becomes a dumping ground:
 
@@ -67,10 +67,12 @@ The three-file split keeps each concern where it belongs:
 | File | Purpose | Example |
 |---|---|---|
 | `CLAUDE.md` | What Claude needs to know | Stack, commands, conventions, guardrails |
-| `TASKS.md` | What we're doing now | Current sprint, session log, progress |
-| `BACKLOG.md` | What we're doing later | Parked features with P0/P1/P2 priority tiers |
+| `TASKS.md` | What we're doing now | Current sprint, session log (empty between sprints) |
+| `BACKLOG.md` | What we're doing later | WP-NNN template, 7 mandatory fields, P0/P1/P2/P3 sections |
 
-Init generates all three. Doctor checks for them. `--fix` creates any that are missing.
+Init generates all three plus `.claude/rules/workflow.md` (path-scoped — auto-loads only when editing BACKLOG/TASKS) and a `workflow-check.sh` hook that warns on drift: duplicate WP IDs across files, TASKS.md > 80 lines, `## Current Sprint` > 15 items, `## Session Log` > 3 entries.
+
+Doctor flags MEDIUM when workflow.md is missing, LOW when the hook is missing, and MEDIUM on duplicate `## Memory` headings in CLAUDE.md. `--fix` installs or repairs any of them without clobbering existing user content. See the [workflow docs](https://mboss37.github.io/claude-launchpad/docs/workflow) for the full lifecycle.
 
 ## Commands
 
@@ -92,10 +94,10 @@ Runs 7 analyzers against your `.claude/` directory and CLAUDE.md. No API calls, 
 | Analyzer | What it catches |
 |---|---|
 | **Instruction Budget** | Too many instructions. Claude starts ignoring rules past ~200. |
-| **CLAUDE.md Quality** | Missing sections, vague instructions, hardcoded secrets |
+| **CLAUDE.md Quality** | Missing sections, vague instructions, hardcoded secrets, duplicate `## Memory` headings |
 | **Settings** | No hooks configured, dangerous tool access without safety nets |
-| **Hooks** | Missing auto-format, no .env protection, no PostCompact hook, no auto-sync on session end |
-| **Rules** | Dead rule files, stale references, empty configs |
+| **Hooks** | Missing auto-format, no .env protection, no PostCompact hook, no workflow-check hook, no auto-sync on session end |
+| **Rules** | Dead rule files, stale references, empty configs, missing `.claude/rules/workflow.md` |
 | **Permissions** | Credential exposure (~/.ssh, ~/.aws), blanket Bash approval, bypass-mode unprotected |
 | **MCP Servers** | Invalid transport configs, missing commands/URLs |
 
@@ -211,6 +213,8 @@ CLAUDE.md rules are ~80% reliable. Hooks are 100% enforced by the harness. Init 
 | **Auto-format** | After any Write/Edit | Runs your language's formatter (prettier, ruff, gofmt, rustfmt, etc.) |
 | **SessionStart** | Session opens | Injects TASKS.md so Claude knows where you left off |
 | **PostCompact** | After context compression | Re-injects TASKS.md so Claude doesn't lose sprint state mid-session |
+| **workflow-check** | After BACKLOG.md/TASKS.md Edit/Write | Warns on duplicate WP IDs across files, TASKS.md > 80 lines, Current Sprint > 15 items, Session Log > 3 entries |
+| **sprint-size / sprint-open** | Session start / `git commit` | Warns on microsprints (<3 WPs), oversized sprints (>7 WPs), new sprint opened without BACKLOG cleanup |
 
 Memory projects get two additional hooks:
 
