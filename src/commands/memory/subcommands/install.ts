@@ -317,7 +317,7 @@ This project uses **agentic-memory** for persistent memory across sessions.
 - **STORE IMMEDIATELY** when: a dependency strategy changes, an architecture decision is made, a convention is established, a bug pattern is discovered, or a feature is killed/added
 `;
 
-function injectClaudeMdGuidance(projectDir: string, placement: MemoryPlacement): boolean {
+export function injectClaudeMdGuidance(projectDir: string, placement: MemoryPlacement): boolean {
   const claudeMdPath = placement === "local"
     ? join(projectDir, '.claude', 'CLAUDE.md')
     : join(projectDir, 'CLAUDE.md');

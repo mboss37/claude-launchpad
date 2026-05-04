@@ -10,7 +10,6 @@ import { fileExists } from "../../lib/fs-utils.js";
 import { detectProject } from "../../lib/detect.js";
 import { generateClaudeignore } from "../init/generators/claudeignore.js";
 import { generateEnhanceSkill } from "../init/generators/skill-enhance.js";
-import { generateWorkflowRule } from "../init/generators/workflow-rule.js";
 import { generateBacklogMd } from "../init/generators/backlog.js";
 import { readSettingsJson, writeSettingsJson } from "../../lib/settings.js";
 import { getMemoryPlacement } from "../../lib/memory-placement.js";
@@ -19,6 +18,7 @@ import {
   createWorktreeInclude, addSprintSizeHook, addSprintOpenHook, addSprintCompleteNudge,
   addWorkflowCheckHook,
 } from "./fixer-sprint.js";
+import { createWorkflowRule, collapseMemoryHeadings } from "./fixer-quality.js";
 import {
   addEnvProtectionHook, addAutoFormatHook, addForcePushProtection,
   addPostCompactHook, addSessionStartHook,
@@ -296,73 +296,6 @@ ${SKILL_AUTHORING_SECTION}`,
   );
 
   log.success("Created .claude/rules/conventions.md with starter rules");
-  return true;
-}
-
-async function createWorkflowRule(root: string): Promise<boolean> {
-  const rulesDir = join(root, ".claude", "rules");
-  const workflowPath = join(rulesDir, "workflow.md");
-  if (await fileExists(workflowPath)) return false;
-
-  await mkdir(rulesDir, { recursive: true });
-  await writeFile(workflowPath, generateWorkflowRule());
-  log.success("Created .claude/rules/workflow.md (path-scoped BACKLOG/TASKS workflow rules)");
-  return true;
-}
-
-/**
- * Collapse duplicate `## Memory` / `## Memory (agentic-memory)` sections in CLAUDE.md.
- * Keeps the first `## Memory (agentic-memory)` block (canonical), or the first plain
- * `## Memory` block if no tagged one exists. Drops all subsequent memory sections.
- */
-async function collapseMemoryHeadings(root: string): Promise<boolean> {
-  const claudeMdPath = join(root, "CLAUDE.md");
-  let content: string;
-  try {
-    content = await readFile(claudeMdPath, "utf-8");
-  } catch {
-    return false;
-  }
-
-  const isMemoryHeading = (line: string): boolean =>
-    /^## Memory( \(agentic-memory\))?\s*$/.test(line);
-
-  const lines = content.split("\n");
-  type Block = { readonly startIdx: number; readonly endIdx: number; readonly tagged: boolean };
-  const memoryBlocks: Block[] = [];
-
-  for (let i = 0; i < lines.length; i++) {
-    if (!isMemoryHeading(lines[i])) continue;
-    let end = lines.length;
-    for (let j = i + 1; j < lines.length; j++) {
-      if (/^## /.test(lines[j])) { end = j; break; }
-    }
-    memoryBlocks.push({ startIdx: i, endIdx: end, tagged: lines[i].includes("(agentic-memory)") });
-    i = end - 1;
-  }
-
-  if (memoryBlocks.length <= 1) return false;
-
-  // Keep the first tagged block if any; otherwise keep the first block.
-  const keeper = memoryBlocks.find((b) => b.tagged) ?? memoryBlocks[0];
-  const drop = new Set(memoryBlocks.filter((b) => b !== keeper));
-
-  const kept: string[] = [];
-  let skipUntil = -1;
-  for (let i = 0; i < lines.length; i++) {
-    if (i < skipUntil) continue;
-    const droppedBlock = [...drop].find((b) => b.startIdx === i);
-    if (droppedBlock) { skipUntil = droppedBlock.endIdx; continue; }
-    kept.push(lines[i]);
-  }
-
-  // Canonicalize the kept heading to `## Memory (agentic-memory)`.
-  const canonical = kept.map((line) =>
-    /^## Memory\s*$/.test(line) ? "## Memory (agentic-memory)" : line,
-  );
-
-  await writeFile(claudeMdPath, canonical.join("\n"));
-  log.success(`Collapsed ${memoryBlocks.length - 1} duplicate ## Memory section(s) in CLAUDE.md`);
   return true;
 }
 

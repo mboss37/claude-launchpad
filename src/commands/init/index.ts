@@ -143,7 +143,6 @@ async function scaffold(root: string, options: InitOptions, detected: DetectedPr
   }
 
   if (!hasWorkflowRule) {
-    await mkdir(join(root, ".claude", "rules"), { recursive: true });
     writes.push(writeFile(workflowRulePath, generateWorkflowRule()));
   }
 
