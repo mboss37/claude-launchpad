@@ -8,7 +8,7 @@ allowed-tools: Read, Glob, Grep, Edit, Write
 argument-hint: (no arguments needed)
 ---
 
-<!-- lp-enhance-version: 8 -->
+<!-- lp-enhance-version: 9 -->
 
 # lp-enhance - AI-powered CLAUDE.md improver
 
@@ -37,7 +37,7 @@ Count current CLAUDE.md actionable lines. Budget is 200 lines max. Plan which se
 2. **## Architecture** - 3-5 bullets describing codebase shape
 3. **## Conventions** - max 8 key patterns. Overflow to .claude/rules/conventions.md
 4. **## Off-Limits** - max 8 guardrails specific to this project
-5. **## Memory** - ONLY if agentic-memory is configured in settings.json. Max 6 bullets.
+5. **## Memory (agentic-memory)** - ONLY if agentic-memory is configured in settings.json. Max 6 bullets. Use this exact heading so `memory install` stays idempotent.
 6. **## Key Decisions** - only decisions that affect how Claude works in this codebase
 
 7. **Skill Authoring** - if .claude/rules/conventions.md lacks a Skill Authoring section, plan to add one

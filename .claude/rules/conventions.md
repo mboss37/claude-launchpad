@@ -34,14 +34,51 @@
 2. If changes touch `src/commands/memory/` — run `pnpm bench:memory` and verify no regressions
 3. Check function lengths (<50 lines) and file lengths (<400 lines)
 4. Verify no `any` types, no mutation, no hardcoded values
+5. For new features or bug fixes: confirm the test was written BEFORE the implementation (TDD, see below)
+6. Before sprint-ending commits: invoke `superpowers:requesting-code-review` and address Important findings
 
-## Sprint Review (MANDATORY before committing sprint-completing changes)
-When all sprint tasks are done, you MUST spawn a code review agent BEFORE committing:
-1. Spawn an Explore agent to audit all changed files for: dead code, unused imports, logic bugs, convention violations, hardcoded values, function/file length violations
-2. Wait for the review to complete
-3. Fix all HIGH and MEDIUM severity issues
-4. Only then commit
-5. Skip ONLY if the sprint was trivial (docs-only, config-only changes with no logic)
+## Superpowers Workflow
+
+Non-trivial work follows the superpowers skill sequence. Skip steps at your peril — the cost of a skill invocation is low, the cost of guessing is high.
+
+- **`superpowers:brainstorming`** — before any creative/design work. Clarify intent + tradeoffs before touching code.
+- **`superpowers:writing-plans`** — multi-step work. Plan file is the source of truth during execution.
+- **`superpowers:test-driven-development`** — new features, bug fixes, algorithm changes. Failing test first.
+- **`superpowers:executing-plans`** — drive implementation from the plan, with review checkpoints.
+- **`superpowers:systematic-debugging`** — bug or unexpected behavior. Use BEFORE guessing a fix. Often replaces Stop-and-Swarm.
+- **`superpowers:verification-before-completion`** — before claiming done. Run the commands, confirm output, evidence > assertions.
+- **`superpowers:requesting-code-review`** — MANDATORY before sprint-ending commits (see Sprint Review).
+- **`superpowers:dispatching-parallel-agents`** — genuinely independent tasks only. Not for sequential work.
+- **`superpowers:finishing-a-development-branch`** — once code-review passes, decide merge/PR/cleanup.
+
+**Red flag phrases that mean invoke the skill anyway**: "this is too simple", "I know what that means", "I'll just do this one thing first", "let me check git first". All are rationalizations.
+
+## Test-Driven Development (when it's rigid)
+
+For the following changes, TDD is NOT optional. Invoke `superpowers:test-driven-development` and write the failing test BEFORE any implementation:
+
+- **New generator in `src/commands/init/generators/`** — test asserts required sections/content shape
+- **New analyzer in `src/commands/doctor/analyzers/`** — test asserts finding shape (severity, message substring, fix hint)
+- **New fixer** — test asserts the fix applies, is idempotent, and does NOT clobber existing user content
+- **Bug fix in `src/commands/memory/`** — regression test seeded from the bug's minimal repro; then the fix
+- **Algorithm change in `src/commands/memory/services/` or `utils/`** — benchmark threshold update + unit coverage
+
+For the following, TDD is **flexible** (write tests within the same commit, but order doesn't have to be strict):
+- Docs updates (README, landing, CHANGELOG)
+- Version bumps + release plumbing
+- Rule file content edits (`.claude/rules/*.md`)
+- CLI help strings, log messages, prompts
+
+If unsure which bucket a change falls into: default to rigid TDD. The test is cheap to write.
+
+## Sprint Review (MANDATORY before committing sprint-ending changes)
+1. Invoke `superpowers:requesting-code-review`. The skill dispatches the `superpowers:code-reviewer` subagent with base/head SHAs.
+2. The reviewer returns Strengths / Critical / Important / Minor / Assessment.
+3. **Fix all Critical and Important findings before committing.**
+4. Minor findings: file as BACKLOG.md WPs unless trivial.
+5. Skip ONLY if the sprint was trivial (docs-only, config-only, no logic).
+
+The review MUST happen before the sprint-ending commit, not after. If you already committed, amend or stack a follow-up commit before pushing.
 
 ## Skill Authoring
 When creating Claude Code skills (.claude/skills/*/SKILL.md):
