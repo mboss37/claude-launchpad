@@ -88,6 +88,19 @@ export async function analyzeQuality(config: ClaudeConfig, projectRoot: string):
     });
   }
 
+  // Duplicate Memory headings — happens when /lp-enhance wrote `## Memory` first
+  // and memory install later appended `## Memory (agentic-memory)` (or vice-versa).
+  const plainMemory = (content.match(/^## Memory\s*$/gm) ?? []).length;
+  const taggedMemory = (content.match(/^## Memory \(agentic-memory\)\s*$/gm) ?? []).length;
+  if (plainMemory + taggedMemory > 1) {
+    issues.push({
+      analyzer: "Quality",
+      severity: "medium",
+      message: "Duplicate ## Memory headings in CLAUDE.md — memory install appended a second block",
+      fix: "Run `doctor --fix` to collapse them",
+    });
+  }
+
   // Score: base 100, deduct per issue
   const criticals = issues.filter((i) => i.severity === "critical").length;
   const highs = issues.filter((i) => i.severity === "high").length;

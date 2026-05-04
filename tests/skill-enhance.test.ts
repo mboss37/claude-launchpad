@@ -10,6 +10,7 @@ import { generateEnhanceSkill, ENHANCE_SKILL_VERSION } from "../src/commands/ini
 const KNOWN_HASHES: Record<number, string> = {
   7: "bfdefb48ec360626",
   8: "7fe8e50e8d37a20f",
+  9: "d3e935cae5668c5d",
 };
 
 describe("lp-enhance skill", () => {

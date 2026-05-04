@@ -2,7 +2,7 @@ import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { log } from "../../lib/output.js";
 import { addHookToSettings } from "../../lib/hook-builder.js";
-import { writeSprintHygieneScripts } from "../../lib/hook-scripts.js";
+import { writeSprintHygieneScripts, writeWorkflowCheckScript } from "../../lib/hook-scripts.js";
 
 const WORKTREE_INCLUDE_TEMPLATE = `# Files copied into git worktrees that Claude Code creates for subagents.
 # Listed files must be gitignored — that's the point: keep secrets out of
@@ -45,4 +45,12 @@ export async function addSprintCompleteNudge(root: string): Promise<boolean> {
       command: "echo \"$TOOL_INPUT_FILE_PATH\" | grep -q TASKS.md || exit 0; section=$(sed -n '/^## Current/,/^## /p' TASKS.md 2>/dev/null); [ -z \"$section\" ] && exit 0; unchecked=$(echo \"$section\" | grep -cF '- [ ]' || true); checked=$(echo \"$section\" | grep -cF '- [x]' || true); [ \"$unchecked\" -eq 0 ] && [ \"$checked\" -gt 0 ] && echo 'Sprint complete — all current tasks done. Consider a quick quality check before committing: scan for dead code, debug artifacts, TODO hacks, and convention violations. Run tests if available. Skip if trivial.'; exit 0",
     }],
   }, "Added sprint-complete nudge hook");
+}
+
+export async function addWorkflowCheckHook(root: string): Promise<boolean> {
+  await writeWorkflowCheckScript(root);
+  return addHookToSettings(root, "PostToolUse", "workflow-check.sh", {
+    matcher: "Edit|Write",
+    hooks: [{ type: "command", command: "bash .claude/hooks/workflow-check.sh 2>/dev/null; exit 0" }],
+  }, "Added workflow-check hook (BACKLOG/TASKS staleness warnings)");
 }

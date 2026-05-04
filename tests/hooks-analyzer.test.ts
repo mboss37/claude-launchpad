@@ -39,8 +39,16 @@ describe("analyzeHooks", () => {
       { event: "SessionStart", type: "command", matcher: "startup|resume", command: "bash .claude/hooks/sprint-size-check.sh TASKS.md" },
       { event: "PreToolUse", type: "command", matcher: "Bash", command: "bash .claude/hooks/sprint-open-check.sh" },
       { event: "PostToolUse", type: "command", matcher: "Edit|Write", command: "echo 'Sprint complete — all current tasks done'" },
+      { event: "PostToolUse", type: "command", matcher: "Edit|Write", command: "bash .claude/hooks/workflow-check.sh" },
     ]));
     expect(result.score).toBe(100);
+  });
+
+  it("flags missing workflow-check hook when TASKS.md is used", async () => {
+    const result = await analyzeHooks(makeConfig([
+      { event: "SessionStart", type: "command", matcher: "startup", command: "cat TASKS.md" },
+    ]));
+    expect(result.issues.some((i) => i.message.includes("workflow-check.sh"))).toBe(true);
   });
 
   it("flags missing auto-format hook", async () => {

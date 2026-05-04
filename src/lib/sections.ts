@@ -11,7 +11,9 @@ export const SESSION_START_CONTENT =
 export const BACKLOG_CONTENT =
   "- When a feature is discussed but deferred, add it to BACKLOG.md immediately\n" +
   "- Never leave future ideas only in TASKS.md or conversation — they get lost\n" +
-  "- BACKLOG.md is the single source of truth for parked features";
+  "- BACKLOG.md is the single source of truth for parked features\n" +
+  "- Every WP uses the 7-field template in BACKLOG.md — no freeform entries\n" +
+  "- Pull a WP into a sprint = **move**, not copy. A WP lives in exactly one file at a time";
 
 export const STOP_AND_SWARM_CONTENT =
   "Three failed iterations on the same problem = stop iterating alone.\n" +

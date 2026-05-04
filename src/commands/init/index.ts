@@ -13,8 +13,9 @@ import { generateSettings } from "./generators/settings.js";
 import { generateClaudeignore } from "./generators/claudeignore.js";
 import { generateEnhanceSkill } from "./generators/skill-enhance.js";
 import { generateBacklogMd } from "./generators/backlog.js";
+import { generateWorkflowRule } from "./generators/workflow-rule.js";
 import { SKILL_AUTHORING_CONTENT } from "../../lib/sections.js";
-import { writeSprintHygieneScripts } from "../../lib/hook-scripts.js";
+import { writeSprintHygieneScripts, writeWorkflowCheckScript } from "../../lib/hook-scripts.js";
 
 export function createInitCommand(): Command {
   return new Command("init")
@@ -106,6 +107,8 @@ async function scaffold(root: string, options: InitOptions, detected: DetectedPr
   const hasClaudeGitignore = await fileExists(claudeGitignorePath);
   const rulesPath = join(root, ".claude", "rules", "conventions.md");
   const hasRules = await fileExists(rulesPath);
+  const workflowRulePath = join(root, ".claude", "rules", "workflow.md");
+  const hasWorkflowRule = await fileExists(workflowRulePath);
 
   const writes: Promise<void>[] = [
     writeFile(join(root, "CLAUDE.md"), claudeMd),
@@ -139,8 +142,14 @@ async function scaffold(root: string, options: InitOptions, detected: DetectedPr
     writes.push(writeFile(rulesPath, rulesContent));
   }
 
+  if (!hasWorkflowRule) {
+    await mkdir(join(root, ".claude", "rules"), { recursive: true });
+    writes.push(writeFile(workflowRulePath, generateWorkflowRule()));
+  }
+
   await Promise.all(writes);
   await writeSprintHygieneScripts(root);
+  await writeWorkflowCheckScript(root);
 
   log.success("Generated CLAUDE.md");
   log.success("Generated TASKS.md");
@@ -149,7 +158,8 @@ async function scaffold(root: string, options: InitOptions, detected: DetectedPr
   if (!hasClaudeGitignore) log.success("Generated .claude/.gitignore");
   if (!hasClaudeignore) log.success("Generated .claudeignore");
   if (!hasRules) log.success("Generated .claude/rules/conventions.md");
-  log.success("Generated .claude/hooks/sprint-{size,open}-check.sh");
+  if (!hasWorkflowRule) log.success("Generated .claude/rules/workflow.md (workflow rules, path-scoped)");
+  log.success("Generated .claude/hooks/sprint-{size,open}-check.sh + workflow-check.sh");
 
   // Offer to create the /lp-enhance skill
   await createEnhanceSkillPrompt(root, skipPrompts);

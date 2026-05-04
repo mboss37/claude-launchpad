@@ -101,6 +101,14 @@ export async function analyzeHooks(config: ClaudeConfig): Promise<AnalyzerResult
         fix: "Add PostToolUse hook that nudges when all current-sprint checkboxes flip to [x]",
       });
     }
+    if (!hooks.some((h) => h.command?.includes("workflow-check.sh"))) {
+      issues.push({
+        analyzer: "Hooks",
+        severity: "low",
+        message: "No workflow-check.sh hook — BACKLOG/TASKS staleness (duplicate WP IDs, oversized sprint, long session log) is unmonitored",
+        fix: "Add PostToolUse Edit|Write hook calling .claude/hooks/workflow-check.sh",
+      });
+    }
   }
 
   const score = Math.max(0, 100 - issues.length * 15);

@@ -332,7 +332,7 @@ function injectClaudeMdGuidance(projectDir: string, placement: MemoryPlacement):
     content = '# Local Claude Config\n';
   }
 
-  if (content.includes('## Memory (agentic-memory)')) {
+  if (/^## Memory( \(agentic-memory\))?\s*$/m.test(content)) {
     return false;
   }
 

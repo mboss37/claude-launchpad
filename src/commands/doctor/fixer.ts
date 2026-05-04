@@ -10,11 +10,14 @@ import { fileExists } from "../../lib/fs-utils.js";
 import { detectProject } from "../../lib/detect.js";
 import { generateClaudeignore } from "../init/generators/claudeignore.js";
 import { generateEnhanceSkill } from "../init/generators/skill-enhance.js";
+import { generateWorkflowRule } from "../init/generators/workflow-rule.js";
+import { generateBacklogMd } from "../init/generators/backlog.js";
 import { readSettingsJson, writeSettingsJson } from "../../lib/settings.js";
 import { getMemoryPlacement } from "../../lib/memory-placement.js";
 import { wrapStub } from "../../lib/stub-marker.js";
 import {
   createWorktreeInclude, addSprintSizeHook, addSprintOpenHook, addSprintCompleteNudge,
+  addWorkflowCheckHook,
 } from "./fixer-sprint.js";
 import {
   addEnvProtectionHook, addAutoFormatHook, addForcePushProtection,
@@ -85,8 +88,10 @@ const FIX_TABLE: ReadonlyArray<{ analyzer: string; match: string; fix: FixFn }> 
   { analyzer: "Quality", match: "Session Start", fix: (root) => addClaudeMdSection(root, "## Session Start", wrapStub(SESSION_START_CONTENT)) },
   { analyzer: "Quality", match: "Backlog", fix: (root) => addClaudeMdSection(root, "## Backlog", wrapStub(BACKLOG_CONTENT)) },
   { analyzer: "Quality", match: "Stop-and-Swarm", fix: (root) => addClaudeMdSection(root, "## Stop-and-Swarm", wrapStub(STOP_AND_SWARM_CONTENT)) },
+  { analyzer: "Quality", match: "Duplicate ## Memory", fix: (root) => collapseMemoryHeadings(root) },
   { analyzer: "Rules", match: "No BACKLOG.md", fix: (root) => createBacklogMd(root) },
   { analyzer: "Rules", match: "No .claudeignore", fix: (root, detected) => createClaudeignore(root, detected) },
+  { analyzer: "Rules", match: "No .claude/rules/workflow.md", fix: (root) => createWorkflowRule(root) },
   { analyzer: "Rules", match: "No .claude/rules/", fix: (root) => createStarterRules(root) },
   { analyzer: "Hooks", match: "PostCompact", fix: (root) => addPostCompactHook(root) },
   { analyzer: "Permissions", match: "force-push", fix: (root) => addForcePushProtection(root) },
@@ -98,6 +103,7 @@ const FIX_TABLE: ReadonlyArray<{ analyzer: string; match: string; fix: FixFn }> 
   { analyzer: "Hooks", match: "sprint-size-check", fix: (root) => addSprintSizeHook(root) },
   { analyzer: "Hooks", match: "sprint-open-check", fix: (root) => addSprintOpenHook(root) },
   { analyzer: "Hooks", match: "sprint-complete nudge", fix: (root) => addSprintCompleteNudge(root) },
+  { analyzer: "Hooks", match: "workflow-check.sh", fix: (root) => addWorkflowCheckHook(root) },
   { analyzer: "Rules", match: "No skill authoring conventions", fix: (root) => addSkillAuthoringConventions(root) },
   { analyzer: "Rules", match: "No /lp-enhance skill", fix: (root) => createEnhanceSkill(root) },
   { analyzer: "Rules", match: "lp-enhance skill is outdated", fix: (root) => updateEnhanceSkill(root) },
@@ -244,12 +250,8 @@ async function createBacklogMd(root: string): Promise<boolean> {
   }
 
   const name = root.split("/").pop() ?? "Project";
-  await writeFile(backlogPath, `# ${name} - Backlog
-
-> Features discussed but deferred. Pick up when relevant.
-> Priority: P0 = next sprint, P1 = soon, P2 = when relevant.
-`);
-  log.success("Generated BACKLOG.md");
+  await writeFile(backlogPath, generateBacklogMd({ name, description: "" }));
+  log.success("Generated BACKLOG.md (WP template + P0–P3 sections + changelog)");
   return true;
 }
 
@@ -294,6 +296,73 @@ ${SKILL_AUTHORING_SECTION}`,
   );
 
   log.success("Created .claude/rules/conventions.md with starter rules");
+  return true;
+}
+
+async function createWorkflowRule(root: string): Promise<boolean> {
+  const rulesDir = join(root, ".claude", "rules");
+  const workflowPath = join(rulesDir, "workflow.md");
+  if (await fileExists(workflowPath)) return false;
+
+  await mkdir(rulesDir, { recursive: true });
+  await writeFile(workflowPath, generateWorkflowRule());
+  log.success("Created .claude/rules/workflow.md (path-scoped BACKLOG/TASKS workflow rules)");
+  return true;
+}
+
+/**
+ * Collapse duplicate `## Memory` / `## Memory (agentic-memory)` sections in CLAUDE.md.
+ * Keeps the first `## Memory (agentic-memory)` block (canonical), or the first plain
+ * `## Memory` block if no tagged one exists. Drops all subsequent memory sections.
+ */
+async function collapseMemoryHeadings(root: string): Promise<boolean> {
+  const claudeMdPath = join(root, "CLAUDE.md");
+  let content: string;
+  try {
+    content = await readFile(claudeMdPath, "utf-8");
+  } catch {
+    return false;
+  }
+
+  const isMemoryHeading = (line: string): boolean =>
+    /^## Memory( \(agentic-memory\))?\s*$/.test(line);
+
+  const lines = content.split("\n");
+  type Block = { readonly startIdx: number; readonly endIdx: number; readonly tagged: boolean };
+  const memoryBlocks: Block[] = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    if (!isMemoryHeading(lines[i])) continue;
+    let end = lines.length;
+    for (let j = i + 1; j < lines.length; j++) {
+      if (/^## /.test(lines[j])) { end = j; break; }
+    }
+    memoryBlocks.push({ startIdx: i, endIdx: end, tagged: lines[i].includes("(agentic-memory)") });
+    i = end - 1;
+  }
+
+  if (memoryBlocks.length <= 1) return false;
+
+  // Keep the first tagged block if any; otherwise keep the first block.
+  const keeper = memoryBlocks.find((b) => b.tagged) ?? memoryBlocks[0];
+  const drop = new Set(memoryBlocks.filter((b) => b !== keeper));
+
+  const kept: string[] = [];
+  let skipUntil = -1;
+  for (let i = 0; i < lines.length; i++) {
+    if (i < skipUntil) continue;
+    const droppedBlock = [...drop].find((b) => b.startIdx === i);
+    if (droppedBlock) { skipUntil = droppedBlock.endIdx; continue; }
+    kept.push(lines[i]);
+  }
+
+  // Canonicalize the kept heading to `## Memory (agentic-memory)`.
+  const canonical = kept.map((line) =>
+    /^## Memory\s*$/.test(line) ? "## Memory (agentic-memory)" : line,
+  );
+
+  await writeFile(claudeMdPath, canonical.join("\n"));
+  log.success(`Collapsed ${memoryBlocks.length - 1} duplicate ## Memory section(s) in CLAUDE.md`);
   return true;
 }
 

@@ -60,6 +60,15 @@ export function generateSettings(detected: DetectedProject): ClaudeSettings {
     }],
   });
 
+  // Workflow discipline: warn on BACKLOG/TASKS drift (duplicate WP IDs, oversized sprint, long session log)
+  postToolUse.push({
+    matcher: "Edit|Write",
+    hooks: [{
+      type: "command",
+      command: "bash .claude/hooks/workflow-check.sh 2>/dev/null; exit 0",
+    }],
+  });
+
   // Sprint-open hygiene: warn on `git commit` when TASKS.md adds new sprint without BACKLOG deletions
   preToolUse.push({
     matcher: "Bash",

@@ -2,7 +2,7 @@
  * Skill schema version. Bump this when the skill content changes.
  * Doctor compares this against installed skills to detect stale versions.
  */
-export const ENHANCE_SKILL_VERSION = 8;
+export const ENHANCE_SKILL_VERSION = 9;
 
 /**
  * Generates the /lp-enhance skill markdown content.
@@ -50,7 +50,7 @@ export function generateEnhanceSkill(): string {
     '2. **## Architecture** - 3-5 bullets describing codebase shape',
     '3. **## Conventions** - max 8 key patterns. Overflow to .claude/rules/conventions.md',
     '4. **## Off-Limits** - max 8 guardrails specific to this project',
-    '5. **## Memory** - ONLY if agentic-memory is configured in settings.json. Max 6 bullets.',
+    '5. **## Memory (agentic-memory)** - ONLY if agentic-memory is configured in settings.json. Max 6 bullets. Use this exact heading so `memory install` stays idempotent.',
     '6. **## Key Decisions** - only decisions that affect how Claude works in this codebase',
     '',
     '7. **Skill Authoring** - if .claude/rules/conventions.md lacks a Skill Authoring section, plan to add one',

@@ -34,28 +34,25 @@
 - **Sprint 28**: Memory Install + Sync Reliability (v1.8.0) — Bundled 7 silent-failure bugs. New `memory install` subcommand; `isMemoryInstalled()` now requires MCP registration (.mcp.json / settings.local.json / ~/.claude.json); install patches `allowedMcpServers` allowlist before `claude mcp add`; preflight hard-fails on missing `claude`, warns on missing `gh`; `handleSyncErrors` sets `process.exitCode = 1`; gist transport stops swallowing execSync errors; new doctor HIGH check + fixer for allowlist excluding agentic-memory; sync-status remote count excludes locally-tombstoned rows. 399 tests, 57 benchmarks green.
 - **Sprint 29**: Doctor Polish (v1.8.1) — init `-y` + new `--force` flag (industry-standard split, exits 1 with clear error on existing CLAUDE.md); `readSettingsJson`/`Local` return null + log.warn on corrupted JSON (14 callers updated, mutation paths bail); doctor flags orphaned `mcp__<server>__*` perm entries (reporter only); `log.warnOnce` dedupes parse-error noise. 408 tests (+9). Manually validated end-to-end.
 - **Sprint 30**: Hackathon Hooks (v1.9.0) — extracted `lib/hook-builder.ts` pure primitive (`addOrUpdateHook`) + `addHookToSettings` I/O wrapper, replacing 3 duplicated dedup paths (fixer/install/fixer-memory). New `.worktreeinclude` template + MEDIUM doctor check on `.git/worktrees/` activity. Sprint hygiene: `sprint-size-check.sh` (microsprint/oversized) + `sprint-open-check.sh` (BACKLOG drift), 3 LOW doctor findings. Sprint-complete nudge on TASKS.md `[x]` flip. Item 5 (`.env` R/W/E block) was already shipped in earlier versions — audit was wrong. fixer.ts split (350 lines) → fixer-hooks.ts + fixer-sprint.ts. 415 tests (+7), validated end-to-end.
+- **Sprint 31**: Workflow Discipline (v1.10.0) — ported wastd-style BACKLOG/TASKS rigor: WP-NNN template with 7 mandatory fields, `## Priority definitions` table, P0-P3 sections, `## Changelog`. New `.claude/rules/workflow.md` with path-scoped YAML frontmatter. New PostToolUse `workflow-check.sh` hook (4 warn-only conditions: dup WP IDs, TASKS>80, Current Sprint>15, Session Log>3). Memory dedup bug fixed (install.ts regex now catches both `## Memory` and `## Memory (agentic-memory)`); `/lp-enhance` skill v9 writes canonical heading. New doctor checks (MEDIUM workflow.md missing, LOW workflow-check hook missing, MEDIUM duplicate Memory headings) with fixers. 442 tests (+26), repo BACKLOG migrated to new template.
 
-## Next Sprint: TBD
+## Current Sprint
 
-After v1.9.0 the BACKLOG has no P1 items left. v1.10.0 candidate (path-scoped rules + pre-commit-gate) is opinionated workflow work — pick up only if we want to keep building. Otherwise pivot to launch (Launch Campaign in BACKLOG.md).
+<!-- EMPTY. Pull WPs from BACKLOG.md when ready. Format: `- [ ] WP-NNN — short title` -->
 
 ## Release Plan
-- **v1.8.1** ✅ shipped — Sprint 29 patch (doctor/init silent-failure fixes)
-- **v1.9.0** ✅ shipped — Sprint 30 hackathon hooks (hook-builder, sprint hygiene, worktree, sprint-complete)
-- **v1.9.1** ✅ shipped — LP-STUB false positive: canonical-content stubs (Session Start/Backlog/Stop-and-Swarm/Off-Limits) now satisfy intent; only TODO-only stubs hard-fail
-- **v1.10.0** = Sprint 31 candidate, path-scoped rules + pre-commit-gate workflow (opinionated, new skill — defer if launching)
+- **v1.9.1** ✅ shipped — LP-STUB false positive (canonical-content stubs now satisfy intent)
+- **v1.10.0** ✅ shipped — Sprint 31 workflow discipline (wastd-style WP template + path-scoped workflow rule + staleness hook + memory dedup fix)
 - **v2.0.0** not scheduled. Reserved for the doctor plan/apply rewrite if/when we commit to it.
 
 ## Session Log
+### 2026-05-04 (session 45)
+- Shipped v1.10.0 (Sprint 31 — workflow discipline). Ported wastd's BACKLOG/TASKS rigor into default init: WP-NNN template, priority definitions, P0-P3 sections, changelog. New `.claude/rules/workflow.md` with path-scoped YAML frontmatter. New `workflow-check.sh` PostToolUse hook. Fixed memory dedup bug (bare `## Memory` + tagged heading both handled; skill v9 emits canonical heading). Added duplicate-heading detection + collapse fixer. 442 tests (+26), typecheck green.
+- Story-tightening branch (v1.9.1 docs-only) merged to master at fcb3989. Backlog migrated on this sprint to new WP template; 9 WPs seeded (WP-001..WP-009).
+
 ### 2026-04-27 (session 44)
 - Shipped v1.8.1 (Sprint 29 — doctor/init silent-failure polish) and v1.9.0 (Sprint 30 — hackathon hooks). Sprint 29: init `--force` flag, settings parse warns, MCP orphan detection. Sprint 30: hook-builder primitive + 3-way dedup unification, sprint hygiene scripts, worktree check, sprint-complete nudge, fixer.ts split into fixer-hooks/fixer-sprint to stay under 400 lines.
-- Item 5 of Sprint 30 (`.env` R/W/E block) was found already shipped — audit overcorrected. 415 tests, typecheck + build green, validated end-to-end. Initial bundle plan reversed mid-session: bug fixes shouldn't wait on feature work.
 
 ### 2026-04-23 (session 43)
-- Sprint 28 shipped v1.8.0: 7 memory install/sync reliability bugs bundled in one pass. All four original P1s (half-installed detection, allowlist policy block, sync exit-0-on-failure, swallowed gist errors) plus 3 P2 ride-alongs (preflight, doctor allowlist check, sync-status tombstone accounting).
-- 399 tests, 57 benchmarks, typecheck + build green. Explore-agent review clean (one LOW nit on sync-status filter semantics addressed via inline comment).
-
-### 2026-04-22 (session 42)
-- v1.7.2 bugfix: SessionEnd push hook was synchronous — Claude Code SIGTERM'd it before the ~3s GitHub push completed. Wrapped in `nohup ... </dev/null >/dev/null 2>&1 & exit 0` so it detaches and survives. Analyzer/fixer/install all updated; 3 existing projects patched in place.
-- 399 tests (+1), typecheck + build green. Explore-agent review clean.
+- Sprint 28 shipped v1.8.0: 7 memory install/sync reliability bugs bundled in one pass. 399 tests, 57 benchmarks, typecheck + build green.
 

@@ -21,6 +21,17 @@ export async function analyzeRules(config: ClaudeConfig): Promise<AnalyzerResult
     });
   }
 
+  // Check for workflow rule (path-scoped BACKLOG/TASKS rules)
+  const hasWorkflowRule = await fileExists(join(projectRoot, ".claude", "rules", "workflow.md"));
+  if (!hasWorkflowRule) {
+    issues.push({
+      analyzer: "Rules",
+      severity: "medium",
+      message: "No .claude/rules/workflow.md found — BACKLOG/TASKS workflow is unenforced",
+      fix: "Run `doctor --fix` to generate it",
+    });
+  }
+
   // Check for .claudeignore
   const hasClaudeignore = await fileExists(join(projectRoot, ".claudeignore"));
   if (!hasClaudeignore) {

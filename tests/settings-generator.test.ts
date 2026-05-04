@@ -55,4 +55,12 @@ describe("generateSettings", () => {
     expect(hooks.SessionStart).toBeDefined();
     expect(hooks.SessionStart).toHaveLength(2);
   });
+
+  it("registers workflow-check.sh as a PostToolUse hook", () => {
+    const settings = generateSettings(baseProject);
+    const hooks = settings.hooks as Record<string, ReadonlyArray<{ readonly matcher?: string; readonly hooks: ReadonlyArray<{ readonly command?: string }> }>>;
+    const postToolUse = hooks.PostToolUse ?? [];
+    const commands = postToolUse.flatMap((group) => group.hooks.map((h) => h.command ?? ""));
+    expect(commands.some((c) => c.includes("workflow-check.sh"))).toBe(true);
+  });
 });
