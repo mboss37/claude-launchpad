@@ -82,4 +82,41 @@ describe("analyzeHooks", () => {
       expect(result.issues.some((i) => i.message.includes("auto-format"))).toBe(false);
     }
   });
+
+  describe("env-var hook bug detection", () => {
+    it("flags HIGH when a hook command reads $TOOL_INPUT_FILE_PATH (silent inert hook)", async () => {
+      const result = await analyzeHooks(makeConfig([
+        { event: "PreToolUse", type: "command", matcher: "Read|Write|Edit",
+          command: 'echo "$TOOL_INPUT_FILE_PATH" | grep -q TASKS.md; exit 0' },
+      ]));
+      const finding = result.issues.find((i) => i.message.includes("$TOOL_INPUT"));
+      expect(finding).toBeDefined();
+      expect(finding?.severity).toBe("high");
+    });
+
+    it("flags HIGH for ${TOOL_INPUT_COMMAND} pattern in PostToolUse", async () => {
+      const result = await analyzeHooks(makeConfig([
+        { event: "PostToolUse", type: "command", matcher: "Bash",
+          command: 'cmd="${TOOL_INPUT_COMMAND:-}"; echo "$cmd"; exit 0' },
+      ]));
+      expect(result.issues.some((i) => i.severity === "high" && i.message.includes("$TOOL_INPUT"))).toBe(true);
+    });
+
+    it("does NOT flag jq-stdin-based hooks (the canonical form)", async () => {
+      const result = await analyzeHooks(makeConfig([
+        { event: "PreToolUse", type: "command", matcher: "Bash",
+          command: `cmd=$(jq -r '.tool_input.command // empty' 2>/dev/null); echo "$cmd"; exit 0` },
+      ]));
+      expect(result.issues.some((i) => i.message.includes("$TOOL_INPUT"))).toBe(false);
+    });
+
+    it("flags every offending hook even when there are multiple", async () => {
+      const result = await analyzeHooks(makeConfig([
+        { event: "PreToolUse", type: "command", matcher: "Read", command: 'echo "$TOOL_INPUT_FILE_PATH"; exit 0' },
+        { event: "PostToolUse", type: "command", matcher: "Bash", command: 'echo "$TOOL_INPUT_COMMAND"; exit 0' },
+      ]));
+      const findings = result.issues.filter((i) => i.message.includes("$TOOL_INPUT"));
+      expect(findings.length).toBeGreaterThanOrEqual(2);
+    });
+  });
 });

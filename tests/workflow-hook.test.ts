@@ -17,10 +17,11 @@ async function prepareFixture(files: Record<string, string>): Promise<{ root: st
 }
 
 function runHook(scriptPath: string, cwd: string, filePath: string): { stdout: string; exitCode: number } {
+  const fakeInput = JSON.stringify({ tool_input: { file_path: filePath } });
   try {
     const stdout = execFileSync("bash", [scriptPath], {
       cwd,
-      env: { ...process.env, TOOL_INPUT_FILE_PATH: filePath },
+      input: fakeInput,
       encoding: "utf-8",
     });
     return { stdout, exitCode: 0 };

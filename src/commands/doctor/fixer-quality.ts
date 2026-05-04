@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { log } from "../../lib/output.js";
 import { fileExists } from "../../lib/fs-utils.js";
 import { generateWorkflowRule } from "../init/generators/workflow-rule.js";
+import { generateHooksRule } from "../init/generators/hooks-rule.js";
 
 export async function createWorkflowRule(root: string): Promise<boolean> {
   const rulesDir = join(root, ".claude", "rules");
@@ -12,6 +13,17 @@ export async function createWorkflowRule(root: string): Promise<boolean> {
   await mkdir(rulesDir, { recursive: true });
   await writeFile(workflowPath, generateWorkflowRule());
   log.success("Created .claude/rules/workflow.md (path-scoped BACKLOG/TASKS workflow rules)");
+  return true;
+}
+
+export async function createHooksRule(root: string): Promise<boolean> {
+  const rulesDir = join(root, ".claude", "rules");
+  const hooksPath = join(rulesDir, "hooks.md");
+  if (await fileExists(hooksPath)) return false;
+
+  await mkdir(rulesDir, { recursive: true });
+  await writeFile(hooksPath, generateHooksRule());
+  log.success("Created .claude/rules/hooks.md (path-scoped hook authoring rules)");
   return true;
 }
 

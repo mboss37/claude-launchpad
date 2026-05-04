@@ -14,6 +14,7 @@ import { generateClaudeignore } from "./generators/claudeignore.js";
 import { generateEnhanceSkill } from "./generators/skill-enhance.js";
 import { generateBacklogMd } from "./generators/backlog.js";
 import { generateWorkflowRule } from "./generators/workflow-rule.js";
+import { generateHooksRule } from "./generators/hooks-rule.js";
 import { SKILL_AUTHORING_CONTENT } from "../../lib/sections.js";
 import { writeSprintHygieneScripts, writeWorkflowCheckScript } from "../../lib/hook-scripts.js";
 
@@ -109,6 +110,8 @@ async function scaffold(root: string, options: InitOptions, detected: DetectedPr
   const hasRules = await fileExists(rulesPath);
   const workflowRulePath = join(root, ".claude", "rules", "workflow.md");
   const hasWorkflowRule = await fileExists(workflowRulePath);
+  const hooksRulePath = join(root, ".claude", "rules", "hooks.md");
+  const hasHooksRule = await fileExists(hooksRulePath);
 
   const writes: Promise<void>[] = [
     writeFile(join(root, "CLAUDE.md"), claudeMd),
@@ -146,6 +149,10 @@ async function scaffold(root: string, options: InitOptions, detected: DetectedPr
     writes.push(writeFile(workflowRulePath, generateWorkflowRule()));
   }
 
+  if (!hasHooksRule) {
+    writes.push(writeFile(hooksRulePath, generateHooksRule()));
+  }
+
   await Promise.all(writes);
   await writeSprintHygieneScripts(root);
   await writeWorkflowCheckScript(root);
@@ -158,6 +165,7 @@ async function scaffold(root: string, options: InitOptions, detected: DetectedPr
   if (!hasClaudeignore) log.success("Generated .claudeignore");
   if (!hasRules) log.success("Generated .claude/rules/conventions.md");
   if (!hasWorkflowRule) log.success("Generated .claude/rules/workflow.md (workflow rules, path-scoped)");
+  if (!hasHooksRule) log.success("Generated .claude/rules/hooks.md (hook authoring rules, path-scoped)");
   log.success("Generated .claude/hooks/sprint-{size,open}-check.sh + workflow-check.sh");
 
   // Offer to create the /lp-enhance skill

@@ -35,6 +35,7 @@ Always writes these files, and creates additional files only when they do not al
     <File name=".gitignore" />
     <File name="rules/conventions.md" />
     <File name="rules/workflow.md" />
+    <File name="rules/hooks.md" />
     <File name="hooks/sprint-size-check.sh" />
     <File name="hooks/sprint-open-check.sh" />
     <File name="hooks/workflow-check.sh" />
@@ -50,6 +51,7 @@ Always writes these files, and creates additional files only when they do not al
 - **lp-enhance skill**: AI-powered CLAUDE.md improver. Installed during init in either project scope (`.claude/skills/lp-enhance/SKILL.md`) or global scope (`~/.claude/skills/lp-enhance/SKILL.md`) when not already present.
 - **rules/conventions.md**: language-specific starter rules.
 - **rules/workflow.md**: path-scoped BACKLOG/TASKS rules (YAML frontmatter `paths: ["BACKLOG.md", "TASKS.md"]`). Claude Code auto-loads it only when editing those files. See [workflow](/docs/workflow).
+- **rules/hooks.md**: path-scoped hook authoring rules (YAML frontmatter `paths: [".claude/settings.json", ".claude/settings.local.json"]`). Documents the input-via-stdin-not-env-vars contract, exit code 2 vs 1, multi-matcher caveats, isolation testing pattern. Auto-loads only when editing settings.
 - **hooks/sprint-size-check.sh** and **hooks/sprint-open-check.sh**: warn on microsprints / oversized sprints / BACKLOG drift at commit time.
 - **hooks/workflow-check.sh**: PostToolUse staleness check that warns on duplicate WP IDs across BACKLOG+TASKS, TASKS > 80 lines, Current Sprint > 15 items, Session Log > 3 entries.
 

@@ -31,8 +31,8 @@ claude-launchpad doctor
 | **Instruction Budget** | Past ~200 lines, Claude stops reliably following rules at the bottom of CLAUDE.md. Doctor warns before you hit that limit. |
 | **CLAUDE.md Quality** | Missing sections mean Claude guesses your stack, conventions, and boundaries. Vague instructions ("write good code") waste budget with zero signal. Also checks for a stop-and-swarm section so Claude spins up parallel agents after 3 failed attempts instead of retrying the same approach. Detects duplicate `## Memory` headings (can happen if `/lp-enhance` runs before `memory install`; `--fix` collapses them). |
 | **Settings** | Missing hooks, deprecated settings, auto-memory conflicts. Without proper settings, Claude runs without guardrails. |
-| **Hooks** | Missing SessionStart = Claude forgets where you left off. Missing PostCompact = Claude loses context mid-session. Missing SessionEnd = memories never sync. Missing auto-format = inconsistent code style. Missing `workflow-check.sh` = BACKLOG/TASKS drift (duplicate WP IDs, oversized sprint, long session log) is unmonitored. |
-| **Rules** | Missing BACKLOG.md, missing `.claude/rules/workflow.md`, dead rule files, stale references. Without structure, deferred features get lost in conversation. |
+| **Hooks** | Missing SessionStart = Claude forgets where you left off. Missing PostCompact = Claude loses context mid-session. Missing SessionEnd = memories never sync. Missing auto-format = inconsistent code style. Missing `workflow-check.sh` = BACKLOG/TASKS drift unmonitored. **Detects hooks reading non-existent `$TOOL_INPUT_*` env vars (HIGH severity, silently inert) — these were shipped from v0.4.0 onward and never fired; `--fix` rewrites known shapes.** |
+| **Rules** | Missing BACKLOG.md, missing `.claude/rules/workflow.md`, missing `.claude/rules/hooks.md`, dead rule files, stale references. Without structure, deferred features get lost in conversation. |
 | **Permissions** | Credential exposure (SSH keys, AWS creds), bypass mode enabled, filesystem sandbox enabled (blocks memory MCP and cross-project tooling). Security gaps that let Claude access what it shouldn't — or our own config choices that actively break it. |
 | **MCP Servers** | Invalid transport configs, missing commands/URLs, MCP servers not in `allowedMcpServers` whitelist. `allowedMcpServers` is a security setting that restricts which MCP servers Claude can use -- without it, any server added to `.mcp.json` or settings is auto-trusted. `--fix` populates it from your configured servers. |
 | **Memory** (optional) | MCP server config, hooks, autoMemory conflicts, CLAUDE.md guidance, tool permissions. Also cross-checks `allowedMcpServers` — if the allowlist is set without `agentic-memory`, the MCP server can't register and memory silently breaks. HIGH severity; `--fix` adds it back. Only runs when agentic-memory is detected. |
@@ -61,11 +61,13 @@ claude-launchpad doctor
   <Accordion title="Files">
     - Starter rules file (.claude/rules/conventions.md)
     - Path-scoped workflow rules (.claude/rules/workflow.md) for BACKLOG/TASKS lifecycle
+    - Path-scoped hook authoring rules (.claude/rules/hooks.md) — input-via-stdin contract, exit code 2 vs 1, isolation testing
     - BACKLOG.md with the 7-field WP template (P0/P1/P2/P3 sections + Changelog)
     - .claudeignore with language-specific patterns
     - `/lp-enhance` skill at project scope, only if no project/global/legacy install exists
     - workflow-check.sh staleness hook (duplicate WPs, oversized sprint, long session log)
     - Collapses duplicate `## Memory` headings in CLAUDE.md to the canonical `## Memory (agentic-memory)` form
+    - Rewrites inert `$TOOL_INPUT_*` env-var hooks in settings.json + wrapper scripts to canonical jq+stdin form
   </Accordion>
 </Accordions>
 

@@ -1,8 +1,23 @@
 import type { ClaudeConfig, AnalyzerResult, DiagnosticIssue } from "../../../types/index.js";
+import { hasEnvVarHookPattern } from "../../../lib/hook-input.js";
 
 export async function analyzeHooks(config: ClaudeConfig): Promise<AnalyzerResult> {
   const issues: DiagnosticIssue[] = [];
   const hooks = config.hooks;
+
+  // Detect the hook stdin-input bug: hooks that read $TOOL_INPUT_* env vars never fire.
+  // Claude Code passes hook context as JSON on stdin, not as env vars.
+  for (const h of hooks) {
+    if (h.command && hasEnvVarHookPattern(h.command)) {
+      const preview = h.command.slice(0, 60).replace(/\s+/g, " ");
+      issues.push({
+        analyzer: "Hooks",
+        severity: "high",
+        message: `Hook reads non-existent $TOOL_INPUT_* env var (silently inert): ${h.event}/${h.matcher || "*"} — ${preview}…`,
+        fix: "Run `doctor --fix` to rewrite known shapes to jq stdin form. User-customized hooks need manual rewrite to `jq -r '.tool_input.X' < /dev/stdin`.",
+      });
+    }
+  }
 
   if (hooks.length === 0) {
     issues.push({

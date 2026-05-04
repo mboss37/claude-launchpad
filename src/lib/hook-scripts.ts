@@ -42,7 +42,7 @@ export const SPRINT_OPEN_CHECK = `#!/usr/bin/env bash
 # from CLAUDE.md was skipped. Non-blocking (always exits 0).
 
 set -u
-cmd="\${TOOL_INPUT_COMMAND:-}"
+cmd=$(jq -r '.tool_input.command // empty' 2>/dev/null)
 
 # Only act on \`git commit\`, word-boundary match.
 echo "$cmd" | grep -qE '(^|[^a-zA-Z0-9_-])git[[:space:]]+commit([[:space:]]|$)' || exit 0
@@ -83,7 +83,7 @@ export const WORKFLOW_CHECK = `#!/usr/bin/env bash
 #   4. \\\`## Session Log\\\` has more than 3 entries.
 
 set -u
-fp="\${TOOL_INPUT_FILE_PATH:-}"
+fp=$(jq -r '.tool_input.file_path // empty' 2>/dev/null)
 
 # Only act on edits to BACKLOG.md or TASKS.md.
 echo "$fp" | grep -qE '(^|/)(BACKLOG|TASKS)\\.md$' || exit 0

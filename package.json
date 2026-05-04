@@ -1,6 +1,6 @@
 {
   "name": "claude-launchpad",
-  "version": "1.10.0",
+  "version": "1.10.1",
   "description": "Score your Claude Code config, fix the gaps with hooks and permissions, prove Claude follows your rules with eval.",
   "type": "module",
   "bin": {

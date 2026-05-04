@@ -32,6 +32,17 @@ export async function analyzeRules(config: ClaudeConfig): Promise<AnalyzerResult
     });
   }
 
+  // Check for hooks rule (path-scoped settings.json hook authoring rules)
+  const hasHooksRule = await fileExists(join(projectRoot, ".claude", "rules", "hooks.md"));
+  if (!hasHooksRule) {
+    issues.push({
+      analyzer: "Rules",
+      severity: "medium",
+      message: "No .claude/rules/hooks.md found — hook authoring rules unenforced (env-var bug, exit-code 2 vs 1, multi-matcher caveats)",
+      fix: "Run `doctor --fix` to generate it",
+    });
+  }
+
   // Check for .claudeignore
   const hasClaudeignore = await fileExists(join(projectRoot, ".claudeignore"));
   if (!hasClaudeignore) {

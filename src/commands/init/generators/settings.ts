@@ -1,4 +1,5 @@
 import type { DetectedProject } from "../../../types/index.js";
+import { jqField } from "../../../lib/hook-input.js";
 
 interface HookEntry {
   readonly type: "command";
@@ -32,7 +33,7 @@ export function generateSettings(detected: DetectedProject): ClaudeSettings {
     matcher: "Read|Write|Edit",
     hooks: [{
       type: "command",
-      command: "echo \"$TOOL_INPUT_FILE_PATH\" | grep -qE '\\.(env|env\\..*)$' && ! echo \"$TOOL_INPUT_FILE_PATH\" | grep -q '.env.example' && echo 'BLOCKED: .env files contain secrets' && exit 1; exit 0",
+      command: `fp=${jqField("file_path")}; echo "$fp" | grep -qE '\\.(env|env\\..*)$' && ! echo "$fp" | grep -q '.env.example' && { echo 'BLOCKED: .env files contain secrets' >&2; exit 2; }; exit 0`,
     }],
   });
 
@@ -41,7 +42,7 @@ export function generateSettings(detected: DetectedProject): ClaudeSettings {
     matcher: "Bash",
     hooks: [{
       type: "command",
-      command: "echo \"$TOOL_INPUT_COMMAND\" | grep -qE 'rm\\s+-rf\\s+/|DROP\\s+TABLE|DROP\\s+DATABASE|push.*--force|push.*-f' && echo 'BLOCKED: Destructive command detected' && exit 1; exit 0",
+      command: `cmd=${jqField("command")}; echo "$cmd" | grep -qE 'rm\\s+-rf\\s+/|DROP\\s+TABLE|DROP\\s+DATABASE|push.*--force|push.*-f' && { echo 'BLOCKED: Destructive command detected' >&2; exit 2; }; exit 0`,
     }],
   });
 
@@ -56,7 +57,7 @@ export function generateSettings(detected: DetectedProject): ClaudeSettings {
     matcher: "Edit|Write",
     hooks: [{
       type: "command",
-      command: "echo \"$TOOL_INPUT_FILE_PATH\" | grep -q TASKS.md || exit 0; section=$(sed -n '/^## Current/,/^## /p' TASKS.md 2>/dev/null); [ -z \"$section\" ] && exit 0; unchecked=$(echo \"$section\" | grep -cF '- [ ]' || true); checked=$(echo \"$section\" | grep -cF '- [x]' || true); [ \"$unchecked\" -eq 0 ] && [ \"$checked\" -gt 0 ] && echo 'Sprint complete — all current tasks done. Consider a quick quality check before committing: scan for dead code, debug artifacts, TODO hacks, and convention violations. Run tests if available. Skip if trivial.'; exit 0",
+      command: `fp=${jqField("file_path")}; echo "$fp" | grep -q TASKS.md || exit 0; section=$(sed -n '/^## Current/,/^## /p' TASKS.md 2>/dev/null); [ -z "$section" ] && exit 0; unchecked=$(echo "$section" | grep -cF '- [ ]' || true); checked=$(echo "$section" | grep -cF '- [x]' || true); [ "$unchecked" -eq 0 ] && [ "$checked" -gt 0 ] && echo 'Sprint complete — all current tasks done. Consider a quick quality check before committing: scan for dead code, debug artifacts, TODO hacks, and convention violations. Run tests if available. Skip if trivial.'; exit 0`,
     }],
   });
 
@@ -158,7 +159,7 @@ function buildFormatHook(detected: DetectedProject): HookGroup | null {
     matcher: "Write|Edit",
     hooks: [{
       type: "command",
-      command: `ext=\${TOOL_INPUT_FILE_PATH##*.}; (${extChecks}) && ${config.command} "$TOOL_INPUT_FILE_PATH" 2>/dev/null; exit 0`,
+      command: `fp=${jqField("file_path")}; ext="\${fp##*.}"; (${extChecks}) && ${config.command} "$fp" 2>/dev/null; exit 0`,
     }],
   };
 }

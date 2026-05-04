@@ -2,6 +2,7 @@ import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { log } from "../../lib/output.js";
 import { addHookToSettings } from "../../lib/hook-builder.js";
+import { jqField } from "../../lib/hook-input.js";
 import { writeSprintHygieneScripts, writeWorkflowCheckScript } from "../../lib/hook-scripts.js";
 
 const WORKTREE_INCLUDE_TEMPLATE = `# Files copied into git worktrees that Claude Code creates for subagents.
@@ -42,7 +43,7 @@ export async function addSprintCompleteNudge(root: string): Promise<boolean> {
     matcher: "Edit|Write",
     hooks: [{
       type: "command",
-      command: "echo \"$TOOL_INPUT_FILE_PATH\" | grep -q TASKS.md || exit 0; section=$(sed -n '/^## Current/,/^## /p' TASKS.md 2>/dev/null); [ -z \"$section\" ] && exit 0; unchecked=$(echo \"$section\" | grep -cF '- [ ]' || true); checked=$(echo \"$section\" | grep -cF '- [x]' || true); [ \"$unchecked\" -eq 0 ] && [ \"$checked\" -gt 0 ] && echo 'Sprint complete — all current tasks done. Consider a quick quality check before committing: scan for dead code, debug artifacts, TODO hacks, and convention violations. Run tests if available. Skip if trivial.'; exit 0",
+      command: `fp=${jqField("file_path")}; echo "$fp" | grep -q TASKS.md || exit 0; section=$(sed -n '/^## Current/,/^## /p' TASKS.md 2>/dev/null); [ -z "$section" ] && exit 0; unchecked=$(echo "$section" | grep -cF '- [ ]' || true); checked=$(echo "$section" | grep -cF '- [x]' || true); [ "$unchecked" -eq 0 ] && [ "$checked" -gt 0 ] && echo 'Sprint complete — all current tasks done. Consider a quick quality check before committing: scan for dead code, debug artifacts, TODO hacks, and convention violations. Run tests if available. Skip if trivial.'; exit 0`,
     }],
   }, "Added sprint-complete nudge hook");
 }

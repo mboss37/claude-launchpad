@@ -47,7 +47,31 @@ One-paragraph description.
 
 ## P1 — Soon (within 2–3 sprints)
 
-<!-- Empty. -->
+### WP-013 — Extend `rewriteEnvVarHooks` to also patch `settings.local.json`
+
+- **Priority:** P1
+- **Proposed:** 2026-05-04
+- **Stories / Docs:** Sprint 32 code review (Important #2); `src/commands/doctor/fixer-hook-input.ts:115-127`
+- **Depends on:** none
+- **Estimate:** XS
+- **Trigger to pull:** Anytime `fixer-hook-input.ts` is touched, or as filler.
+- **Definition of done:** `rewriteEnvVarHooks(root)` reads/writes `settings.local.json` via `readSettingsLocalJson`/`writeSettingsLocalJson` in addition to `settings.json`. Test asserts a project with the bug ONLY in `settings.local.json` gets fixed by `doctor --fix`.
+
+The Sprint 32 fixer covers `settings.json` but the parser flags env-var hooks in either file. If a user added a custom env-var hook to `settings.local.json`, doctor reports the issue, claims it fixed it, but actually didn't touch the local file. Two-line addition.
+
+### WP-014 — Consolidate same-matcher hook entries in `settings.ts`
+
+- **Priority:** P1
+- **Proposed:** 2026-05-04
+- **Stories / Docs:** Sprint 32 code review (Minor #1); `.claude/rules/hooks.md` (the rule we just shipped); `src/commands/init/generators/settings.ts:32-95`
+- **Depends on:** none
+- **Estimate:** S
+- **Trigger to pull:** Next time `init` settings are touched.
+- **Definition of done:** `settings.ts` emits ONE `PreToolUse Bash` entry combining the destructive-cmd block + `sprint-open-check.sh` into the same `hooks` array, and ONE `PostToolUse Edit|Write` entry combining auto-format + sprint-complete + workflow-check (matcher strings normalized). Same-matcher consolidation also applied in `addHookToSettings` so subsequent fixers append into existing entries rather than creating new ones. Regression test asserts no duplicate matchers in generated settings.
+
+The newly shipped `hooks.md` rule warns that multiple top-level entries with the same matcher can fail. Our own generators emit exactly that pattern (2x `Bash` PreToolUse, 3x `Edit|Write` PostToolUse). Shipping the bug we just documented.
+
+
 
 ---
 
@@ -64,6 +88,30 @@ One-paragraph description.
 - **Definition of done:** `init --strict` flag ships a `/lp-code-review` skill + PreToolUse Bash gate on `git commit` that requires a `.claude/state/last-review-<shasum>` marker written by the skill after typecheck/lint/test pass.
 
 Opinionated workflow for teams that want belt-and-braces. Own sprint because of skill authoring + hook + state management + docs.
+
+### WP-010 — SessionEnd memory push: test `async: true` against current `nohup` wrapper
+
+- **Priority:** P2
+- **Proposed:** 2026-05-04
+- **Stories / Docs:** memory tag "SessionEnd hook must use nohup — synchronous gets SIGTERM'd" (v1.7.2 fix); Claude Code hooks API v2.1+ `async`/`asyncRewake` fields
+- **Depends on:** none
+- **Estimate:** S
+- **Trigger to pull:** Any sprint touching memory hooks, or if a user reports nohup-related quirks (orphan processes, stderr noise, log files in cwd).
+- **Definition of done:** A reproducible test confirms whether `{"type":"command","command":"...","async":true}` survives Claude Code's SIGTERM-on-session-end the same way the `nohup ... </dev/null >/dev/null 2>&1 & exit 0` wrapper does. If equivalent: `fixer-memory.ts` and `install.ts` emit the native `async: true` form and a doctor LOW finding upgrades pre-existing nohup-wrapped hooks. If not equivalent: a comment in `hook-scripts.ts` documents why nohup stays.
+
+The `nohup` pattern was a verified v1.7.2 fix because Claude Code SIGTERMs SessionEnd hooks before `memory push` finishes (~3s GitHub API call). The hooks API now ships an `async: true` flag that is plausibly the official mechanism for this exact case. Verify before swapping — nohup is load-bearing.
+
+### WP-011 — Replace inline shell guards in PreToolUse hooks with `if:` syntax
+
+- **Priority:** P2
+- **Proposed:** 2026-05-04
+- **Stories / Docs:** Claude Code hooks API v2.1.85 (`if` field for permission-rule-style filtering)
+- **Depends on:** none
+- **Estimate:** S
+- **Trigger to pull:** Any sprint touching `init` settings generation, or paired with WP-010 as a hook-modernization mini-sprint.
+- **Definition of done:** The `.env` PreToolUse block (`Read|Write|Edit` matcher) and the destructive-Bash block (`Bash` matcher) in `src/commands/init/generators/settings.ts` use the `if:` field with permission-rule strings instead of inline grep. `pnpm test:run` stays green; regression test confirms blocking behavior is unchanged for `.env` reads, `rm -rf /`, `git push --force`, and `DROP TABLE`.
+
+Currently the two PreToolUse guards grep `tool_input.command` / `tool_input.file_path` in shell to decide block/allow. The new `if:` field lets Claude Code itself filter hooks by permission rule (`"if": "Bash(rm *)"`) — cleaner, less brittle, and one fewer subprocess per tool call. Pure refactor; behavior identical.
 
 ---
 
@@ -163,3 +211,6 @@ Opinionated workflow for teams that want belt-and-braces. Own sprint because of 
 ## Changelog
 
 - **2026-05-04:** Backlog migrated to WP template during Sprint 31 (v1.10.0). Shipped: Story Tightening (v1.9.1+), Path-scoped rules (as `.claude/rules/workflow.md`). Dropped: "dead generator" half of the watcher cleanup item — `generateBacklogMd` is now load-bearing. 9 WPs seeded (WP-001..WP-009).
+- **2026-05-04:** Added WP-010 (test `async: true` vs nohup wrapper for SessionEnd memory push) and WP-011 (replace inline shell guards with `if:` syntax in PreToolUse hooks) to P2 after a hook-API audit confirmed the rest of our generators are on the current spec.
+- **2026-05-04:** WP-012 minted as P0 + pulled into Sprint 32 same edit. Hook audit on wastd surfaced that every PreToolUse/PostToolUse hook our CLI ships reads non-existent `$TOOL_INPUT_*` env vars and silently no-ops. Plan at `docs/superpowers/plans/2026-05-04-hook-stdin-input-bug.md`. Retracts the "all current" claim from the prior audit memo.
+- **2026-05-04:** Added WP-013 (settings.local.json fixer gap from Sprint 32 code review) and WP-014 (consolidate same-matcher hook entries — we ship the bug we just documented in `hooks.md`) to P1.
