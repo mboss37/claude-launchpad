@@ -1,11 +1,11 @@
 ---
 title: workflow
-description: How Launchpad keeps BACKLOG.md and TASKS.md from rotting — WP template, path-scoped rules, and the staleness hook that catches drift.
+description: How Launchpad keeps BACKLOG.md and TASKS.md from rotting. Includes the WP template, path-scoped rules, and the staleness hook that catches drift.
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
 
-`init` generates three files that together form a workflow: **CLAUDE.md** (what Claude knows), **TASKS.md** (what we're doing now), **BACKLOG.md** (what we're doing later). Without structure, those files rot — TASKS.md balloons past 200 lines, BACKLOG.md becomes a dumping ground, and the same work package ends up in both files at once.
+`init` generates three files that together form a workflow: **CLAUDE.md** (what Claude knows), **TASKS.md** (what we're doing now), **BACKLOG.md** (what we're doing later). Without structure, those files rot. TASKS.md balloons past 200 lines, BACKLOG.md becomes a dumping ground, and the same work package ends up in both files at once.
 
 v1.10.0 ships three things to stop the rot: a typed work-package template, a path-scoped rule file Claude auto-loads when editing those files, and a PostToolUse hook that warns on four staleness conditions.
 
@@ -58,12 +58,12 @@ One-paragraph description.
 **Every WP entry must include** all 7 fields. Free-form entries are a drift signal. `XL` estimates must be decomposed before they can enter a sprint.
 
 <Callout type="info">
-`doctor --fix` never overwrites an existing BACKLOG.md. If you migrated from a freeform backlog, your content is preserved verbatim — doctor just flags when workflow.md is missing and fixes that independently.
+`doctor --fix` never overwrites an existing BACKLOG.md. If you migrated from a freeform backlog, your content is preserved verbatim; doctor just flags when workflow.md is missing and fixes that independently.
 </Callout>
 
 ## TASKS.md discipline
 
-`## Current Sprint` holds **only** the active sprint's WPs. Between sprints it's empty — that's the canary that tells you the last sprint closed cleanly.
+`## Current Sprint` holds **only** the active sprint's WPs. Between sprints it's empty. That's the canary that tells you the last sprint closed cleanly.
 
 ```markdown
 # <project> — Task Tracker
@@ -95,6 +95,12 @@ paths: ["BACKLOG.md", "TASKS.md"]
 
 It codifies the single rule, the WP template requirements, numbered sprint start / sprint close sequences, and the staleness trigger list. **Doctor flags MEDIUM when this file is missing; `doctor --fix` writes it.**
 
+## Why path-scoped rules matter
+
+A monolithic CLAUDE.md grows past the 200-line budget fast. Path-scoped rule files let you keep per-domain conventions close to the files they govern. Claude Code only loads them when relevant. YAML frontmatter with `paths: [...]` is the convention.
+
+`init` generates two scoped rule files by default: `conventions.md` (general code style) and `workflow.md` (BACKLOG/TASKS lifecycle). Add your own. For example, Swift rules under `paths: ["ios/**"]`, or backend rules under `paths: ["api/**"]`.
+
 ## Sprint lifecycle
 
 ### Starting a sprint
@@ -108,7 +114,7 @@ It codifies the single rule, the WP template requirements, numbered sprint start
 ### Closing a sprint
 
 1. All `## Current Sprint` items checked off, or explicitly moved back to BACKLOG with rationale.
-2. Run your review workflow — verify tests, typecheck, and convention compliance before declaring done.
+2. Run your review workflow. Verify tests, typecheck, and convention compliance before declaring done.
 3. Add one-line summary to `## Completed Sprints`.
 4. Empty `## Current Sprint` back to its placeholder comment.
 5. Update `## Session Log` (prune to 3 entries).
@@ -122,28 +128,12 @@ It codifies the single rule, the WP template requirements, numbered sprint start
 |---|---|
 | Same `WP-NNN` ID in both files | Move-not-copy rule was violated. You pulled a WP into TASKS.md without removing it from BACKLOG.md. |
 | `TASKS.md` > 80 lines | Completed Sprints or Session Log is overflowing. Prune. |
-| `## Current Sprint` > 15 items | Sprint is oversized. Split it — move some WPs back to BACKLOG.md P0. |
+| `## Current Sprint` > 15 items | Sprint is oversized. Split it; move some WPs back to BACKLOG.md P0. |
 | `## Session Log` > 3 entries | Older sessions should live in git history, not in TASKS.md. |
 
-The hook always exits 0 — warnings appear as hook output in your Claude Code session; they don't block edits or commits.
+The hook always exits 0; warnings appear as hook output in your Claude Code session and don't block edits or commits.
 
 Doctor flags LOW when the hook is missing; `doctor --fix` installs the script and the settings entry together.
-
-## Duplicate `## Memory` heading collapse
-
-Pre-v1.10.0, running `/lp-enhance` followed by `memory install` could leave CLAUDE.md with two `## Memory` sections — the dedup guard only matched the exact string `## Memory (agentic-memory)`, so a bare `## Memory` heading written by the skill didn't count as "already installed".
-
-v1.10.0 fixes both paths:
-
-- **Install dedup regex anchors both heading shapes.** `memory install` now sees a bare `## Memory` heading and skips appending.
-- **`/lp-enhance` skill v9** writes the canonical `## Memory (agentic-memory)` heading. Existing v8 installations are flagged LOW by doctor; `doctor --fix` auto-updates the skill.
-- **Duplicate-heading detector.** If CLAUDE.md ended up with both sections, doctor flags MEDIUM and `doctor --fix` collapses them to a single canonical `## Memory (agentic-memory)` block (keeping the first tagged body).
-
-## Why path-scoped rules matter
-
-A monolithic CLAUDE.md grows past the 200-line budget fast. Path-scoped rule files let you keep per-domain conventions close to the files they govern — Claude Code only loads them when relevant. YAML frontmatter with `paths: [...]` is the convention.
-
-`init` generates two scoped rule files by default: `conventions.md` (general code style) and `workflow.md` (BACKLOG/TASKS lifecycle). Add your own — Swift rules under `paths: ["ios/**"]`, backend rules under `paths: ["api/**"]`, etc.
 
 ## Next
 

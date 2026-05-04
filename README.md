@@ -70,7 +70,7 @@ The three-file split keeps each concern where it belongs:
 | `TASKS.md` | What we're doing now | Current sprint, session log (empty between sprints) |
 | `BACKLOG.md` | What we're doing later | WP-NNN template, 7 mandatory fields, P0/P1/P2/P3 sections |
 
-Init generates all three plus `.claude/rules/workflow.md` (path-scoped — auto-loads only when editing BACKLOG/TASKS) and a `workflow-check.sh` hook that warns on drift: duplicate WP IDs across files, TASKS.md > 80 lines, `## Current Sprint` > 15 items, `## Session Log` > 3 entries.
+Init generates all three plus `.claude/rules/workflow.md`, a path-scoped rule file Claude auto-loads only when editing BACKLOG.md or TASKS.md. It also installs a `workflow-check.sh` hook that warns on drift: duplicate WP IDs across files, TASKS.md > 80 lines, Current Sprint > 15 items, Session Log > 3 entries.
 
 Doctor flags MEDIUM when workflow.md is missing, LOW when the hook is missing, and MEDIUM on duplicate `## Memory` headings in CLAUDE.md. `--fix` installs or repairs any of them without clobbering existing user content. See the [workflow docs](https://mboss37.github.io/claude-launchpad/docs/workflow) for the full lifecycle.
 

@@ -29,7 +29,7 @@ claude-launchpad doctor
 | Analyzer | What it catches |
 |---|---|
 | **Instruction Budget** | Past ~200 lines, Claude stops reliably following rules at the bottom of CLAUDE.md. Doctor warns before you hit that limit. |
-| **CLAUDE.md Quality** | Missing sections mean Claude guesses your stack, conventions, and boundaries. Vague instructions ("write good code") waste budget with zero signal. Also checks for a stop-and-swarm section so Claude spins up parallel agents after 3 failed attempts instead of retrying the same approach. Detects duplicate `## Memory` headings (the v1.10.0 bug where `/lp-enhance` + `memory install` could produce two sections). |
+| **CLAUDE.md Quality** | Missing sections mean Claude guesses your stack, conventions, and boundaries. Vague instructions ("write good code") waste budget with zero signal. Also checks for a stop-and-swarm section so Claude spins up parallel agents after 3 failed attempts instead of retrying the same approach. Detects duplicate `## Memory` headings (can happen if `/lp-enhance` runs before `memory install`; `--fix` collapses them). |
 | **Settings** | Missing hooks, deprecated settings, auto-memory conflicts. Without proper settings, Claude runs without guardrails. |
 | **Hooks** | Missing SessionStart = Claude forgets where you left off. Missing PostCompact = Claude loses context mid-session. Missing SessionEnd = memories never sync. Missing auto-format = inconsistent code style. Missing `workflow-check.sh` = BACKLOG/TASKS drift (duplicate WP IDs, oversized sprint, long session log) is unmonitored. |
 | **Rules** | Missing BACKLOG.md, missing `.claude/rules/workflow.md`, dead rule files, stale references. Without structure, deferred features get lost in conversation. |
@@ -60,7 +60,7 @@ claude-launchpad doctor
   </Accordion>
   <Accordion title="Files">
     - Starter rules file (.claude/rules/conventions.md)
-    - Path-scoped workflow rules (.claude/rules/workflow.md) — BACKLOG/TASKS lifecycle
+    - Path-scoped workflow rules (.claude/rules/workflow.md) for BACKLOG/TASKS lifecycle
     - BACKLOG.md with the 7-field WP template (P0/P1/P2/P3 sections + Changelog)
     - .claudeignore with language-specific patterns
     - `/lp-enhance` skill at project scope, only if no project/global/legacy install exists
