@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import type { EvalCheck } from "../../types/index.js";
+import { log } from "../../lib/output.js";
 
 const exec = promisify(execFile);
 
@@ -101,11 +102,20 @@ async function checkMaxLines(check: EvalCheck, sandboxDir: string): Promise<bool
   }
 }
 
-/** The script's exit code IS the verdict: 0 = pass, anything else = fail. */
+/**
+ * The script's exit code IS the verdict: 0 = pass, anything else = fail.
+ * Runs with a scrubbed env — scenario YAML is shareable, and custom scripts
+ * must never see API keys or other secrets from the parent process.
+ */
 async function checkCustom(check: EvalCheck, sandboxDir: string): Promise<boolean> {
   if (!check.script) return false;
+  const env = {
+    PATH: process.env.PATH ?? "",
+    HOME: process.env.HOME ?? "",
+    TMPDIR: process.env.TMPDIR ?? "",
+  };
   try {
-    await exec("bash", ["-c", check.script], { cwd: sandboxDir, timeout: 30_000 });
+    await exec("bash", ["-c", check.script], { cwd: sandboxDir, timeout: 30_000, env });
     return true;
   } catch {
     return false;
@@ -127,8 +137,10 @@ async function checkJudge(check: EvalCheck, context: CheckContext): Promise<bool
   if (!check.rubric) return false;
   try {
     return await context.judge(check.rubric, context.transcript);
-  } catch {
-    return false; // Fail closed — a broken judge never awards points
+  } catch (err) {
+    // Fail closed — a broken judge never awards points — but never silently
+    log.warnOnce("judge-check-error", `judge check could not run (scoring FAIL): ${err instanceof Error ? err.message : String(err)}`);
+    return false;
   }
 }
 
@@ -160,7 +172,8 @@ export function makeClaudeJudge(model?: string): CheckContext["judge"] {
         maxBuffer: 1024 * 1024,
       });
       return /\bPASS\b/.test(stdout) && !/\bFAIL\b/.test(stdout);
-    } catch {
+    } catch (err) {
+      log.warnOnce("judge-cli-error", `judge could not invoke the claude CLI (scoring FAIL): ${err instanceof Error ? err.message : String(err)}`);
       return false;
     }
   };

@@ -1,6 +1,7 @@
 import type { ClaudeConfig, AnalyzerResult, DiagnosticIssue } from "../../../types/index.js";
+import { isMemoryMcpRegistered } from "../../../lib/memory-registration.js";
 
-export async function analyzePermissions(config: ClaudeConfig): Promise<AnalyzerResult> {
+export async function analyzePermissions(config: ClaudeConfig, projectRoot: string): Promise<AnalyzerResult> {
   const issues: DiagnosticIssue[] = [];
   const settings = config.settings;
   const permissions = settings?.permissions as Record<string, unknown> | undefined;
@@ -20,9 +21,9 @@ export async function analyzePermissions(config: ClaudeConfig): Promise<Analyzer
     });
   }
 
-  // Blanket Bash approval — in permissions.allow or the legacy allowedTools key
-  const isBlanketBash = (a: string): boolean =>
-    a === "Bash" || (a.startsWith("Bash") && !a.includes("("));
+  // Blanket Bash approval — in permissions.allow or the legacy allowedTools key.
+  // Exact match only: "BashOutput" etc. are different tools, and "Bash(...)" is scoped.
+  const isBlanketBash = (a: string): boolean => a === "Bash";
   if ([...allowList, ...legacyAllowList].some(isBlanketBash)) {
     issues.push({
       analyzer: "Permissions",
@@ -47,7 +48,10 @@ export async function analyzePermissions(config: ClaudeConfig): Promise<Analyzer
   // but Bash-run memory commands (SessionStart pull / SessionEnd push hooks,
   // `claude-launchpad memory ...`) write ~/.agentic-memory and need a scoped grant.
   const sandbox = settings?.sandbox as Record<string, unknown> | undefined;
-  const memoryInUse = config.mcpServers.some((s) => s.name === "agentic-memory");
+  // Covers all three registration scopes, incl. user scope (~/.claude.json)
+  // used by local-placement installs that config.mcpServers can't see.
+  const memoryInUse = config.mcpServers.some((s) => s.name === "agentic-memory")
+    || isMemoryMcpRegistered(projectRoot);
   if (sandbox?.enabled === true && memoryInUse && !sandboxAllowsMemoryWrites(sandbox)) {
     issues.push({
       analyzer: "Permissions",

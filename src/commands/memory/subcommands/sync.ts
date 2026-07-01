@@ -15,7 +15,7 @@ interface SyncOpts {
 export async function runSync(opts: SyncOpts): Promise<void> {
   if (loadSyncConfig()) {
     const { runPull } = await import('./pull.js');
-    await runPull({ all: opts.all });
+    await runPull({ all: opts.all, quietMissing: true });
   } else {
     log.info('No sync gist yet — skipping pull; push will create it.');
   }

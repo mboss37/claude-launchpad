@@ -154,7 +154,10 @@ async function runClaudeInSandbox(
           cwd,
           allowedTools: ["Bash", "Read", "Write", "Edit", "Glob", "Grep"],
           permissionMode: "dontAsk",
-          settingSources: [],
+          // "project" is required or the SDK loads NOTHING from the sandbox —
+          // no CLAUDE.md, no .claude/settings.json hooks. Eval exists to test
+          // that config surface, and transcript checks assert hooks fire.
+          settingSources: ["project"],
           maxTurns: 20,
           abortController: controller,
           ...(model ? { model } : {}),

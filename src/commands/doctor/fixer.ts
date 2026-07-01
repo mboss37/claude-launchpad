@@ -1,4 +1,4 @@
-import { readFile, writeFile, mkdir, access } from "node:fs/promises";
+import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { homedir } from "node:os";
 import { log } from "../../lib/output.js";
@@ -260,12 +260,7 @@ async function addClaudeMdSection(root: string, heading: string, content: string
 
 async function createBacklogMd(root: string): Promise<boolean> {
   const backlogPath = join(root, "BACKLOG.md");
-  try {
-    await access(backlogPath);
-    return false;
-  } catch {
-    // Create it
-  }
+  if (await fileExists(backlogPath)) return false;
 
   const name = root.split("/").pop() ?? "Project";
   await writeFile(backlogPath, generateBacklogMd({ name, description: "" }));
@@ -275,12 +270,7 @@ async function createBacklogMd(root: string): Promise<boolean> {
 
 async function createClaudeignore(root: string, detected: DetectedProject): Promise<boolean> {
   const ignorePath = join(root, ".claudeignore");
-  try {
-    await access(ignorePath);
-    return false; // Already exists
-  } catch {
-    // Create it
-  }
+  if (await fileExists(ignorePath)) return false;
 
   const content = generateClaudeignore(detected);
   await writeFile(ignorePath, content);
@@ -293,12 +283,7 @@ const SKILL_AUTHORING_SECTION = `\n## Skill Authoring\n\n${SKILL_AUTHORING_CONTE
 
 async function createStarterRules(root: string): Promise<boolean> {
   const rulesDir = join(root, ".claude", "rules");
-  try {
-    await access(rulesDir);
-    return false; // Already exists
-  } catch {
-    // Create it
-  }
+  if (await fileExists(rulesDir)) return false;
 
   await mkdir(rulesDir, { recursive: true });
 

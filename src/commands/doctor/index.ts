@@ -43,20 +43,7 @@ export function createDoctorCommand(): Command {
         process.exit(1);
       }
 
-      const results: AnalyzerResult[] = await Promise.all([
-        analyzeBudget(config),
-        analyzeQuality(config, opts.path),
-        analyzeSettings(config),
-        analyzeHooks(config),
-        analyzeRules(config),
-        analyzePermissions(config),
-        analyzeMcp(config),
-      ]);
-
-      const memoryResult = await analyzeMemory(config, opts.path);
-      if (memoryResult) {
-        results.push(memoryResult);
-      }
+      const results = await runAnalyzers(config, opts.path);
 
       if (opts.json) {
         const overallScore = Math.round(
@@ -102,29 +89,26 @@ export function createDoctorCommand(): Command {
           log.blank();
           log.step("Applying fixes...");
           log.blank();
-          const { fixed } = await applyFixes(fixable, opts.path);
-          log.blank();
-          if (fixed > 0) {
-            log.success(`Applied ${fixed} fix(es). Re-scanning...`);
+
+          // Fix to a fixed point: a fix can unlock checks gated on artifacts it
+          // creates (e.g. sprint hooks activate once a TASKS.md hook exists), so
+          // re-scan and re-apply until nothing new is fixed (bounded).
+          let updatedResults = results;
+          let pending = fixable;
+          let totalFixed = 0;
+          for (let pass = 0; pass < 3 && pending.length > 0; pass++) {
+            const { fixed } = await applyFixes(pending, opts.path);
+            totalFixed += fixed;
+            updatedResults = await runAnalyzers(await parseClaudeConfig(opts.path), opts.path);
+            if (fixed === 0) break;
+            pending = updatedResults.flatMap((r) => r.issues).filter((i) => i.severity !== "info");
+          }
+          if (totalFixed > 0) {
+            log.blank();
+            log.success(`Applied ${totalFixed} fix(es). Re-scanning...`);
             log.blank();
           }
 
-          // Always re-scan and show report after --fix attempt
-          const updatedConfig = await parseClaudeConfig(opts.path);
-          const updatedResults: AnalyzerResult[] = await Promise.all([
-            analyzeBudget(updatedConfig),
-            analyzeQuality(updatedConfig, opts.path),
-            analyzeSettings(updatedConfig),
-            analyzeHooks(updatedConfig),
-            analyzeRules(updatedConfig),
-            analyzePermissions(updatedConfig),
-            analyzeMcp(updatedConfig),
-          ]);
-
-          const updatedMemoryResult = await analyzeMemory(updatedConfig, opts.path);
-          if (updatedMemoryResult) {
-            updatedResults.push(updatedMemoryResult);
-          }
           renderDoctorReport(updatedResults, { afterFix: true });
           log.info(`Then use ${chalk.bold("/lp-enhance")} inside Claude Code to have Claude restructure and complete your CLAUDE.md.`);
         }
@@ -138,4 +122,22 @@ export function createDoctorCommand(): Command {
         }
       }
     });
+}
+
+async function runAnalyzers(
+  config: Awaited<ReturnType<typeof parseClaudeConfig>>,
+  path: string,
+): Promise<AnalyzerResult[]> {
+  const results: AnalyzerResult[] = await Promise.all([
+    analyzeBudget(config),
+    analyzeQuality(config, path),
+    analyzeSettings(config),
+    analyzeHooks(config),
+    analyzeRules(config),
+    analyzePermissions(config, path),
+    analyzeMcp(config),
+  ]);
+  const memoryResult = await analyzeMemory(config, path);
+  if (memoryResult) results.push(memoryResult);
+  return results;
 }

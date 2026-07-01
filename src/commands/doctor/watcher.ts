@@ -89,7 +89,7 @@ async function runAndDisplay(projectRoot: string): Promise<void> {
     analyzeSettings(config),
     analyzeHooks(config),
     analyzeRules(config),
-    analyzePermissions(config),
+    analyzePermissions(config, projectRoot),
     analyzeMcp(config),
   ]);
 

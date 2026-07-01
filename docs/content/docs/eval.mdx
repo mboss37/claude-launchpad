@@ -99,6 +99,8 @@ checks:
 
 <Callout type="warn">
   `judge` checks make one extra Claude call per run. `transcript` and `custom` are free.
+
+  **`custom` scripts execute on your machine** (with a scrubbed environment — no API keys), outside any permission system. Read third-party scenario files before running them with `--scenarios`.
 </Callout>
 
 ## How the sandbox works
