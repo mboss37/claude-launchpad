@@ -41,6 +41,13 @@ One-paragraph description.
 
 ## P0 — Next sprint
 
+> **Suggested sequencing for the 5/5 arc (WP-015..WP-019, minted 2026-07-01):**
+> 1. **Sprint A:** WP-015 + WP-016 together — both are credibility fixes, no dependencies between them.
+> 2. **Sprint B:** WP-017 alone — it's an L, eval is the differentiator, give it a full sprint.
+> 3. **Sprint C:** WP-018 + WP-019 — analyzer modernization pairs well with the memory repositioning content pass.
+>
+> Expected re-review after all five: doctor ~5, eval ~5, memory ~4 (honest sync niche), init ~4 → 5/5 overall in reach.
+
 ### WP-015 — Scope the filesystem sandbox instead of stripping it
 
 - **Priority:** P0
