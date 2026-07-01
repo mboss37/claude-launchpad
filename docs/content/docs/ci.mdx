@@ -21,3 +21,17 @@ jobs:
 ```
 
 The `--min-score 80` flag returns exit code 1 if the score is below 80, which blocks the PR. The `--json` flag outputs structured JSON for programmatic consumption.
+
+## The canary pattern (how launchpad guards itself)
+
+Generated configs can rot silently: Claude Code evolves, and a hook that was correct last quarter may no longer fire at all — with no error anywhere. Unit tests can't catch this because they validate what a tool *emits*, not what Claude Code *executes*.
+
+Launchpad's own repo runs a weekly [canary workflow](https://github.com/mboss37/claude-launchpad/blob/master/.github/workflows/canary.yml) that scaffolds a fresh project with `init -y`, installs the **latest** Claude Code release, and asserts real behavior in live headless sessions:
+
+- the destructive-command hook actually blocks `rm -rf /...`
+- the `.env` guard actually fires (and the seeded secret stays out of the transcript)
+- the PostToolUse auto-format hook actually rewrites a just-written file
+- `memory install` actually registers the MCP server (`claude mcp list`)
+- SessionStart memory context injection actually produces output
+
+Failures open a `canary-failure` issue automatically. It needs an `ANTHROPIC_API_KEY` secret and costs a few cents per run (short haiku sessions). If you maintain your own hook library, steal this pattern — it's in [`scripts/canary.sh`](https://github.com/mboss37/claude-launchpad/blob/master/scripts/canary.sh).
