@@ -48,12 +48,17 @@ export interface DoctorReport {
 // ─── Eval Types ───
 
 export interface EvalCheck {
-  readonly type: "grep" | "file-exists" | "file-absent" | "max-lines" | "custom";
+  readonly type: "grep" | "file-exists" | "file-absent" | "max-lines" | "custom" | "transcript" | "judge";
   readonly pattern?: string;
-  readonly target: string;
+  /** Required for file-based checks (grep, file-exists, file-absent, max-lines). */
+  readonly target?: string;
   readonly expect: "present" | "absent";
   readonly points: number;
   readonly label: string;
+  /** custom: shell command run inside the sandbox — exit 0 = pass. */
+  readonly script?: string;
+  /** judge: criteria a Claude call grades the session transcript against. */
+  readonly rubric?: string;
 }
 
 export interface EvalScenario {

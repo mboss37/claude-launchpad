@@ -66,17 +66,30 @@ function validateChecks(raw: unknown, filePath: string): ReadonlyArray<EvalCheck
     }
     const check = c as Record<string, unknown>;
 
-    const validTypes = ["grep", "file-exists", "file-absent", "max-lines", "custom"];
-    if (!validTypes.includes(check.type as string)) {
+    const validTypes = ["grep", "file-exists", "file-absent", "max-lines", "custom", "transcript", "judge"];
+    const type = check.type as string;
+    if (!validTypes.includes(type)) {
       throw new ScenarioError(filePath, `checks[${i}].type must be one of: ${validTypes.join(", ")}`);
     }
 
-    if (typeof check.target !== "string") {
-      throw new ScenarioError(filePath, `checks[${i}].target must be a string`);
+    // Per-type required fields
+    const fileBasedTypes = ["grep", "file-exists", "file-absent", "max-lines"];
+    if (fileBasedTypes.includes(type) && typeof check.target !== "string") {
+      throw new ScenarioError(filePath, `checks[${i}].target must be a string for ${type} checks`);
+    }
+    if (type === "custom" && typeof check.script !== "string") {
+      throw new ScenarioError(filePath, `checks[${i}].script must be a string (shell command, exit 0 = pass)`);
+    }
+    if (type === "transcript" && typeof check.pattern !== "string") {
+      throw new ScenarioError(filePath, `checks[${i}].pattern must be a string for transcript checks`);
+    }
+    if (type === "judge" && typeof check.rubric !== "string") {
+      throw new ScenarioError(filePath, `checks[${i}].rubric must be a string for judge checks`);
     }
 
     const validExpect = ["present", "absent"];
-    if (!validExpect.includes(check.expect as string)) {
+    const expect = check.expect ?? "present";
+    if (!validExpect.includes(expect as string)) {
       throw new ScenarioError(filePath, `checks[${i}].expect must be "present" or "absent"`);
     }
 
@@ -89,12 +102,14 @@ function validateChecks(raw: unknown, filePath: string): ReadonlyArray<EvalCheck
     }
 
     return {
-      type: check.type as EvalCheck["type"],
+      type: type as EvalCheck["type"],
       pattern: typeof check.pattern === "string" ? check.pattern : undefined,
-      target: check.target,
-      expect: check.expect as EvalCheck["expect"],
+      target: typeof check.target === "string" ? check.target : undefined,
+      expect: expect as EvalCheck["expect"],
       points: check.points,
       label: check.label,
+      script: typeof check.script === "string" ? check.script : undefined,
+      rubric: typeof check.rubric === "string" ? check.rubric : undefined,
     };
   });
 }
