@@ -201,9 +201,17 @@ export function createMemoryCommand(): Command {
       }),
   );
 
-  // Sync management commands
+  // Sync commands — bare `memory sync` = pull + push in one call
   const sync = new Command("sync")
-    .description("Manage memory sync");
+    .description("Sync memories with the gist (pull + push); subcommands manage sync state")
+    .option("--all", "Sync all projects")
+    .option("-y, --yes", "Skip confirmation prompt")
+    .action(async (opts) => {
+      await handleSyncErrors(async () => {
+        const { runSync } = await import("./subcommands/sync.js");
+        await runSync(opts);
+      });
+    });
 
   sync.addCommand(
     new Command("status")

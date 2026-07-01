@@ -233,6 +233,8 @@ claude-launchpad memory
 
 Interactive setup if not installed, stats if it is. Requires native deps first: `npm install better-sqlite3 sqlite-vec`. Sync requires the [GitHub CLI](https://cli.github.com/).
 
+Once set up, `claude-launchpad memory sync` is the everyday command — pull + push in one call, so every machine has the same project brain. Deletions propagate too (tombstones): machines converge to the same memory set, never more, never less. This is the piece Claude Code's built-in memory doesn't do — see [built-in vs Launchpad memory](https://mboss37.github.io/claude-launchpad/docs/memory#built-in-memory-vs-launchpad-memory).
+
 - Relevant memories auto-injected at session start, new memories stored as Claude works
 - Stale knowledge fades, important decisions persist
 - Each project has its own scoped memory

@@ -13,6 +13,21 @@ claude-launchpad memory
 
 Running without flags starts an interactive setup that walks you through installation.
 
+## Built-in memory vs Launchpad memory
+
+Claude Code ships its own auto-memory, and if you work on a single machine it may be all you need. Launchpad memory exists for the case the built-in system doesn't cover: **the same project brain on every machine you work from.**
+
+| | Built-in auto-memory | Launchpad memory |
+|---|---|---|
+| Persists across sessions | Yes | Yes |
+| Cross-machine sync | No — per machine | Yes — private GitHub Gist, `memory sync` |
+| Deletions propagate across machines | — | Yes (tombstones; machines converge exactly) |
+| Injection strategy | Automatic | Relevance-scored + token-budgeted (6 signals, MMR diversity) |
+| Inspect / manage | Memory files | TUI dashboard, stats, purge, search |
+| Setup | Zero | Two native deps + `memory install` |
+
+Honest guidance: single machine, zero-setup preference → keep the built-in system. Two or more machines (or you want scored injection and a dashboard) → install Launchpad memory and let `memory sync` carry the project brain between them.
+
 ## What changes
 
 Once memory is installed, three things happen automatically:
@@ -146,15 +161,15 @@ Keybindings:
 Push and pull memories between machines. Uses a private GitHub Gist for storage with one file per project. Requires the [GitHub CLI](https://cli.github.com/) (`gh`) to be installed and authenticated.
 
 ```bash
-# Push current project's memories
-claude-launchpad memory push
+# The everyday command — pull then push in one call
+claude-launchpad memory sync
 
-# Pull current project's memories on another machine
+# Or run the halves separately
+claude-launchpad memory push
 claude-launchpad memory pull
 
-# Push/pull all projects at once
-claude-launchpad memory push --all
-claude-launchpad memory pull --all
+# All projects at once
+claude-launchpad memory sync --all
 ```
 
 Push and pull auto-detect the current project from your working directory. No `--project` flag needed.
@@ -192,6 +207,8 @@ Project-scoped push/pull only touches that project's file. Other projects are ne
 
 | Subcommand | What it does |
 |---|---|
+| `memory sync` | Pull + push in one call (first sync creates the gist) |
+| `memory sync --all` | Sync all projects |
 | `memory push` | Push current project's memories |
 | `memory pull` | Pull current project's memories |
 | `memory push --all` | Push all projects |
