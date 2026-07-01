@@ -24,14 +24,14 @@ export async function analyzeSettings(config: ClaudeConfig): Promise<AnalyzerRes
     });
   }
 
-  // Permission rules — only flag if allowedTools is set without security hooks
+  // Legacy allowedTools key — superseded by permissions.allow in current settings schema
   const allowedTools = config.settings.allowedTools as string[] | undefined;
-  if (allowedTools && allowedTools.length > 0 && config.hooks.length === 0) {
+  if (allowedTools && allowedTools.length > 0) {
     issues.push({
       analyzer: "Settings",
-      severity: "medium",
-      message: "Tools auto-allowed without any hooks — no safety net for dangerous operations",
-      fix: "Add PreToolUse hooks for security or remove allowedTools to use interactive prompting",
+      severity: "low",
+      message: "Legacy allowedTools key in settings.json — superseded by permissions.allow",
+      fix: "Move entries to permissions.allow (e.g. \"Bash(npm test)\") and remove allowedTools",
     });
   }
 

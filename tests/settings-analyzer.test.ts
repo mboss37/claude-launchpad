@@ -39,20 +39,21 @@ describe("analyzeSettings", () => {
     expect(result.issues.some((i) => i.severity === "medium" && i.message.includes("hooks"))).toBe(true);
   });
 
-  it("flags allowedTools without parsed hooks as dangerous", async () => {
-    // config.hooks is the parsed array — empty means no hooks detected
-    const config = makeConfig({ allowedTools: ["Bash", "Write"] });
-    const result = await analyzeSettings(config);
-    expect(result.issues.some((i) => i.message.includes("safety net"))).toBe(true);
-  });
-
-  it("does not flag allowedTools when parsed hooks exist", async () => {
+  it("flags the legacy allowedTools key even when hooks exist", async () => {
     const config: ClaudeConfig = {
-      ...makeConfig({ allowedTools: ["Bash"], hooks: { PreToolUse: [{}] } }),
+      ...makeConfig({ allowedTools: ["Bash", "Write"], hooks: { PreToolUse: [{}] } }),
       hooks: [{ event: "PreToolUse", type: "command", matcher: "Bash", command: "echo ok" }],
     };
     const result = await analyzeSettings(config);
-    expect(result.issues.some((i) => i.message.includes("safety net"))).toBe(false);
+    expect(result.issues.some((i) => i.message.includes("Legacy allowedTools"))).toBe(true);
+  });
+
+  it("does not flag configs that use permissions.allow", async () => {
+    const result = await analyzeSettings(makeConfig({
+      hooks: { PreToolUse: [{}] },
+      permissions: { allow: ["Bash(npm test)"] },
+    }));
+    expect(result.issues.some((i) => i.message.includes("Legacy allowedTools"))).toBe(false);
   });
 
   it("flags deprecated includeCoAuthoredBy", async () => {

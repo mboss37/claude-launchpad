@@ -6,6 +6,7 @@ export async function analyzePermissions(config: ClaudeConfig): Promise<Analyzer
   const permissions = settings?.permissions as Record<string, unknown> | undefined;
   const denyList = (permissions?.deny as string[] | undefined) ?? [];
   const allowList = (permissions?.allow as string[] | undefined) ?? [];
+  const legacyAllowList = (settings?.allowedTools as string[] | undefined) ?? [];
 
   // Credential file exposure
   const credentialPatterns = ["Read(~/.ssh/*)", "Read(~/.aws/*)", "Read(~/.npmrc)"];
@@ -19,9 +20,10 @@ export async function analyzePermissions(config: ClaudeConfig): Promise<Analyzer
     });
   }
 
-  // Blanket Bash approval
-  const hasBlanketBash = allowList.some((a) => a === "Bash" || (a.startsWith("Bash") && !a.includes("(")));
-  if (hasBlanketBash) {
+  // Blanket Bash approval — in permissions.allow or the legacy allowedTools key
+  const isBlanketBash = (a: string): boolean =>
+    a === "Bash" || (a.startsWith("Bash") && !a.includes("("));
+  if ([...allowList, ...legacyAllowList].some(isBlanketBash)) {
     issues.push({
       analyzer: "Permissions",
       severity: "high",
@@ -40,14 +42,18 @@ export async function analyzePermissions(config: ClaudeConfig): Promise<Analyzer
     });
   }
 
-  // Filesystem sandbox actively breaks cross-project tooling (memory MCP, ~/.claude reads)
+  // Sandbox is a first-party security feature — never flag it on its own.
+  // It isolates Bash subprocesses only, so the memory MCP server is unaffected,
+  // but Bash-run memory commands (SessionStart pull / SessionEnd push hooks,
+  // `claude-launchpad memory ...`) write ~/.agentic-memory and need a scoped grant.
   const sandbox = settings?.sandbox as Record<string, unknown> | undefined;
-  if (sandbox?.enabled === true) {
+  const memoryInUse = config.mcpServers.some((s) => s.name === "agentic-memory");
+  if (sandbox?.enabled === true && memoryInUse && !sandboxAllowsMemoryWrites(sandbox)) {
     issues.push({
       analyzer: "Permissions",
-      severity: "high",
-      message: "Filesystem sandbox enabled — blocks memory MCP and other cross-project tooling. Deny rules already cover the threat model.",
-      fix: 'Remove the "sandbox" block from settings.json',
+      severity: "medium",
+      message: "Sandbox lacks a write grant for ~/.agentic-memory — Bash-run memory commands (push/pull hooks, CLI) may fail inside the sandbox",
+      fix: 'Add "~/.agentic-memory" to sandbox.filesystem.allowWrite — scope the sandbox, don\'t disable it',
     });
   }
 
@@ -66,26 +72,11 @@ export async function analyzePermissions(config: ClaudeConfig): Promise<Analyzer
     }
   }
 
-  // Bash auto-allow without security hooks (existing check)
-  const hasBashSecurity = config.hooks.some(
-    (h) => h.event === "PreToolUse" && (h.matcher?.includes("Bash") || !h.matcher),
-  );
-  const bashAllowed = settings?.allowedTools as string[] | undefined;
-  const hasBashAutoAllow = bashAllowed?.some((t) =>
-    typeof t === "string" && t.toLowerCase().includes("bash"),
-  );
-  if (hasBashAutoAllow && !hasBashSecurity) {
-    issues.push({
-      analyzer: "Permissions",
-      severity: "high",
-      message: "Bash is auto-allowed without a security hook — dangerous commands could run unchecked",
-      fix: "Add a PreToolUse hook for Bash that blocks destructive commands",
-    });
-  }
-
-  // Force-push protection
+  // Force-push protection: the hook must actually inspect push+force semantics,
+  // not merely contain the substring "force" (e.g. "enforce lint" is not protection)
   const hasForceProtection = config.hooks.some(
-    (h) => h.event === "PreToolUse" && h.command?.includes("force"),
+    (h) => h.event === "PreToolUse" && !!h.command
+      && /push/i.test(h.command) && /--force|-f\b|force/i.test(h.command),
   );
   if (!hasForceProtection) {
     issues.push({
@@ -96,19 +87,8 @@ export async function analyzePermissions(config: ClaudeConfig): Promise<Analyzer
     });
   }
 
-  // Off-Limits section in CLAUDE.md
-  if (config.claudeMdContent) {
-    const hasOffLimits = config.claudeMdContent.includes("## Off-Limits") ||
-      config.claudeMdContent.includes("## off-limits");
-    if (!hasOffLimits) {
-      issues.push({
-        analyzer: "Permissions",
-        severity: "medium",
-        message: "No Off-Limits section in CLAUDE.md — Claude has no guardrails beyond defaults",
-        fix: "Add an ## Off-Limits section with project-specific restrictions",
-      });
-    }
-  }
+  // Guardrails (Off-Limits) intent is checked by the Quality analyzer via
+  // intent detection — no duplicate literal-heading check here.
 
   // Worktree subagents need .worktreeinclude to inherit gitignored env files
   if (config.gitWorktreesActive) {
@@ -129,4 +109,10 @@ export async function analyzePermissions(config: ClaudeConfig): Promise<Analyzer
 
   const score = Math.max(0, 100 - issues.length * 15);
   return { name: "Permissions", issues, score };
+}
+
+function sandboxAllowsMemoryWrites(sandbox: Record<string, unknown>): boolean {
+  const filesystem = sandbox.filesystem as Record<string, unknown> | undefined;
+  const allowWrite = (filesystem?.allowWrite as string[] | undefined) ?? [];
+  return allowWrite.some((p) => p.includes(".agentic-memory"));
 }

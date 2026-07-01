@@ -100,7 +100,7 @@ const FIX_TABLE: ReadonlyArray<{ analyzer: string; match: string; fix: FixFn }> 
   { analyzer: "Permissions", match: "force-push", fix: (root) => addForcePushProtection(root) },
   { analyzer: "Permissions", match: "Credential files not blocked", fix: (root) => addCredentialDenyRules(root) },
   { analyzer: "Permissions", match: "Bypass permissions mode", fix: (root) => addBypassDisable(root) },
-  { analyzer: "Permissions", match: "Filesystem sandbox enabled", fix: (root) => removeSandboxSettings(root) },
+  { analyzer: "Permissions", match: "Sandbox lacks a write grant", fix: (root) => addSandboxMemoryWriteGrant(root) },
   { analyzer: "Permissions", match: ".env is protected by hooks but not in .claudeignore", fix: (root) => addEnvToClaudeignore(root) },
   { analyzer: "Permissions", match: ".worktreeinclude is missing or empty", fix: (root) => createWorktreeInclude(root) },
   { analyzer: "Hooks", match: "sprint-size-check", fix: (root) => addSprintSizeHook(root) },
@@ -186,14 +186,29 @@ async function addBypassDisable(root: string): Promise<boolean> {
   return true;
 }
 
-async function removeSandboxSettings(root: string): Promise<boolean> {
+/**
+ * Grant Bash-run memory commands write access to ~/.agentic-memory while
+ * keeping the sandbox enabled. Never removes or weakens the sandbox itself.
+ */
+async function addSandboxMemoryWriteGrant(root: string): Promise<boolean> {
   const settings = await readSettingsJson(root);
   if (settings === null) return false;
-  if (settings.sandbox === undefined) return false;
+  const sandbox = settings.sandbox as Record<string, unknown> | undefined;
+  if (sandbox === undefined) return false;
 
-  const { sandbox: _sandbox, ...rest } = settings;
-  await writeSettingsJson(root, rest);
-  log.success("Removed sandbox block from settings.json");
+  const filesystem = (sandbox.filesystem ?? {}) as Record<string, unknown>;
+  const allowWrite = (filesystem.allowWrite as string[] | undefined) ?? [];
+  if (allowWrite.some((p) => p.includes(".agentic-memory"))) return false;
+
+  const updated = {
+    ...settings,
+    sandbox: {
+      ...sandbox,
+      filesystem: { ...filesystem, allowWrite: [...allowWrite, "~/.agentic-memory"] },
+    },
+  };
+  await writeSettingsJson(root, updated);
+  log.success("Added ~/.agentic-memory to sandbox.filesystem.allowWrite (sandbox stays enabled)");
   return true;
 }
 

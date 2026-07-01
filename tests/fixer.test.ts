@@ -170,7 +170,7 @@ describe("applyFixes", () => {
     expect(settings.disableBypassPermissionsMode).toBe("disable");
   });
 
-  it("removes sandbox block from settings.json", async () => {
+  it("scopes the sandbox with a ~/.agentic-memory write grant instead of removing it", async () => {
     await mkdir(join(testDir, ".claude"), { recursive: true });
     await writeFile(
       join(testDir, ".claude", "settings.json"),
@@ -179,8 +179,8 @@ describe("applyFixes", () => {
 
     const issues: DiagnosticIssue[] = [{
       analyzer: "Permissions",
-      severity: "high",
-      message: "Filesystem sandbox enabled",
+      severity: "medium",
+      message: "Sandbox lacks a write grant for ~/.agentic-memory",
       fix: "",
     }];
 
@@ -190,7 +190,18 @@ describe("applyFixes", () => {
     const settings = JSON.parse(
       await readFile(join(testDir, ".claude", "settings.json"), "utf-8"),
     );
-    expect(settings.sandbox).toBeUndefined();
+    // Sandbox stays on — user settings untouched, only the grant is added
+    expect(settings.sandbox.enabled).toBe(true);
+    expect(settings.sandbox.failIfUnavailable).toBe(true);
+    expect(settings.sandbox.filesystem.allowWrite).toContain("~/.agentic-memory");
+
+    // Idempotent: second run is a no-op
+    const again = await applyFixes(issues, testDir);
+    expect(again.fixed).toBe(0);
+    const after = JSON.parse(
+      await readFile(join(testDir, ".claude", "settings.json"), "utf-8"),
+    );
+    expect(after.sandbox.filesystem.allowWrite).toEqual(["~/.agentic-memory"]);
   });
 
   it("adds .env to .claudeignore", async () => {

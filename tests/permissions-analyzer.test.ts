@@ -22,15 +22,10 @@ function makeConfig(overrides: Partial<ClaudeConfig> = {}): ClaudeConfig {
 }
 
 describe("analyzePermissions", () => {
-  it("flags missing Off-Limits section", async () => {
+  it("never flags Off-Limits — guardrails intent is the Quality analyzer's job", async () => {
     const result = await analyzePermissions(makeConfig({
       claudeMdContent: "# Test\nNo off-limits here",
     }));
-    expect(result.issues.some((i) => i.message.includes("Off-Limits"))).toBe(true);
-  });
-
-  it("does not flag when Off-Limits section exists", async () => {
-    const result = await analyzePermissions(makeConfig());
     expect(result.issues.some((i) => i.message.includes("Off-Limits"))).toBe(false);
   });
 
@@ -39,18 +34,25 @@ describe("analyzePermissions", () => {
     expect(result.issues.some((i) => i.message.includes("force-push"))).toBe(true);
   });
 
-  it("does not flag force-push when hook exists", async () => {
+  it("does not flag force-push when a push+force hook exists", async () => {
     const result = await analyzePermissions(makeConfig({
-      hooks: [{ event: "PreToolUse", type: "command", matcher: "Bash", command: "check force push" }],
+      hooks: [{ event: "PreToolUse", type: "command", matcher: "Bash", command: "echo \"$cmd\" | grep -qE 'push.*--force|push.*-f' && exit 2; exit 0" }],
     }));
     expect(result.issues.some((i) => i.message.includes("force-push"))).toBe(false);
   });
 
-  it("flags auto-allowed Bash without security hook", async () => {
+  it("still flags force-push when a hook merely contains the substring 'force'", async () => {
+    const result = await analyzePermissions(makeConfig({
+      hooks: [{ event: "PreToolUse", type: "command", matcher: "Bash", command: "enforce lint rules; exit 0" }],
+    }));
+    expect(result.issues.some((i) => i.message.includes("force-push"))).toBe(true);
+  });
+
+  it("flags blanket Bash in legacy allowedTools", async () => {
     const result = await analyzePermissions(makeConfig({
       settings: { allowedTools: ["Bash"] },
     }));
-    expect(result.issues.some((i) => i.message.includes("auto-allowed"))).toBe(true);
+    expect(result.issues.some((i) => i.message.includes("blanket-allowed"))).toBe(true);
   });
 
   it("flags missing credential deny rules", async () => {
@@ -95,13 +97,30 @@ describe("analyzePermissions", () => {
     expect(result.issues.some((i) => i.message.includes("Bypass"))).toBe(false);
   });
 
-  it("flags filesystem sandbox when enabled", async () => {
+  it("does not flag an enabled sandbox on its own — it's a first-party security feature", async () => {
     const result = await analyzePermissions(makeConfig({
       settings: { sandbox: { enabled: true, failIfUnavailable: true } },
     }));
-    const issue = result.issues.find((i) => i.message.includes("Filesystem sandbox enabled"));
+    expect(result.issues.some((i) => i.message.toLowerCase().includes("sandbox"))).toBe(false);
+  });
+
+  it("flags sandbox without a ~/.agentic-memory write grant when memory MCP is registered", async () => {
+    const result = await analyzePermissions(makeConfig({
+      settings: { sandbox: { enabled: true } },
+      mcpServers: [{ name: "agentic-memory", transport: "stdio", command: "npx claude-launchpad memory serve" }],
+    }));
+    const issue = result.issues.find((i) => i.message.includes("write grant"));
     expect(issue).toBeDefined();
-    expect(issue?.severity).toBe("high");
+    expect(issue?.severity).toBe("medium");
+    expect(issue?.fix).toContain("allowWrite");
+  });
+
+  it("does not flag sandbox when allowWrite already covers ~/.agentic-memory", async () => {
+    const result = await analyzePermissions(makeConfig({
+      settings: { sandbox: { enabled: true, filesystem: { allowWrite: ["~/.agentic-memory"] } } },
+      mcpServers: [{ name: "agentic-memory", transport: "stdio", command: "npx claude-launchpad memory serve" }],
+    }));
+    expect(result.issues.some((i) => i.message.toLowerCase().includes("sandbox"))).toBe(false);
   });
 
   it("does not flag when no sandbox block is present", async () => {
