@@ -41,36 +41,7 @@ One-paragraph description.
 
 ## P0 — Next sprint
 
-> **Suggested sequencing for the 5/5 arc (WP-015..WP-019, minted 2026-07-01):**
-> 1. **Sprint A:** WP-015 + WP-016 together — both are credibility fixes, no dependencies between them.
-> 2. **Sprint B:** WP-017 alone — it's an L, eval is the differentiator, give it a full sprint.
-> 3. **Sprint C:** WP-018 + WP-019 — analyzer modernization pairs well with the memory repositioning content pass.
->
-> Expected re-review after all five: doctor ~5, eval ~5, memory ~4 (honest sync niche), init ~4 → 5/5 overall in reach.
-
-### WP-015 — Scope the filesystem sandbox instead of stripping it
-
-- **Priority:** P0
-- **Proposed:** 2026-07-01
-- **Stories / Docs:** Sprint 27 (sandbox kill); `src/commands/doctor/analyzers/permissions.ts:44-52`; 2026-07-01 external project review (Critical finding)
-- **Depends on:** none
-- **Estimate:** M
-- **Trigger to pull:** Next sprint — this is a security-credibility issue for a tool that markets itself as a config security linter.
-- **Definition of done:** Doctor no longer flags `sandbox.enabled: true` as HIGH nor strips the block on `--fix`. Investigate the current sandbox scoping mechanism (e.g. `permissions.additionalDirectories` or sandbox allow rules) and confirm whether `~/.agentic-memory` can be granted while the sandbox stays on. If scoping works: analyzer flags only sandboxes that block memory MCP paths, and the fixer ADDS the scoped grant instead of removing the sandbox; validate end-to-end that memory MCP reads `memory.db` with sandbox enabled. If scoping is genuinely impossible: downgrade to a MEDIUM informational finding with a docs link explaining the tradeoff — never auto-remove. Analyzer + fixer + regression tests updated either way.
-
-Sprint 27 made doctor treat a first-party security feature as a HIGH issue and auto-remove it because it broke our own memory MCP. A security linter must never disable a platform safety feature for its own convenience — scope it correctly or explain the tradeoff, but don't strip it.
-
-### WP-016 — Canary CI: run generated config against latest real Claude Code weekly
-
-- **Priority:** P0
-- **Proposed:** 2026-07-01
-- **Stories / Docs:** Sprint 32 (hook stdin bug — generated hooks were silently inert for months); 2026-07-01 external project review
-- **Depends on:** none
-- **Estimate:** L
-- **Trigger to pull:** Next sprint or the one after — this is the structural fix for the rot class that caused the Sprint 32 P0.
-- **Definition of done:** A GitHub Actions workflow (weekly cron + manual dispatch) that: scaffolds a temp project with `init -y`, installs the LATEST released `claude` CLI, then runs headless sessions asserting real behavior — (1) the destructive-Bash PreToolUse hook actually blocks `rm -rf /`, (2) the `.env` read guard actually blocks, (3) a PostToolUse hook actually fires (observable side effect), (4) `claude mcp list` shows agentic-memory registered after `memory install`, (5) SessionStart memory context injection produces output. Any failure opens a labeled GitHub issue automatically. Requires an `ANTHROPIC_API_KEY` repo secret; document the (small) cost per run.
-
-The Sprint 32 bug proved generated configs can be silently dead for months while unit tests stay green — unit tests validate what we *emit*, not what Claude Code *executes*. A weekly canary against the real, latest CLI turns "we track the spec closely" from best-effort into a guarantee, and is what makes a config linter sustainable for a solo maintainer.
+<!-- Empty. -->
 
 ---
 
@@ -100,41 +71,6 @@ The Sprint 32 fixer covers `settings.json` but the parser flags env-var hooks in
 
 The newly shipped `hooks.md` rule warns that multiple top-level entries with the same matcher can fail. Our own generators emit exactly that pattern (2x `Bash` PreToolUse, 3x `Edit|Write` PostToolUse). Shipping the bug we just documented.
 
-### WP-017 — Eval depth: implement `custom` checks + transcript assertions + judge
-
-- **Priority:** P1
-- **Proposed:** 2026-07-01
-- **Stories / Docs:** `src/commands/eval/runner.ts:239` (`custom` returns `false` unconditionally); 2026-07-01 external project review
-- **Depends on:** none
-- **Estimate:** L
-- **Trigger to pull:** After WP-015/WP-016 ship — eval is the differentiator, this is where the 5/5 lives.
-- **Definition of done:** Three new working check types, each with schema + loader + runner support, docs, and at least one built-in scenario using it: (1) `custom` — executes a user-provided script inside the sandbox, exit code 0 = pass; (2) `transcript` — captures the session via `--output-format stream-json` (SDK message stream when available) and asserts on behavior, e.g. "hook X fired", "tool Y was never used", "rule file Z was read" — artifacts alone can't prove Claude *followed the process*; (3) `judge` — sends the transcript + a rubric to a Claude call and scores pass/fail with reasoning (eval already costs money, so no new constraint violated). `pnpm test:run` covers schema validation and check evaluation for all three; runner keeps its CLI fallback path working.
-
-Today eval only greps final file artifacts, which proves the *outcome* but not the *behavior* — a scenario can pass because Claude got lucky, not because the config steered it. Transcript assertions and an LLM judge make "prove Claude follows your rules" literally true, which is the product's core claim and the thing no built-in feature does.
-
-### WP-018 — Replace template-shaped doctor heuristics with intent-based checks
-
-- **Priority:** P1
-- **Proposed:** 2026-07-01
-- **Stories / Docs:** Sprint 25 (quality-intents precedent); `src/commands/doctor/analyzers/permissions.ts` (literal `## Off-Limits` heading, `"force"` substring grep, legacy `allowedTools` key); 2026-07-01 external project review
-- **Depends on:** none
-- **Estimate:** M
-- **Trigger to pull:** Within 2–3 sprints, or paired with any analyzer work as a modernization pass.
-- **Definition of done:** Audit ALL analyzers for checks that test resemblance to our template rather than actual quality; produce the list in the sprint plan. At minimum: (1) Off-Limits literal-heading check reuses the Sprint 25 intent-detection mechanism (guardrails intent satisfied by any equivalent section); (2) force-push protection inspects hook semantics (matcher + command inspects `git push` with force flags) instead of the substring `"force"` anywhere in any command; (3) the `allowedTools` check is validated against the CURRENT settings schema and updated or removed if the key is legacy. Score changes documented; tests updated; a mature non-launchpad-shaped project (existing fixture) must not lose points for organizing things differently.
-
-Several checks currently measure "how much your config looks like launchpad's template" — that inflates scores for our own output and penalizes well-configured projects that made different-but-valid choices. Sprint 25 already built the intent mechanism for CLAUDE.md sections; extend the same philosophy to the remaining analyzers so the score means what it claims to mean.
-
-### WP-019 — Make cross-machine memory sync the flagship memory story
-
-- **Priority:** P1
-- **Proposed:** 2026-07-01
-- **Stories / Docs:** Sprint 17 (gist sync), Sprint 23 (sync status/clean, two-machine framing), `tests/memory/two-machine-sync.test.ts`; 2026-07-01 external project review (memory positioning = biggest strategic lever)
-- **Depends on:** none
-- **Estimate:** M
-- **Trigger to pull:** Next content-touching sprint, or paired with any memory sprint.
-- **Definition of done:** (1) Positioning: landing page, docs, and README lead the memory story with cross-machine sync — the thing built-in auto-memory does NOT do — instead of competing head-on with it on "persistent memory" (Content Updates rule: all three surfaces). Include an honest "built-in memory vs agentic-memory" comparison table in docs. (2) Convenience: new `memory sync` subcommand = pull + push in one call, reusing existing pull-before-push merge logic. (3) Hardening: extend `two-machine-sync.test.ts` with a simultaneous-edit conflict case (same memory updated on both machines between syncs) asserting last-write-wins resolves deterministically and `sync status` reports it. Benchmarks stay green (`pnpm bench:memory`).
-
-Memory is the most-used feature in practice and gist-based cross-machine sync is its genuinely defensible niche — first-party auto-memory is per-machine. Stop framing memory as an alternative to the built-in system (a race we lose by default) and frame it as the sync layer the built-in system doesn't have.
 
 ---
 
@@ -278,3 +214,4 @@ Currently the two PreToolUse guards grep `tool_input.command` / `tool_input.file
 - **2026-05-04:** WP-012 minted as P0 + pulled into Sprint 32 same edit. Hook audit on wastd surfaced that every PreToolUse/PostToolUse hook our CLI ships reads non-existent `$TOOL_INPUT_*` env vars and silently no-ops. Plan at `docs/superpowers/plans/2026-05-04-hook-stdin-input-bug.md`. Retracts the "all current" claim from the prior audit memo.
 - **2026-05-04:** Added WP-013 (settings.local.json fixer gap from Sprint 32 code review) and WP-014 (consolidate same-matcher hook entries — we ship the bug we just documented in `hooks.md`) to P1.
 - **2026-07-01:** WP-015..WP-019 minted from external project review (3.5/5 → path to 5/5). P0: WP-015 (stop stripping the sandbox — scope it), WP-016 (canary CI against latest real Claude Code). P1: WP-017 (eval custom/transcript/judge checks), WP-018 (intent-based checks replace template heuristics), WP-019 (cross-machine sync becomes the flagship memory story — repositioning, not spin-off, per maintainer feedback).
+- **2026-07-01:** WP-015, WP-016, WP-017, WP-018, WP-019 pulled into Sprint 33 (the 5/5 arc, single combined sprint). Sequencing note removed with the pull.

@@ -39,7 +39,11 @@
 
 ## Current Sprint
 
-<!-- EMPTY. Pull WPs from BACKLOG.md when ready. Format: `- [ ] WP-NNN — short title` -->
+- [ ] WP-015 — Scope the filesystem sandbox instead of stripping it
+- [ ] WP-016 — Canary CI: run generated config against latest real Claude Code weekly
+- [ ] WP-017 — Eval depth: `custom` checks + transcript assertions + judge
+- [ ] WP-018 — Replace template-shaped doctor heuristics with intent-based checks
+- [ ] WP-019 — Make cross-machine memory sync the flagship memory story
 
 ## Release Plan
 - **v1.10.0** ✅ shipped — Sprint 31 workflow discipline (wastd-style WP template + path-scoped workflow rule + staleness hook + memory dedup fix)
