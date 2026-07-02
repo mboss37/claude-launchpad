@@ -15,6 +15,14 @@ CLI="node $REPO_ROOT/dist/cli.js"
 MODEL="${CANARY_MODEL:-haiku}"
 CLAUDE_ARGS=(--output-format stream-json --verbose --max-turns 8 --model "$MODEL"
   --allowedTools "Bash" "Read" "Write" "Edit")
+
+# Portable timeout: GNU coreutils `timeout` (Linux/CI) or `gtimeout` (macOS,
+# brew install coreutils). Fail FAST if neither exists — a missing timeout
+# swallowed by `|| true` empties every transcript and fails all assertions
+# for the wrong reason.
+if command -v timeout >/dev/null 2>&1; then TIMEOUT_BIN="timeout"
+elif command -v gtimeout >/dev/null 2>&1; then TIMEOUT_BIN="gtimeout"
+else echo "FATAL: GNU timeout not found (macOS: brew install coreutils)"; exit 1; fi
 SKIP_MEMORY=0
 [ "${1:-}" = "--skip-memory" ] && SKIP_MEMORY=1
 
@@ -44,7 +52,7 @@ $CLI init -y || { echo "FATAL: init -y failed"; exit 1; }
 git add -A && git -c user.name=canary -c user.email=c@c commit -qm scaffold
 
 run_claude() { # $1 = prompt; prints transcript to stdout, never fails the script
-  timeout 180 claude -p "$1" "${CLAUDE_ARGS[@]}" 2>/dev/null || true
+  "$TIMEOUT_BIN" 180 claude -p "$1" "${CLAUDE_ARGS[@]}" 2>/dev/null || true
 }
 
 # ── A1: destructive-Bash PreToolUse hook blocks rm -rf <absolute path> ──
@@ -81,7 +89,7 @@ else
   echo "== A4: memory install registers MCP =="
   npm install --no-audit --no-fund better-sqlite3 sqlite-vec > npm-memory.log 2>&1 \
     || { fail "A4: native dep install failed"; tail -5 npm-memory.log; }
-  if $CLI memory install >/dev/null 2>&1; then
+  if $CLI memory install -y >/dev/null 2>&1; then
     if claude mcp list 2>/dev/null | grep -q "agentic-memory"; then
       pass "agentic-memory registered with claude mcp"
     else

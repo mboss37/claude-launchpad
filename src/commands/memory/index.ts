@@ -114,9 +114,16 @@ export function createMemoryCommand(): Command {
     new Command("install")
       .description("Install (or re-install) the knowledge base for this project")
       .option("--db-path <path>", "Override the default data directory")
+      .option("-y, --yes", "Non-interactive: accept defaults (shared placement)")
       .action(async (opts) => {
-        const { runInstall } = await import("./subcommands/install.js");
-        await runInstall(opts.dbPath ? { dbPath: opts.dbPath } : {});
+        try {
+          const { runInstall } = await import("./subcommands/install.js");
+          await runInstall({ ...(opts.dbPath ? { dbPath: opts.dbPath } : {}), yes: opts.yes === true });
+        } catch (err) {
+          // A cancelled prompt or failed step must NOT exit 0 — CI reads the code.
+          log.error(err instanceof Error ? err.message : String(err));
+          process.exitCode = 1;
+        }
       }),
   );
 

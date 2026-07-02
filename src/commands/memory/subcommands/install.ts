@@ -54,6 +54,8 @@ function preflight(): void {
 
 interface InstallOpts {
   readonly dbPath?: string;
+  /** Non-interactive: default placement to "shared" instead of prompting. */
+  readonly yes?: boolean;
 }
 
 export async function runInstall(opts: InstallOpts): Promise<void> {
@@ -67,8 +69,12 @@ export async function runInstall(opts: InstallOpts): Promise<void> {
   // Step 0: Ensure native deps are installed globally
   await ensureNativeDeps();
 
-  // Prompt for placement before any config writes
-  const placement = await getMemoryPlacement(process.cwd());
+  // Prompt for placement before any config writes. Non-interactive contexts
+  // (-y, or stdin not a TTY — CI, pipes) default to "shared" instead of
+  // letting inquirer throw ExitPromptError with a misleading exit 0.
+  const nonInteractive = opts.yes === true || !process.stdin.isTTY;
+  if (nonInteractive) log.info('Non-interactive: using "shared" memory placement (CLAUDE.md + settings.json).');
+  const placement = await getMemoryPlacement(process.cwd(), nonInteractive);
 
   const config = loadConfig(opts.dbPath ? { dataDir: opts.dbPath } : undefined);
   const dataDir = resolveDataDir(config.dataDir);
