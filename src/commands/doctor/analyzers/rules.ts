@@ -3,6 +3,8 @@ import { basename, join, dirname } from "node:path";
 import { homedir } from "node:os";
 import { fileExists } from "../../../lib/fs-utils.js";
 import { ENHANCE_SKILL_VERSION } from "../../init/generators/skill-enhance.js";
+import { WORKFLOW_RULE_VERSION } from "../../init/generators/workflow-rule.js";
+import { isSuperpowersInstalled } from "../../../lib/plugins.js";
 import type { ClaudeConfig, AnalyzerResult, DiagnosticIssue } from "../../../types/index.js";
 
 export async function analyzeRules(config: ClaudeConfig): Promise<AnalyzerResult> {
@@ -30,6 +32,42 @@ export async function analyzeRules(config: ClaudeConfig): Promise<AnalyzerResult
       message: "No .claude/rules/workflow.md found — BACKLOG/TASKS workflow is unenforced",
       fix: "Run `doctor --fix` to generate it",
     });
+  }
+
+  // Independent reviewer agent — same-model self-review misses what fresh eyes catch
+  const hasReviewerAgent = await fileExists(join(projectRoot, ".claude", "agents", "code-reviewer.md"));
+  if (!hasReviewerAgent) {
+    issues.push({
+      analyzer: "Rules",
+      severity: "low",
+      message: "No .claude/agents/code-reviewer.md — sprint reviews run as same-model self-checks",
+      fix: "Run `doctor --fix` to generate a fresh-context reviewer agent",
+    });
+  }
+
+  // Ecosystem pointer, not a dependency: superpowers adds the discipline layer
+  // (brainstorm/plan/TDD/review) that this template intentionally keeps minimal.
+  if (!isSuperpowersInstalled()) {
+    issues.push({
+      analyzer: "Rules",
+      severity: "info",
+      message: "Optional: the superpowers plugin adds brainstorm/plan/TDD/review discipline — /plugin install superpowers@claude-plugins-official",
+    });
+  }
+
+  // Stale workflow rule — versioned marker lets --fix upgrade shipped copies
+  if (hasWorkflowRule) {
+    const wfContent = await readFile(join(projectRoot, ".claude", "rules", "workflow.md"), "utf-8").catch(() => "");
+    const wfMatch = wfContent.match(/<!-- lp-workflow-version: (\d+) -->/);
+    const wfVersion = wfMatch ? parseInt(wfMatch[1], 10) : null;
+    if (wfVersion !== null && wfVersion < WORKFLOW_RULE_VERSION) {
+      issues.push({
+        analyzer: "Rules",
+        severity: "low",
+        message: `workflow.md rule is outdated (v${wfVersion}, latest v${WORKFLOW_RULE_VERSION})`,
+        fix: "Run `doctor --fix` to update it",
+      });
+    }
   }
 
   // Check for hooks rule (path-scoped settings.json hook authoring rules)
@@ -139,7 +177,8 @@ export async function analyzeRules(config: ClaudeConfig): Promise<AnalyzerResult
     }
   }
 
-  const score = Math.max(0, 100 - issues.length * 10);
+  const actionable = issues.filter((i) => i.severity !== "info").length;
+  const score = Math.max(0, 100 - actionable * 10);
   return { name: "Rules", issues, score };
 }
 

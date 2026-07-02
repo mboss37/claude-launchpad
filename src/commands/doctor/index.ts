@@ -10,6 +10,7 @@ import { analyzePermissions } from "./analyzers/permissions.js";
 import { analyzeMcp } from "./analyzers/mcp.js";
 import { analyzeQuality } from "./analyzers/quality.js";
 import { analyzeMemory } from "./analyzers/memory.js";
+import { analyzeWorkflow } from "./analyzers/workflow.js";
 import { applyFixes } from "./fixer.js";
 import { watchConfig } from "./watcher.js";
 import type { AnalyzerResult } from "../../types/index.js";
@@ -137,6 +138,8 @@ async function runAnalyzers(
     analyzePermissions(config, path),
     analyzeMcp(config),
   ]);
+  const workflowResult = await analyzeWorkflow(path);
+  if (workflowResult) results.push(workflowResult);
   const memoryResult = await analyzeMemory(config, path);
   if (memoryResult) results.push(memoryResult);
   return results;

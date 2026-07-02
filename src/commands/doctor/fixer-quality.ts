@@ -4,6 +4,8 @@ import { log } from "../../lib/output.js";
 import { fileExists } from "../../lib/fs-utils.js";
 import { generateWorkflowRule } from "../init/generators/workflow-rule.js";
 import { generateHooksRule } from "../init/generators/hooks-rule.js";
+import { generateReviewerAgent } from "../init/generators/agent-reviewer.js";
+import { STALE_SWARM_PHRASE, SWARM_PHRASE_REPLACEMENT } from "../../lib/sections.js";
 
 export async function createWorkflowRule(root: string): Promise<boolean> {
   const rulesDir = join(root, ".claude", "rules");
@@ -13,6 +15,41 @@ export async function createWorkflowRule(root: string): Promise<boolean> {
   await mkdir(rulesDir, { recursive: true });
   await writeFile(workflowPath, generateWorkflowRule());
   log.success("Created .claude/rules/workflow.md (path-scoped BACKLOG/TASKS workflow rules)");
+  return true;
+}
+
+export async function createReviewerAgent(root: string): Promise<boolean> {
+  const agentsDir = join(root, ".claude", "agents");
+  const agentPath = join(agentsDir, "code-reviewer.md");
+  if (await fileExists(agentPath)) return false;
+
+  await mkdir(agentsDir, { recursive: true });
+  await writeFile(agentPath, generateReviewerAgent());
+  log.success("Created .claude/agents/code-reviewer.md (fresh-context independent reviewer)");
+  return true;
+}
+
+/** Overwrite a versioned, launchpad-authored workflow.md with the latest template. */
+export async function updateWorkflowRule(root: string): Promise<boolean> {
+  const workflowPath = join(root, ".claude", "rules", "workflow.md");
+  const content = await readFile(workflowPath, "utf-8").catch(() => null);
+  if (content === null) return false;
+  // Only overwrite files carrying our version marker — never user-authored rules.
+  if (!/<!-- lp-workflow-version: \d+ -->/.test(content)) return false;
+
+  await writeFile(workflowPath, generateWorkflowRule());
+  log.success("Updated .claude/rules/workflow.md to the latest version");
+  return true;
+}
+
+/** Replace the known-stale 'Agent tool' phrase in CLAUDE.md; custom content is left alone. */
+export async function fixStaleSwarmPhrase(root: string): Promise<boolean> {
+  const claudeMdPath = join(root, "CLAUDE.md");
+  const content = await readFile(claudeMdPath, "utf-8").catch(() => null);
+  if (content === null || !content.includes(STALE_SWARM_PHRASE)) return false;
+
+  await writeFile(claudeMdPath, content.replaceAll(STALE_SWARM_PHRASE, SWARM_PHRASE_REPLACEMENT));
+  log.success("Modernized Stop-and-Swarm wording (Agent tool → Task tool subagents)");
   return true;
 }
 

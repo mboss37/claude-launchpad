@@ -1,37 +1,30 @@
 #!/usr/bin/env bash
-# Warns when TASKS.md opens a new sprint block but BACKLOG.md has no staged
-# deletions, i.e. the "remove pulled WPs from BACKLOG in the same edit" rule
-# from CLAUDE.md was skipped. Non-blocking (always exits 0).
+# After a git commit, warns when the commit adds WP checkboxes to
+# '## Current Sprint' without deleting anything from BACKLOG.md — i.e. the
+# "pull = move, not copy" rule was skipped. Runs on PostToolUse (Bash):
+# PreToolUse has no non-blocking way to reach the model, so instead of
+# blocking the commit we suggest an amend. Warning is emitted as
+# additionalContext JSON — bare stdout on PostToolUse never reaches the model.
+# Non-blocking (always exits 0).
 
 set -u
-cmd="${TOOL_INPUT_COMMAND:-}"
+command -v jq >/dev/null 2>&1 || exit 0
+cmd=$(jq -r '.tool_input.command // empty' 2>/dev/null)
 
-# Only act on `git commit`, word-boundary match.
+# Only act on \`git commit\`, word-boundary match.
 echo "$cmd" | grep -qE '(^|[^a-zA-Z0-9_-])git[[:space:]]+commit([[:space:]]|$)' || exit 0
 
-# Nothing staged
-git diff --cached --quiet 2>/dev/null && exit 0
+git rev-parse --verify HEAD >/dev/null 2>&1 || exit 0
 
-# TASKS.md not staged
-git diff --cached --name-only --diff-filter=ACM 2>/dev/null | grep -q '^TASKS\.md$' || exit 0
+# The commit must touch TASKS.md and add unchecked WP lines to it.
+git show --name-only --format= HEAD 2>/dev/null | grep -qx 'TASKS.md' || exit 0
+pulled=$(git show --format= HEAD -- TASKS.md 2>/dev/null | grep -cE '^\+[[:space:]]*- \[ \] WP-' || true)
+[ "${pulled:-0}" -eq 0 ] && exit 0
 
-# Does the staged TASKS.md diff ADD a new `## Current` block?
-new_sprint=$(git diff --cached TASKS.md 2>/dev/null | grep -cE '^\+## Current')
-[ "$new_sprint" -eq 0 ] && exit 0
-
-# If a new sprint was opened, BACKLOG.md should have net deletions.
-backlog_deletions=$(git diff --cached BACKLOG.md 2>/dev/null | grep -cE '^-[^-]')
-if [ "$backlog_deletions" -eq 0 ]; then
-  echo ""
-  echo "WARNING: sprint-open hygiene"
-  echo ""
-  echo "TASKS.md stages a new '## Current' block, but BACKLOG.md has no"
-  echo "staged deletions. When a WP is pulled from BACKLOG.md into a sprint,"
-  echo "remove it from BACKLOG.md in the same edit. Overlap = drift."
-  echo ""
-  echo "If you opened a fresh-scope sprint with no BACKLOG pulls, ignore"
-  echo "this. Otherwise scrub BACKLOG.md before committing."
-  echo ""
+# A pull commit should also delete the WP bodies from BACKLOG.md.
+backlog_deletions=$(git show --format= HEAD -- BACKLOG.md 2>/dev/null | grep -cE '^-[^-]' || true)
+if [ "${backlog_deletions:-0}" -eq 0 ]; then
+  jq -n --arg ctx "Sprint-open hygiene: the commit you just made adds WP checkbox(es) to '## Current Sprint' but deletes nothing from BACKLOG.md. Pulling a WP means MOVING it — delete its entry from BACKLOG.md in the same commit. If these WPs came from BACKLOG.md, scrub it now and run 'git commit --amend'. If this is a fresh-scope sprint with no backlog pulls, ignore this." '{hookSpecificOutput:{hookEventName:"PostToolUse",additionalContext:$ctx}}'
 fi
 
 exit 0

@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# Warns when the current sprint is too small (<3) or too large (>7).
-# Sweet spot is 3-6 work packages per sprint. Non-blocking (always exits 0).
+# Warns when the current sprint is too small (<3) or too large (>7 soft; 15 is
+# the hard split trigger enforced by workflow-check). Sweet spot is 3-6 work
+# packages. Runs on SessionStart, whose stdout is injected into context.
+# Non-blocking (always exits 0).
 
 set -u
 tasks="${1:-TASKS.md}"
@@ -9,8 +11,9 @@ tasks="${1:-TASKS.md}"
 section=$(sed -n '/^## Current/,/^## /p' "$tasks" 2>/dev/null)
 [ -z "$section" ] && exit 0
 
-unchecked=$(echo "$section" | grep -cF -e '- [ ]' || true)
-checked=$(echo "$section" | grep -cF -e '- [x]' || true)
+# Anchored so placeholder comments containing "- [ ]" don't count as WPs.
+unchecked=$(echo "$section" | grep -cE '^[[:space:]]*- \[ \]' || true)
+checked=$(echo "$section" | grep -cE '^[[:space:]]*- \[[xX]\]' || true)
 total=$((unchecked + checked))
 
 if [ "$total" -eq 0 ]; then
@@ -26,7 +29,7 @@ if [ "$unchecked" -lt 3 ]; then
 fi
 
 if [ "$unchecked" -gt 7 ]; then
-  echo "NOTE: Current sprint has $unchecked open work packages — oversized. Move some back to BACKLOG.md (aim 3-6)."
+  echo "NOTE: Current sprint has $unchecked open work packages — oversized (soft target 3-6; above 15, workflow-check requires a split)."
   exit 0
 fi
 

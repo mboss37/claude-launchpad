@@ -1,4 +1,5 @@
 import type { ClaudeConfig, AnalyzerResult, DiagnosticIssue } from "../../../types/index.js";
+import { isJqAvailable } from "../../../lib/hook-input.js";
 import { hasEnvVarHookPattern } from "../../../lib/hook-input.js";
 
 export async function analyzeHooks(config: ClaudeConfig): Promise<AnalyzerResult> {
@@ -67,14 +68,40 @@ export async function analyzeHooks(config: ClaudeConfig): Promise<AnalyzerResult
     });
   }
 
-  // Check for PostCompact hook (session continuity)
-  const hasPostCompact = hooks.some((h) => h.event === "PostCompact");
-  if (!hasPostCompact) {
+  // Environment preflight: every generated hook parses stdin via jq. Without
+  // it the whole enforcement layer — including the blocking security guards —
+  // silently no-ops. The exact Sprint 32 failure class, as a dependency.
+  const usesJq = hooks.some((h) => h.command?.includes("jq "));
+  if (usesJq && !isJqAvailable()) {
     issues.push({
       analyzer: "Hooks",
-      severity: "low",
-      message: "No PostCompact hook — session context is lost when conversation is compacted",
-      fix: "Add a PostCompact hook that re-injects TASKS.md after compaction",
+      severity: "medium",
+      message: "jq not found on PATH — every generated hook (including the .env and destructive-command guards) silently no-ops without it",
+      fix: "Install jq (https://jqlang.github.io/jq/download/) — hooks read tool input as JSON from stdin",
+    });
+  }
+
+  // Dead event: PostCompact does not exist in Claude Code — hooks under it never fire.
+  const hasPostCompact = hooks.some((h) => h.event === "PostCompact");
+  if (hasPostCompact) {
+    issues.push({
+      analyzer: "Hooks",
+      severity: "high",
+      message: "PostCompact is not a Claude Code hook event — this hook never fires. Session continuity after compaction is silently broken",
+      fix: "Run `doctor --fix` to migrate to a SessionStart hook with a compact matcher",
+    });
+  }
+
+  // Session continuity across compaction: SessionStart matcher must include `compact`.
+  const hasCompactMatcher = hooks.some(
+    (h) => h.event === "SessionStart" && (h.matcher ?? "").includes("compact"),
+  );
+  if (!hasCompactMatcher) {
+    issues.push({
+      analyzer: "Hooks",
+      severity: "medium",
+      message: "No SessionStart hook with a compact matcher — session context is lost when the conversation is compacted",
+      fix: "Run `doctor --fix` to widen the SessionStart matcher to startup|resume|compact|clear",
     });
   }
 

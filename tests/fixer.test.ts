@@ -204,6 +204,36 @@ describe("applyFixes", () => {
     expect(after.sandbox.filesystem.allowWrite).toEqual(["~/.agentic-memory"]);
   });
 
+  it("migrates a dead PostCompact hook to a SessionStart compact matcher", async () => {
+    await mkdir(join(testDir, ".claude"), { recursive: true });
+    await writeFile(
+      join(testDir, ".claude", "settings.json"),
+      JSON.stringify({
+        hooks: {
+          PostCompact: [{ matcher: "", hooks: [{ type: "command", command: "cat TASKS.md 2>/dev/null; exit 0" }] }],
+          SessionStart: [{ matcher: "startup|resume", hooks: [{ type: "command", command: "cat TASKS.md 2>/dev/null; exit 0" }] }],
+        },
+      }, null, 2),
+    );
+
+    const issues: DiagnosticIssue[] = [{
+      analyzer: "Hooks",
+      severity: "high",
+      message: "PostCompact is not a Claude Code hook event — this hook never fires",
+      fix: "",
+    }];
+    const result = await applyFixes(issues, testDir);
+    expect(result.fixed).toBe(1);
+
+    const settings = JSON.parse(await readFile(join(testDir, ".claude", "settings.json"), "utf-8"));
+    expect(settings.hooks.PostCompact).toBeUndefined();
+    expect(settings.hooks.SessionStart[0].matcher).toBe("startup|resume|compact|clear");
+
+    // Idempotent
+    const again = await applyFixes(issues, testDir);
+    expect(again.fixed).toBe(0);
+  });
+
   it("adds .env to .claudeignore", async () => {
     await writeFile(join(testDir, ".claudeignore"), "node_modules\ndist\n");
 

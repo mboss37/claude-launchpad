@@ -30,7 +30,7 @@ Reference: https://code.claude.com/docs/en/hooks
 }
 \`\`\`
 
-- \`EventName\`: \`SessionStart\`, \`SessionEnd\`, \`PreToolUse\`, \`PostToolUse\`, \`PostCompact\`, \`PreCompact\`, \`UserPromptSubmit\`, \`Stop\`, etc.
+- \`EventName\`: \`SessionStart\`, \`SessionEnd\`, \`PreToolUse\`, \`PostToolUse\`, \`PostToolUseFailure\`, \`UserPromptSubmit\`, \`Stop\`, \`PermissionRequest\`. There is NO PostCompact/PreCompact event — post-compaction runs SessionStart with matcher \`compact\`.
 - \`matcher\`: a regex-style string matching tool names (e.g. \`Bash\`, \`Read|Write|Edit\`). Empty string matches all tools for the event. For SessionStart use \`startup\`, \`resume\`, \`clear\`, or \`compact\`.
 - \`hooks\` array: every entry runs in parallel when the matcher fires. Identical command strings are deduplicated automatically.
 

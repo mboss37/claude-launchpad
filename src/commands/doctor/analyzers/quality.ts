@@ -1,5 +1,6 @@
 import type { ClaudeConfig, AnalyzerResult, DiagnosticIssue } from "../../../types/index.js";
 import { hasMemoryIndicators } from "./memory.js";
+import { STALE_SWARM_PHRASE } from "../../../lib/sections.js";
 import {
   INTENT_RULES,
   MEMORY_INTENT,
@@ -85,6 +86,16 @@ export async function analyzeQuality(config: ClaudeConfig, projectRoot: string):
       severity: "medium",
       message: `${todoCount} TODO placeholders — CLAUDE.md is mostly unfinished`,
       fix: "Fill in the TODO sections or remove them",
+    });
+  }
+
+  // Stale Stop-and-Swarm wording — "the Agent tool" doesn't exist (it's the Task tool)
+  if (content.includes(STALE_SWARM_PHRASE)) {
+    issues.push({
+      analyzer: "Quality",
+      severity: "low",
+      message: "Stop-and-Swarm section is outdated — it references the nonexistent 'Agent tool' (subagents are dispatched via the Task tool)",
+      fix: "Run `doctor --fix` to modernize the known phrase (custom content is left alone)",
     });
   }
 

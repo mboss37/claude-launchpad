@@ -114,8 +114,11 @@ describe("hook input bug — wrapper script smoke tests", () => {
         `printf '%s' '${fakeInput}' | bash ${scriptPath}`,
         { cwd: tmp, encoding: "utf8" },
       );
-      // 5 session log entries > 3 threshold
-      expect(output).toMatch(/Session Log has 5 entries/);
+      // 5 session log entries > 3 threshold — warning must arrive as
+      // PostToolUse additionalContext JSON (bare stdout never reaches the model)
+      const parsed = JSON.parse(output) as { hookSpecificOutput: { hookEventName: string; additionalContext: string } };
+      expect(parsed.hookSpecificOutput.hookEventName).toBe("PostToolUse");
+      expect(parsed.hookSpecificOutput.additionalContext).toMatch(/Session Log' has 5 entries/);
     } finally {
       rmSync(tmp, { recursive: true, force: true });
     }

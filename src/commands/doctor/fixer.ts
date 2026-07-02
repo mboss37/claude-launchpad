@@ -18,10 +18,13 @@ import {
   createWorktreeInclude, addSprintSizeHook, addSprintOpenHook, addSprintCompleteNudge,
   addWorkflowCheckHook,
 } from "./fixer-sprint.js";
-import { createWorkflowRule, createHooksRule, collapseMemoryHeadings } from "./fixer-quality.js";
+import {
+  createWorkflowRule, createHooksRule, collapseMemoryHeadings, updateWorkflowRule, fixStaleSwarmPhrase,
+  createReviewerAgent,
+} from "./fixer-quality.js";
 import {
   addEnvProtectionHook, addAutoFormatHook, addForcePushProtection,
-  addPostCompactHook, addSessionStartHook,
+  migratePostCompactHook, addCompactMatcherHook, addSessionStartHook,
 } from "./fixer-hooks.js";
 import { rewriteEnvVarHooks } from "./fixer-hook-input.js";
 import {
@@ -89,14 +92,18 @@ const FIX_TABLE: ReadonlyArray<{ analyzer: string; match: string; fix: FixFn }> 
   }},
   { analyzer: "Quality", match: "Session Start", fix: (root) => addClaudeMdSection(root, "## Session Start", wrapStub(SESSION_START_CONTENT)) },
   { analyzer: "Quality", match: "Backlog", fix: (root) => addClaudeMdSection(root, "## Backlog", wrapStub(BACKLOG_CONTENT)) },
+  { analyzer: "Quality", match: "Stop-and-Swarm section is outdated", fix: (root) => fixStaleSwarmPhrase(root) },
   { analyzer: "Quality", match: "Stop-and-Swarm", fix: (root) => addClaudeMdSection(root, "## Stop-and-Swarm", wrapStub(STOP_AND_SWARM_CONTENT)) },
+  { analyzer: "Rules", match: "workflow.md rule is outdated", fix: (root) => updateWorkflowRule(root) },
+  { analyzer: "Rules", match: "No .claude/agents/code-reviewer.md", fix: (root) => createReviewerAgent(root) },
   { analyzer: "Quality", match: "Duplicate ## Memory", fix: (root) => collapseMemoryHeadings(root) },
   { analyzer: "Rules", match: "No BACKLOG.md", fix: (root) => createBacklogMd(root) },
   { analyzer: "Rules", match: "No .claudeignore", fix: (root, detected) => createClaudeignore(root, detected) },
   { analyzer: "Rules", match: "No .claude/rules/workflow.md", fix: (root) => createWorkflowRule(root) },
   { analyzer: "Rules", match: "No .claude/rules/hooks.md", fix: (root) => createHooksRule(root) },
   { analyzer: "Rules", match: "No .claude/rules/", fix: (root) => createStarterRules(root) },
-  { analyzer: "Hooks", match: "PostCompact", fix: (root) => addPostCompactHook(root) },
+  { analyzer: "Hooks", match: "PostCompact is not a Claude Code hook event", fix: (root) => migratePostCompactHook(root) },
+  { analyzer: "Hooks", match: "compact matcher", fix: (root) => addCompactMatcherHook(root) },
   { analyzer: "Permissions", match: "force-push", fix: (root) => addForcePushProtection(root) },
   { analyzer: "Permissions", match: "Credential files not blocked", fix: (root) => addCredentialDenyRules(root) },
   { analyzer: "Permissions", match: "Bypass permissions mode", fix: (root) => addBypassDisable(root) },

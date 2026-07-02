@@ -137,7 +137,7 @@ cat .claude/settings.json | grep -q "memory pull" && green "S4: --fix added Sess
 # ── Scenario 5: Perfect project — no issues ──
 header "Scenario 5: Fully configured project"
 S5="$BASE/s5-perfect"
-mkdir -p "$S5/.claude/rules" "$S5/.claude/skills/lp-enhance" && cd "$S5"
+mkdir -p "$S5/.claude/rules" "$S5/.claude/skills/lp-enhance" "$S5/.claude/agents" && cd "$S5"
 git init -q
 cat > CLAUDE.md <<'EOF'
 # Test
@@ -156,13 +156,14 @@ cat > CLAUDE.md <<'EOF'
 ## Stop-and-Swarm
 - After 3 failed attempts, spin up parallel agents instead of retrying
 EOF
+printf -- "---\nname: code-reviewer\n---\n<!-- lp-reviewer-version: 1 -->\n# Reviewer" > .claude/agents/code-reviewer.md
 echo "# Backlog" > BACKLOG.md
 printf "node_modules\n.env\n" > .claudeignore
 printf "# Conventions\n- real content\n\n## Skill Authoring\n- TRIGGER clauses, allowed-tools, phases\n" > .claude/rules/conventions.md
-printf -- "---\npaths: [\"BACKLOG.md\", \"TASKS.md\"]\n---\n# Workflow rules\n" > .claude/rules/workflow.md
+printf -- "---\npaths: [\"BACKLOG.md\", \"TASKS.md\"]\n---\n\n<!-- lp-workflow-version: 2 -->\n# Workflow rules\n" > .claude/rules/workflow.md
 printf "# Hook authoring rules\n- read stdin JSON via jq\n" > .claude/rules/hooks.md
 # Skill needs current version marker to pass outdated check
-printf -- "---\nname: lp-enhance\n---\n<!-- lp-enhance-version: 9 -->\n# Enhance skill" > .claude/skills/lp-enhance/SKILL.md
+printf -- "---\nname: lp-enhance\n---\n<!-- lp-enhance-version: 10 -->\n# Enhance skill" > .claude/skills/lp-enhance/SKILL.md
 cat > .claude/settings.json <<'EOF'
 {
   "hooks": {
@@ -186,10 +187,8 @@ cat > .claude/settings.json <<'EOF'
         {"type": "command", "command": "grep -q x TASKS.md && echo Sprint complete; exit 0"}
       ]
     }],
-    "PostCompact": [{
-      "hooks": [{"type": "command", "command": "cat TASKS.md"}]
-    }],
     "SessionStart": [{
+      "matcher": "startup|resume|compact|clear",
       "hooks": [{"type": "command", "command": "cat TASKS.md"}]
     }],
     "SessionEnd": [{

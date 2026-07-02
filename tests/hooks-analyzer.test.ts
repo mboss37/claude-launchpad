@@ -34,14 +34,37 @@ describe("analyzeHooks", () => {
     const result = await analyzeHooks(makeConfig([
       { event: "PostToolUse", type: "command", matcher: "Write|Edit", command: "prettier --write $FILE" },
       { event: "PreToolUse", type: "command", matcher: "Read|Write", command: "check .env files" },
-      { event: "PostCompact", type: "command", matcher: "", command: "cat TASKS.md" },
-      { event: "SessionStart", type: "command", matcher: "startup", command: "cat TASKS.md" },
-      { event: "SessionStart", type: "command", matcher: "startup|resume", command: "bash .claude/hooks/sprint-size-check.sh TASKS.md" },
-      { event: "PreToolUse", type: "command", matcher: "Bash", command: "bash .claude/hooks/sprint-open-check.sh" },
+      { event: "SessionStart", type: "command", matcher: "startup|resume|compact|clear", command: "cat TASKS.md" },
+      { event: "SessionStart", type: "command", matcher: "startup|resume|compact|clear", command: "bash .claude/hooks/sprint-size-check.sh TASKS.md" },
+      { event: "PostToolUse", type: "command", matcher: "Bash", command: "bash .claude/hooks/sprint-open-check.sh" },
       { event: "PostToolUse", type: "command", matcher: "Edit|Write", command: "echo 'Sprint complete — all current tasks done'" },
       { event: "PostToolUse", type: "command", matcher: "Edit|Write", command: "bash .claude/hooks/workflow-check.sh" },
     ]));
     expect(result.score).toBe(100);
+  });
+
+  it("flags a dead PostCompact hook as HIGH (the event does not exist)", async () => {
+    const result = await analyzeHooks(makeConfig([
+      { event: "PostCompact", type: "command", matcher: "", command: "cat TASKS.md" },
+      { event: "SessionStart", type: "command", matcher: "startup|resume", command: "cat TASKS.md" },
+    ]));
+    const issue = result.issues.find((i) => i.message.includes("PostCompact is not a Claude Code hook event"));
+    expect(issue).toBeDefined();
+    expect(issue?.severity).toBe("high");
+  });
+
+  it("flags a SessionStart matcher that misses compact", async () => {
+    const result = await analyzeHooks(makeConfig([
+      { event: "SessionStart", type: "command", matcher: "startup|resume", command: "cat TASKS.md" },
+    ]));
+    expect(result.issues.some((i) => i.message.includes("compact matcher"))).toBe(true);
+  });
+
+  it("does not flag compaction continuity when the matcher covers compact", async () => {
+    const result = await analyzeHooks(makeConfig([
+      { event: "SessionStart", type: "command", matcher: "startup|resume|compact|clear", command: "cat TASKS.md" },
+    ]));
+    expect(result.issues.some((i) => i.message.toLowerCase().includes("compact"))).toBe(false);
   });
 
   it("flags missing workflow-check hook when TASKS.md is used", async () => {
