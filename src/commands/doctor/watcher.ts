@@ -87,7 +87,7 @@ async function runAndDisplay(projectRoot: string): Promise<void> {
     analyzeBudget(config),
     analyzeQuality(config, projectRoot),
     analyzeSettings(config),
-    analyzeHooks(config),
+    analyzeHooks(config, projectRoot),
     analyzeRules(config),
     analyzePermissions(config, projectRoot),
     analyzeMcp(config),

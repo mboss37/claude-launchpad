@@ -184,7 +184,7 @@ cat > .claude/settings.json <<'EOF'
         {"type": "command", "command": "bash .claude/hooks/sprint-size-check.sh; exit 0"},
         {"type": "command", "command": "bash .claude/hooks/sprint-open-check.sh; exit 0"},
         {"type": "command", "command": "bash .claude/hooks/workflow-check.sh; exit 0"},
-        {"type": "command", "command": "grep -q x TASKS.md && echo Sprint complete; exit 0"}
+        {"type": "command", "command": "bash .claude/hooks/sprint-complete-nudge.sh; exit 0 # emits Sprint complete via additionalContext JSON"}
       ]
     }],
     "SessionStart": [{

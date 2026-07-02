@@ -37,36 +37,25 @@
 - **Sprint 31**: Workflow Discipline (v1.10.0) — ported wastd-style BACKLOG/TASKS rigor: WP-NNN template with 7 mandatory fields, `## Priority definitions` table, P0-P3 sections, `## Changelog`. New `.claude/rules/workflow.md` with path-scoped YAML frontmatter. New PostToolUse `workflow-check.sh` hook (4 warn-only conditions: dup WP IDs, TASKS>80, Current Sprint>15, Session Log>3). Memory dedup bug fixed (install.ts regex now catches both `## Memory` and `## Memory (agentic-memory)`); `/lp-enhance` skill v9 writes canonical heading. New doctor checks (MEDIUM workflow.md missing, LOW workflow-check hook missing, MEDIUM duplicate Memory headings) with fixers. 442 tests (+26), repo BACKLOG migrated to new template.
 - **Sprint 32**: Hook Stdin Input Bug (v1.10.1) — every PreToolUse/PostToolUse hook our CLI shipped was silently inert because it read non-existent `$TOOL_INPUT_*` env vars. Hook context arrives as JSON on stdin per spec. New `lib/hook-input.ts` (`jqField()`, `hasEnvVarHookPattern()`); all generators rewritten to use jq+stdin; doctor HIGH finding + fixer (`fixer-hook-input.ts`) rewrites known shapes in shipped projects + leaves user customizations alone; new path-scoped `.claude/rules/hooks.md` ships preventative authoring rules (env-var bug, exit 2 vs 1, multi-matcher caveats). Behavioral fix: `exit 1` → `exit 2` for blocking hooks. 491 tests (+49), code-reviewed and validated end-to-end.
 - **Sprint 33**: The 5/5 Arc (v1.11.0) — sandbox scoped not stripped (MEDIUM + allowWrite grant fixer, all 3 registration scopes), weekly canary CI runs init-generated config against latest real Claude Code (5 live assertions, auto-issue on failure), eval transcript/custom/judge check types (checks.ts extraction, settingSources fix — SDK path loaded NO config before), template heuristics → semantic checks (Off-Limits dedup, force-push semantics, legacy allowedTools), `memory sync` + LWW conflict tests + sync-first positioning. `--fix` converges in one invocation; regression suite hermetic (21/21 in fresh container). 515 tests (+24), code-reviewed (2 Critical + 5 Important all fixed in-sprint).
+- **Sprint 34**: Enforcement Layer (v1.12.0) — 14 WPs from the 11-agent template review: hook warnings now reach the model (additionalContext JSON), PostCompact TASKS.md-injection migrated to SessionStart compact matcher (event is side-effect-only), move-not-copy check scoped so correct pulls never false-positive, sprint-open-check rebuilt on PostToolUse commit inspection, review gate delegates to /code-review + generated code-reviewer agent, Stop-and-Swarm modernized w/ debug-first rung, Testing Discipline + jq preflight + dependency-aware pulls + Workflow analyzer + superpowers detect-and-recommend + same-matcher consolidation. Doctor migrates every pre-v1.12 project. 549 tests (+34), 21/21 regression, repo self-scores 100%. Review: 1 Critical + 2 Important fixed in-sprint.
 
 ## Current Sprint
 
-- [ ] WP-023 — Hygiene warnings reach the model (additionalContext JSON)
-- [ ] WP-024 — Replace phantom PostCompact with SessionStart compact matcher + field migration fixer
-- [ ] WP-025 — Fix broken check triggers (dup-ID scoping, anchored counts, sprint-open trigger)
-- [ ] WP-026 — Review gate delegates to /code-review + /security-review; fix dangling reference
-- [ ] WP-027 — Stop-and-Swarm modernization (Task tool, debug-first rung, handoff) + staleness fixer
-- [ ] WP-028 — Ship Testing Discipline + pre-commit checklist (fix hard-TDD dangling ref)
-- [ ] WP-029 — jq preflight (doctor MEDIUM + init warning)
-- [ ] WP-030 — /lp-enhance Verify fix + SKILL_AUTHORING dedup (skill v10)
-- [ ] WP-031 — ID-minting changelog + 7-soft/15-hard threshold reconciliation
-- [ ] WP-032 — superpowers detect-and-recommend (init line + doctor INFO)
-- [ ] WP-033 — Generated plugin-free code-reviewer subagent
-- [ ] WP-034 — Dependency-aware pull warning (Depends on field)
-- [ ] WP-035 — doctor workflow analyzer (stale P0, changelog staleness, WP template fields)
-- [ ] WP-014 — Consolidate same-matcher hook entries in settings.ts
+<!-- EMPTY. Pull WPs from BACKLOG.md when ready. Format: `- [ ] WP-NNN — short title` -->
 
 ## Release Plan
 - **v1.10.0** ✅ shipped — Sprint 31 workflow discipline (wastd-style WP template + path-scoped workflow rule + staleness hook + memory dedup fix)
+- **v1.12.0** ready to publish — Sprint 34 (enforcement layer actually enforces; doctor migrates shipped projects). Maintainer publishes after local validation.
 - **v1.11.0** ready to publish — Sprint 33 (the 5/5 arc: sandbox scoping, canary CI, eval behavior checks, semantic doctor checks, memory sync). Maintainer publishes after local validation.
 - **v1.10.1** ✅ shipped — Sprint 32 hook stdin input bug (P0 fix: hooks now read JSON from stdin via jq, not non-existent `$TOOL_INPUT_*` env vars; new `hooks.md` rule prevents recurrence)
 - **v2.0.0** not scheduled. Reserved for the doctor plan/apply rewrite if/when we commit to it.
 
 ## Session Log
+### 2026-07-02 (session 48)
+- Sprint 34 shipped all 14 WPs from the 11-agent template-workflow review (WP-014, WP-023..035): the generated enforcement layer went from decorative to real — warnings inject via additionalContext, dead triggers fixed, PostCompact continuity migrated, /code-review gate + reviewer agent shipped, doctor upgrades every pre-v1.12 project in the field. Code review caught that PostCompact DOES exist (side-effect-only) — finding narrowed, fixer gated to our shape. v1.12.0 + CHANGELOG; maintainer publishes. 549 tests, 21/21 regression, repo self-scores 100%.
+
 ### 2026-07-01 (session 47)
 - Sprint 33 shipped the full 5/5 arc (WP-015..019) in one sprint: doctor scopes the sandbox instead of stripping it, canary CI validates generated configs against latest Claude Code weekly, eval gains transcript/custom/judge checks (+ fixed settingSources:[] — SDK path loaded no config at all), semantic checks replace template heuristics, `memory sync` ships with conflict tests and sync-first docs. Code review found 2 Critical (dead canary alerting, dead SDK transcript path) — both fixed in-sprint. v1.11.0 bumped + CHANGELOG; maintainer to publish after local tests. 515 tests, 21/21 regression.
 
 ### 2026-05-04 (session 46)
 - Sprint 32 shipped v1.10.1: P0 hook stdin input bug. All inline PreToolUse/PostToolUse hooks our CLI emitted read `$TOOL_INPUT_*` env vars Claude Code doesn't set and silently no-op'd. Fix: `lib/hook-input.ts` shared `jqField()` utility; generators rewritten; doctor analyzer HIGH + fixer for shipped projects; new path-scoped `hooks.md` rule (ported from wastd). Behavioral: blocking hooks now `exit 2` not `exit 1`. 491 tests (+49), code-reviewed.
-
-### 2026-05-04 (session 45)
-- Shipped v1.10.0 (Sprint 31 — workflow discipline). Ported wastd's BACKLOG/TASKS rigor into default init: WP-NNN template, priority definitions, P0-P3 sections, changelog. New `.claude/rules/workflow.md` with path-scoped YAML frontmatter. New `workflow-check.sh` PostToolUse hook. Fixed memory dedup bug. 442 tests (+26).

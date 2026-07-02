@@ -83,7 +83,7 @@ function extractPSections(backlog: string): string {
   let inP = false;
   for (const line of lines) {
     if (/^## P[0-3]/.test(line)) inP = true;
-    else if (/^## Changelog/.test(line)) inP = false;
+    else if (/^## /.test(line)) inP = false;
     if (inP) out.push(line);
   }
   return out.join("\n");

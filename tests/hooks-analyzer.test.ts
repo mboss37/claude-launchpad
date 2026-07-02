@@ -37,20 +37,51 @@ describe("analyzeHooks", () => {
       { event: "SessionStart", type: "command", matcher: "startup|resume|compact|clear", command: "cat TASKS.md" },
       { event: "SessionStart", type: "command", matcher: "startup|resume|compact|clear", command: "bash .claude/hooks/sprint-size-check.sh TASKS.md" },
       { event: "PostToolUse", type: "command", matcher: "Bash", command: "bash .claude/hooks/sprint-open-check.sh" },
-      { event: "PostToolUse", type: "command", matcher: "Edit|Write", command: "echo 'Sprint complete — all current tasks done'" },
+      { event: "PostToolUse", type: "command", matcher: "Edit|Write", command: "jq -n --arg ctx 'Sprint complete' '{hookSpecificOutput:{hookEventName:\"PostToolUse\",additionalContext:$ctx}}'" },
       { event: "PostToolUse", type: "command", matcher: "Edit|Write", command: "bash .claude/hooks/workflow-check.sh" },
     ]));
     expect(result.score).toBe(100);
   });
 
-  it("flags a dead PostCompact hook as HIGH (the event does not exist)", async () => {
+  it("flags a TASKS.md re-injection on PostCompact as HIGH (stdout never injected there)", async () => {
     const result = await analyzeHooks(makeConfig([
       { event: "PostCompact", type: "command", matcher: "", command: "cat TASKS.md" },
       { event: "SessionStart", type: "command", matcher: "startup|resume", command: "cat TASKS.md" },
     ]));
-    const issue = result.issues.find((i) => i.message.includes("PostCompact is not a Claude Code hook event"));
+    const issue = result.issues.find((i) => i.message.includes("PostCompact hooks can't inject context"));
     expect(issue).toBeDefined();
     expect(issue?.severity).toBe("high");
+  });
+
+  it("leaves side-effect PostCompact hooks alone", async () => {
+    const result = await analyzeHooks(makeConfig([
+      { event: "PostCompact", type: "command", matcher: "", command: "jq -r '.compact_summary' >> log.txt" },
+      { event: "SessionStart", type: "command", matcher: "startup|resume|compact|clear", command: "cat TASKS.md" },
+    ]));
+    expect(result.issues.some((i) => i.message.includes("PostCompact"))).toBe(false);
+  });
+
+  it("treats an empty SessionStart matcher as covering compact", async () => {
+    const result = await analyzeHooks(makeConfig([
+      { event: "SessionStart", type: "command", matcher: "", command: "cat TASKS.md" },
+    ]));
+    expect(result.issues.some((i) => i.message.includes("compact matcher"))).toBe(false);
+  });
+
+  it("flags a pre-v1.12 sprint-open-check registered on PreToolUse", async () => {
+    const result = await analyzeHooks(makeConfig([
+      { event: "PreToolUse", type: "command", matcher: "Bash", command: "bash .claude/hooks/sprint-open-check.sh 2>/dev/null; exit 0" },
+      { event: "SessionStart", type: "command", matcher: "startup|resume|compact|clear", command: "cat TASKS.md" },
+    ]));
+    expect(result.issues.some((i) => i.message.includes("registered on PreToolUse"))).toBe(true);
+  });
+
+  it("flags a bare-stdout sprint-complete nudge", async () => {
+    const result = await analyzeHooks(makeConfig([
+      { event: "PostToolUse", type: "command", matcher: "Edit|Write", command: "echo 'Sprint complete — all current tasks done'" },
+      { event: "SessionStart", type: "command", matcher: "startup|resume|compact|clear", command: "cat TASKS.md" },
+    ]));
+    expect(result.issues.some((i) => i.message.includes("nudge uses bare stdout"))).toBe(true);
   });
 
   it("flags a SessionStart matcher that misses compact", async () => {

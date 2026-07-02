@@ -135,6 +135,9 @@ describe("rewriteEnvVarHooks", () => {
     expect(hasEnvVarHookPattern(cmd)).toBe(false);
     expect(cmd).toContain(`jq -r '.tool_input.file_path`);
     expect(cmd).toContain("Sprint complete");
+    // Must be the CURRENT canonical form — context-visible, anchored counts
+    expect(cmd).toContain("additionalContext");
+    expect(cmd).not.toMatch(/grep -cF '- \[ \]'/);
   });
 
   it("is idempotent — second run is a no-op", async () => {

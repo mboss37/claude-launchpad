@@ -204,6 +204,32 @@ describe("applyFixes", () => {
     expect(after.sandbox.filesystem.allowWrite).toEqual(["~/.agentic-memory"]);
   });
 
+  it("leaves a user's side-effect PostCompact hook alone (the event is real)", async () => {
+    await mkdir(join(testDir, ".claude"), { recursive: true });
+    await writeFile(
+      join(testDir, ".claude", "settings.json"),
+      JSON.stringify({
+        hooks: {
+          PostCompact: [{ matcher: "", hooks: [{ type: "command", command: "jq -r '.compact_summary' >> .claude/compact-log.txt" }] }],
+          SessionStart: [{ matcher: "startup|resume|compact|clear", hooks: [{ type: "command", command: "cat TASKS.md 2>/dev/null; exit 0" }] }],
+        },
+      }, null, 2),
+    );
+
+    const issues: DiagnosticIssue[] = [{
+      analyzer: "Hooks",
+      severity: "high",
+      message: "PostCompact hooks can't inject context — this TASKS.md re-injection never reaches the model",
+      fix: "",
+    }];
+    const result = await applyFixes(issues, testDir);
+    expect(result.fixed).toBe(0);
+
+    const settings = JSON.parse(await readFile(join(testDir, ".claude", "settings.json"), "utf-8"));
+    expect(settings.hooks.PostCompact).toHaveLength(1);
+    expect(settings.hooks.PostCompact[0].hooks[0].command).toContain("compact_summary");
+  });
+
   it("migrates a dead PostCompact hook to a SessionStart compact matcher", async () => {
     await mkdir(join(testDir, ".claude"), { recursive: true });
     await writeFile(
@@ -219,7 +245,7 @@ describe("applyFixes", () => {
     const issues: DiagnosticIssue[] = [{
       analyzer: "Hooks",
       severity: "high",
-      message: "PostCompact is not a Claude Code hook event — this hook never fires",
+      message: "PostCompact hooks can't inject context — this TASKS.md re-injection never reaches the model",
       fix: "",
     }];
     const result = await applyFixes(issues, testDir);

@@ -2,7 +2,7 @@ import type { ClaudeConfig, AnalyzerResult, DiagnosticIssue } from "../../../typ
 import { isJqAvailable } from "../../../lib/hook-input.js";
 import { hasEnvVarHookPattern } from "../../../lib/hook-input.js";
 
-export async function analyzeHooks(config: ClaudeConfig): Promise<AnalyzerResult> {
+export async function analyzeHooks(config: ClaudeConfig, projectRoot = ""): Promise<AnalyzerResult> {
   const issues: DiagnosticIssue[] = [];
   const hooks = config.hooks;
 
@@ -81,20 +81,25 @@ export async function analyzeHooks(config: ClaudeConfig): Promise<AnalyzerResult
     });
   }
 
-  // Dead event: PostCompact does not exist in Claude Code — hooks under it never fire.
-  const hasPostCompact = hooks.some((h) => h.event === "PostCompact");
-  if (hasPostCompact) {
+  // PostCompact exists but is a side-effect event: its stdout is never injected
+  // into context. A TASKS.md re-injection registered there silently does nothing.
+  const hasInertPostCompact = hooks.some(
+    (h) => h.event === "PostCompact" && !!h.command && h.command.includes("TASKS.md"),
+  );
+  if (hasInertPostCompact) {
     issues.push({
       analyzer: "Hooks",
       severity: "high",
-      message: "PostCompact is not a Claude Code hook event — this hook never fires. Session continuity after compaction is silently broken",
-      fix: "Run `doctor --fix` to migrate to a SessionStart hook with a compact matcher",
+      message: "PostCompact hooks can't inject context — this TASKS.md re-injection never reaches the model. Session continuity after compaction is silently broken",
+      fix: "Run `doctor --fix` to move the injection to a SessionStart hook with a compact matcher",
     });
   }
 
-  // Session continuity across compaction: SessionStart matcher must include `compact`.
+  // Session continuity across compaction: SessionStart matcher must include
+  // `compact` (an empty/absent matcher matches all sources, which also counts).
   const hasCompactMatcher = hooks.some(
-    (h) => h.event === "SessionStart" && (h.matcher ?? "").includes("compact"),
+    (h) => h.event === "SessionStart"
+      && ((h.matcher ?? "") === "" || (h.matcher ?? "").includes("compact")),
   );
   if (!hasCompactMatcher) {
     issues.push({
@@ -132,7 +137,7 @@ export async function analyzeHooks(config: ClaudeConfig): Promise<AnalyzerResult
         analyzer: "Hooks",
         severity: "low",
         message: "No sprint-open-check hook — opening a new sprint without removing pulled WPs from BACKLOG silently drifts",
-        fix: "Add PreToolUse Bash hook calling .claude/hooks/sprint-open-check.sh",
+        fix: "Add PostToolUse Bash hook calling .claude/hooks/sprint-open-check.sh",
       });
     }
     if (!hooks.some((h) => h.command?.includes("Sprint complete"))) {
@@ -153,6 +158,51 @@ export async function analyzeHooks(config: ClaudeConfig): Promise<AnalyzerResult
     }
   }
 
+  // Pre-v1.12 shapes still in the field: warnings that never reach the model.
+  const sprintOpenOnPreToolUse = hooks.some(
+    (h) => h.event === "PreToolUse" && !!h.command && h.command.includes("sprint-open-check.sh"),
+  );
+  if (sprintOpenOnPreToolUse) {
+    issues.push({
+      analyzer: "Hooks",
+      severity: "medium",
+      message: "sprint-open-check.sh is registered on PreToolUse — context injection is impossible there and the current script inspects the last commit. It belongs on PostToolUse",
+      fix: "Run `doctor --fix` to move it to PostToolUse and refresh the script",
+    });
+  }
+  const staleEchoNudge = hooks.some(
+    (h) => !!h.command && h.command.includes("Sprint complete") && !h.command.includes("additionalContext"),
+  );
+  if (staleEchoNudge) {
+    issues.push({
+      analyzer: "Hooks",
+      severity: "medium",
+      message: "sprint-complete nudge uses bare stdout — PostToolUse stdout never reaches the model, so the nudge is invisible",
+      fix: "Run `doctor --fix` to upgrade it to additionalContext JSON",
+    });
+  }
+
+  // On-disk hygiene scripts from before v1.12 print bare stdout — invisible.
+  if (projectRoot !== "" && await hasStaleHygieneScript(projectRoot)) {
+    issues.push({
+      analyzer: "Hooks",
+      severity: "medium",
+      message: "Outdated hygiene script(s) in .claude/hooks — their warnings use bare stdout and never reach the model",
+      fix: "Run `doctor --fix` to refresh workflow-check.sh / sprint-open-check.sh",
+    });
+  }
+
   const score = Math.max(0, 100 - issues.length * 15);
   return { name: "Hooks", issues, score };
+}
+
+/** workflow-check + sprint-open must emit additionalContext JSON to be visible. */
+async function hasStaleHygieneScript(projectRoot: string): Promise<boolean> {
+  const { readFile } = await import("node:fs/promises");
+  const { join } = await import("node:path");
+  for (const name of ["workflow-check.sh", "sprint-open-check.sh"]) {
+    const content = await readFile(join(projectRoot, ".claude", "hooks", name), "utf-8").catch(() => null);
+    if (content !== null && !content.includes("hookSpecificOutput")) return true;
+  }
+  return false;
 }

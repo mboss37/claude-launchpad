@@ -133,7 +133,7 @@ async function runAnalyzers(
     analyzeBudget(config),
     analyzeQuality(config, path),
     analyzeSettings(config),
-    analyzeHooks(config),
+    analyzeHooks(config, path),
     analyzeRules(config),
     analyzePermissions(config, path),
     analyzeMcp(config),

@@ -16,7 +16,7 @@ import { getMemoryPlacement } from "../../lib/memory-placement.js";
 import { wrapStub } from "../../lib/stub-marker.js";
 import {
   createWorktreeInclude, addSprintSizeHook, addSprintOpenHook, addSprintCompleteNudge,
-  addWorkflowCheckHook,
+  addWorkflowCheckHook, migrateSprintOpenHookEvent, upgradeStaleNudge, refreshHygieneScripts,
 } from "./fixer-sprint.js";
 import {
   createWorkflowRule, createHooksRule, collapseMemoryHeadings, updateWorkflowRule, fixStaleSwarmPhrase,
@@ -102,7 +102,7 @@ const FIX_TABLE: ReadonlyArray<{ analyzer: string; match: string; fix: FixFn }> 
   { analyzer: "Rules", match: "No .claude/rules/workflow.md", fix: (root) => createWorkflowRule(root) },
   { analyzer: "Rules", match: "No .claude/rules/hooks.md", fix: (root) => createHooksRule(root) },
   { analyzer: "Rules", match: "No .claude/rules/", fix: (root) => createStarterRules(root) },
-  { analyzer: "Hooks", match: "PostCompact is not a Claude Code hook event", fix: (root) => migratePostCompactHook(root) },
+  { analyzer: "Hooks", match: "PostCompact hooks can't inject context", fix: (root) => migratePostCompactHook(root) },
   { analyzer: "Hooks", match: "compact matcher", fix: (root) => addCompactMatcherHook(root) },
   { analyzer: "Permissions", match: "force-push", fix: (root) => addForcePushProtection(root) },
   { analyzer: "Permissions", match: "Credential files not blocked", fix: (root) => addCredentialDenyRules(root) },
@@ -110,6 +110,9 @@ const FIX_TABLE: ReadonlyArray<{ analyzer: string; match: string; fix: FixFn }> 
   { analyzer: "Permissions", match: "Sandbox lacks a write grant", fix: (root) => addSandboxMemoryWriteGrant(root) },
   { analyzer: "Permissions", match: ".env is protected by hooks but not in .claudeignore", fix: (root) => addEnvToClaudeignore(root) },
   { analyzer: "Permissions", match: ".worktreeinclude is missing or empty", fix: (root) => createWorktreeInclude(root) },
+  { analyzer: "Hooks", match: "registered on PreToolUse", fix: (root) => migrateSprintOpenHookEvent(root) },
+  { analyzer: "Hooks", match: "nudge uses bare stdout", fix: (root) => upgradeStaleNudge(root) },
+  { analyzer: "Hooks", match: "Outdated hygiene script", fix: (root) => refreshHygieneScripts(root) },
   { analyzer: "Hooks", match: "sprint-size-check", fix: (root) => addSprintSizeHook(root) },
   { analyzer: "Hooks", match: "sprint-open-check", fix: (root) => addSprintOpenHook(root) },
   { analyzer: "Hooks", match: "sprint-complete nudge", fix: (root) => addSprintCompleteNudge(root) },

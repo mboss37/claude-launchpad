@@ -51,25 +51,38 @@ export async function addForcePushProtection(root: string): Promise<boolean> {
 }
 
 /**
- * PostCompact is not a Claude Code hook event — hooks registered under it
- * never fire. Migration: delete the dead PostCompact block and make sure a
- * SessionStart entry covers the real compact/clear matchers instead.
+ * PostCompact is a real (side-effect) event, but its stdout is never injected
+ * into context — a TASKS.md re-injection registered there does nothing.
+ * Migration: remove ONLY our known TASKS.md-injection shape from PostCompact
+ * (user side-effect hooks are left alone) and make sure a SessionStart entry
+ * covers the compact/clear matchers instead.
  */
 export async function migratePostCompactHook(root: string): Promise<boolean> {
   const settings = await readSettingsJson(root);
   if (settings === null) return false;
-  const hooks = (settings.hooks ?? {}) as Record<string, unknown>;
+  const hooks = (settings.hooks ?? {}) as Record<string, unknown[]>;
 
   let changed = false;
-  const { PostCompact: _dead, ...rest } = hooks;
-  if (_dead !== undefined) changed = true;
+  const postCompact = (hooks.PostCompact ?? []) as Record<string, unknown>[];
+  const kept = postCompact
+    .map((group) => {
+      const nested = (group.hooks ?? []) as Record<string, unknown>[];
+      const filtered = nested.filter((h) => !String(h.command ?? "").includes("TASKS.md"));
+      if (filtered.length !== nested.length) changed = true;
+      return { ...group, hooks: filtered };
+    })
+    .filter((group) => (group.hooks as unknown[]).length > 0);
 
-  const withMatcher = ensureCompactMatcher(rest as Record<string, unknown[]>);
+  const rest: Record<string, unknown[]> = { ...hooks };
+  if (kept.length > 0) rest.PostCompact = kept as unknown[];
+  else delete rest.PostCompact;
+
+  const withMatcher = ensureCompactMatcher(rest);
   if (withMatcher.changed) changed = true;
   if (!changed) return false;
 
   await writeSettingsJson(root, { ...settings, hooks: withMatcher.hooks });
-  log.success("Migrated dead PostCompact hook → SessionStart compact/clear matcher");
+  log.success("Moved TASKS.md re-injection off PostCompact (stdout not injected there) → SessionStart compact/clear matcher");
   return true;
 }
 

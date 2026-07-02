@@ -97,7 +97,7 @@ warn() { warnings="\${warnings}\$*
 # WP IDs that live as entries in BACKLOG P-sections (not Changelog, not Depends-on).
 backlog_ids=""
 if [ -f BACKLOG.md ]; then
-  backlog_ids=$(awk '/^## P[0-3]/{f=1;next} /^## Changelog/{f=0} f' BACKLOG.md 2>/dev/null | grep -v 'Depends on:' | grep -oE 'WP-[0-9]{3,}' | sort -u || true)
+  backlog_ids=$(awk '/^## P[0-3]/{f=1;next} /^## /{f=0} f' BACKLOG.md 2>/dev/null | grep -E '^### ' | grep -oE 'WP-[0-9]{3,}' | sort -u || true)
 fi
 
 # WP IDs in the Current Sprint checklist.
@@ -161,7 +161,7 @@ exit 0
  * bare PostToolUse stdout never reaches the model. Counts are anchored so
  * placeholder comments containing "- [ ]" don't register as open WPs.
  */
-export const SPRINT_COMPLETE_NUDGE = `fp=${jqField("file_path")}; echo "$fp" | grep -q TASKS.md || exit 0; section=$(sed -n '/^## Current/,/^## /p' TASKS.md 2>/dev/null); [ -z "$section" ] && exit 0; unchecked=$(echo "$section" | grep -cE '^[[:space:]]*- \\[ \\]' || true); checked=$(echo "$section" | grep -cE '^[[:space:]]*- \\[[xX]\\]' || true); [ "$unchecked" -eq 0 ] && [ "$checked" -gt 0 ] && jq -n --arg ctx 'Sprint complete - all Current Sprint tasks are checked off. Run /code-review on the sprint diff (base: the last chore(sprint- commit) and fix Critical/Important findings before the closing commit. Skip if the sprint was trivial (docs/config only).' '{hookSpecificOutput:{hookEventName:"PostToolUse",additionalContext:$ctx}}'; exit 0`;
+export const SPRINT_COMPLETE_NUDGE = `fp=${jqField("file_path")}; echo "$fp" | grep -q TASKS.md || exit 0; section=$(sed -n '/^## Current/,/^## /p' TASKS.md 2>/dev/null); [ -z "$section" ] && exit 0; unchecked=$(echo "$section" | grep -cE '^[[:space:]]*- \\[ \\]' || true); checked=$(echo "$section" | grep -cE '^[[:space:]]*- \\[[xX]\\]' || true); [ "$unchecked" -eq 0 ] && [ "$checked" -gt 0 ] && jq -n --arg ctx 'Sprint complete - all Current Sprint tasks are checked off. Run /code-review on the sprint diff (base: the last chore(sprint- commit)) and fix Critical/Important findings before the closing commit. Skip if the sprint was trivial (docs/config only).' '{hookSpecificOutput:{hookEventName:"PostToolUse",additionalContext:$ctx}}'; exit 0`;
 
 export const WORKFLOW_CHECK_WRAPPER = "bash .claude/hooks/workflow-check.sh; exit 0";
 export const SPRINT_OPEN_WRAPPER = "bash .claude/hooks/sprint-open-check.sh; exit 0";

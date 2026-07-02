@@ -133,7 +133,7 @@ export function generateEnhanceSkill(): string {
     '',
     'Review .claude/settings.json hooks:',
     '- If you see project-specific patterns that deserve hooks, suggest them',
-    '- If the SessionStart matcher misses compact/clear, suggest widening it to startup|resume|compact|clear (there is NO PostCompact event — it never fires)',
+    '- If the SessionStart matcher misses compact/clear, suggest widening it to startup|resume|compact|clear (PostCompact stdout is never injected into context - context re-injection belongs on SessionStart)',
     '- If no SessionStart hook exists, suggest one that injects TASKS.md',
     '- DO NOT modify settings.json directly. Print exact JSON to add.',
     '',

@@ -117,7 +117,7 @@ export interface ClaudeConfig {
   readonly gitWorktreesActive: boolean;
 }
 
-export type HookEvent = "PreToolUse" | "PostToolUse" | "SessionStart" | "SessionEnd" | "UserPromptSubmit" | "Stop";
+export type HookEvent = "PreToolUse" | "PostToolUse" | "SessionStart" | "SessionEnd" | "PostCompact" | "UserPromptSubmit" | "Stop";
 
 export interface HookConfig {
   readonly event: HookEvent | string;
