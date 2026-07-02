@@ -1,4 +1,4 @@
-import { readFile, writeFile, mkdir, access } from "node:fs/promises";
+import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { homedir } from "node:os";
 import { log } from "../../lib/output.js";
@@ -16,12 +16,15 @@ import { getMemoryPlacement } from "../../lib/memory-placement.js";
 import { wrapStub } from "../../lib/stub-marker.js";
 import {
   createWorktreeInclude, addSprintSizeHook, addSprintOpenHook, addSprintCompleteNudge,
-  addWorkflowCheckHook,
+  addWorkflowCheckHook, migrateSprintOpenHookEvent, upgradeStaleNudge, refreshHygieneScripts,
 } from "./fixer-sprint.js";
-import { createWorkflowRule, createHooksRule, collapseMemoryHeadings } from "./fixer-quality.js";
+import {
+  createWorkflowRule, createHooksRule, collapseMemoryHeadings, updateWorkflowRule, fixStaleSwarmPhrase,
+  createReviewerAgent,
+} from "./fixer-quality.js";
 import {
   addEnvProtectionHook, addAutoFormatHook, addForcePushProtection,
-  addPostCompactHook, addSessionStartHook,
+  migratePostCompactHook, addCompactMatcherHook, addSessionStartHook,
 } from "./fixer-hooks.js";
 import { rewriteEnvVarHooks } from "./fixer-hook-input.js";
 import {
@@ -89,20 +92,27 @@ const FIX_TABLE: ReadonlyArray<{ analyzer: string; match: string; fix: FixFn }> 
   }},
   { analyzer: "Quality", match: "Session Start", fix: (root) => addClaudeMdSection(root, "## Session Start", wrapStub(SESSION_START_CONTENT)) },
   { analyzer: "Quality", match: "Backlog", fix: (root) => addClaudeMdSection(root, "## Backlog", wrapStub(BACKLOG_CONTENT)) },
+  { analyzer: "Quality", match: "Stop-and-Swarm section is outdated", fix: (root) => fixStaleSwarmPhrase(root) },
   { analyzer: "Quality", match: "Stop-and-Swarm", fix: (root) => addClaudeMdSection(root, "## Stop-and-Swarm", wrapStub(STOP_AND_SWARM_CONTENT)) },
+  { analyzer: "Rules", match: "workflow.md rule is outdated", fix: (root) => updateWorkflowRule(root) },
+  { analyzer: "Rules", match: "No .claude/agents/code-reviewer.md", fix: (root) => createReviewerAgent(root) },
   { analyzer: "Quality", match: "Duplicate ## Memory", fix: (root) => collapseMemoryHeadings(root) },
   { analyzer: "Rules", match: "No BACKLOG.md", fix: (root) => createBacklogMd(root) },
   { analyzer: "Rules", match: "No .claudeignore", fix: (root, detected) => createClaudeignore(root, detected) },
   { analyzer: "Rules", match: "No .claude/rules/workflow.md", fix: (root) => createWorkflowRule(root) },
   { analyzer: "Rules", match: "No .claude/rules/hooks.md", fix: (root) => createHooksRule(root) },
   { analyzer: "Rules", match: "No .claude/rules/", fix: (root) => createStarterRules(root) },
-  { analyzer: "Hooks", match: "PostCompact", fix: (root) => addPostCompactHook(root) },
+  { analyzer: "Hooks", match: "PostCompact hooks can't inject context", fix: (root) => migratePostCompactHook(root) },
+  { analyzer: "Hooks", match: "compact matcher", fix: (root) => addCompactMatcherHook(root) },
   { analyzer: "Permissions", match: "force-push", fix: (root) => addForcePushProtection(root) },
   { analyzer: "Permissions", match: "Credential files not blocked", fix: (root) => addCredentialDenyRules(root) },
   { analyzer: "Permissions", match: "Bypass permissions mode", fix: (root) => addBypassDisable(root) },
-  { analyzer: "Permissions", match: "Filesystem sandbox enabled", fix: (root) => removeSandboxSettings(root) },
+  { analyzer: "Permissions", match: "Sandbox lacks a write grant", fix: (root) => addSandboxMemoryWriteGrant(root) },
   { analyzer: "Permissions", match: ".env is protected by hooks but not in .claudeignore", fix: (root) => addEnvToClaudeignore(root) },
   { analyzer: "Permissions", match: ".worktreeinclude is missing or empty", fix: (root) => createWorktreeInclude(root) },
+  { analyzer: "Hooks", match: "registered on PreToolUse", fix: (root) => migrateSprintOpenHookEvent(root) },
+  { analyzer: "Hooks", match: "nudge uses bare stdout", fix: (root) => upgradeStaleNudge(root) },
+  { analyzer: "Hooks", match: "Outdated hygiene script", fix: (root) => refreshHygieneScripts(root) },
   { analyzer: "Hooks", match: "sprint-size-check", fix: (root) => addSprintSizeHook(root) },
   { analyzer: "Hooks", match: "sprint-open-check", fix: (root) => addSprintOpenHook(root) },
   { analyzer: "Hooks", match: "sprint-complete nudge", fix: (root) => addSprintCompleteNudge(root) },
@@ -186,14 +196,29 @@ async function addBypassDisable(root: string): Promise<boolean> {
   return true;
 }
 
-async function removeSandboxSettings(root: string): Promise<boolean> {
+/**
+ * Grant Bash-run memory commands write access to ~/.agentic-memory while
+ * keeping the sandbox enabled. Never removes or weakens the sandbox itself.
+ */
+async function addSandboxMemoryWriteGrant(root: string): Promise<boolean> {
   const settings = await readSettingsJson(root);
   if (settings === null) return false;
-  if (settings.sandbox === undefined) return false;
+  const sandbox = settings.sandbox as Record<string, unknown> | undefined;
+  if (sandbox === undefined) return false;
 
-  const { sandbox: _sandbox, ...rest } = settings;
-  await writeSettingsJson(root, rest);
-  log.success("Removed sandbox block from settings.json");
+  const filesystem = (sandbox.filesystem ?? {}) as Record<string, unknown>;
+  const allowWrite = (filesystem.allowWrite as string[] | undefined) ?? [];
+  if (allowWrite.some((p) => p.includes(".agentic-memory"))) return false;
+
+  const updated = {
+    ...settings,
+    sandbox: {
+      ...sandbox,
+      filesystem: { ...filesystem, allowWrite: [...allowWrite, "~/.agentic-memory"] },
+    },
+  };
+  await writeSettingsJson(root, updated);
+  log.success("Added ~/.agentic-memory to sandbox.filesystem.allowWrite (sandbox stays enabled)");
   return true;
 }
 
@@ -245,12 +270,7 @@ async function addClaudeMdSection(root: string, heading: string, content: string
 
 async function createBacklogMd(root: string): Promise<boolean> {
   const backlogPath = join(root, "BACKLOG.md");
-  try {
-    await access(backlogPath);
-    return false;
-  } catch {
-    // Create it
-  }
+  if (await fileExists(backlogPath)) return false;
 
   const name = root.split("/").pop() ?? "Project";
   await writeFile(backlogPath, generateBacklogMd({ name, description: "" }));
@@ -260,12 +280,7 @@ async function createBacklogMd(root: string): Promise<boolean> {
 
 async function createClaudeignore(root: string, detected: DetectedProject): Promise<boolean> {
   const ignorePath = join(root, ".claudeignore");
-  try {
-    await access(ignorePath);
-    return false; // Already exists
-  } catch {
-    // Create it
-  }
+  if (await fileExists(ignorePath)) return false;
 
   const content = generateClaudeignore(detected);
   await writeFile(ignorePath, content);
@@ -278,12 +293,7 @@ const SKILL_AUTHORING_SECTION = `\n## Skill Authoring\n\n${SKILL_AUTHORING_CONTE
 
 async function createStarterRules(root: string): Promise<boolean> {
   const rulesDir = join(root, ".claude", "rules");
-  try {
-    await access(rulesDir);
-    return false; // Already exists
-  } catch {
-    // Create it
-  }
+  if (await fileExists(rulesDir)) return false;
 
   await mkdir(rulesDir, { recursive: true });
 

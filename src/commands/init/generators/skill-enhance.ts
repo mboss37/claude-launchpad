@@ -1,8 +1,10 @@
+import { SKILL_AUTHORING_CONTENT } from "../../../lib/sections.js";
+
 /**
  * Skill schema version. Bump this when the skill content changes.
  * Doctor compares this against installed skills to detect stale versions.
  */
-export const ENHANCE_SKILL_VERSION = 9;
+export const ENHANCE_SKILL_VERSION = 10;
 
 /**
  * Generates the /lp-enhance skill markdown content.
@@ -17,7 +19,7 @@ export function generateEnhanceSkill(): string {
     '  AI-improve your CLAUDE.md based on codebase analysis. Fills in architecture, conventions, guardrails, and suggests hooks and MCP servers.',
     '  TRIGGER when: user runs /lp-enhance, asks to "improve CLAUDE.md", "fill in architecture", or after major refactors.',
     '  DO NOT TRIGGER when: user is editing CLAUDE.md manually, doing normal coding, or running doctor/eval.',
-    'allowed-tools: Read, Glob, Grep, Edit, Write',
+    'allowed-tools: Read, Glob, Grep, Edit, Write, Bash(claude-launchpad doctor:*)',
     'argument-hint: (no arguments needed)',
     '---',
     '',
@@ -125,21 +127,13 @@ export function generateEnhanceSkill(): string {
     '',
     '## Skill Authoring',
     '',
-    'When creating Claude Code skills (.claude/skills/*/SKILL.md):',
-    '',
-    '- Keep SKILL.md under 500 lines - move reference material to supporting files in the same directory',
-    '- Front-load description (first 250 chars shown in listings) with TRIGGER when / DO NOT TRIGGER when clauses',
-    '- Add allowed-tools in frontmatter to restrict tool access (e.g. Read, Glob, Grep for read-only skills)',
-    '- Add argument-hint in frontmatter showing the expected input format (use $ARGUMENTS or $0, $1 for dynamic input)',
-    '- Set disable-model-invocation: true for skills with side effects (deploy, send messages)',
-    '- Structure as phases: Research, Plan, Execute, Verify with "Done when:" success criteria per phase',
-    '- Handle edge cases and preconditions before execution',
+    ...SKILL_AUTHORING_CONTENT.split('\n'),
     '',
     '## Hook review',
     '',
     'Review .claude/settings.json hooks:',
     '- If you see project-specific patterns that deserve hooks, suggest them',
-    '- If no PostCompact hook exists, suggest one that re-injects TASKS.md',
+    '- If the SessionStart matcher misses compact/clear, suggest widening it to startup|resume|compact|clear (PostCompact stdout is never injected into context - context re-injection belongs on SessionStart)',
     '- If no SessionStart hook exists, suggest one that injects TASKS.md',
     '- DO NOT modify settings.json directly. Print exact JSON to add.',
     '',

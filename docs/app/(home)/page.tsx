@@ -429,7 +429,7 @@ export default function HomePage() {
                 </div>
                 <p className="mt-3 text-sm text-fd-muted-foreground">One command to set up. Claude does the bookkeeping from there.</p>
                 <div className="mt-4 space-y-2 text-sm text-fd-muted-foreground">
-                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Syncs across devices via private GitHub Gist</div>
+                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> One `memory sync` carries the project brain across devices (private GitHub Gist)</div>
                   <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Relevant memories injected automatically at session start</div>
                   <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Stale knowledge fades, important decisions persist</div>
                   <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Each project gets its own scoped memory</div>

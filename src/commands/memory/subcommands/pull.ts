@@ -14,6 +14,8 @@ import { detectProject } from '../utils/project.js';
 
 interface PullOpts {
   readonly all?: boolean;
+  /** First-sync friendly: a missing remote file is expected, not an error. */
+  readonly quietMissing?: boolean;
 }
 
 export async function runPull(opts: PullOpts): Promise<void> {
@@ -33,14 +35,14 @@ export async function runPull(opts: PullOpts): Promise<void> {
     if (opts.all) {
       pullAll(ctx, syncConfig.gistId);
     } else {
-      pullProject(ctx, syncConfig.gistId);
+      pullProject(ctx, syncConfig.gistId, opts);
     }
   } finally {
     ctx.close();
   }
 }
 
-function pullProject(ctx: ReturnType<typeof initStorage>, gistId: string): void {
+function pullProject(ctx: ReturnType<typeof initStorage>, gistId: string, opts: PullOpts = {}): void {
   const project = detectProject(process.cwd());
   if (!project) {
     log.error('Could not detect project. Run from a project directory or use --all.');
@@ -50,7 +52,11 @@ function pullProject(ctx: ReturnType<typeof initStorage>, gistId: string): void 
   const filename = projectToFilename(project);
   const payload = parsePayload(readGistFile(gistId, filename));
   if (!payload) {
-    log.error(`No memories found for project "${project}" in gist.`);
+    if (opts.quietMissing) {
+      log.info(`No remote memories yet for "${project}" — push will create them.`);
+    } else {
+      log.error(`No memories found for project "${project}" in gist.`);
+    }
     return;
   }
 

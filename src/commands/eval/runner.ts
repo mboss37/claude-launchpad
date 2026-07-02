@@ -1,11 +1,12 @@
-import { mkdir, writeFile, readFile, readdir, rm, cp } from "node:fs/promises";
+import { mkdir, writeFile, rm, cp } from "node:fs/promises";
 import { join, dirname } from "node:path";
 import { tmpdir } from "node:os";
 import { randomUUID } from "node:crypto";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import type { EvalScenario, EvalRunResult, EvalCheck } from "../../types/index.js";
+import type { EvalScenario, EvalRunResult } from "../../types/index.js";
 import { fileExists } from "../../lib/fs-utils.js";
+import { evaluateChecks, makeClaudeJudge } from "./checks.js";
 
 const exec = promisify(execFile);
 
@@ -22,7 +23,7 @@ interface RunOptions {
  * 1. Create a temp directory with the scenario's seed files
  * 2. Write a minimal CLAUDE.md with the scenario's instructions
  * 3. Run Claude via Agent SDK with explicit tool permissions
- * 4. Check the results against the scenario's checks
+ * 4. Check the results (files + captured transcript) against the scenario's checks
  * 5. Clean up
  */
 export async function runScenario(
@@ -33,8 +34,8 @@ export async function runScenario(
 
   try {
     await setupSandbox(sandboxDir, scenario, options.projectRoot);
-    await runClaudeInSandbox(sandboxDir, scenario.prompt, options.timeout, options.model);
-    return await scoreResults(scenario, sandboxDir);
+    const transcript = await runClaudeInSandbox(sandboxDir, scenario.prompt, options.timeout, options.model);
+    return await scoreResults(scenario, sandboxDir, transcript, options.model);
   } finally {
     if (options.debug) {
       console.log(`  DEBUG: Sandbox preserved at ${sandboxDir}`);
@@ -128,39 +129,49 @@ async function copyProjectConfig(sandboxDir: string, projectRoot: string): Promi
 
 // ─── Claude Execution ───
 
+/**
+ * Run Claude in the sandbox and return the session transcript — one JSON line
+ * per message (SDK) or the CLI's stream-json output. Transcript checks assert
+ * on behavior (hooks firing, tools used) that final files alone can't prove.
+ */
 async function runClaudeInSandbox(
   cwd: string,
   prompt: string,
   timeout: number,
   model?: string,
-): Promise<void> {
+): Promise<string> {
   // Try Agent SDK first, fall back to CLI subprocess
   try {
     const sdk = await import("@anthropic-ai/claude-agent-sdk");
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
+    const lines: string[] = [];
 
     try {
-      for await (const _message of sdk.query({
+      for await (const message of sdk.query({
         prompt,
         options: {
           cwd,
           allowedTools: ["Bash", "Read", "Write", "Edit", "Glob", "Grep"],
           permissionMode: "dontAsk",
-          settingSources: [],
+          // "project" is required or the SDK loads NOTHING from the sandbox —
+          // no CLAUDE.md, no .claude/settings.json hooks. Eval exists to test
+          // that config surface, and transcript checks assert hooks fire.
+          settingSources: ["project"],
           maxTurns: 20,
           abortController: controller,
           ...(model ? { model } : {}),
         },
       })) {
-        // Consume the stream — we only care about side effects (file edits)
+        lines.push(JSON.stringify(message));
       }
     } finally {
       clearTimeout(timeoutId);
     }
+    return lines.join("\n");
   } catch {
     // SDK not available or failed — fall back to CLI
-    await runClaudeCli(cwd, prompt, timeout, model);
+    return runClaudeCli(cwd, prompt, timeout, model);
   }
 }
 
@@ -169,21 +180,23 @@ async function runClaudeCli(
   prompt: string,
   timeout: number,
   model?: string,
-): Promise<void> {
+): Promise<string> {
   try {
     const args = [
       "-p", prompt,
-      "--output-format", "text",
+      "--output-format", "stream-json",
+      "--verbose",
       "--max-turns", "20",
       "--dangerously-skip-permissions",
       "--allowedTools", "Bash", "Read", "Write", "Edit", "Glob", "Grep",
     ];
     if (model) args.push("--model", model);
-    await exec("claude", args, { cwd, timeout, maxBuffer: 10 * 1024 * 1024 });
+    const { stdout } = await exec("claude", args, { cwd, timeout, maxBuffer: 10 * 1024 * 1024 });
+    return stdout;
   } catch (error: unknown) {
     // Claude might exit non-zero but still produce usable output
     if (error && typeof error === "object" && "stdout" in error) {
-      return; // Files may have been modified despite exit code
+      return String((error as { stdout: unknown }).stdout ?? "");
     }
     throw error;
   }
@@ -194,8 +207,13 @@ async function runClaudeCli(
 async function scoreResults(
   scenario: EvalScenario,
   sandboxDir: string,
+  transcript: string,
+  model?: string,
 ): Promise<EvalRunResult> {
-  const checkResults = await evaluateChecks(scenario.checks, sandboxDir);
+  const checkResults = await evaluateChecks(scenario.checks, sandboxDir, {
+    transcript,
+    judge: makeClaudeJudge(model),
+  });
 
   const score = checkResults
     .filter((c) => c.passed)
@@ -210,97 +228,4 @@ async function scoreResults(
     passed: score >= scenario.passingScore,
     checks: checkResults,
   };
-}
-
-async function evaluateChecks(
-  checks: ReadonlyArray<EvalCheck>,
-  sandboxDir: string,
-): Promise<ReadonlyArray<{ label: string; passed: boolean; points: number }>> {
-  const results: { label: string; passed: boolean; points: number }[] = [];
-
-  for (const check of checks) {
-    const passed = await evaluateSingleCheck(check, sandboxDir);
-    results.push({ label: check.label, passed, points: check.points });
-  }
-
-  return results;
-}
-
-async function evaluateSingleCheck(check: EvalCheck, sandboxDir: string): Promise<boolean> {
-  switch (check.type) {
-    case "grep":
-      return checkGrep(check, sandboxDir);
-    case "file-exists":
-    case "file-absent":
-      return checkFilePresence(check, sandboxDir);
-    case "max-lines":
-      return checkMaxLines(check, sandboxDir);
-    case "custom":
-      return false;
-    default:
-      return false;
-  }
-}
-
-// ─── Individual Check Implementations ───
-
-async function checkGrep(check: EvalCheck, sandboxDir: string): Promise<boolean> {
-  if (!check.pattern) return false;
-  try {
-    const content = await readFile(join(sandboxDir, check.target), "utf-8");
-    let found: boolean;
-    try {
-      found = new RegExp(check.pattern).test(content);
-    } catch {
-      return false; // Invalid regex
-    }
-    return check.expect === "present" ? found : !found;
-  } catch {
-    return check.expect === "absent";
-  }
-}
-
-async function checkFilePresence(check: EvalCheck, sandboxDir: string): Promise<boolean> {
-  try {
-    await readFile(join(sandboxDir, check.target));
-    return check.expect === "present";
-  } catch {
-    return check.expect === "absent";
-  }
-}
-
-async function checkMaxLines(check: EvalCheck, sandboxDir: string): Promise<boolean> {
-  const maxLines = parseInt(check.pattern ?? "800", 10);
-  try {
-    const files = await listAllFiles(join(sandboxDir, check.target));
-    for (const file of files) {
-      const content = await readFile(file, "utf-8");
-      if (content.split("\n").length > maxLines) {
-        return check.expect === "absent";
-      }
-    }
-    return check.expect === "present";
-  } catch {
-    return check.expect === "absent";
-  }
-}
-
-// ─── Utilities ───
-
-async function listAllFiles(dir: string): Promise<string[]> {
-  const results: string[] = [];
-  try {
-    const entries = await readdir(dir, { withFileTypes: true });
-    for (const entry of entries) {
-      const fullPath = join(dir, entry.name);
-      if (entry.isDirectory()) {
-        results.push(...await listAllFiles(fullPath));
-      } else {
-        results.push(fullPath);
-      }
-    }
-  } catch {
-    // Directory doesn't exist
-  }
-  return results;
 }

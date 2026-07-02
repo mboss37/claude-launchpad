@@ -1,4 +1,4 @@
-export const WORKFLOW_RULE_VERSION = 1;
+export const WORKFLOW_RULE_VERSION = 2;
 
 export function generateWorkflowRule(): string {
   return `---
@@ -17,14 +17,14 @@ These rules apply whenever editing \`BACKLOG.md\` or \`TASKS.md\`. The workflow 
 
 - Pulled into a sprint → move (delete from BACKLOG.md, add to TASKS.md under \`## Current Sprint\`) in a single edit.
 - Sprint closed → the WP leaves TASKS.md entirely (summarized into \`## Completed Sprints\`) and does not return to the backlog.
-- A WP ID appearing in both files at once = bug. A PostToolUse hook warns.
+- A WP entry appearing in both files at once = bug. \`workflow-check.sh\` injects a warning into context when it sees one (Changelog and \`Depends on:\` mentions are fine).
 
 ## WP IDs
 
-- Format: \`WP-NNN\` (three digits, zero-padded).
-- Minted on first entry to \`BACKLOG.md\`.
+- Format: \`WP-NNN\` (three digits, zero-padded; grows to four digits past WP-999).
+- Minted on first entry to \`BACKLOG.md\`; log every mint in \`## Changelog\`: \`YYYY-MM-DD: WP-NNN added (P1)\`.
 - Never reused, never renamed.
-- Highest-used ID lives at the end of \`BACKLOG.md ## Changelog\` — check there before minting a new one.
+- To find the highest used ID before minting: \`grep -ohE 'WP-[0-9]+' BACKLOG.md TASKS.md | sort -V | tail -1\`.
 
 ## BACKLOG.md structure (mandatory sections, in order)
 
@@ -57,7 +57,7 @@ These rules apply whenever editing \`BACKLOG.md\` or \`TASKS.md\`. The workflow 
 
 ### Changelog discipline
 
-- Every WP promotion, demotion, or deletion gets a one-line entry with the date.
+- Every WP mint, promotion, demotion, or deletion gets a one-line entry with the date.
 - A backlog audit that finds no changelog entries for 30+ days = staleness; force a review.
 
 ## TASKS.md structure (mandatory sections, in order)
@@ -88,7 +88,8 @@ These rules apply whenever editing \`BACKLOG.md\` or \`TASKS.md\`. The workflow 
 ### Size discipline
 
 - Whole file stays under 80 lines.
-- If \`## Current Sprint\` exceeds 15 checkboxes, the sprint is too big — split it (move some WPs back to \`BACKLOG.md\` P0).
+- Aim for 3-6 WPs per sprint (soft target — \`sprint-size-check.sh\` nudges at session start).
+- If \`## Current Sprint\` exceeds 15 checkboxes, the sprint is too big — split it (hard trigger; \`workflow-check.sh\` warns).
 
 ## Sprint lifecycle (the exact edit sequence)
 
@@ -98,13 +99,13 @@ These rules apply whenever editing \`BACKLOG.md\` or \`TASKS.md\`. The workflow 
 2. **Same edit:** delete them from \`BACKLOG.md\`, add them to \`TASKS.md ## Current Sprint\`.
 3. Update \`BACKLOG.md ## Changelog\`: \`YYYY-MM-DD: WP-NNN pulled into Sprint SN\`.
 4. Write the sprint plan (outline approach, success criteria, tests to add).
-5. For hard-TDD surfaces, write the test spec **before** implementation.
+5. For hard-TDD surfaces (see "Testing Discipline" in \`.claude/rules/conventions.md\`), write the test spec **before** implementation.
 6. Commit the pull + plan together: \`chore(sprint-N): pull WP-NNN into sprint + plan\`.
 
 ### Closing a sprint (one session, one commit)
 
 1. All \`## Current Sprint\` items checked off, or explicitly moved back to backlog with rationale.
-2. Run your review workflow — verify typecheck, tests, and convention compliance before declaring done.
+2. Review the sprint diff: find the base with \`git log --grep 'chore(sprint-' -n 1 --format=%H\`, run \`/code-review\` against it, and fix all Critical/Important findings. Then run the project's test and typecheck commands — both must pass.
 3. Add one-line summary to \`## Completed Sprints\`.
 4. Empty \`## Current Sprint\` back to the placeholder comment.
 5. Update \`## Session Log\` (prune to 3 entries).
@@ -112,12 +113,15 @@ These rules apply whenever editing \`BACKLOG.md\` or \`TASKS.md\`. The workflow 
 
 ## What triggers a staleness warning
 
-A PostToolUse hook fires warnings on these conditions (treat as bugs):
+\`workflow-check.sh\` (PostToolUse on BACKLOG/TASKS edits) injects warnings into context — as \`additionalContext\`, so the model actually sees them — on these conditions (treat as bugs):
 
-- A WP ID appears in both \`BACKLOG.md\` and \`TASKS.md\`.
+- A WP entry lives in both a \`BACKLOG.md\` P-section and \`## Current Sprint\`.
 - \`TASKS.md\` exceeds 80 lines.
 - \`## Current Sprint\` has >15 items.
 - \`## Session Log\` has >3 entries.
+- A pulled WP's \`Depends on:\` dependency still sits in a BACKLOG P-section.
+
+\`sprint-open-check.sh\` (PostToolUse on Bash) additionally warns after a \`git commit\` that pulls WPs into the sprint without deleting anything from \`BACKLOG.md\` — fix with \`git commit --amend\` before pushing.
 
 ## Do not
 

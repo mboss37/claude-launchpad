@@ -7,7 +7,7 @@ import { Callout } from 'fumadocs-ui/components/callout';
 
 `init` generates three files that together form a workflow: **CLAUDE.md** (what Claude knows), **TASKS.md** (what we're doing now), **BACKLOG.md** (what we're doing later). Without structure, those files rot. TASKS.md balloons past 200 lines, BACKLOG.md becomes a dumping ground, and the same work package ends up in both files at once.
 
-v1.10.0 ships three things to stop the rot: a typed work-package template, a path-scoped rule file Claude auto-loads when editing those files, and a PostToolUse hook that warns on four staleness conditions.
+v1.10.0 ships three things to stop the rot: a typed work-package template, a path-scoped rule file Claude auto-loads when editing those files, and a PostToolUse hook that injects staleness warnings into context (five conditions).
 
 ## The single rule
 
@@ -122,18 +122,21 @@ A monolithic CLAUDE.md grows past the 200-line budget fast. Path-scoped rule fil
 
 ## The workflow-check hook
 
-`init` installs a PostToolUse hook at `.claude/hooks/workflow-check.sh`. It fires on every edit to `BACKLOG.md` or `TASKS.md` and warns (never blocks) on four conditions:
+`init` installs a PostToolUse hook at `.claude/hooks/workflow-check.sh`. It fires on every edit to `BACKLOG.md` or `TASKS.md` and warns (never blocks) on five conditions:
 
 | Condition | What it catches |
 |---|---|
-| Same `WP-NNN` ID in both files | Move-not-copy rule was violated. You pulled a WP into TASKS.md without removing it from BACKLOG.md. |
+| A WP entry in a BACKLOG P-section AND `## Current Sprint` | Move-not-copy violated. Changelog and `Depends on:` mentions don't count — a correct pull never false-positives. |
 | `TASKS.md` > 80 lines | Completed Sprints or Session Log is overflowing. Prune. |
-| `## Current Sprint` > 15 items | Sprint is oversized. Split it; move some WPs back to BACKLOG.md P0. |
+| `## Current Sprint` > 15 items | Hard split trigger (the soft target is 3-6; `sprint-size-check` nudges at session start). |
 | `## Session Log` > 3 entries | Older sessions should live in git history, not in TASKS.md. |
+| A pulled WP's `Depends on:` WP still in the backlog | Dependency-blind pull. The hook recovers the dependency from the pre-pull `HEAD:BACKLOG.md`. |
 
-The hook always exits 0; warnings appear as hook output in your Claude Code session and don't block edits or commits.
+Warnings are injected into the model's context as PostToolUse `additionalContext` JSON — bare hook stdout only reaches the transcript view, so pre-v1.12 warnings were invisible to Claude. The hook still always exits 0: it informs, never blocks.
 
-Doctor flags LOW when the hook is missing; `doctor --fix` installs the script and the settings entry together.
+A second hook, `sprint-open-check.sh`, runs after `git commit` and warns (same JSON mechanism) when a commit pulls WPs into the sprint without deleting anything from BACKLOG.md — with a `git commit --amend` suggestion while the fix is still cheap.
+
+Doctor flags LOW when either hook is missing; `doctor --fix` installs the scripts and settings entries together. Deeper batch audits (WP template completeness, stale P0 items, changelog silence) live in doctor's Workflow analyzer, which runs whenever BACKLOG.md exists.
 
 ## Next
 

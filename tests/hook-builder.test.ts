@@ -97,3 +97,38 @@ describe("addOrUpdateHook", () => {
     expect(existing).toEqual(snapshot);
   });
 });
+
+describe("addOrUpdateHook same-matcher merge", () => {
+  it("merges into an existing entry with the same matcher instead of appending a duplicate", () => {
+    const existing = {
+      PostToolUse: [
+        { matcher: "Edit|Write", hooks: [{ type: "command", command: "prettier --write" }] },
+      ],
+    } as Record<string, unknown[]>;
+    const result = addOrUpdateHook(existing, {
+      event: "PostToolUse",
+      dedupKeyword: "workflow-check.sh",
+      entry: { matcher: "Edit|Write", hooks: [{ type: "command", command: "bash .claude/hooks/workflow-check.sh; exit 0" }] },
+    });
+    expect(result.added).toBe(true);
+    const groups = result.hooks.PostToolUse as Array<{ matcher: string; hooks: Array<{ command: string }> }>;
+    expect(groups).toHaveLength(1);
+    expect(groups[0].hooks).toHaveLength(2);
+    expect(groups[0].hooks[1].command).toContain("workflow-check.sh");
+  });
+
+  it("still appends a new entry for a different matcher", () => {
+    const existing = {
+      PostToolUse: [
+        { matcher: "Edit|Write", hooks: [{ type: "command", command: "prettier --write" }] },
+      ],
+    } as Record<string, unknown[]>;
+    const result = addOrUpdateHook(existing, {
+      event: "PostToolUse",
+      dedupKeyword: "sprint-open-check.sh",
+      entry: { matcher: "Bash", hooks: [{ type: "command", command: "bash .claude/hooks/sprint-open-check.sh; exit 0" }] },
+    });
+    expect(result.added).toBe(true);
+    expect(result.hooks.PostToolUse).toHaveLength(2);
+  });
+});

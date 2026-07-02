@@ -15,7 +15,10 @@ import { generateEnhanceSkill } from "./generators/skill-enhance.js";
 import { generateBacklogMd } from "./generators/backlog.js";
 import { generateWorkflowRule } from "./generators/workflow-rule.js";
 import { generateHooksRule } from "./generators/hooks-rule.js";
-import { SKILL_AUTHORING_CONTENT } from "../../lib/sections.js";
+import { generateReviewerAgent } from "./generators/agent-reviewer.js";
+import { isJqAvailable } from "../../lib/hook-input.js";
+import { isSuperpowersInstalled } from "../../lib/plugins.js";
+import { SKILL_AUTHORING_CONTENT, TESTING_DISCIPLINE_CONTENT } from "../../lib/sections.js";
 import { writeSprintHygieneScripts, writeWorkflowCheckScript } from "../../lib/hook-scripts.js";
 
 export function createInitCommand(): Command {
@@ -87,7 +90,7 @@ export function createInitCommand(): Command {
 async function scaffold(root: string, options: InitOptions, detected: DetectedProject, skipPrompts: boolean): Promise<void> {
   log.step("Generating configuration...");
 
-  const claudeMd = generateClaudeMd(options, detected);
+  const claudeMd = generateClaudeMd(options, detected, { superpowers: isSuperpowersInstalled() });
   const tasksMd = generateTasksMd(options);
   const backlogMd = generateBacklogMd(options);
   const settings = generateSettings(detected);
@@ -153,11 +156,19 @@ async function scaffold(root: string, options: InitOptions, detected: DetectedPr
     writes.push(writeFile(hooksRulePath, generateHooksRule()));
   }
 
+  const reviewerAgentPath = join(root, ".claude", "agents", "code-reviewer.md");
+  const hasReviewerAgent = await fileExists(reviewerAgentPath);
+  if (!hasReviewerAgent) {
+    await mkdir(join(root, ".claude", "agents"), { recursive: true });
+    writes.push(writeFile(reviewerAgentPath, generateReviewerAgent()));
+  }
+
   await Promise.all(writes);
   await writeSprintHygieneScripts(root);
   await writeWorkflowCheckScript(root);
 
   log.success("Generated CLAUDE.md");
+  if (!hasReviewerAgent) log.success("Generated .claude/agents/code-reviewer.md (independent sprint reviewer)");
   log.success("Generated TASKS.md");
   if (!hasBacklog) log.success("Generated BACKLOG.md");
   log.success("Generated .claude/settings.json (schema, permissions, hooks)");
@@ -172,6 +183,12 @@ async function scaffold(root: string, options: InitOptions, detected: DetectedPr
   await createEnhanceSkillPrompt(root, skipPrompts);
 
   log.blank();
+  if (!isJqAvailable()) {
+    log.warn("jq not found on PATH — the generated hooks (including the .env and destructive-command guards) will silently no-op until you install it: https://jqlang.github.io/jq/download/");
+  }
+  if (!isSuperpowersInstalled()) {
+    log.info("Optional: the superpowers plugin adds brainstorm/plan/TDD/review discipline — /plugin install superpowers@claude-plugins-official");
+  }
   log.success("Done! Run `claude` to start.");
   log.info("Use `/lp-enhance` inside Claude Code to have AI complete your CLAUDE.md.");
   log.info("Run `claude-launchpad doctor` to check your config quality.");
@@ -207,6 +224,21 @@ function generateStarterRules(detected: DetectedProject): string {
     lines.push("- Prefer Result over unwrap/expect in library code");
     lines.push("- No unsafe blocks without a safety comment");
   }
+
+  // Testing discipline — referenced by .claude/rules/workflow.md sprint steps
+  lines.push("", "## Testing Discipline", "", TESTING_DISCIPLINE_CONTENT);
+
+  // Pre-commit checklist from detected commands (generic fallback when unknown)
+  const verify = [detected.testCommand, detected.lintCommand]
+    .filter((c): c is string => !!c)
+    .map((c) => `\`${c}\``)
+    .join(" && ");
+  lines.push("", "## Pre-Commit Checklist", "");
+  lines.push(verify
+    ? `1. Run ${verify} — never commit if either fails`
+    : "1. Run the project's test and typecheck commands — never commit if either fails");
+  lines.push("2. For hard-TDD surfaces, confirm the test was written before the implementation");
+  lines.push("3. Before sprint-ending commits: run /code-review on the sprint diff (see ## Sprint Reviews in CLAUDE.md)");
 
   // Skill authoring conventions
   lines.push("", "## Skill Authoring", "", SKILL_AUTHORING_CONTENT);

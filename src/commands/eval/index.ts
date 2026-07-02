@@ -36,10 +36,10 @@ export function createEvalCommand(): Command {
         opts.suite = await select({
           message: "Suite",
           choices: [
-            { name: "security (6 scenarios)", value: "security" },
+            { name: "security (7 scenarios)", value: "security" },
             { name: "conventions (5 scenarios)", value: "conventions" },
             { name: "workflow (4 scenarios)", value: "workflow" },
-            { name: "all (15 scenarios)", value: undefined },
+            { name: "all (16 scenarios)", value: undefined },
           ],
         });
         opts.runs = await select({

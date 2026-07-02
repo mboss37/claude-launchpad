@@ -4,11 +4,11 @@ description: |
   AI-improve your CLAUDE.md based on codebase analysis. Fills in architecture, conventions, guardrails, and suggests hooks and MCP servers.
   TRIGGER when: user runs /lp-enhance, asks to "improve CLAUDE.md", "fill in architecture", or after major refactors.
   DO NOT TRIGGER when: user is editing CLAUDE.md manually, doing normal coding, or running doctor/eval.
-allowed-tools: Read, Glob, Grep, Edit, Write
+allowed-tools: Read, Glob, Grep, Edit, Write, Bash(claude-launchpad doctor:*)
 argument-hint: (no arguments needed)
 ---
 
-<!-- lp-enhance-version: 9 -->
+<!-- lp-enhance-version: 10 -->
 
 # lp-enhance - AI-powered CLAUDE.md improver
 
@@ -114,7 +114,7 @@ If .claude/rules/conventions.md exists but has no Skill Authoring section, add t
 
 When creating Claude Code skills (.claude/skills/*/SKILL.md):
 
-- Keep SKILL.md under 500 lines - move reference material to supporting files in the same directory
+- Keep SKILL.md under 500 lines — move reference material to supporting files in the same directory
 - Front-load description (first 250 chars shown in listings) with TRIGGER when / DO NOT TRIGGER when clauses
 - Add allowed-tools in frontmatter to restrict tool access (e.g. Read, Glob, Grep for read-only skills)
 - Add argument-hint in frontmatter showing the expected input format (use $ARGUMENTS or $0, $1 for dynamic input)
@@ -126,7 +126,7 @@ When creating Claude Code skills (.claude/skills/*/SKILL.md):
 
 Review .claude/settings.json hooks:
 - If you see project-specific patterns that deserve hooks, suggest them
-- If no PostCompact hook exists, suggest one that re-injects TASKS.md
+- If the SessionStart matcher misses compact/clear, suggest widening it to startup|resume|compact|clear (there is NO PostCompact event — it never fires)
 - If no SessionStart hook exists, suggest one that injects TASKS.md
 - DO NOT modify settings.json directly. Print exact JSON to add.
 

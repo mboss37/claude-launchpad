@@ -1,8 +1,9 @@
-import { readFile, readdir, access } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { join, resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
 import { validateScenario } from "./schema.js";
+import { fileExists as dirExists } from "../../lib/fs-utils.js";
 import type { EvalScenario } from "../../types/index.js";
 
 /**
@@ -27,15 +28,6 @@ async function findScenariosDir(): Promise<string> {
   if (await dirExists(rootPath)) return rootPath;
 
   return devPath; // Fall through — will just find 0 scenarios
-}
-
-async function dirExists(path: string): Promise<boolean> {
-  try {
-    await access(path);
-    return true;
-  } catch {
-    return false;
-  }
 }
 
 /**

@@ -1,5 +1,9 @@
 import type { DetectedProject } from "../../../types/index.js";
 import { jqField } from "../../../lib/hook-input.js";
+import {
+  WORKFLOW_CHECK_WRAPPER, SPRINT_OPEN_WRAPPER, SPRINT_SIZE_WRAPPER, SESSION_START_MATCHER,
+  SPRINT_COMPLETE_NUDGE,
+} from "../../../lib/hook-scripts.js";
 
 interface HookEntry {
   readonly type: "command";
@@ -46,60 +50,51 @@ export function generateSettings(detected: DetectedProject): ClaudeSettings {
     }],
   });
 
-  // Auto-format based on detected tooling
+  // One "Edit|Write" PostToolUse entry holds format + nudge + workflow-check:
+  // multiple top-level entries with the same matcher are undefined behavior
+  // (our own hooks.md rule) — same-matcher hooks share one entry's array.
+  const editWriteHooks: HookEntry[] = [];
   const formatHook = buildFormatHook(detected);
   if (formatHook) {
-    postToolUse.push(formatHook);
+    editWriteHooks.push(formatHook);
   }
 
-  // Sprint review: nudge when all current sprint tasks are complete
-  postToolUse.push({
-    matcher: "Edit|Write",
-    hooks: [{
-      type: "command",
-      command: `fp=${jqField("file_path")}; echo "$fp" | grep -q TASKS.md || exit 0; section=$(sed -n '/^## Current/,/^## /p' TASKS.md 2>/dev/null); [ -z "$section" ] && exit 0; unchecked=$(echo "$section" | grep -cF '- [ ]' || true); checked=$(echo "$section" | grep -cF '- [x]' || true); [ "$unchecked" -eq 0 ] && [ "$checked" -gt 0 ] && echo 'Sprint complete — all current tasks done. Consider a quick quality check before committing: scan for dead code, debug artifacts, TODO hacks, and convention violations. Run tests if available. Skip if trivial.'; exit 0`,
-    }],
+  // Sprint review: nudge when all current sprint tasks are complete.
+  // Emitted as additionalContext JSON — bare PostToolUse stdout never reaches the model.
+  editWriteHooks.push({
+    type: "command",
+    command: SPRINT_COMPLETE_NUDGE,
   });
 
-  // Workflow discipline: warn on BACKLOG/TASKS drift (duplicate WP IDs, oversized sprint, long session log)
-  postToolUse.push({
-    matcher: "Edit|Write",
-    hooks: [{
-      type: "command",
-      command: "bash .claude/hooks/workflow-check.sh 2>/dev/null; exit 0",
-    }],
+  // Workflow discipline: warn on BACKLOG/TASKS drift (duplicate WP entries, oversized sprint, long session log, dependency-blind pulls)
+  editWriteHooks.push({
+    type: "command",
+    command: WORKFLOW_CHECK_WRAPPER,
   });
 
-  // Sprint-open hygiene: warn on `git commit` when TASKS.md adds new sprint without BACKLOG deletions
-  preToolUse.push({
+  postToolUse.push({ matcher: "Edit|Write", hooks: editWriteHooks });
+
+  // Sprint-open hygiene: after `git commit`, warn if WPs were pulled without BACKLOG deletions.
+  // PostToolUse (not PreToolUse): only PostToolUse can inject non-blocking context.
+  postToolUse.push({
     matcher: "Bash",
     hooks: [{
       type: "command",
-      command: "bash .claude/hooks/sprint-open-check.sh 2>/dev/null; exit 0",
+      command: SPRINT_OPEN_WRAPPER,
     }],
   });
 
-  // SessionStart: inject TASKS.md at session startup, run sprint-size check
+  // SessionStart: inject TASKS.md + sprint-size check. Matcher includes
+  // compact/clear so session continuity survives compaction — there is no
+  // PostCompact hook event in Claude Code.
   const sessionStart: HookGroup[] = [{
-    matcher: "startup|resume",
+    matcher: SESSION_START_MATCHER,
     hooks: [{
       type: "command",
       command: "cat TASKS.md 2>/dev/null; exit 0",
-    }],
-  }, {
-    matcher: "startup|resume",
-    hooks: [{
+    }, {
       type: "command",
-      command: "bash .claude/hooks/sprint-size-check.sh TASKS.md 2>/dev/null; exit 0",
-    }],
-  }];
-
-  // PostCompact: re-inject TASKS.md so session continuity survives compaction
-  const postCompact: HookGroup[] = [{
-    matcher: "",
-    hooks: [{
-      type: "command",
-      command: "cat TASKS.md 2>/dev/null; exit 0",
+      command: SPRINT_SIZE_WRAPPER,
     }],
   }];
 
@@ -107,7 +102,6 @@ export function generateSettings(detected: DetectedProject): ClaudeSettings {
   hooks.SessionStart = sessionStart;
   if (preToolUse.length > 0) hooks.PreToolUse = preToolUse;
   if (postToolUse.length > 0) hooks.PostToolUse = postToolUse;
-  hooks.PostCompact = postCompact;
 
   return {
     $schema: "https://json.schemastore.org/claude-code-settings.json",
@@ -145,7 +139,7 @@ const SAFE_FORMATTERS: Record<string, { extensions: string[]; command: string }>
   "C#": { extensions: ["cs"], command: "dotnet format" },
 };
 
-function buildFormatHook(detected: DetectedProject): HookGroup | null {
+function buildFormatHook(detected: DetectedProject): HookEntry | null {
   if (!detected.language) return null;
 
   const config = SAFE_FORMATTERS[detected.language];
@@ -156,10 +150,7 @@ function buildFormatHook(detected: DetectedProject): HookGroup | null {
     .join(" || ");
 
   return {
-    matcher: "Write|Edit",
-    hooks: [{
-      type: "command",
-      command: `fp=${jqField("file_path")}; ext="\${fp##*.}"; (${extChecks}) && ${config.command} "$fp" 2>/dev/null; exit 0`,
-    }],
+    type: "command",
+    command: `fp=${jqField("file_path")}; ext="\${fp##*.}"; (${extChecks}) && ${config.command} "$fp" 2>/dev/null; exit 0`,
   };
 }

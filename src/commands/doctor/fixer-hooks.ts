@@ -1,4 +1,7 @@
 import { addHookToSettings } from "../../lib/hook-builder.js";
+import { readSettingsJson, writeSettingsJson } from "../../lib/settings.js";
+import { log } from "../../lib/output.js";
+import { SESSION_START_MATCHER } from "../../lib/hook-scripts.js";
 import { jqField } from "../../lib/hook-input.js";
 import type { DetectedProject } from "../../types/index.js";
 
@@ -47,16 +50,77 @@ export async function addForcePushProtection(root: string): Promise<boolean> {
   }, "Added force-push protection hook (PreToolUse → Bash)");
 }
 
-export async function addPostCompactHook(root: string): Promise<boolean> {
-  return addHookToSettings(root, "PostCompact", "TASKS.md", {
-    matcher: "",
-    hooks: [{ type: "command", command: "cat TASKS.md 2>/dev/null; exit 0" }],
-  }, "Added PostCompact hook (re-injects TASKS.md after compaction)");
+/**
+ * PostCompact is a real (side-effect) event, but its stdout is never injected
+ * into context — a TASKS.md re-injection registered there does nothing.
+ * Migration: remove ONLY our known TASKS.md-injection shape from PostCompact
+ * (user side-effect hooks are left alone) and make sure a SessionStart entry
+ * covers the compact/clear matchers instead.
+ */
+export async function migratePostCompactHook(root: string): Promise<boolean> {
+  const settings = await readSettingsJson(root);
+  if (settings === null) return false;
+  const hooks = (settings.hooks ?? {}) as Record<string, unknown[]>;
+
+  let changed = false;
+  const postCompact = (hooks.PostCompact ?? []) as Record<string, unknown>[];
+  const kept = postCompact
+    .map((group) => {
+      const nested = (group.hooks ?? []) as Record<string, unknown>[];
+      const filtered = nested.filter((h) => !String(h.command ?? "").includes("TASKS.md"));
+      if (filtered.length !== nested.length) changed = true;
+      return { ...group, hooks: filtered };
+    })
+    .filter((group) => (group.hooks as unknown[]).length > 0);
+
+  const rest: Record<string, unknown[]> = { ...hooks };
+  if (kept.length > 0) rest.PostCompact = kept as unknown[];
+  else delete rest.PostCompact;
+
+  const withMatcher = ensureCompactMatcher(rest);
+  if (withMatcher.changed) changed = true;
+  if (!changed) return false;
+
+  await writeSettingsJson(root, { ...settings, hooks: withMatcher.hooks });
+  log.success("Moved TASKS.md re-injection off PostCompact (stdout not injected there) → SessionStart compact/clear matcher");
+  return true;
+}
+
+export async function addCompactMatcherHook(root: string): Promise<boolean> {
+  const settings = await readSettingsJson(root);
+  if (settings === null) return false;
+  const hooks = (settings.hooks ?? {}) as Record<string, unknown[]>;
+  const result = ensureCompactMatcher(hooks);
+  if (!result.changed) return false;
+  await writeSettingsJson(root, { ...settings, hooks: result.hooks });
+  log.success("SessionStart matcher now covers compact/clear (session continuity after compaction)");
+  return true;
+}
+
+/** Widen the TASKS.md-injecting SessionStart entry's matcher to include compact/clear. */
+function ensureCompactMatcher(
+  hooks: Record<string, unknown[]>,
+): { hooks: Record<string, unknown[]>; changed: boolean } {
+  const sessionStart = (hooks.SessionStart ?? []) as Record<string, unknown>[];
+  if (sessionStart.some((g) => String(g.matcher ?? "").includes("compact"))) {
+    return { hooks, changed: false };
+  }
+  const idx = sessionStart.findIndex((g) => {
+    const nested = g.hooks as Record<string, unknown>[] | undefined;
+    return nested?.some((h) => String(h.command ?? "").includes("TASKS.md"));
+  });
+  if (idx === -1) {
+    // No TASKS.md SessionStart hook to widen — add the canonical one.
+    const entry = { matcher: SESSION_START_MATCHER, hooks: [{ type: "command", command: "cat TASKS.md 2>/dev/null; exit 0" }] };
+    return { hooks: { ...hooks, SessionStart: [...sessionStart, entry] }, changed: true };
+  }
+  const widened = sessionStart.map((g, i) => (i === idx ? { ...g, matcher: SESSION_START_MATCHER } : g));
+  return { hooks: { ...hooks, SessionStart: widened }, changed: true };
 }
 
 export async function addSessionStartHook(root: string): Promise<boolean> {
   return addHookToSettings(root, "SessionStart", "TASKS.md", {
-    matcher: "startup|resume",
+    matcher: SESSION_START_MATCHER,
     hooks: [{ type: "command", command: "cat TASKS.md 2>/dev/null; exit 0" }],
-  }, "Added SessionStart hook (injects TASKS.md at startup)");
+  }, "Added SessionStart hook (injects TASKS.md at startup/resume/compact/clear)");
 }

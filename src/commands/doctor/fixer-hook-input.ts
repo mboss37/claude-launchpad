@@ -4,6 +4,7 @@ import { log } from "../../lib/output.js";
 import { hasEnvVarHookPattern, jqField } from "../../lib/hook-input.js";
 import { readSettingsJson, writeSettingsJson } from "../../lib/settings.js";
 import {
+  SPRINT_COMPLETE_NUDGE,
   writeWorkflowCheckScript,
   writeSprintHygieneScripts,
 } from "../../lib/hook-scripts.js";
@@ -47,9 +48,10 @@ export function rewriteEnvVarHookCommand(cmd: string): string | null {
     return `cmd=${jqField("command")}; echo "$cmd" | grep -qE 'push.*--force|push.*-f' && { echo 'WARNING: Force push detected — this can destroy remote history' >&2; exit 2; }; exit 0`;
   }
 
-  // Sprint-complete nudge (PostToolUse Edit|Write)
+  // Sprint-complete nudge (PostToolUse Edit|Write) — emit the CURRENT canonical
+  // form (additionalContext JSON, anchored counts), not the historical echo.
   if (cmd.includes("Sprint complete") && cmd.includes("TASKS.md")) {
-    return `fp=${jqField("file_path")}; echo "$fp" | grep -q TASKS.md || exit 0; section=$(sed -n '/^## Current/,/^## /p' TASKS.md 2>/dev/null); [ -z "$section" ] && exit 0; unchecked=$(echo "$section" | grep -cF '- [ ]' || true); checked=$(echo "$section" | grep -cF '- [x]' || true); [ "$unchecked" -eq 0 ] && [ "$checked" -gt 0 ] && echo 'Sprint complete — all current tasks done. Consider a quick quality check before committing: scan for dead code, debug artifacts, TODO hacks, and convention violations. Run tests if available. Skip if trivial.'; exit 0`;
+    return SPRINT_COMPLETE_NUDGE;
   }
 
   // Auto-format hook (PostToolUse Write|Edit) — extract formatter + extension list from the original

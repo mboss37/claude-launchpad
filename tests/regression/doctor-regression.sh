@@ -2,7 +2,15 @@
 set -e
 
 BASE="${TMPDIR:-/tmp}/claude-launchpad-regression"
-CLI="claude-launchpad"
+# Use the globally linked binary if present, otherwise the repo build (run `pnpm build` first)
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+if command -v claude-launchpad >/dev/null 2>&1; then
+  CLI="claude-launchpad"
+else
+  CLI="node $REPO_ROOT/dist/cli.js"
+fi
+# Portable md5 (macOS: md5 -q, Linux: md5sum)
+hash_file() { if command -v md5 >/dev/null 2>&1; then md5 -q "$1"; else md5sum "$1" | cut -d' ' -f1; fi; }
 PASS=0
 FAIL=0
 
@@ -11,6 +19,13 @@ red() { printf "\033[31m✗ %s\033[0m\n" "$1"; FAIL=$((FAIL+1)); }
 header() { printf "\n\033[1m── %s ──\033[0m\n" "$1"; }
 
 rm -rf "$BASE" && mkdir -p "$BASE"
+
+# Hermetic HOME: machine state (global skills, ~/.agentic-memory) must not leak in.
+# Seed a sync config so the memory sync-hook checks (S4/S6/S7) always activate.
+export HOME="$BASE/home"
+mkdir -p "$HOME/.agentic-memory"
+echo '{"gistId":"abc123def4567890abcd"}' > "$HOME/.agentic-memory/sync-config.json"
+git config --global user.email "regression@test" && git config --global user.name "regression"
 
 # ── Scenario 1: Fresh project, no config ──
 header "Scenario 1: Fresh project (no .claude/)"
@@ -122,7 +137,7 @@ cat .claude/settings.json | grep -q "memory pull" && green "S4: --fix added Sess
 # ── Scenario 5: Perfect project — no issues ──
 header "Scenario 5: Fully configured project"
 S5="$BASE/s5-perfect"
-mkdir -p "$S5/.claude/rules" "$S5/.claude/skills/lp-enhance" && cd "$S5"
+mkdir -p "$S5/.claude/rules" "$S5/.claude/skills/lp-enhance" "$S5/.claude/agents" && cd "$S5"
 git init -q
 cat > CLAUDE.md <<'EOF'
 # Test
@@ -138,12 +153,17 @@ cat > CLAUDE.md <<'EOF'
 - Check BACKLOG.md
 ## Off-Limits
 - Never hardcode secrets
+## Stop-and-Swarm
+- After 3 failed attempts, spin up parallel agents instead of retrying
 EOF
+printf -- "---\nname: code-reviewer\n---\n<!-- lp-reviewer-version: 1 -->\n# Reviewer" > .claude/agents/code-reviewer.md
 echo "# Backlog" > BACKLOG.md
 printf "node_modules\n.env\n" > .claudeignore
-echo "# A substantial rules file with enough content" > .claude/rules/conventions.md
-# Skill needs version marker to pass outdated check
-printf -- "---\nname: lp-enhance\n---\n<!-- lp-enhance-version: 5 -->\n# Enhance skill" > .claude/skills/lp-enhance/SKILL.md
+printf "# Conventions\n- real content\n\n## Skill Authoring\n- TRIGGER clauses, allowed-tools, phases\n" > .claude/rules/conventions.md
+printf -- "---\npaths: [\"BACKLOG.md\", \"TASKS.md\"]\n---\n\n<!-- lp-workflow-version: 2 -->\n# Workflow rules\n" > .claude/rules/workflow.md
+printf "# Hook authoring rules\n- read stdin JSON via jq\n" > .claude/rules/hooks.md
+# Skill needs current version marker to pass outdated check
+printf -- "---\nname: lp-enhance\n---\n<!-- lp-enhance-version: 10 -->\n# Enhance skill" > .claude/skills/lp-enhance/SKILL.md
 cat > .claude/settings.json <<'EOF'
 {
   "hooks": {
@@ -159,12 +179,16 @@ cat > .claude/settings.json <<'EOF'
     ],
     "PostToolUse": [{
       "matcher": "Write|Edit",
-      "hooks": [{"type": "command", "command": "prettier --write $FILE"}]
-    }],
-    "PostCompact": [{
-      "hooks": [{"type": "command", "command": "cat TASKS.md"}]
+      "hooks": [
+        {"type": "command", "command": "prettier --write $FILE"},
+        {"type": "command", "command": "bash .claude/hooks/sprint-size-check.sh; exit 0"},
+        {"type": "command", "command": "bash .claude/hooks/sprint-open-check.sh; exit 0"},
+        {"type": "command", "command": "bash .claude/hooks/workflow-check.sh; exit 0"},
+        {"type": "command", "command": "bash .claude/hooks/sprint-complete-nudge.sh; exit 0 # emits Sprint complete via additionalContext JSON"}
+      ]
     }],
     "SessionStart": [{
+      "matcher": "startup|resume|compact|clear",
       "hooks": [{"type": "command", "command": "cat TASKS.md"}]
     }],
     "SessionEnd": [{
@@ -271,9 +295,9 @@ echo "$OUTPUT" | grep -q "allowedMcpServers" && green "S9: doctor flags allowedM
 # ── Scenario 7: --fix is idempotent ──
 header "Scenario 7: --fix idempotency"
 cd "$S4"
-BEFORE=$(md5 -q .claude/settings.json)
+BEFORE=$(hash_file .claude/settings.json)
 $CLI doctor --fix 2>&1 > /dev/null || true
-AFTER=$(md5 -q .claude/settings.json)
+AFTER=$(hash_file .claude/settings.json)
 [ "$BEFORE" = "$AFTER" ] && green "S7: --fix is idempotent (no changes on re-run)" || red "S7: --fix should be idempotent"
 
 # ── Summary ──

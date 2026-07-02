@@ -1,9 +1,10 @@
 import type { InitOptions, DetectedProject } from "../../../types/index.js";
 import {
   SESSION_START_CONTENT, BACKLOG_CONTENT, STOP_AND_SWARM_CONTENT, OFF_LIMITS_CONTENT,
+  sprintReviewsContent,
 } from "../../../lib/sections.js";
 
-export function generateClaudeMd(options: InitOptions, detected: DetectedProject): string {
+export function generateClaudeMd(options: InitOptions, detected: DetectedProject, env?: { readonly superpowers?: boolean }): string {
   const sections: string[] = [];
 
   // Header
@@ -44,14 +45,8 @@ export function generateClaudeMd(options: InitOptions, detected: DetectedProject
   // Backlog
   sections.push("", `## Backlog\n${BACKLOG_CONTENT}`);
 
-  // Sprint Reviews
-  sections.push("", `## Sprint Reviews
-When all tasks in the current sprint are complete, do a quick quality check before committing:
-- Scan changed files for dead code, debug logs, and TODO hacks
-- Run tests and type-checker if available
-- Check for convention violations and hardcoded values
-- Fix any issues, then commit
-- Skip if the sprint was trivial (docs, config-only changes)`);
+  // Sprint Reviews — delegates to native /code-review with detected verify commands
+  sections.push("", `## Sprint Reviews\n${sprintReviewsContent(detected.testCommand, detected.lintCommand, env?.superpowers ?? false)}`);
 
   // Conventions
   sections.push("", `## Conventions

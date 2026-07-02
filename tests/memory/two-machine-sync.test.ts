@@ -180,6 +180,63 @@ describe('two-machine sync parity', () => {
     expect(machineB.memoryRepo.getById(id)?.content).toBe('revived content');
   });
 
+  it('simultaneous edits of the same memory on both machines: last write wins deterministically', () => {
+    machineA.memoryRepo.create({
+      type: 'semantic',
+      content: 'original',
+      title: 'shared',
+      tags: [],
+      importance: 0.5,
+      source: 'manual',
+      project: 'proj',
+    });
+    syncBothWays(machineA, machineB, 'proj');
+    const id = machineA.memoryRepo.getAllForSync('proj')[0]!.id;
+
+    // Both machines edit the same memory between syncs — A first, B a minute later
+    const t1 = new Date('2026-07-01T10:00:00.000Z').toISOString();
+    const t2 = new Date('2026-07-01T10:01:00.000Z').toISOString();
+    machineA.db.prepare('UPDATE memories SET content = ?, updated_at = ? WHERE id = ?')
+      .run('edit from A', t1, id);
+    machineB.db.prepare('UPDATE memories SET content = ?, updated_at = ? WHERE id = ?')
+      .run('edit from B', t2, id);
+
+    syncBothWays(machineA, machineB, 'proj');
+
+    // The later edit wins on BOTH machines — no duplicate, no split-brain
+    expect(machineA.memoryRepo.getAllForSync('proj')).toHaveLength(1);
+    expect(machineB.memoryRepo.getAllForSync('proj')).toHaveLength(1);
+    expect(machineA.memoryRepo.getById(id)?.content).toBe('edit from B');
+    expect(machineB.memoryRepo.getById(id)?.content).toBe('edit from B');
+  });
+
+  it('simultaneous-edit resolution is direction-independent', () => {
+    machineA.memoryRepo.create({
+      type: 'semantic',
+      content: 'original',
+      title: 'shared',
+      tags: [],
+      importance: 0.5,
+      source: 'manual',
+      project: 'proj',
+    });
+    syncBothWays(machineA, machineB, 'proj');
+    const id = machineA.memoryRepo.getAllForSync('proj')[0]!.id;
+
+    const t1 = new Date('2026-07-01T10:00:00.000Z').toISOString();
+    const t2 = new Date('2026-07-01T10:01:00.000Z').toISOString();
+    // This time the LATER edit is on A, and B initiates the sync
+    machineA.db.prepare('UPDATE memories SET content = ?, updated_at = ? WHERE id = ?')
+      .run('edit from A', t2, id);
+    machineB.db.prepare('UPDATE memories SET content = ?, updated_at = ? WHERE id = ?')
+      .run('edit from B', t1, id);
+
+    syncBothWays(machineB, machineA, 'proj');
+
+    expect(machineA.memoryRepo.getById(id)?.content).toBe('edit from A');
+    expect(machineB.memoryRepo.getById(id)?.content).toBe('edit from A');
+  });
+
   it('bulk project purge on one machine propagates', () => {
     for (let i = 0; i < 4; i++) {
       machineA.memoryRepo.create({

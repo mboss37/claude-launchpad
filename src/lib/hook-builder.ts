@@ -39,6 +39,25 @@ export function addOrUpdateHook(
     return { hooks: (existingHooks ?? {}) as Record<string, unknown[]>, added: false };
   }
 
+  // Two top-level entries with the same matcher are undefined behavior
+  // (see .claude/rules/hooks.md) — merge into the existing entry instead.
+  const matcher = options.entry.matcher ?? "";
+  const sameMatcherIdx = hookList.findIndex((g) => String(g.matcher ?? "") === matcher);
+  if (sameMatcherIdx >= 0) {
+    const group = hookList[sameMatcherIdx];
+    const existing = (group.hooks ?? []) as Record<string, unknown>[];
+    const incoming = options.entry.hooks as unknown as Record<string, unknown>[];
+    const merged = {
+      ...group,
+      hooks: options.prepend ? [...incoming, ...existing] : [...existing, ...incoming],
+    };
+    const updated = hookList.map((g, i) => (i === sameMatcherIdx ? merged : g));
+    return {
+      hooks: { ...(existingHooks ?? {}), [options.event]: updated },
+      added: true,
+    };
+  }
+
   const newEntry = options.entry as unknown as Record<string, unknown>;
   const updated = options.prepend ? [newEntry, ...hookList] : [...hookList, newEntry];
   return {

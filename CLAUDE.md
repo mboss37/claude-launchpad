@@ -123,7 +123,7 @@ This replaces the older "spawn an Explore agent" pattern. Both produce code revi
 
 ## Stop-and-Swarm
 Three failed iterations on the same problem = stop iterating alone.
-On the fourth attempt, spin up at least 3 parallel agents via the Agent tool, each investigating from a different angle:
+On the fourth attempt, dispatch at least 3 parallel subagents via the Task tool (in a single message so they run concurrently), each investigating from a different angle:
 1. Root-cause debug agent
 2. Upstream library/docs research agent
 3. Alternative architecture agent

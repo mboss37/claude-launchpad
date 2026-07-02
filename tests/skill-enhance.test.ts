@@ -11,6 +11,7 @@ const KNOWN_HASHES: Record<number, string> = {
   7: "bfdefb48ec360626",
   8: "7fe8e50e8d37a20f",
   9: "d3e935cae5668c5d",
+  10: "73d65ef9427f8a3d",
 };
 
 describe("lp-enhance skill", () => {

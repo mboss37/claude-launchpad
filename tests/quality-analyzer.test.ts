@@ -100,3 +100,23 @@ API key: sk-abcdefghijklmnopqrstuvwxyz1234
     expect(result.issues.some((i) => i.message.includes("TODO"))).toBe(true);
   });
 });
+
+describe("stale Stop-and-Swarm detection", () => {
+  it("flags the pre-v1.12 'Agent tool' phrase as LOW", async () => {
+    const config = makeConfig(
+      "# T\n## Stop-and-Swarm\nOn the fourth attempt, spin up at least 3 parallel agents via the Agent tool, each investigating from a different angle:\n",
+    );
+    const result = await analyzeQuality(config, "/nonexistent");
+    const issue = result.issues.find((i) => i.message.includes("Agent tool"));
+    expect(issue).toBeDefined();
+    expect(issue?.severity).toBe("low");
+  });
+
+  it("does not flag the modern Task-tool wording", async () => {
+    const config = makeConfig(
+      "# T\n## Stop-and-Swarm\nOnly if that pass fails, swarm: dispatch at least 3 parallel subagents via the Task tool.\n",
+    );
+    const result = await analyzeQuality(config, "/nonexistent");
+    expect(result.issues.some((i) => i.message.includes("Agent tool"))).toBe(false);
+  });
+});

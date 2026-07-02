@@ -59,19 +59,6 @@ One-paragraph description.
 
 The Sprint 32 fixer covers `settings.json` but the parser flags env-var hooks in either file. If a user added a custom env-var hook to `settings.local.json`, doctor reports the issue, claims it fixed it, but actually didn't touch the local file. Two-line addition.
 
-### WP-014 — Consolidate same-matcher hook entries in `settings.ts`
-
-- **Priority:** P1
-- **Proposed:** 2026-05-04
-- **Stories / Docs:** Sprint 32 code review (Minor #1); `.claude/rules/hooks.md` (the rule we just shipped); `src/commands/init/generators/settings.ts:32-95`
-- **Depends on:** none
-- **Estimate:** S
-- **Trigger to pull:** Next time `init` settings are touched.
-- **Definition of done:** `settings.ts` emits ONE `PreToolUse Bash` entry combining the destructive-cmd block + `sprint-open-check.sh` into the same `hooks` array, and ONE `PostToolUse Edit|Write` entry combining auto-format + sprint-complete + workflow-check (matcher strings normalized). Same-matcher consolidation also applied in `addHookToSettings` so subsequent fixers append into existing entries rather than creating new ones. Regression test asserts no duplicate matchers in generated settings.
-
-The newly shipped `hooks.md` rule warns that multiple top-level entries with the same matcher can fail. Our own generators emit exactly that pattern (2x `Bash` PreToolUse, 3x `Edit|Write` PostToolUse). Shipping the bug we just documented.
-
-
 
 ---
 
@@ -116,6 +103,36 @@ Currently the two PreToolUse guards grep `tool_input.command` / `tool_input.file
 ---
 
 ## P3 — Parked
+
+### WP-020 — Compute eval scenario counts instead of hand-maintaining them
+
+- **Priority:** P3
+- **Proposed:** 2026-07-01
+- **Stories / Docs:** Sprint 33 code review (Minor); `src/commands/eval/index.ts` interactive suite choices; eval.mdx suite tables
+- **Depends on:** none
+- **Estimate:** XS
+- **Trigger to pull:** Next time a scenario is added or removed, or as filler.
+- **Definition of done:** The interactive suite picker derives per-suite counts from `loadScenarios()` at prompt time; a test asserts the on-disk scenario counts match whatever remains hardcoded (or the hardcoded strings are gone entirely).
+
+### WP-021 — Eval: reject meaningless fields per check type
+
+- **Priority:** P3
+- **Proposed:** 2026-07-01
+- **Stories / Docs:** Sprint 33 code review (Minor); `src/commands/eval/schema.ts`
+- **Depends on:** none
+- **Estimate:** XS
+- **Trigger to pull:** Paired with any eval schema work.
+- **Definition of done:** Schema rejects `expect` on `custom`/`judge` checks (silently ignored today) with a clear error; docs table updated.
+
+### WP-022 — Single gist probe per sync invocation
+
+- **Priority:** P3
+- **Proposed:** 2026-07-01
+- **Stories / Docs:** Sprint 33 code review (Minor); `runSync` → `runPull` → `runPush` each call `loadSyncConfig()` (up to 3 `gh` probes per sync)
+- **Depends on:** none
+- **Estimate:** S
+- **Trigger to pull:** If users report slow `memory sync`, or paired with any sync work.
+- **Definition of done:** One `loadSyncConfig()` resolution per CLI invocation (pass the config down or memoize per process); sync behavior unchanged; tests stay green.
 
 ### WP-002 — Eval precondition check
 
@@ -214,3 +231,8 @@ Currently the two PreToolUse guards grep `tool_input.command` / `tool_input.file
 - **2026-05-04:** Added WP-010 (test `async: true` vs nohup wrapper for SessionEnd memory push) and WP-011 (replace inline shell guards with `if:` syntax in PreToolUse hooks) to P2 after a hook-API audit confirmed the rest of our generators are on the current spec.
 - **2026-05-04:** WP-012 minted as P0 + pulled into Sprint 32 same edit. Hook audit on wastd surfaced that every PreToolUse/PostToolUse hook our CLI ships reads non-existent `$TOOL_INPUT_*` env vars and silently no-ops. Plan at `docs/superpowers/plans/2026-05-04-hook-stdin-input-bug.md`. Retracts the "all current" claim from the prior audit memo.
 - **2026-05-04:** Added WP-013 (settings.local.json fixer gap from Sprint 32 code review) and WP-014 (consolidate same-matcher hook entries — we ship the bug we just documented in `hooks.md`) to P1.
+- **2026-07-01:** WP-015..WP-019 minted from external project review (3.5/5 → path to 5/5). P0: WP-015 (stop stripping the sandbox — scope it), WP-016 (canary CI against latest real Claude Code). P1: WP-017 (eval custom/transcript/judge checks), WP-018 (intent-based checks replace template heuristics), WP-019 (cross-machine sync becomes the flagship memory story — repositioning, not spin-off, per maintainer feedback).
+- **2026-07-01:** WP-015, WP-016, WP-017, WP-018, WP-019 pulled into Sprint 33 (the 5/5 arc, single combined sprint). Sequencing note removed with the pull.
+- **2026-07-01:** Sprint 33 closed. WP-015, WP-016, WP-017, WP-018, WP-019 done (v1.11.0). Code review: 2 Critical + 5 Important fixed in-sprint; 3 Minor findings filed as WP-020..WP-022 (P3).
+- **2026-07-02:** WP-023..WP-035 minted from the template-workflow review (11-agent panel: 3 readers, 3 ecosystem researchers, 5 judges) and pulled into Sprint 34 in the same edit, plus WP-014 pulled from P1. Theme: the enforcement layer must stop being decorative — warnings reach the model, phantom PostCompact replaced, dead/false-positive triggers fixed, review gate delegates to native /code-review, Stop-and-Swarm modernized, dangling references resolved, jq preflight, superpowers detect-and-recommend, reviewer subagent, dependency-aware pulls, batch invariants into doctor.
+- **2026-07-02:** Sprint 34 closed. WP-014, WP-023..WP-035 done (v1.12.0). Review: 1 Critical (PostCompact exists — side-effect-only; fixer gated) + 2 Important (stale-hook migration path, Sprint 32 nudge rewrite) fixed in-sprint.

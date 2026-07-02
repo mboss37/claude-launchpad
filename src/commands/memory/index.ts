@@ -1,9 +1,11 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { homedir } from "node:os";
 import { Command } from "commander";
 import { confirm } from "@inquirer/prompts";
 import { log } from "../../lib/output.js";
+import { isMemoryMcpRegistered } from "../../lib/memory-registration.js";
+
+export { isMemoryMcpRegistered };
 
 async function handleSyncErrors(fn: () => Promise<void>): Promise<void> {
   try {
@@ -27,38 +29,6 @@ export function isMemoryInstalled(): boolean {
     || hasMemoryHook(join(cwd, ".claude", "settings.local.json"));
   if (!hookPresent) return false;
   return isMemoryMcpRegistered(cwd);
-}
-
-export function isMemoryMcpRegistered(projectRoot: string): boolean {
-  return hasMemoryServerInJson(join(projectRoot, ".mcp.json"), "mcpServers")
-    || hasMemoryServerInJson(join(projectRoot, ".claude", "settings.local.json"), "mcpServers")
-    || hasMemoryServerInUserConfig(projectRoot);
-}
-
-function hasMemoryServerInJson(path: string, key: string): boolean {
-  try {
-    const parsed = JSON.parse(readFileSync(path, "utf-8")) as Record<string, unknown>;
-    const servers = parsed[key] as Record<string, unknown> | undefined;
-    return !!servers && typeof servers === "object" && "agentic-memory" in servers;
-  } catch {
-    return false;
-  }
-}
-
-function hasMemoryServerInUserConfig(projectRoot: string): boolean {
-  try {
-    const parsed = JSON.parse(readFileSync(join(homedir(), ".claude.json"), "utf-8")) as Record<string, unknown>;
-    // User-scope registration lives under projects[projectRoot].mcpServers
-    const projects = parsed.projects as Record<string, unknown> | undefined;
-    const project = projects?.[projectRoot] as Record<string, unknown> | undefined;
-    const scoped = project?.mcpServers as Record<string, unknown> | undefined;
-    if (scoped && "agentic-memory" in scoped) return true;
-    // Global user scope (~/.claude.json top-level mcpServers, if Claude Code ever uses it)
-    const global = parsed.mcpServers as Record<string, unknown> | undefined;
-    return !!global && "agentic-memory" in global;
-  } catch {
-    return false;
-  }
 }
 
 function hasMemoryHook(path: string): boolean {
@@ -144,9 +114,16 @@ export function createMemoryCommand(): Command {
     new Command("install")
       .description("Install (or re-install) the knowledge base for this project")
       .option("--db-path <path>", "Override the default data directory")
+      .option("-y, --yes", "Non-interactive: accept defaults (shared placement)")
       .action(async (opts) => {
-        const { runInstall } = await import("./subcommands/install.js");
-        await runInstall(opts.dbPath ? { dbPath: opts.dbPath } : {});
+        try {
+          const { runInstall } = await import("./subcommands/install.js");
+          await runInstall({ ...(opts.dbPath ? { dbPath: opts.dbPath } : {}), yes: opts.yes === true });
+        } catch (err) {
+          // A cancelled prompt or failed step must NOT exit 0 — CI reads the code.
+          log.error(err instanceof Error ? err.message : String(err));
+          process.exitCode = 1;
+        }
       }),
   );
 
@@ -201,9 +178,17 @@ export function createMemoryCommand(): Command {
       }),
   );
 
-  // Sync management commands
+  // Sync commands — bare `memory sync` = pull + push in one call
   const sync = new Command("sync")
-    .description("Manage memory sync");
+    .description("Sync memories with the gist (pull + push); subcommands manage sync state")
+    .option("--all", "Sync all projects")
+    .option("-y, --yes", "Skip confirmation prompt")
+    .action(async (opts) => {
+      await handleSyncErrors(async () => {
+        const { runSync } = await import("./subcommands/sync.js");
+        await runSync(opts);
+      });
+    });
 
   sync.addCommand(
     new Command("status")

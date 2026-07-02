@@ -14,6 +14,8 @@
  *   "command=$(jq -r '.tool_input.command' < /dev/stdin)"
  */
 
+import { execFileSync } from "node:child_process";
+
 export type ToolInputField = "file_path" | "command" | "new_text" | "content";
 
 export function jqField(field: ToolInputField, fromVar?: string): string {
@@ -29,4 +31,18 @@ const ENV_VAR_PATTERN = /\$\{?TOOL_INPUT_(FILE_PATH|COMMAND|NEW_TEXT|CONTENT)/;
 
 export function hasEnvVarHookPattern(commandString: string): boolean {
   return ENV_VAR_PATTERN.test(commandString);
+}
+
+let jqChecked: boolean | null = null;
+
+/** All generated hooks parse stdin via jq — without it every guard silently no-ops. */
+export function isJqAvailable(): boolean {
+  if (jqChecked !== null) return jqChecked;
+  try {
+    execFileSync("jq", ["--version"], { stdio: "ignore" });
+    jqChecked = true;
+  } catch {
+    jqChecked = false;
+  }
+  return jqChecked;
 }
