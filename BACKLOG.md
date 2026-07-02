@@ -59,18 +59,6 @@ One-paragraph description.
 
 The Sprint 32 fixer covers `settings.json` but the parser flags env-var hooks in either file. If a user added a custom env-var hook to `settings.local.json`, doctor reports the issue, claims it fixed it, but actually didn't touch the local file. Two-line addition.
 
-### WP-014 — Consolidate same-matcher hook entries in `settings.ts`
-
-- **Priority:** P1
-- **Proposed:** 2026-05-04
-- **Stories / Docs:** Sprint 32 code review (Minor #1); `.claude/rules/hooks.md` (the rule we just shipped); `src/commands/init/generators/settings.ts:32-95`
-- **Depends on:** none
-- **Estimate:** S
-- **Trigger to pull:** Next time `init` settings are touched.
-- **Definition of done:** `settings.ts` emits ONE `PreToolUse Bash` entry combining the destructive-cmd block + `sprint-open-check.sh` into the same `hooks` array, and ONE `PostToolUse Edit|Write` entry combining auto-format + sprint-complete + workflow-check (matcher strings normalized). Same-matcher consolidation also applied in `addHookToSettings` so subsequent fixers append into existing entries rather than creating new ones. Regression test asserts no duplicate matchers in generated settings.
-
-The newly shipped `hooks.md` rule warns that multiple top-level entries with the same matcher can fail. Our own generators emit exactly that pattern (2x `Bash` PreToolUse, 3x `Edit|Write` PostToolUse). Shipping the bug we just documented.
-
 
 ---
 
@@ -246,3 +234,4 @@ Currently the two PreToolUse guards grep `tool_input.command` / `tool_input.file
 - **2026-07-01:** WP-015..WP-019 minted from external project review (3.5/5 → path to 5/5). P0: WP-015 (stop stripping the sandbox — scope it), WP-016 (canary CI against latest real Claude Code). P1: WP-017 (eval custom/transcript/judge checks), WP-018 (intent-based checks replace template heuristics), WP-019 (cross-machine sync becomes the flagship memory story — repositioning, not spin-off, per maintainer feedback).
 - **2026-07-01:** WP-015, WP-016, WP-017, WP-018, WP-019 pulled into Sprint 33 (the 5/5 arc, single combined sprint). Sequencing note removed with the pull.
 - **2026-07-01:** Sprint 33 closed. WP-015, WP-016, WP-017, WP-018, WP-019 done (v1.11.0). Code review: 2 Critical + 5 Important fixed in-sprint; 3 Minor findings filed as WP-020..WP-022 (P3).
+- **2026-07-02:** WP-023..WP-035 minted from the template-workflow review (11-agent panel: 3 readers, 3 ecosystem researchers, 5 judges) and pulled into Sprint 34 in the same edit, plus WP-014 pulled from P1. Theme: the enforcement layer must stop being decorative — warnings reach the model, phantom PostCompact replaced, dead/false-positive triggers fixed, review gate delegates to native /code-review, Stop-and-Swarm modernized, dangling references resolved, jq preflight, superpowers detect-and-recommend, reviewer subagent, dependency-aware pulls, batch invariants into doctor.

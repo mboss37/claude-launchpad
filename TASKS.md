@@ -40,7 +40,20 @@
 
 ## Current Sprint
 
-<!-- EMPTY. Pull WPs from BACKLOG.md when ready. Format: `- [ ] WP-NNN — short title` -->
+- [ ] WP-023 — Hygiene warnings reach the model (additionalContext JSON)
+- [ ] WP-024 — Replace phantom PostCompact with SessionStart compact matcher + field migration fixer
+- [ ] WP-025 — Fix broken check triggers (dup-ID scoping, anchored counts, sprint-open trigger)
+- [ ] WP-026 — Review gate delegates to /code-review + /security-review; fix dangling reference
+- [ ] WP-027 — Stop-and-Swarm modernization (Task tool, debug-first rung, handoff) + staleness fixer
+- [ ] WP-028 — Ship Testing Discipline + pre-commit checklist (fix hard-TDD dangling ref)
+- [ ] WP-029 — jq preflight (doctor MEDIUM + init warning)
+- [ ] WP-030 — /lp-enhance Verify fix + SKILL_AUTHORING dedup (skill v10)
+- [ ] WP-031 — ID-minting changelog + 7-soft/15-hard threshold reconciliation
+- [ ] WP-032 — superpowers detect-and-recommend (init line + doctor INFO)
+- [ ] WP-033 — Generated plugin-free code-reviewer subagent
+- [ ] WP-034 — Dependency-aware pull warning (Depends on field)
+- [ ] WP-035 — doctor workflow analyzer (stale P0, changelog staleness, WP template fields)
+- [ ] WP-014 — Consolidate same-matcher hook entries in settings.ts
 
 ## Release Plan
 - **v1.10.0** ✅ shipped — Sprint 31 workflow discipline (wastd-style WP template + path-scoped workflow rule + staleness hook + memory dedup fix)
