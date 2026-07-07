@@ -3,8 +3,11 @@ import { join } from "node:path";
 import { homedir } from "node:os";
 import { log } from "../../lib/output.js";
 import {
-  SESSION_START_CONTENT, BACKLOG_CONTENT, STOP_AND_SWARM_CONTENT,
-  OFF_LIMITS_CONTENT, SKILL_AUTHORING_CONTENT,
+  SESSION_START_CONTENT,
+  BACKLOG_CONTENT,
+  STOP_AND_SWARM_CONTENT,
+  OFF_LIMITS_CONTENT,
+  SKILL_AUTHORING_CONTENT,
 } from "../../lib/sections.js";
 import { fileExists } from "../../lib/fs-utils.js";
 import { detectProject } from "../../lib/detect.js";
@@ -15,23 +18,49 @@ import { readSettingsJson, writeSettingsJson } from "../../lib/settings.js";
 import { getMemoryPlacement } from "../../lib/memory-placement.js";
 import { wrapStub } from "../../lib/stub-marker.js";
 import {
-  createWorktreeInclude, addSprintSizeHook, addSprintOpenHook, addSprintCompleteNudge,
-  addWorkflowCheckHook, migrateSprintOpenHookEvent, upgradeStaleNudge, refreshHygieneScripts,
+  createWorktreeInclude,
+  addSprintSizeHook,
+  addSprintOpenHook,
+  addSprintCompleteNudge,
+  addWorkflowCheckHook,
+  migrateSprintOpenHookEvent,
+  upgradeStaleNudge,
+  refreshHygieneScripts,
 } from "./fixer-sprint.js";
 import {
-  createWorkflowRule, createHooksRule, collapseMemoryHeadings, updateWorkflowRule, fixStaleSwarmPhrase,
+  createWorkflowRule,
+  createHooksRule,
+  createVerificationRule,
+  collapseMemoryHeadings,
+  updateWorkflowRule,
+  updateVerificationRule,
+  fixStaleSwarmPhrase,
   createReviewerAgent,
 } from "./fixer-quality.js";
 import {
-  addEnvProtectionHook, addAutoFormatHook, addForcePushProtection,
-  migratePostCompactHook, addCompactMatcherHook, addSessionStartHook,
+  addEnvProtectionHook,
+  addAutoFormatHook,
+  addForcePushProtection,
+  migratePostCompactHook,
+  addCompactMatcherHook,
+  addSessionStartHook,
 } from "./fixer-hooks.js";
 import { rewriteEnvVarHooks } from "./fixer-hook-input.js";
 import {
-  disableAutoMemory, addMemoryToolPermissions, addAllowedMcpServers, addMemoryToAllowedMcpServers,
-  addSessionStartPullHook, addSessionEndPushHook, upgradeStaleSessionEndPushHook, removeStaleStopHook,
+  disableAutoMemory,
+  addMemoryToolPermissions,
+  addAllowedMcpServers,
+  addMemoryToAllowedMcpServers,
+  addSessionStartPullHook,
+  addSessionEndPushHook,
+  upgradeStaleSessionEndPushHook,
+  removeStaleStopHook,
 } from "./fixer-memory.js";
-import type { DiagnosticIssue, DetectedProject, MemoryPlacement } from "../../types/index.js";
+import type {
+  DiagnosticIssue,
+  DetectedProject,
+  MemoryPlacement,
+} from "../../types/index.js";
 
 interface FixResult {
   readonly fixed: number;
@@ -48,7 +77,9 @@ export async function applyFixes(
 ): Promise<FixResult> {
   const detected = await detectProject(projectRoot);
   const hasMemoryIssues = issues.some((i) => i.analyzer === "Memory");
-  const placement = hasMemoryIssues ? await getMemoryPlacement(projectRoot) : "shared";
+  const placement = hasMemoryIssues
+    ? await getMemoryPlacement(projectRoot)
+    : "shared";
   let fixed = 0;
   let skipped = 0;
 
@@ -65,76 +96,324 @@ export async function applyFixes(
 }
 
 // Fix lookup table: [analyzer, message substring] → fix function
-type FixFn = (root: string, detected: DetectedProject, placement: MemoryPlacement) => Promise<boolean>;
+type FixFn = (
+  root: string,
+  detected: DetectedProject,
+  placement: MemoryPlacement,
+) => Promise<boolean>;
 
-const FIX_TABLE: ReadonlyArray<{ analyzer: string; match: string; fix: FixFn }> = [
-  { analyzer: "Hooks", match: "$TOOL_INPUT_* env var", fix: (root) => rewriteEnvVarHooks(root) },
-  { analyzer: "Hooks", match: "No hooks configured", fix: async (root, detected) => {
-    const a = await addEnvProtectionHook(root);
-    const b = await addAutoFormatHook(root, detected);
-    const c = await addForcePushProtection(root);
-    const d = await addSessionStartHook(root);
-    return a || b || c || d;
-  }},
-  { analyzer: "Hooks", match: ".env file protection", fix: (root) => addEnvProtectionHook(root) },
-  { analyzer: "Hooks", match: "auto-format", fix: (root, detected) => addAutoFormatHook(root, detected) },
-  { analyzer: "Hooks", match: "No PreToolUse", fix: (root) => addEnvProtectionHook(root) },
-  { analyzer: "Quality", match: "Architecture", fix: (root) => addClaudeMdSection(root, "## Architecture", wrapStub("<!-- TODO: Describe your codebase structure. Run `/lp-enhance` to auto-fill this. -->")) },
-  { analyzer: "Quality", match: "Off-Limits", fix: (root) => addClaudeMdSection(root, "## Off-Limits", wrapStub(OFF_LIMITS_CONTENT)) },
-  { analyzer: "Quality", match: "Commands", fix: (root) => addClaudeMdSection(root, "## Commands", wrapStub("<!-- TODO: Add your dev/build/test commands -->")) },
-  { analyzer: "Quality", match: "Stack", fix: (root, detected) => {
-    // Detected stack is real content; TODO fallback is a stub.
-    if (detected.language) {
-      const content = `- **Language**: ${detected.language}${detected.framework ? `\n- **Framework**: ${detected.framework}` : ""}${detected.packageManager ? `\n- **Package Manager**: ${detected.packageManager}` : ""}`;
-      return addClaudeMdSection(root, "## Stack", content);
-    }
-    return addClaudeMdSection(root, "## Stack", wrapStub("<!-- TODO: Define your tech stack -->"));
-  }},
-  { analyzer: "Quality", match: "Session Start", fix: (root) => addClaudeMdSection(root, "## Session Start", wrapStub(SESSION_START_CONTENT)) },
-  { analyzer: "Quality", match: "Backlog", fix: (root) => addClaudeMdSection(root, "## Backlog", wrapStub(BACKLOG_CONTENT)) },
-  { analyzer: "Quality", match: "Stop-and-Swarm section is outdated", fix: (root) => fixStaleSwarmPhrase(root) },
-  { analyzer: "Quality", match: "Stop-and-Swarm", fix: (root) => addClaudeMdSection(root, "## Stop-and-Swarm", wrapStub(STOP_AND_SWARM_CONTENT)) },
-  { analyzer: "Rules", match: "workflow.md rule is outdated", fix: (root) => updateWorkflowRule(root) },
-  { analyzer: "Rules", match: "No .claude/agents/code-reviewer.md", fix: (root) => createReviewerAgent(root) },
-  { analyzer: "Quality", match: "Duplicate ## Memory", fix: (root) => collapseMemoryHeadings(root) },
-  { analyzer: "Rules", match: "No BACKLOG.md", fix: (root) => createBacklogMd(root) },
-  { analyzer: "Rules", match: "No .claudeignore", fix: (root, detected) => createClaudeignore(root, detected) },
-  { analyzer: "Rules", match: "No .claude/rules/workflow.md", fix: (root) => createWorkflowRule(root) },
-  { analyzer: "Rules", match: "No .claude/rules/hooks.md", fix: (root) => createHooksRule(root) },
-  { analyzer: "Rules", match: "No .claude/rules/", fix: (root) => createStarterRules(root) },
-  { analyzer: "Hooks", match: "PostCompact hooks can't inject context", fix: (root) => migratePostCompactHook(root) },
-  { analyzer: "Hooks", match: "compact matcher", fix: (root) => addCompactMatcherHook(root) },
-  { analyzer: "Permissions", match: "force-push", fix: (root) => addForcePushProtection(root) },
-  { analyzer: "Permissions", match: "Credential files not blocked", fix: (root) => addCredentialDenyRules(root) },
-  { analyzer: "Permissions", match: "Bypass permissions mode", fix: (root) => addBypassDisable(root) },
-  { analyzer: "Permissions", match: "Sandbox lacks a write grant", fix: (root) => addSandboxMemoryWriteGrant(root) },
-  { analyzer: "Permissions", match: ".env is protected by hooks but not in .claudeignore", fix: (root) => addEnvToClaudeignore(root) },
-  { analyzer: "Permissions", match: ".worktreeinclude is missing or empty", fix: (root) => createWorktreeInclude(root) },
-  { analyzer: "Hooks", match: "registered on PreToolUse", fix: (root) => migrateSprintOpenHookEvent(root) },
-  { analyzer: "Hooks", match: "nudge uses bare stdout", fix: (root) => upgradeStaleNudge(root) },
-  { analyzer: "Hooks", match: "Outdated hygiene script", fix: (root) => refreshHygieneScripts(root) },
-  { analyzer: "Hooks", match: "sprint-size-check", fix: (root) => addSprintSizeHook(root) },
-  { analyzer: "Hooks", match: "sprint-open-check", fix: (root) => addSprintOpenHook(root) },
-  { analyzer: "Hooks", match: "sprint-complete nudge", fix: (root) => addSprintCompleteNudge(root) },
-  { analyzer: "Hooks", match: "workflow-check.sh", fix: (root) => addWorkflowCheckHook(root) },
-  { analyzer: "Rules", match: "No skill authoring conventions", fix: (root) => addSkillAuthoringConventions(root) },
-  { analyzer: "Rules", match: "No /lp-enhance skill", fix: (root) => createEnhanceSkill(root) },
-  { analyzer: "Rules", match: "lp-enhance skill is outdated", fix: (root) => updateEnhanceSkill(root) },
-  { analyzer: "Settings", match: "Deprecated includeCoAuthoredBy", fix: (root) => migrateAttribution(root) },
-  { analyzer: "Hooks", match: "SessionStart", fix: (root) => addSessionStartHook(root) },
-  { analyzer: "Memory", match: "Deprecated Stop hook", fix: (root) => removeStaleStopHook(root) },
-  { analyzer: "Memory", match: "autoMemoryEnabled not disabled", fix: (root, _det, placement) => disableAutoMemory(root, placement) },
-  { analyzer: "Memory", match: "MCP tool permission", fix: (root, _det, placement) => addMemoryToolPermissions(root, placement) },
-  { analyzer: "MCP", match: "no allowedMcpServers", fix: (root, _det, placement) => addAllowedMcpServers(root, placement) },
-  { analyzer: "Memory", match: "allowedMcpServers is set but does not include agentic-memory", fix: (root) => addMemoryToAllowedMcpServers(root) },
-  { analyzer: "Memory", match: "SessionStart hook to auto-pull", fix: (root, _det, placement) => addSessionStartPullHook(root, placement) },
-  { analyzer: "Memory", match: "SessionEnd hook to auto-push", fix: (root, _det, placement) => addSessionEndPushHook(root, placement) },
-  { analyzer: "Memory", match: "SessionEnd push hook is not nohup-wrapped", fix: (root) => upgradeStaleSessionEndPushHook(root) },
-  { analyzer: "Memory", match: "CLAUDE.md missing memory guidance", fix: (root, _det, placement) => {
-    const content = "Use agentic-memory to persist knowledge across sessions:\n- Memories are automatically injected at session start\n- STORE IMMEDIATELY when: a dependency strategy changes, an architecture decision is made, a convention is established, a bug pattern is discovered, or a feature is killed/added\n- Use memory_search before memory_store to check for duplicates\n- NEVER store credentials, API keys, tokens, or secrets in memories";
-    const target = placement === "local" ? join(root, ".claude", "CLAUDE.md") : undefined;
-    return addClaudeMdSection(root, "## Memory", wrapStub(content), target);
-  }},
+const FIX_TABLE: ReadonlyArray<{
+  analyzer: string;
+  match: string;
+  fix: FixFn;
+}> = [
+  {
+    analyzer: "Hooks",
+    match: "$TOOL_INPUT_* env var",
+    fix: (root) => rewriteEnvVarHooks(root),
+  },
+  {
+    analyzer: "Hooks",
+    match: "No hooks configured",
+    fix: async (root, detected) => {
+      const a = await addEnvProtectionHook(root);
+      const b = await addAutoFormatHook(root, detected);
+      const c = await addForcePushProtection(root);
+      const d = await addSessionStartHook(root);
+      return a || b || c || d;
+    },
+  },
+  {
+    analyzer: "Hooks",
+    match: ".env file protection",
+    fix: (root) => addEnvProtectionHook(root),
+  },
+  {
+    analyzer: "Hooks",
+    match: "auto-format",
+    fix: (root, detected) => addAutoFormatHook(root, detected),
+  },
+  {
+    analyzer: "Hooks",
+    match: "No PreToolUse",
+    fix: (root) => addEnvProtectionHook(root),
+  },
+  {
+    analyzer: "Quality",
+    match: "Architecture",
+    fix: (root) =>
+      addClaudeMdSection(
+        root,
+        "## Architecture",
+        wrapStub(
+          "<!-- TODO: Describe your codebase structure. Run `/lp-enhance` to auto-fill this. -->",
+        ),
+      ),
+  },
+  {
+    analyzer: "Quality",
+    match: "Off-Limits",
+    fix: (root) =>
+      addClaudeMdSection(root, "## Off-Limits", wrapStub(OFF_LIMITS_CONTENT)),
+  },
+  {
+    analyzer: "Quality",
+    match: "Commands",
+    fix: (root) =>
+      addClaudeMdSection(
+        root,
+        "## Commands",
+        wrapStub("<!-- TODO: Add your dev/build/test commands -->"),
+      ),
+  },
+  {
+    analyzer: "Quality",
+    match: "Stack",
+    fix: (root, detected) => {
+      // Detected stack is real content; TODO fallback is a stub.
+      if (detected.language) {
+        const content = `- **Language**: ${detected.language}${detected.framework ? `\n- **Framework**: ${detected.framework}` : ""}${detected.packageManager ? `\n- **Package Manager**: ${detected.packageManager}` : ""}`;
+        return addClaudeMdSection(root, "## Stack", content);
+      }
+      return addClaudeMdSection(
+        root,
+        "## Stack",
+        wrapStub("<!-- TODO: Define your tech stack -->"),
+      );
+    },
+  },
+  {
+    analyzer: "Quality",
+    match: "Session Start",
+    fix: (root) =>
+      addClaudeMdSection(
+        root,
+        "## Session Start",
+        wrapStub(SESSION_START_CONTENT),
+      ),
+  },
+  {
+    analyzer: "Quality",
+    match: "Backlog",
+    fix: (root) =>
+      addClaudeMdSection(root, "## Backlog", wrapStub(BACKLOG_CONTENT)),
+  },
+  {
+    analyzer: "Quality",
+    match: "Stop-and-Swarm section is outdated",
+    fix: (root) => fixStaleSwarmPhrase(root),
+  },
+  {
+    analyzer: "Quality",
+    match: "Stop-and-Swarm",
+    fix: (root) =>
+      addClaudeMdSection(
+        root,
+        "## Stop-and-Swarm",
+        wrapStub(STOP_AND_SWARM_CONTENT),
+      ),
+  },
+  {
+    analyzer: "Rules",
+    match: "workflow.md rule is outdated",
+    fix: (root) => updateWorkflowRule(root),
+  },
+  {
+    analyzer: "Rules",
+    match: "verification.md rule is outdated",
+    fix: (root) => updateVerificationRule(root),
+  },
+  {
+    analyzer: "Rules",
+    match: "No .claude/agents/code-reviewer.md",
+    fix: (root) => createReviewerAgent(root),
+  },
+  {
+    analyzer: "Quality",
+    match: "Duplicate ## Memory",
+    fix: (root) => collapseMemoryHeadings(root),
+  },
+  {
+    analyzer: "Rules",
+    match: "No BACKLOG.md",
+    fix: (root) => createBacklogMd(root),
+  },
+  {
+    analyzer: "Rules",
+    match: "No .claudeignore",
+    fix: (root, detected) => createClaudeignore(root, detected),
+  },
+  {
+    analyzer: "Rules",
+    match: "No .claude/rules/workflow.md",
+    fix: (root) => createWorkflowRule(root),
+  },
+  {
+    analyzer: "Rules",
+    match: "No .claude/rules/hooks.md",
+    fix: (root) => createHooksRule(root),
+  },
+  {
+    analyzer: "Rules",
+    match: "No .claude/rules/verification.md",
+    fix: (root) => createVerificationRule(root),
+  },
+  {
+    analyzer: "Rules",
+    match: "No .claude/rules/",
+    fix: (root) => createStarterRules(root),
+  },
+  {
+    analyzer: "Hooks",
+    match: "PostCompact hooks can't inject context",
+    fix: (root) => migratePostCompactHook(root),
+  },
+  {
+    analyzer: "Hooks",
+    match: "compact matcher",
+    fix: (root) => addCompactMatcherHook(root),
+  },
+  {
+    analyzer: "Permissions",
+    match: "force-push",
+    fix: (root) => addForcePushProtection(root),
+  },
+  {
+    analyzer: "Permissions",
+    match: "Credential files not blocked",
+    fix: (root) => addCredentialDenyRules(root),
+  },
+  {
+    analyzer: "Permissions",
+    match: "Bypass permissions mode",
+    fix: (root) => addBypassDisable(root),
+  },
+  {
+    analyzer: "Permissions",
+    match: "Sandbox lacks a write grant",
+    fix: (root) => addSandboxMemoryWriteGrant(root),
+  },
+  {
+    analyzer: "Permissions",
+    match: ".env is protected by hooks but not in .claudeignore",
+    fix: (root) => addEnvToClaudeignore(root),
+  },
+  {
+    analyzer: "Permissions",
+    match: ".worktreeinclude is missing or empty",
+    fix: (root) => createWorktreeInclude(root),
+  },
+  {
+    analyzer: "Hooks",
+    match: "registered on PreToolUse",
+    fix: (root) => migrateSprintOpenHookEvent(root),
+  },
+  {
+    analyzer: "Hooks",
+    match: "nudge uses bare stdout",
+    fix: (root) => upgradeStaleNudge(root),
+  },
+  {
+    analyzer: "Hooks",
+    match: "Outdated hygiene script",
+    fix: (root) => refreshHygieneScripts(root),
+  },
+  {
+    analyzer: "Hooks",
+    match: "sprint-size-check",
+    fix: (root) => addSprintSizeHook(root),
+  },
+  {
+    analyzer: "Hooks",
+    match: "sprint-open-check",
+    fix: (root) => addSprintOpenHook(root),
+  },
+  {
+    analyzer: "Hooks",
+    match: "sprint-complete nudge",
+    fix: (root) => addSprintCompleteNudge(root),
+  },
+  {
+    analyzer: "Hooks",
+    match: "workflow-check.sh",
+    fix: (root) => addWorkflowCheckHook(root),
+  },
+  {
+    analyzer: "Rules",
+    match: "No skill authoring conventions",
+    fix: (root) => addSkillAuthoringConventions(root),
+  },
+  {
+    analyzer: "Rules",
+    match: "No /lp-enhance skill",
+    fix: (root) => createEnhanceSkill(root),
+  },
+  {
+    analyzer: "Rules",
+    match: "lp-enhance skill is outdated",
+    fix: (root) => updateEnhanceSkill(root),
+  },
+  {
+    analyzer: "Settings",
+    match: "Deprecated includeCoAuthoredBy",
+    fix: (root) => migrateAttribution(root),
+  },
+  {
+    analyzer: "Hooks",
+    match: "SessionStart",
+    fix: (root) => addSessionStartHook(root),
+  },
+  {
+    analyzer: "Memory",
+    match: "Deprecated Stop hook",
+    fix: (root) => removeStaleStopHook(root),
+  },
+  {
+    analyzer: "Memory",
+    match: "autoMemoryEnabled not disabled",
+    fix: (root, _det, placement) => disableAutoMemory(root, placement),
+  },
+  {
+    analyzer: "Memory",
+    match: "MCP tool permission",
+    fix: (root, _det, placement) => addMemoryToolPermissions(root, placement),
+  },
+  {
+    analyzer: "MCP",
+    match: "no allowedMcpServers",
+    fix: (root, _det, placement) => addAllowedMcpServers(root, placement),
+  },
+  {
+    analyzer: "Memory",
+    match: "allowedMcpServers is set but does not include agentic-memory",
+    fix: (root) => addMemoryToAllowedMcpServers(root),
+  },
+  {
+    analyzer: "Memory",
+    match: "SessionStart hook to auto-pull",
+    fix: (root, _det, placement) => addSessionStartPullHook(root, placement),
+  },
+  {
+    analyzer: "Memory",
+    match: "SessionEnd hook to auto-push",
+    fix: (root, _det, placement) => addSessionEndPushHook(root, placement),
+  },
+  {
+    analyzer: "Memory",
+    match: "SessionEnd push hook is not nohup-wrapped",
+    fix: (root) => upgradeStaleSessionEndPushHook(root),
+  },
+  {
+    analyzer: "Memory",
+    match: "CLAUDE.md missing memory guidance",
+    fix: (root, _det, placement) => {
+      const content =
+        "Use agentic-memory to persist knowledge across sessions:\n- Memories are automatically injected at session start\n- STORE IMMEDIATELY when: a dependency strategy changes, an architecture decision is made, a convention is established, a bug pattern is discovered, or a feature is killed/added\n- Use memory_search before memory_store to check for duplicates\n- NEVER store credentials, API keys, tokens, or secrets in memories";
+      const target =
+        placement === "local" ? join(root, ".claude", "CLAUDE.md") : undefined;
+      return addClaudeMdSection(root, "## Memory", wrapStub(content), target);
+    },
+  },
 ];
 
 export function hasAutoFix(issue: DiagnosticIssue): boolean {
@@ -179,7 +458,10 @@ async function addCredentialDenyRules(root: string): Promise<boolean> {
   const missing = toAdd.filter((p) => !deny.includes(p));
   if (missing.length === 0) return false;
 
-  const updated = { ...settings, permissions: { ...permissions, deny: [...deny, ...missing] } };
+  const updated = {
+    ...settings,
+    permissions: { ...permissions, deny: [...deny, ...missing] },
+  };
   await writeSettingsJson(root, updated);
   log.success("Added credential deny rules (SSH, AWS, npm)");
   return true;
@@ -214,14 +496,18 @@ async function addSandboxMemoryWriteGrant(root: string): Promise<boolean> {
     ...settings,
     sandbox: {
       ...sandbox,
-      filesystem: { ...filesystem, allowWrite: [...allowWrite, "~/.agentic-memory"] },
+      filesystem: {
+        ...filesystem,
+        allowWrite: [...allowWrite, "~/.agentic-memory"],
+      },
     },
   };
   await writeSettingsJson(root, updated);
-  log.success("Added ~/.agentic-memory to sandbox.filesystem.allowWrite (sandbox stays enabled)");
+  log.success(
+    "Added ~/.agentic-memory to sandbox.filesystem.allowWrite (sandbox stays enabled)",
+  );
   return true;
 }
-
 
 async function addEnvToClaudeignore(root: string): Promise<boolean> {
   const ignorePath = join(root, ".claudeignore");
@@ -233,14 +519,20 @@ async function addEnvToClaudeignore(root: string): Promise<boolean> {
   }
 
   const lines = content.split("\n").map((l) => l.trim());
-  if (lines.some((l) => l === ".env" || l === ".env.*" || l === ".env*")) return false;
+  if (lines.some((l) => l === ".env" || l === ".env.*" || l === ".env*"))
+    return false;
 
   await writeFile(ignorePath, content.trimEnd() + "\n.env\n.env.*\n");
   log.success("Added .env to .claudeignore");
   return true;
 }
 
-async function addClaudeMdSection(root: string, heading: string, content: string, targetPath?: string): Promise<boolean> {
+async function addClaudeMdSection(
+  root: string,
+  heading: string,
+  content: string,
+  targetPath?: string,
+): Promise<boolean> {
   const claudeMdPath = targetPath ?? join(root, "CLAUDE.md");
   let existing: string;
   try {
@@ -260,7 +552,8 @@ async function addClaudeMdSection(root: string, heading: string, content: string
   const insertAt = keyDecisionsIdx > -1 ? keyDecisionsIdx : existing.length;
 
   const section = `\n${heading}\n${content}\n\n`;
-  const updated = existing.slice(0, insertAt) + section + existing.slice(insertAt);
+  const updated =
+    existing.slice(0, insertAt) + section + existing.slice(insertAt);
 
   await writeFile(claudeMdPath, updated);
   const label = targetPath ? ".claude/CLAUDE.md" : "CLAUDE.md";
@@ -274,11 +567,16 @@ async function createBacklogMd(root: string): Promise<boolean> {
 
   const name = root.split("/").pop() ?? "Project";
   await writeFile(backlogPath, generateBacklogMd({ name, description: "" }));
-  log.success("Generated BACKLOG.md (WP template + P0–P3 sections + changelog)");
+  log.success(
+    "Generated BACKLOG.md (WP template + P0–P3 sections + changelog)",
+  );
   return true;
 }
 
-async function createClaudeignore(root: string, detected: DetectedProject): Promise<boolean> {
+async function createClaudeignore(
+  root: string,
+  detected: DetectedProject,
+): Promise<boolean> {
   const ignorePath = join(root, ".claudeignore");
   if (await fileExists(ignorePath)) return false;
 
@@ -287,7 +585,6 @@ async function createClaudeignore(root: string, detected: DetectedProject): Prom
   log.success("Generated .claudeignore with language-specific ignore patterns");
   return true;
 }
-
 
 const SKILL_AUTHORING_SECTION = `\n## Skill Authoring\n\n${SKILL_AUTHORING_CONTENT}\n`;
 
@@ -324,7 +621,10 @@ async function addSkillAuthoringConventions(root: string): Promise<boolean> {
 
   if (/^##\s+Skill\s+Authoring/im.test(content)) return false;
 
-  await writeFile(conventionsPath, content.trimEnd() + "\n" + SKILL_AUTHORING_SECTION);
+  await writeFile(
+    conventionsPath,
+    content.trimEnd() + "\n" + SKILL_AUTHORING_SECTION,
+  );
   log.success("Added Skill Authoring section to .claude/rules/conventions.md");
   return true;
 }
@@ -332,13 +632,24 @@ async function addSkillAuthoringConventions(root: string): Promise<boolean> {
 async function createEnhanceSkill(root: string): Promise<boolean> {
   const skillDir = join(root, ".claude", "skills", "lp-enhance");
   const skillPath = join(skillDir, "SKILL.md");
-  const globalPath = join(homedir(), ".claude", "skills", "lp-enhance", "SKILL.md");
+  const globalPath = join(
+    homedir(),
+    ".claude",
+    "skills",
+    "lp-enhance",
+    "SKILL.md",
+  );
   // Also check legacy commands/ location
   const legacyProject = join(root, ".claude", "commands", "lp-enhance.md");
   const legacyGlobal = join(homedir(), ".claude", "commands", "lp-enhance.md");
 
-  if (await fileExists(skillPath) || await fileExists(globalPath)
-    || await fileExists(legacyProject) || await fileExists(legacyGlobal)) return false;
+  if (
+    (await fileExists(skillPath)) ||
+    (await fileExists(globalPath)) ||
+    (await fileExists(legacyProject)) ||
+    (await fileExists(legacyGlobal))
+  )
+    return false;
 
   await mkdir(skillDir, { recursive: true });
   await writeFile(skillPath, generateEnhanceSkill());
@@ -349,11 +660,19 @@ async function createEnhanceSkill(root: string): Promise<boolean> {
 async function updateEnhanceSkill(root: string): Promise<boolean> {
   // Update whichever location has the skill installed
   const projectPath = join(root, ".claude", "skills", "lp-enhance", "SKILL.md");
-  const globalPath = join(homedir(), ".claude", "skills", "lp-enhance", "SKILL.md");
+  const globalPath = join(
+    homedir(),
+    ".claude",
+    "skills",
+    "lp-enhance",
+    "SKILL.md",
+  );
 
-  const targetPath = await fileExists(projectPath) ? projectPath
-    : await fileExists(globalPath) ? globalPath
-    : null;
+  const targetPath = (await fileExists(projectPath))
+    ? projectPath
+    : (await fileExists(globalPath))
+      ? globalPath
+      : null;
 
   if (!targetPath) return false;
 
@@ -361,5 +680,3 @@ async function updateEnhanceSkill(root: string): Promise<boolean> {
   log.success("Updated /lp-enhance skill to latest version");
   return true;
 }
-
-

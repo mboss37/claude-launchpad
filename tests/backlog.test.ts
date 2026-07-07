@@ -8,6 +8,7 @@ import { generateClaudeMd } from "../src/commands/init/generators/claude-md.js";
 import { generateVerificationRule, VERIFICATION_RULE_VERSION } from "../src/commands/init/generators/verification-rule.js";
 import { analyzeRules } from "../src/commands/doctor/analyzers/rules.js";
 import { applyFixes } from "../src/commands/doctor/fixer.js";
+import { createVerificationRule, updateVerificationRule } from "../src/commands/doctor/fixer-quality.js";
 import type { ClaudeConfig, DiagnosticIssue } from "../src/types/index.js";
 
 function makeConfig(overrides: Partial<ClaudeConfig> = {}): ClaudeConfig {
@@ -372,5 +373,52 @@ describe("rules analyzer checks for verification.md", () => {
     const config = makeConfig({ claudeMdPath: join(testDir, "CLAUDE.md") });
     const result = await analyzeRules(config);
     expect(result.issues.some((i) => i.message.toLowerCase().includes("verification"))).toBe(false);
+  });
+});
+
+describe("verification.md fixers", () => {
+  let testDir: string;
+
+  beforeEach(async () => {
+    testDir = join(tmpdir(), `verification-fixer-${randomUUID()}`);
+    await mkdir(testDir, { recursive: true });
+  });
+
+  it("creates verification.md via --fix and is idempotent", async () => {
+    expect(await createVerificationRule(testDir)).toBe(true);
+    const content = await readFile(join(testDir, ".claude", "rules", "verification.md"), "utf-8");
+    expect(content).toContain("lp-verification-version");
+    expect(await createVerificationRule(testDir)).toBe(false);
+  });
+
+  it("updates an outdated launchpad-authored verification.md", async () => {
+    await mkdir(join(testDir, ".claude", "rules"), { recursive: true });
+    await writeFile(
+      join(testDir, ".claude", "rules", "verification.md"),
+      "# Old\n<!-- lp-verification-version: 0 -->\n",
+    );
+    expect(await updateVerificationRule(testDir)).toBe(true);
+    const content = await readFile(join(testDir, ".claude", "rules", "verification.md"), "utf-8");
+    expect(content).toContain(`lp-verification-version: ${VERIFICATION_RULE_VERSION}`);
+  });
+
+  it("never clobbers a user-authored verification.md (no version marker)", async () => {
+    await mkdir(join(testDir, ".claude", "rules"), { recursive: true });
+    await writeFile(join(testDir, ".claude", "rules", "verification.md"), "# My own verification rules\n");
+    expect(await updateVerificationRule(testDir)).toBe(false);
+    const content = await readFile(join(testDir, ".claude", "rules", "verification.md"), "utf-8");
+    expect(content).toBe("# My own verification rules\n");
+  });
+
+  it("applyFixes routes the missing-verification finding to the fixer", async () => {
+    const issues: DiagnosticIssue[] = [{
+      analyzer: "Rules",
+      severity: "medium",
+      message: "No .claude/rules/verification.md found — nothing stops premature 'done' claims without evidence",
+      fix: "Run `doctor --fix` to generate it",
+    }];
+    const result = await applyFixes(issues, testDir);
+    expect(result.fixed).toBe(1);
+    await access(join(testDir, ".claude", "rules", "verification.md"));
   });
 });
