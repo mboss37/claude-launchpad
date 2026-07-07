@@ -3,7 +3,7 @@ paths: ["src/commands/memory/**"]
 ---
 # Memory Module Rules
 
-- Native deps (better-sqlite3, sqlite-vec) are NEVER imported at top level -- use `cwdRequire()` from `utils/require-deps.ts`
+- The native dep (better-sqlite3) is NEVER imported at top level -- use `cwdRequire()` from `utils/require-deps.ts`
 - All MCP tool handlers go in `tools/` -- one file per tool, registered in `server.ts`
 - Storage layer uses the repository pattern: `MemoryRepo`, `RelationRepo`, `SearchRepo` wrap raw SQLite
 - Zod schemas for all MCP tool inputs live in `types.ts` -- never inline validation

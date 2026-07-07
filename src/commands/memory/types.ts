@@ -90,7 +90,6 @@ export interface ScoredCandidate {
 
 export interface DecayParams {
   readonly tauByType: Record<MemoryType, number>;
-  readonly accessModifiers: readonly { readonly maxCount: number; readonly multiplier: number }[];
   readonly relationModifier: {
     readonly connectedThreshold: number;
     readonly connectedMultiplier: number;

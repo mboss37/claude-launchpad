@@ -17,12 +17,8 @@ export function createDatabase(options: DatabaseOptions = {}): DatabaseConstruct
   }
 
   const Database = cwdRequire('better-sqlite3') as typeof DatabaseConstructor;
-  const sqliteVec = cwdRequire('sqlite-vec') as { load: (db: DatabaseConstructor.Database) => void };
 
   const db = new Database(dbPath);
-
-  // Load sqlite-vec extension
-  sqliteVec.load(db);
 
   // Configure PRAGMAs (order matters: foreign_keys before any ops, journal_mode is persistent)
   db.pragma('journal_mode = WAL');

@@ -41,7 +41,7 @@ export async function requireMemoryDeps(): Promise<boolean> {
     log.blank();
     log.info("Run this to install them:");
     log.blank();
-    log.step("  npm install -g better-sqlite3 sqlite-vec");
+    log.step("  npm install -g better-sqlite3");
     log.blank();
     log.info("This requires a C++ compiler (Xcode on macOS, build-essential on Linux).");
     log.info("After installing, run `claude-launchpad memory` again.");

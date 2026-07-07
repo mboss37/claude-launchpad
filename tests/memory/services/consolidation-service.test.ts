@@ -103,37 +103,6 @@ describe('ConsolidationService', () => {
     });
   });
 
-  describe('prune', () => {
-    it('deletes old low-importance unaccessed memories', () => {
-      const { memoryRepo, consolidation } = setup();
-
-      const memory = memoryRepo.create({
-        type: 'semantic', content: 'ancient forgotten fact', tags: [],
-        importance: 0.05, source: 'manual',
-      }, null);
-
-      const db = (memoryRepo as unknown as { db: { prepare: (sql: string) => { run: (...args: unknown[]) => void } } }).db;
-      db.prepare('UPDATE memories SET created_at = ? WHERE id = ?').run(daysAgo(100), memory.id);
-
-      const pruned = consolidation.prune();
-      expect(pruned).toBe(1);
-    });
-
-    it('preserves important memories regardless of age', () => {
-      const { memoryRepo, consolidation } = setup();
-
-      const memory = memoryRepo.create({
-        type: 'semantic', content: 'important old fact', tags: [],
-        importance: 0.5, source: 'manual',
-      }, null);
-
-      const db = (memoryRepo as unknown as { db: { prepare: (sql: string) => { run: (...args: unknown[]) => void } } }).db;
-      db.prepare('UPDATE memories SET created_at = ? WHERE id = ?').run(daysAgo(200), memory.id);
-
-      const pruned = consolidation.prune();
-      expect(pruned).toBe(0);
-    });
-  });
 
   describe('consolidate', () => {
     it('runs full pipeline without errors', async () => {
@@ -147,7 +116,6 @@ describe('ConsolidationService', () => {
       const report = await consolidation.consolidate();
       expect(report).toHaveProperty('deduplicated');
       expect(report).toHaveProperty('episodicsCompressed');
-      expect(report).toHaveProperty('pruned');
     });
   });
 });

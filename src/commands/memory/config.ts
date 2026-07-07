@@ -10,7 +10,6 @@ const ConfigSchema = z.object({
   dataDir: z.string().default('~/.agentic-memory'),
   injectionBudget: z.number().int().min(100).max(20000).default(3000),
   consolidationInterval: z.number().int().min(1).default(10),
-  enableReranker: z.boolean().default(true),
   logLevel: z.enum(['debug', 'info', 'warn', 'error']).default('warn'),
 });
 
@@ -22,7 +21,6 @@ export const DEFAULT_CONFIG: Config = {
   dataDir: '~/.agentic-memory',
   injectionBudget: 3000,
   consolidationInterval: 10,
-  enableReranker: true,
   logLevel: 'warn',
 };
 
@@ -34,11 +32,6 @@ export const DEFAULT_DECAY_PARAMS: DecayParams = {
     procedural: 730,  // near-permanent
     pattern: 180,     // medium decay
   },
-  accessModifiers: [
-    { maxCount: 3, multiplier: 1.0 },
-    { maxCount: 10, multiplier: 2.0 },
-    { maxCount: Infinity, multiplier: 4.0 },
-  ],
   relationModifier: {
     connectedThreshold: 3,
     connectedMultiplier: 1.8,   // higher tau = slower decay for connected memories

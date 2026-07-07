@@ -14,7 +14,6 @@ export default defineConfig({
   external: [
     "@anthropic-ai/claude-agent-sdk",
     "better-sqlite3",
-    "sqlite-vec",
     "@modelcontextprotocol/sdk",
     "zod",
     "react",

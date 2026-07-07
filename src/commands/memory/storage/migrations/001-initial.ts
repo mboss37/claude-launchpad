@@ -22,8 +22,7 @@ export function up(db: Database.Database): void {
       updated_at TEXT NOT NULL DEFAULT (datetime('now')),
       access_count INTEGER NOT NULL DEFAULT 0 CHECK(access_count >= 0),
       last_accessed TEXT,
-      injection_count INTEGER NOT NULL DEFAULT 0 CHECK(injection_count >= 0),
-      embedding BLOB
+      injection_count INTEGER NOT NULL DEFAULT 0 CHECK(injection_count >= 0)
     );
 
     CREATE TABLE IF NOT EXISTS relations (
@@ -62,11 +61,6 @@ export function up(db: Database.Database): void {
       VALUES (new.rowid, new.title, new.content, new.tags);
     END;
 
-    -- Vector search (synced manually in application code)
-    CREATE VIRTUAL TABLE IF NOT EXISTS memories_vec USING vec0(
-      memory_id TEXT PRIMARY KEY,
-      embedding float[384] distance_metric=cosine
-    );
 
     -- Indexes
     CREATE INDEX IF NOT EXISTS idx_memories_type ON memories(type);

@@ -15,7 +15,7 @@ describe('migrator', () => {
   });
 
   it('should run initial migration and set schema version', () => {
-    expect(getSchemaVersion(db)).toBe(6);
+    expect(getSchemaVersion(db)).toBe(7);
   });
 
   it('should create memories table with correct columns', () => {
@@ -34,7 +34,7 @@ describe('migrator', () => {
     expect(columns).toContain('access_count');
     expect(columns).toContain('last_accessed');
     expect(columns).toContain('injection_count');
-    expect(columns).toContain('embedding');
+    expect(columns).not.toContain('embedding');
     expect(columns).toContain('project');
     expect(columns).toContain('content_hash');
   });
@@ -55,11 +55,12 @@ describe('migrator', () => {
     expect(tables).toHaveLength(1);
   });
 
-  it('should create vec0 virtual table', () => {
-    const tables = db.prepare(
-      "SELECT name FROM sqlite_master WHERE type='table' AND name='memories_vec'"
-    ).all();
-    expect(tables).toHaveLength(1);
+  it('does not create the dead vec0 virtual table (WP-045)', async () => {
+    const db = createTestDb();
+    const tables = db
+      .prepare("SELECT name FROM sqlite_master WHERE name = 'memories_vec'")
+      .all();
+    expect(tables).toHaveLength(0);
   });
 
   it('should create indexes', () => {
@@ -77,7 +78,7 @@ describe('migrator', () => {
   it('should be idempotent (running migrate twice is safe)', async () => {
     const { migrate } = await import('../../src/commands/memory/storage/migrator.js');
     migrate(db);
-    expect(getSchemaVersion(db)).toBe(6);
+    expect(getSchemaVersion(db)).toBe(7);
   });
 
   it('should create memory_tombstones table', () => {

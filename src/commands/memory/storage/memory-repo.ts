@@ -39,7 +39,6 @@ interface MemoryRow {
   access_count: number;
   last_accessed: string | null;
   injection_count: number;
-  embedding: Buffer | null;
 }
 
 function rowToMemory(row: MemoryRow): Memory {
@@ -72,8 +71,8 @@ export class MemoryRepo {
     this.db = db;
     this.#stmts = {
       insert: db.prepare(`
-        INSERT OR IGNORE INTO memories (id, type, title, content, context, source, project, tags, importance, base_importance, created_at, updated_at, embedding, content_hash)
-        VALUES (@id, @type, @title, @content, @context, @source, @project, @tags, @importance, @importance, @createdAt, @updatedAt, @embedding, @contentHash)
+        INSERT OR IGNORE INTO memories (id, type, title, content, context, source, project, tags, importance, base_importance, created_at, updated_at, content_hash)
+        VALUES (@id, @type, @title, @content, @context, @source, @project, @tags, @importance, @importance, @createdAt, @updatedAt, @contentHash)
       `),
       getById: db.prepare('SELECT * FROM memories WHERE id = ?'),
       getAll: db.prepare('SELECT * FROM memories ORDER BY created_at DESC'),
@@ -86,7 +85,7 @@ export class MemoryRepo {
       update: db.prepare(`
         UPDATE memories
         SET title = @title, content = @content, context = @context, tags = @tags,
-            importance = @importance, base_importance = @importance, updated_at = @updatedAt, embedding = @embedding,
+            importance = @importance, base_importance = @importance, updated_at = @updatedAt,
             content_hash = @contentHash
         WHERE id = @id
       `),
@@ -114,9 +113,9 @@ export class MemoryRepo {
       insertSync: db.prepare(`
         INSERT OR IGNORE INTO memories
           (id, type, title, content, context, source, project, tags, importance, base_importance,
-           access_count, injection_count, created_at, updated_at, last_accessed, embedding, content_hash)
+           access_count, injection_count, created_at, updated_at, last_accessed, content_hash)
         VALUES (@id, @type, @title, @content, @context, @source, @project, @tags, @importance, @importance,
-                @accessCount, @injectionCount, @createdAt, @updatedAt, @lastAccessed, NULL, @contentHash)
+                @accessCount, @injectionCount, @createdAt, @updatedAt, @lastAccessed, @contentHash)
       `),
       updateSync: db.prepare(`
         UPDATE memories SET
@@ -166,7 +165,6 @@ export class MemoryRepo {
       importance: input.importance,
       createdAt: now,
       updatedAt: now,
-      embedding: null,
       contentHash,
     };
 
@@ -189,7 +187,6 @@ export class MemoryRepo {
       access_count: 0,
       last_accessed: null,
       injection_count: 0,
-      embedding: null,
     };
 
     return rowToMemory(row);
@@ -252,7 +249,6 @@ export class MemoryRepo {
       tags: JSON.stringify(updates.tags ?? existing.tags),
       importance: updates.importance ?? existing.importance,
       updatedAt: now,
-      embedding: null,
       contentHash: createHash('sha256').update(finalContent).digest('hex'),
     };
 

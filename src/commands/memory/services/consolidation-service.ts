@@ -11,7 +11,6 @@ export interface ConsolidationDeps {
 export interface ConsolidationReport {
   readonly deduplicated: number;
   readonly episodicsCompressed: number;
-  readonly pruned: number;
 }
 
 // ── Consolidation Service ────────────────────────────────────
@@ -32,8 +31,7 @@ export class ConsolidationService {
   async consolidate(): Promise<ConsolidationReport> {
     const deduplicated = this.deduplicateMemories();
     const episodicsCompressed = this.compressEpisodics();
-    const pruned = this.prune();
-    return { deduplicated, episodicsCompressed, pruned };
+    return { deduplicated, episodicsCompressed };
   }
 
   /**
@@ -41,38 +39,32 @@ export class ConsolidationService {
    */
   deduplicateMemories(): number {
     const memories = this.#deps.memoryRepo.getAll();
-    const seen = new Set<string>();
+    // O(n): group by normalized content; exact duplicates are already blocked
+    // at insert by the per-project unique content_hash — this pass only
+    // catches whitespace/case variants.
+    const byNormalized = new Map<string, typeof memories[number]>();
     let merged = 0;
 
     for (const memory of memories) {
-      if (seen.has(memory.id)) continue;
-
-      const normalizedContent = normalizeText(memory.content);
-
-      for (const other of memories) {
-        if (other.id === memory.id) continue;
-        if (seen.has(other.id)) continue;
-
-        const otherNormalized = normalizeText(other.content);
-        if (normalizedContent !== otherNormalized) continue;
-
-        const [keeper, discard] = memory.importance >= other.importance
-          ? [memory, other] : [other, memory];
-
-        const mergedTags = [...new Set([...keeper.tags, ...discard.tags])];
-        this.#deps.memoryRepo.updateContent(keeper.id, {
-          tags: mergedTags,
-          importance: Math.max(keeper.importance, discard.importance),
-        });
-
-        this.#deps.memoryRepo.hardDelete(discard.id);
-        seen.add(discard.id);
-        merged++;
-
-        if (discard.id === memory.id) break;
+      const key = normalizeText(memory.content);
+      const keeper = byNormalized.get(key);
+      if (!keeper) {
+        byNormalized.set(key, memory);
+        continue;
       }
 
-      seen.add(memory.id);
+      const [survivor, discard] = keeper.importance >= memory.importance
+        ? [keeper, memory] : [memory, keeper];
+
+      const mergedTags = [...new Set([...survivor.tags, ...discard.tags])];
+      this.#deps.memoryRepo.updateContent(survivor.id, {
+        tags: mergedTags,
+        importance: Math.max(survivor.importance, discard.importance),
+      });
+
+      this.#deps.memoryRepo.hardDelete(discard.id);
+      byNormalized.set(key, survivor);
+      merged++;
     }
 
     return merged;
@@ -103,25 +95,6 @@ export class ConsolidationService {
     return compressed;
   }
 
-  /**
-   * Phase 3: Prune dead memories.
-   */
-  prune(): number {
-    const memories = this.#deps.memoryRepo.getAll();
-    const now = Date.now();
-    let pruned = 0;
-
-    for (const memory of memories) {
-      if (memory.type === 'working') continue;
-      const ageDays = (now - new Date(memory.createdAt).getTime()) / (1000 * 60 * 60 * 24);
-      if (ageDays > 90 && memory.importance < 0.1 && memory.accessCount === 0) {
-        this.#deps.memoryRepo.hardDelete(memory.id);
-        pruned++;
-      }
-    }
-
-    return pruned;
-  }
 }
 
 // ── Helpers ──────────────────────────────────────────────────

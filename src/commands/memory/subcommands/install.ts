@@ -257,13 +257,13 @@ async function ensureNativeDeps(): Promise<void> {
 
   log.step('Installing required database libraries...');
   try {
-    execSync('npm install -g better-sqlite3 sqlite-vec', { stdio: 'pipe', timeout: 120000 });
+    execSync('npm install -g better-sqlite3', { stdio: 'pipe', timeout: 120000 });
     log.success('Database libraries installed');
   } catch {
     log.error('Could not install database libraries automatically.');
     log.blank();
     log.info('Install manually:');
-    log.step('  npm install -g better-sqlite3 sqlite-vec');
+    log.step('  npm install -g better-sqlite3');
     log.blank();
     log.info('Requires a C++ compiler (Xcode on macOS, build-essential on Linux).');
     process.exit(1);

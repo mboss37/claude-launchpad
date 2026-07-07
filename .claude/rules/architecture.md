@@ -54,7 +54,7 @@
 ## Dependency Strategy
 - **Core deps** (dependencies): commander, chalk, inquirer, ora, yaml — always installed
 - **Optional deps** (optionalDependencies): zod, @modelcontextprotocol/sdk, ink, react — installed with package, pure JS
-- **Native deps** (devDependencies): better-sqlite3, sqlite-vec — NOT installed for users, user installs when setting up memory
+- **Native dep** (devDependencies): better-sqlite3 — NOT installed for users, installed when setting up memory
 - **Eval dep** (devDependencies): @anthropic-ai/claude-agent-sdk — eval falls back to Claude CLI if missing
 - All optional/native deps marked `external` in tsup — never bundled into dist
 - Memory commands use `cwdRequire()` for native deps (resolves from user's cwd node_modules)

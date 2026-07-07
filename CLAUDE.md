@@ -28,7 +28,7 @@ CLI toolkit that makes Claude Code setups measurably good — diagnose, scaffold
 - `init` generates 12 files: CLAUDE.md, TASKS.md, BACKLOG.md, settings.json, .gitignore, .claudeignore, conventions.md, workflow.md, hooks.md, verification.md, code-reviewer agent, lp-enhance skill; plus three hook scripts (sprint-size, sprint-open, workflow-check)
 - `eval` runs Claude via Agent SDK (falls back to Claude CLI if SDK not installed)
 - `memory` is optional — SQLite + FTS5 + decay model + 7 MCP tools + TUI dashboard
-- Memory native deps (better-sqlite3, sqlite-vec) are NOT bundled — user installs when setting up memory
+- Memory native dep (better-sqlite3) is NOT bundled — installed when setting up memory
 - Memory pure-JS deps (zod, @modelcontextprotocol/sdk) are optionalDependencies — always installed
 - Distributed as npm package (`npx claude-launchpad`) — users never clone this repo
 - See `.claude/rules/architecture.md` for full project structure and command flow
