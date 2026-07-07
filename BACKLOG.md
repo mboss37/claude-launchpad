@@ -47,18 +47,6 @@ One-paragraph description.
 
 ## P0 — Memory review fallout (see docs/reviews/2026-07-07-memory-review.md)
 
-### WP-043 — Memory CLI stops lying about success
-
-- **Priority:** P0
-- **Proposed:** 2026-07-07
-- **Stories / Docs:** docs/reviews/2026-07-07-memory-review.md Cluster 1
-- **Depends on:** none
-- **Estimate:** M
-- **Trigger to pull:** Before or with the v1.13.0 publish (the exit-code subset is S and gate-worthy).
-- **Definition of done:** Bare `memory` has a non-TTY guard (mirror install.ts:75) and exits 1 on failure; all sync `log.error + return` paths set `process.exitCode = 1` (pull no-gist/no-project/no-remote-file, push no-project, sync status/clean no-gist); `memory stats` and `memory doctor` are registered subcommands (doctor.ts already exists, wire it); unknown subcommands get a helpful hint; `context --json` either emits real JSON or the flag is removed from command + generated hook; all three generated memory hooks use the same `npx claude-launchpad` invocation; extract.ts/search.ts wired or deleted; architecture.md matches reality; memory.mdx exit-code claims true.
-
-The headline command crashes with exit 0 in CI, sync failures masquerade as success, and the most natural subcommand guesses error cryptically while complete implementations sit unregistered.
-
 ### WP-044 — Decay must be a pure function of age, not session count
 
 - **Priority:** P0
@@ -116,18 +104,6 @@ The vector layer is 100% dead but forces users to install a second native dep. D
 - **Estimate:** M
 - **Trigger to pull:** Next memory sprint.
 - **Definition of done:** Search submit keeps the filter and returns keyboard to the list (search → j/k → expand/delete works); Tab either routes keys by focused pane or is removed; relations show titles not UUIDs; selectedIndex clamps when the list narrows; `d` no longer means purge-project (move to X; d/r = single item); error boundary restores the terminal; interaction tests via ink-testing-library.
-
-### WP-036 — Regression suite fails 13/21 on dev machine
-
-- **Priority:** P1
-- **Proposed:** 2026-07-07
-- **Stories / Docs:** memory `a2eb8c7c` (session 49); `tests/regression/doctor-regression.sh`
-- **Depends on:** none
-- **Estimate:** S
-- **Trigger to pull:** Before the next release publish, or any sprint touching the regression suite.
-- **Definition of done:** Root cause identified for why S3/S4/S5/S6/S8/S9 (all memory/MCP scenarios) fail on the dev Mac but pass 21/21 in a fresh container. Proven NOT caused by ~/.claude.json user scope (fails with isolated HOME) and NOT by the 2026-07-07 dep patch (identical failures on pre-patch HEAD). Suite passes locally, or machine-specific preconditions are detected and reported explicitly instead of failing.
-
-The regression suite silently rotted on the dev machine — it was only ever verified green in containers. A suite that can't run where development happens doesn't gate anything.
 
 ### WP-039 — Sub-agent briefing structure in generated Stop-and-Swarm
 
@@ -398,4 +374,5 @@ Supply-chain worm protection: newly published package versions can't enter the l
 - **2026-07-02:** Sprint 34 closed. WP-014, WP-023..WP-035 done (v1.12.0). Review: 1 Critical (PostCompact exists — side-effect-only; fixer gated) + 2 Important (stale-hook migration path, Sprint 32 nudge rewrite) fixed in-sprint.
 - **2026-07-07:** WP-036 (P1, regression suite red on dev machine), WP-039 (P1, sub-agent briefs in Stop-and-Swarm), WP-040 (P1, Key Decisions why-log), WP-042 (P1, force-push hook false positive), WP-041 (P2, minimumReleaseAge guard) minted from session 49 (Fable Mode v2 gap analysis + security patch fallout). WP-037, WP-038 minted as P0 and pulled into Sprint 35 in the same edit (verification discipline arc: generated verification rule + doctor check/fixer + premature-victory eval scenario); scope + DoD live in the sprint plan.
 - **2026-07-07:** Sprint 35 closed. WP-037, WP-038 done (v1.13.0). Review: 0 Critical, 2 Important (dead scenario `runs` field now honored; landing-page scenario count) fixed in-sprint.
+- **2026-07-07:** WP-036, WP-043 pulled into Sprint 36 (v1.13.0 publish gate).
 - **2026-07-07:** WP-043..WP-051 minted from the 4-agent memory deep review (core+algorithms, CLI UX, dashboard TUI, competitive landscape) — see docs/reviews/2026-07-07-memory-review.md. P0: WP-043 (CLI exits 0 on failure/crash), WP-044 (decay compounds per session, 37% over-decay verified). P1: WP-045 (dead sqlite-vec native dep), WP-046 (global content_hash), WP-047 (promised secret detection missing), WP-048 (dashboard find-then-act broken). P2: WP-049, WP-050, WP-051 (strategy arc: auto-capture, local embeddings, plugin distribution).

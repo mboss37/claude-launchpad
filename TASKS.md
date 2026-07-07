@@ -41,8 +41,8 @@
 - **Sprint 35**: Verification Discipline (v1.13.0) — distilled Fable Mode v2's Verifier Loop into the product: init generates always-on `.claude/rules/verification.md` (evidence before done claims, verify behavior not build, verified/inferred/assumed labels, done-with-gaps, end-of-turn check) with `lp-verification-version` marker; doctor MEDIUM missing + LOW outdated + fixers (never clobbers unmarked user files); new `workflow/premature-victory` eval scenario (custom+transcript+judge prove Claude runs the test before claiming fixed); scenario-level `runs` now honored unless user chooses. Pre-sprint: security patch 35→0 vulns (critical shell-quote, vite-as-peer lesson) + permissions-test HOME isolation. 568 tests (+19), dogfooded (self-score 100%). Review: 0 Critical, 2 Important fixed in-sprint.
 
 ## Current Sprint
-
-<!-- EMPTY. Pull WPs from BACKLOG.md when ready. Format: `- [ ] WP-NNN — short title` -->
+- [ ] WP-036 — Regression suite fails 13/21 on dev machine
+- [ ] WP-043 — Memory CLI stops lying about success
 
 ## Release Plan
 - **v1.13.0** ready to publish — Sprint 35 (verification discipline + security patch 35→0 vulns). Gate: fix WP-036 (regression suite red on dev Mac) before validating.
