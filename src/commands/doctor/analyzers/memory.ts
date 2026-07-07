@@ -149,6 +149,21 @@ export async function analyzeMemory(
     });
   }
 
+  // 6b. Bare-binary hooks fail on npx-only machines ("command not found",
+  // swallowed by 2>/dev/null) — sync/context silently never runs.
+  const hasBareBinaryHook = config.hooks.some(
+    (h) => h.command?.includes("claude-launchpad memory")
+      && !h.command.includes("npx claude-launchpad"),
+  );
+  if (hasBareBinaryHook) {
+    issues.push({
+      analyzer: "Memory",
+      severity: "medium",
+      message: "Memory hook(s) call the bare claude-launchpad binary — fails silently on machines without a global install",
+      fix: "Run `doctor --fix` to rewrite them to the npx form",
+    });
+  }
+
   // 7. Sync hooks when sync is configured (wrapper-aware)
   const syncConfig = readSyncConfig();
   if (syncConfig) {

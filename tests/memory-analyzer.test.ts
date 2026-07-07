@@ -387,3 +387,56 @@ describe("analyzeMemory — wrapper-aware hook resolution", () => {
     )).toBe(true);
   });
 });
+
+describe("bare-binary memory hooks (npx migration)", () => {
+  it("flags memory hooks that call the bare claude-launchpad binary", async () => {
+    const bare: HookConfig = {
+      event: "SessionStart",
+      type: "command",
+      command: "claude-launchpad memory pull -y 2>/dev/null; exit 0",
+    };
+    const result = await analyzeMemory(
+      makeConfig({ mcpServers: [memoryServer], hooks: [sessionStartHook, bare] }),
+      "/test",
+    );
+    expect(result!.issues.some((i) => i.message.includes("bare claude-launchpad binary"))).toBe(true);
+  });
+
+  it("does not flag npx-form memory hooks", async () => {
+    const npxPull: HookConfig = {
+      event: "SessionStart",
+      type: "command",
+      command: "npx claude-launchpad memory pull -y 2>/dev/null; exit 0",
+    };
+    const result = await analyzeMemory(
+      makeConfig({ mcpServers: [memoryServer], hooks: [sessionStartHook, npxPull] }),
+      "/test",
+    );
+    expect(result!.issues.some((i) => i.message.includes("bare claude-launchpad binary"))).toBe(false);
+  });
+
+  it("upgradeBareMemoryHooks rewrites bare and nohup-bare forms, idempotently", async () => {
+    const { upgradeBareMemoryHooks } = await import("../src/commands/doctor/fixer-memory.js");
+    const root = await mkdtemp(join(tmpdir(), "bare-hooks-"));
+    await mkdir(join(root, ".claude"), { recursive: true });
+    await writeFile(join(root, ".claude", "settings.json"), JSON.stringify({
+      hooks: {
+        SessionStart: [{ matcher: "startup", hooks: [
+          { type: "command", command: "claude-launchpad memory pull -y 2>/dev/null; exit 0" },
+          { type: "command", command: "npx claude-launchpad memory context --json 2>/dev/null; exit 0" },
+        ]}],
+        SessionEnd: [{ matcher: "", hooks: [
+          { type: "command", command: "nohup claude-launchpad memory push -y </dev/null >/dev/null 2>&1 & exit 0" },
+        ]}],
+      },
+    }));
+    expect(await upgradeBareMemoryHooks(root)).toBe(true);
+    const updated = JSON.parse(await (await import("node:fs/promises")).readFile(join(root, ".claude", "settings.json"), "utf-8"));
+    const cmds = JSON.stringify(updated);
+    expect(cmds).toContain("npx claude-launchpad memory pull");
+    expect(cmds).toContain("nohup npx claude-launchpad memory push");
+    expect(cmds).not.toContain("npx npx");
+    expect(await upgradeBareMemoryHooks(root)).toBe(false);
+    await rm(root, { recursive: true, force: true });
+  });
+});

@@ -189,7 +189,6 @@ export function createMemoryCommand(): Command {
     new Command("doctor")
       .description("Diagnose the memory setup (DB, hooks, MCP registration)")
       .option("--json", "JSON output")
-      .option("--fix", "Apply automatic repairs")
       .action(async (opts) => {
         const { runMemoryDoctor } = await import("./subcommands/doctor.js");
         await runMemoryDoctor(opts);

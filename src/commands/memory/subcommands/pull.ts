@@ -71,8 +71,7 @@ function pullAll(ctx: ReturnType<typeof initStorage>, gistId: string): void {
   const projectFiles = files.filter((f) => filenameToProject(f) !== null);
 
   if (projectFiles.length === 0) {
-    log.error('No memory files found in gist.');
-    return;
+    throw new Error('No memory files found in gist.');
   }
 
   const perProject: { project: string; result: MergeResult }[] = [];

@@ -47,6 +47,7 @@ import {
 } from "./fixer-hooks.js";
 import { rewriteEnvVarHooks } from "./fixer-hook-input.js";
 import {
+  upgradeBareMemoryHooks,
   disableAutoMemory,
   addMemoryToolPermissions,
   addAllowedMcpServers,
@@ -362,6 +363,11 @@ const FIX_TABLE: ReadonlyArray<{
     analyzer: "Hooks",
     match: "SessionStart",
     fix: (root) => addSessionStartHook(root),
+  },
+  {
+    analyzer: "Memory",
+    match: "bare claude-launchpad binary",
+    fix: (root) => upgradeBareMemoryHooks(root),
   },
   {
     analyzer: "Memory",

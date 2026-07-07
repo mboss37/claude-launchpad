@@ -1,7 +1,4 @@
 import { describe, it, expect, vi } from "vitest";
-import { mkdtemp } from "node:fs/promises";
-import { join } from "node:path";
-import { tmpdir } from "node:os";
 
 // WP-043: failure paths must throw (the CLI wrapper converts throws to exit 1).
 // A `log.error` + `return` looks successful to every script that checks $?.
@@ -18,6 +15,7 @@ vi.mock(
       assertGhAvailable: () => {},
       loadSyncConfig: () => mockSyncConfig,
       readGistFile: () => null,
+    listGistFiles: () => [],
       updateGistFiles: () => {},
       createGist: () => "gist123",
     };
@@ -75,6 +73,14 @@ describe("sync failure paths exit non-zero (throw)", () => {
     await expect(runPush({ yes: true })).rejects.toThrow(
       /could not detect project/i,
     );
+  });
+});
+
+describe("pull --all failure paths", () => {
+  it("throws when the gist contains no memory files", async () => {
+    mockSyncConfig = { gistId: "gist123" };
+    const { runPull } = await import("../../src/commands/memory/subcommands/pull.js");
+    await expect(runPull({ all: true })).rejects.toThrow(/no memory files/i);
   });
 });
 

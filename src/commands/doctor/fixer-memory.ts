@@ -220,3 +220,39 @@ export async function addAllowedMcpServers(root: string, placement: MemoryPlacem
   log.success(`Added allowedMcpServers from configured servers to ${target}`);
   return true;
 }
+
+/** Rewrite bare `claude-launchpad memory ...` hook commands to the npx form (both settings files, all events). */
+export async function upgradeBareMemoryHooks(root: string): Promise<boolean> {
+  let any = false;
+  for (const placement of ["shared", "local"] as const) {
+    const read = placement === "local" ? readSettingsLocalJson : readSettingsJson;
+    const write = placement === "local" ? writeSettingsLocalJson : writeSettingsJson;
+    const settings = await read(root);
+    if (settings === null) continue;
+    const hooks = settings.hooks as Record<string, unknown[]> | undefined;
+    if (!hooks) continue;
+
+    let changed = false;
+    const upgradedHooks: Record<string, unknown[]> = {};
+    for (const [event, groups] of Object.entries(hooks)) {
+      upgradedHooks[event] = (groups as Record<string, unknown>[]).map((group) => {
+        const inner = group.hooks as Record<string, unknown>[] | undefined;
+        if (!inner) return group;
+        const rewritten = inner.map((h) => {
+          const cmd = typeof h.command === "string" ? h.command : "";
+          if (!cmd.includes("claude-launchpad memory") || cmd.includes("npx claude-launchpad")) return h;
+          changed = true;
+          return { ...h, command: cmd.replace("claude-launchpad memory", "npx claude-launchpad memory") };
+        });
+        return { ...group, hooks: rewritten };
+      });
+    }
+    if (!changed) continue;
+
+    await write(root, { ...settings, hooks: upgradedHooks });
+    const target = placement === "local" ? "settings.local.json" : "settings.json";
+    log.success(`Rewrote bare memory hook commands to npx form in ${target}`);
+    any = true;
+  }
+  return any;
+}
