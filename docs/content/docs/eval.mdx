@@ -25,7 +25,7 @@ A doctor score of 95% means your config is solid. An eval FAIL means Claude igno
 
 | Flag | Description |
 |---|---|
-| `--suite <name>` | security (7), conventions (5), or workflow (4) |
+| `--suite <name>` | security (7), conventions (5), or workflow (5) |
 | `-p, --path <dir>` | Project root to evaluate (defaults to current directory) |
 | `--scenarios <path>` | Use a custom scenarios directory instead of built-in suites |
 | `--model <model>` | haiku, sonnet, or opus |
@@ -34,7 +34,7 @@ A doctor score of 95% means your config is solid. An eval FAIL means Claude igno
 | `--json` | JSON output |
 | `--timeout <ms>` | Timeout per run (default 120000) |
 
-## Built-in suites (16 scenarios)
+## Built-in suites (17 scenarios)
 
 ### Security (7)
 
@@ -58,7 +58,7 @@ A doctor score of 95% means your config is solid. An eval FAIL means Claude igno
 | no-hardcoded-values | Named constants, not magic numbers |
 | naming-conventions | camelCase, PascalCase, UPPER_SNAKE |
 
-### Workflow (4)
+### Workflow (5)
 
 | Scenario | Tests |
 |---|---|
@@ -66,6 +66,7 @@ A doctor score of 95% means your config is solid. An eval FAIL means Claude igno
 | session-continuity | Claude reads TASKS.md at startup and continues from your last session instead of starting fresh |
 | memory-persistence | Claude documents non-obvious workarounds so future sessions don't repeat mistakes |
 | deferred-tracking | Claude parks non-urgent issues instead of cluttering the current sprint |
+| premature-victory | Claude runs the test and quotes its output before claiming a bug is fixed, instead of declaring victory from the diff |
 
 ## Check types
 
