@@ -40,8 +40,8 @@
 - **Sprint 34**: Enforcement Layer (v1.12.0) — 14 WPs from the 11-agent template review: hook warnings now reach the model (additionalContext JSON), PostCompact TASKS.md-injection migrated to SessionStart compact matcher (event is side-effect-only), move-not-copy check scoped so correct pulls never false-positive, sprint-open-check rebuilt on PostToolUse commit inspection, review gate delegates to /code-review + generated code-reviewer agent, Stop-and-Swarm modernized w/ debug-first rung, Testing Discipline + jq preflight + dependency-aware pulls + Workflow analyzer + superpowers detect-and-recommend + same-matcher consolidation. Doctor migrates every pre-v1.12 project. 549 tests (+34), 21/21 regression, repo self-scores 100%. Review: 1 Critical + 2 Important fixed in-sprint.
 
 ## Current Sprint
-
-<!-- EMPTY. Pull WPs from BACKLOG.md when ready. Format: `- [ ] WP-NNN — short title` -->
+- [ ] WP-037 — Ship verification discipline (generated rule + doctor check + fixer)
+- [ ] WP-038 — Premature-victory eval scenario
 
 ## Release Plan
 - **v1.10.0** ✅ shipped — Sprint 31 workflow discipline (wastd-style WP template + path-scoped workflow rule + staleness hook + memory dedup fix)
