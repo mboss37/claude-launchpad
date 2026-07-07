@@ -228,6 +228,13 @@ Memory projects get three additional hooks:
 
 Claude's built-in memory resets per machine. Launchpad gives each project persistent, cross-device memory that syncs via a private GitHub Gist. Switch laptops and your decisions are already there.
 
+**Why this memory and not another:**
+
+- **Free cross-machine sync.** Native Claude Code memory is single-machine; cloud memory layers need API keys and subscriptions. Launchpad syncs through a private GitHub Gist you already have — zero cost, deletions propagate, machines converge.
+- **Measured, not assumed.** The only Claude Code memory with a benchmark suite (57 tests) gating every release: retrieval quality, injection quality, decay accuracy, scale. `doctor` diagnoses memory health; `eval` proves behavior.
+- **Zero infrastructure.** One native dep, stdio MCP, local SQLite. No Docker, no vector DB service, no localhost API server, no cloud account.
+- **Engineered injection.** Session context is packed by 6-signal relevance scoring with diversity re-ranking under a token budget — not just "last N memories".
+
 ```bash
 claude-launchpad memory
 ```

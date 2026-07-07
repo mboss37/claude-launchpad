@@ -8,17 +8,17 @@ const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-geist-mono'
 
 export const metadata: Metadata = {
   title: { default: 'Claude Launchpad', template: '%s | Claude Launchpad' },
-  description: 'Score your Claude Code setup. Fix what\'s broken. Prove it works.',
+  description: 'Score your Claude Code setup, fix it with hooks, prove it with eval. Plus persistent Claude Code memory with free cross-machine sync — measured, not assumed.',
   openGraph: {
     title: 'Claude Launchpad',
-    description: 'Score your Claude Code setup. Fix what\'s broken. Prove it works.',
+    description: 'Score your Claude Code setup, fix it with hooks, prove it with eval. Plus persistent Claude Code memory with free cross-machine sync — measured, not assumed.',
     type: 'website',
     siteName: 'Claude Launchpad',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Claude Launchpad',
-    description: 'Score your Claude Code setup. Fix what\'s broken. Prove it works.',
+    description: 'Score your Claude Code setup, fix it with hooks, prove it with eval. Plus persistent Claude Code memory with free cross-machine sync — measured, not assumed.',
   },
 };
 
