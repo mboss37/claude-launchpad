@@ -45,7 +45,77 @@ One-paragraph description.
 
 ---
 
+## P0 — Memory review fallout (see docs/reviews/2026-07-07-memory-review.md)
+
+### WP-043 — Memory CLI stops lying about success
+
+- **Priority:** P0
+- **Proposed:** 2026-07-07
+- **Stories / Docs:** docs/reviews/2026-07-07-memory-review.md Cluster 1
+- **Depends on:** none
+- **Estimate:** M
+- **Trigger to pull:** Before or with the v1.13.0 publish (the exit-code subset is S and gate-worthy).
+- **Definition of done:** Bare `memory` has a non-TTY guard (mirror install.ts:75) and exits 1 on failure; all sync `log.error + return` paths set `process.exitCode = 1` (pull no-gist/no-project/no-remote-file, push no-project, sync status/clean no-gist); `memory stats` and `memory doctor` are registered subcommands (doctor.ts already exists, wire it); unknown subcommands get a helpful hint; `context --json` either emits real JSON or the flag is removed from command + generated hook; all three generated memory hooks use the same `npx claude-launchpad` invocation; extract.ts/search.ts wired or deleted; architecture.md matches reality; memory.mdx exit-code claims true.
+
+The headline command crashes with exit 0 in CI, sync failures masquerade as success, and the most natural subcommand guesses error cryptically while complete implementations sit unregistered.
+
+### WP-044 — Decay must be a pure function of age, not session count
+
+- **Priority:** P0
+- **Proposed:** 2026-07-07
+- **Stories / Docs:** review Cluster 2.1; decay-service.ts:133, context.ts:48
+- **Depends on:** none
+- **Estimate:** M
+- **Trigger to pull:** Next memory sprint (v1.14.0).
+- **Definition of done:** Migration adds immutable `base_importance`; decay computes `base * decayFactor(age)` so N session-starts produce identical importance to 1 (idempotency benchmark added); existing stores migrated (current importance becomes base); `pnpm bench:memory` green with thresholds updated + documented.
+
+Verified empirically: 23 session-starts over-decay a day-30 memory by 37% vs its own formula. Active users get punished hardest — the opposite of the model's intent.
+
+---
+
 ## P1 — Soon (within 2–3 sprints)
+
+### WP-045 — Delete memory dead weight (incl. the sqlite-vec native dep)
+
+- **Priority:** P1
+- **Proposed:** 2026-07-07
+- **Stories / Docs:** review Cluster 2.2/2.6
+- **Depends on:** none
+- **Estimate:** M
+- **Trigger to pull:** With WP-044 (same migration window).
+- **Definition of done:** `memories_vec` table, `embedding` column, sqlite-vec load + dependency removed (migration); dead error helpers (`withRetry`/`isSqliteBusy`/unused templates), dead config knobs (`enableReranker`, `accessModifiers`), duplicate `ConsolidationService.prune` deleted; consolidation dedup O(n) via normalized-hash grouping; install/docs mention only better-sqlite3. If/when local embeddings ship (WP-051), sqlite-vec returns deliberately and wired.
+
+The vector layer is 100% dead but forces users to install a second native dep. Deleting it halves install friction today.
+
+### WP-046 — content_hash dedup scoped per project + honest sync counts
+
+- **Priority:** P1
+- **Proposed:** 2026-07-07
+- **Stories / Docs:** review Cluster 2.3; migrations/003:26, sync-merge.ts:74
+- **Depends on:** none
+- **Estimate:** S
+- **Trigger to pull:** With WP-044 (same migration window).
+- **Definition of done:** Unique index becomes `(content_hash, project)`; `inserted++` gated on `result.changes`; regression tests: same content in two projects both stored; sync of same-content/different-id rows reports accurate counts.
+
+### WP-047 — Secret detection in memory_store (the docs already promise it)
+
+- **Priority:** P1
+- **Proposed:** 2026-07-07
+- **Stories / Docs:** review Cluster 2.4; content-validation.ts
+- **Depends on:** none
+- **Estimate:** S
+- **Trigger to pull:** Next memory sprint — memories sync to GitHub Gists, this is a leak path.
+- **Definition of done:** content-validation rejects/redacts key-shaped content (`sk-`, `AKIA`, `-----BEGIN`, `password=`, high-entropy tokens); tests with true/false positives; memory.md rule claim becomes true.
+
+### WP-048 — Dashboard: make find-then-act work
+
+- **Priority:** P1
+- **Proposed:** 2026-07-07
+- **Stories / Docs:** review Cluster 3; app.tsx:128, use-keybindings.ts:37-59
+- **Depends on:** none
+- **Estimate:** M
+- **Trigger to pull:** Next memory sprint.
+- **Definition of done:** Search submit keeps the filter and returns keyboard to the list (search → j/k → expand/delete works); Tab either routes keys by focused pane or is removed; relations show titles not UUIDs; selectedIndex clamps when the list narrows; `d` no longer means purge-project (move to X; d/r = single item); error boundary restores the terminal; interaction tests via ink-testing-library.
 
 ### WP-036 — Regression suite fails 13/21 on dev machine
 
@@ -151,6 +221,36 @@ Currently the two PreToolUse guards grep `tool_input.command` / `tool_input.file
 ---
 
 ## P3 — Parked
+
+### WP-049 — Dashboard curation + honesty pass
+
+- **Priority:** P2
+- **Proposed:** 2026-07-07
+- **Stories / Docs:** review Cluster 3 minors
+- **Depends on:** WP-048
+- **Estimate:** M
+- **Trigger to pull:** After WP-048 lands.
+- **Definition of done:** Soft-delete + undo toast (repo already supports it); pin/importance/tag editing in the TUI; dashboard search routed through FTS (delete the substring re-implementation); `context` field rendered in detail; keybinding bar handles narrow terminals; relations query debounced/cached off the keystroke path.
+
+### WP-050 — Memory benchmarks measure what they claim
+
+- **Priority:** P2
+- **Proposed:** 2026-07-07
+- **Stories / Docs:** review Cluster 2.5; injection-quality.bench.ts:96-158
+- **Depends on:** none
+- **Estimate:** S
+- **Trigger to pull:** With any memory algorithm change (bench gate must be honest first).
+- **Definition of done:** Oracle knapsack optimizes the same per-memory score the packer uses, threshold raised from 0.3 to a meaningful bound; noise-penalty test gets its missing assertion; git-path injection score normalized to ≤1.0; accessCount split into surfaced vs used (or incremented only on direct-ID lookup).
+
+### WP-051 — Memory strategy arc: auto-capture, local embeddings, plugin distribution
+
+- **Priority:** P2
+- **Proposed:** 2026-07-07
+- **Stories / Docs:** docs/reviews/2026-07-07-memory-review.md Cluster 4 (full competitive landscape + positioning)
+- **Depends on:** WP-043, WP-044 (foundation must be honest first)
+- **Estimate:** XL (must decompose before pulling)
+- **Trigger to pull:** Decompose when the v1.14.0 quality sprint closes; each child is its own sprint.
+- **Definition of done (of the decomposition):** Five child WPs minted with the review's ranking: (1) auto-capture via SessionEnd/Stop hooks (extract.ts is the head start), (2) local-embedding hybrid retrieval (re-introduces sqlite-vec, wired), (3) Claude Code plugin marketplace packaging, (4) native-memory continuous interop + markdown export, (5) git-committed team memory. Positioning updated: "memory as managed, measurable infrastructure", not "Claude remembers".
 
 ### WP-041 — Enable pnpm minimumReleaseAge supply-chain guard
 
@@ -298,3 +398,4 @@ Supply-chain worm protection: newly published package versions can't enter the l
 - **2026-07-02:** Sprint 34 closed. WP-014, WP-023..WP-035 done (v1.12.0). Review: 1 Critical (PostCompact exists — side-effect-only; fixer gated) + 2 Important (stale-hook migration path, Sprint 32 nudge rewrite) fixed in-sprint.
 - **2026-07-07:** WP-036 (P1, regression suite red on dev machine), WP-039 (P1, sub-agent briefs in Stop-and-Swarm), WP-040 (P1, Key Decisions why-log), WP-042 (P1, force-push hook false positive), WP-041 (P2, minimumReleaseAge guard) minted from session 49 (Fable Mode v2 gap analysis + security patch fallout). WP-037, WP-038 minted as P0 and pulled into Sprint 35 in the same edit (verification discipline arc: generated verification rule + doctor check/fixer + premature-victory eval scenario); scope + DoD live in the sprint plan.
 - **2026-07-07:** Sprint 35 closed. WP-037, WP-038 done (v1.13.0). Review: 0 Critical, 2 Important (dead scenario `runs` field now honored; landing-page scenario count) fixed in-sprint.
+- **2026-07-07:** WP-043..WP-051 minted from the 4-agent memory deep review (core+algorithms, CLI UX, dashboard TUI, competitive landscape) — see docs/reviews/2026-07-07-memory-review.md. P0: WP-043 (CLI exits 0 on failure/crash), WP-044 (decay compounds per session, 37% over-decay verified). P1: WP-045 (dead sqlite-vec native dep), WP-046 (global content_hash), WP-047 (promised secret detection missing), WP-048 (dashboard find-then-act broken). P2: WP-049, WP-050, WP-051 (strategy arc: auto-capture, local embeddings, plugin distribution).
