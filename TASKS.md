@@ -45,12 +45,11 @@
 <!-- EMPTY. Pull WPs from BACKLOG.md when ready. Format: `- [ ] WP-NNN — short title` -->
 
 ## Release Plan
-- **v1.13.0** ready to publish — Sprint 35 (verification discipline: generated verification.md rule + doctor check/fixer + premature-victory eval scenario; security patch 35→0 vulns). Maintainer publishes after local validation.
-- **v1.10.0** ✅ shipped — Sprint 31 workflow discipline (wastd-style WP template + path-scoped workflow rule + staleness hook + memory dedup fix)
-- **v1.12.0** ready to publish — Sprint 34 (enforcement layer actually enforces; doctor migrates shipped projects). Maintainer publishes after local validation.
-- **v1.11.0** ready to publish — Sprint 33 (the 5/5 arc: sandbox scoping, canary CI, eval behavior checks, semantic doctor checks, memory sync). Maintainer publishes after local validation.
-- **v1.10.1** ✅ shipped — Sprint 32 hook stdin input bug (P0 fix: hooks now read JSON from stdin via jq, not non-existent `$TOOL_INPUT_*` env vars; new `hooks.md` rule prevents recurrence)
+- **v1.13.0** ready to publish — Sprint 35 (verification discipline + security patch 35→0 vulns). Gate: fix WP-036 (regression suite red on dev Mac) before validating.
+- **v1.12.0** ✅ shipped 2026-07-02 (npm latest + GitHub release) — Sprints 33+34 combined. v1.11.0 was never published; its number was skipped and its code shipped inside 1.12.0.
+- **v1.10.1** ✅ shipped — Sprint 32 hook stdin input bug. **v1.10.0** ✅ shipped — Sprint 31 workflow discipline.
 - **v2.0.0** not scheduled. Reserved for the doctor plan/apply rewrite if/when we commit to it.
+- Rule going forward: a release line only says "shipped" or "ready"; verify against `npm view claude-launchpad dist-tags` before trusting this section.
 
 ## Session Log
 ### 2026-07-07 (session 49)
