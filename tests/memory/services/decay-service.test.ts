@@ -233,3 +233,23 @@ describe('DecayService', () => {
     });
   });
 });
+
+describe('decay idempotency (WP-044)', () => {
+  it('running decayAll ten times yields the same importance as running it once', () => {
+    const { db, memoryRepo, decayService } = setup();
+    const m = memoryRepo.create({
+      type: 'semantic', content: 'aged memory', tags: [], importance: 0.8, source: 'manual',
+    }, null);
+    const old = daysAgo(30);
+    db.prepare('UPDATE memories SET created_at = ?, updated_at = ? WHERE id = ?').run(old, old, m.id);
+
+    decayService.decayAll();
+    const afterOne = memoryRepo.getById(m.id)!.importance;
+    for (let i = 0; i < 10; i++) decayService.decayAll();
+    const afterMany = memoryRepo.getById(m.id)!.importance;
+
+    expect(afterOne).toBeLessThan(0.8);
+    expect(afterMany).toBeCloseTo(afterOne, 6);
+  });
+
+});

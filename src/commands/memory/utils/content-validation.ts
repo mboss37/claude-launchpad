@@ -11,12 +11,32 @@ export const SOFT_LENGTH_LIMIT = 1200;
 export const VERY_LONG_LENGTH_LIMIT = 2500;
 const CODE_RATIO_THRESHOLD = 0.5;
 
+
+// Key-shaped content must never reach the DB — memories sync to GitHub Gists.
+const SECRET_PATTERNS: readonly RegExp[] = [
+  /sk-[A-Za-z0-9_-]{16,}/,                     // OpenAI/Anthropic-style API keys
+  /AKIA[0-9A-Z]{16}/,                          // AWS access key id
+  /-----BEGIN [A-Z ]*PRIVATE KEY-----/,        // PEM private keys
+  /ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}/, // GitHub tokens
+  /xox[baprs]-[A-Za-z0-9-]{10,}/,              // Slack tokens
+  /AIza[0-9A-Za-z_-]{30,}/,                    // Google API keys
+  /(?:password|passwd|secret|token)\s*[=:]\s*[^\s'"]{8,}/i, // literal assignments
+];
+
+export function containsSecret(content: string): boolean {
+  return SECRET_PATTERNS.some((p) => p.test(content));
+}
+
 /**
  * Validate memory content before storage.
  * Rejects only junk (git log, code-heavy). Length is warned, never rejected.
  */
 export function validateMemoryContent(content: string): ValidationResult {
   const warnings: string[] = [];
+
+  if (containsSecret(content)) {
+    return { valid: false, reason: 'Content looks like it contains a secret (API key, token, password, or private key). Memories sync to GitHub Gists — never store credentials.', warnings: [] };
+  }
 
   if (isGitLog(content)) {
     return { valid: false, reason: 'Content looks like raw git log output. Use git log directly — don\'t store it as memory.', warnings: [] };

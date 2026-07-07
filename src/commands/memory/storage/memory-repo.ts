@@ -33,6 +33,7 @@ interface MemoryRow {
   project: string | null;
   tags: string;
   importance: number;
+  base_importance: number | null;
   created_at: string;
   updated_at: string;
   access_count: number;
@@ -52,6 +53,7 @@ function rowToMemory(row: MemoryRow): Memory {
     project: row.project,
     tags: safeParseTags(row.tags),
     importance: row.importance,
+    baseImportance: row.base_importance ?? row.importance,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     accessCount: row.access_count,
@@ -70,8 +72,8 @@ export class MemoryRepo {
     this.db = db;
     this.#stmts = {
       insert: db.prepare(`
-        INSERT OR IGNORE INTO memories (id, type, title, content, context, source, project, tags, importance, created_at, updated_at, embedding, content_hash)
-        VALUES (@id, @type, @title, @content, @context, @source, @project, @tags, @importance, @createdAt, @updatedAt, @embedding, @contentHash)
+        INSERT OR IGNORE INTO memories (id, type, title, content, context, source, project, tags, importance, base_importance, created_at, updated_at, embedding, content_hash)
+        VALUES (@id, @type, @title, @content, @context, @source, @project, @tags, @importance, @importance, @createdAt, @updatedAt, @embedding, @contentHash)
       `),
       getById: db.prepare('SELECT * FROM memories WHERE id = ?'),
       getAll: db.prepare('SELECT * FROM memories ORDER BY created_at DESC'),
@@ -84,11 +86,11 @@ export class MemoryRepo {
       update: db.prepare(`
         UPDATE memories
         SET title = @title, content = @content, context = @context, tags = @tags,
-            importance = @importance, updated_at = @updatedAt, embedding = @embedding,
+            importance = @importance, base_importance = @importance, updated_at = @updatedAt, embedding = @embedding,
             content_hash = @contentHash
         WHERE id = @id
       `),
-      updateImportance: db.prepare('UPDATE memories SET importance = ?, updated_at = ? WHERE id = ?'),
+      updateImportance: db.prepare('UPDATE memories SET importance = @imp, base_importance = @imp, updated_at = @updatedAt WHERE id = @id'),
       updateImportanceOnly: db.prepare('UPDATE memories SET importance = ? WHERE id = ?'),
       incrementAccess: db.prepare(`
         UPDATE memories SET access_count = access_count + 1, last_accessed = ? WHERE id = ?
@@ -96,7 +98,7 @@ export class MemoryRepo {
       incrementInjection: db.prepare(`
         UPDATE memories SET injection_count = injection_count + 1 WHERE id = ?
       `),
-      softDelete: db.prepare('UPDATE memories SET importance = 0, updated_at = ? WHERE id = ?'),
+      softDelete: db.prepare('UPDATE memories SET importance = 0, base_importance = 0, updated_at = ? WHERE id = ?'),
       hardDelete: db.prepare('DELETE FROM memories WHERE id = ?'),
       deleteByType: db.prepare('DELETE FROM memories WHERE type = ?'),
       deleteByProject: db.prepare('DELETE FROM memories WHERE project = ?'),
@@ -111,16 +113,16 @@ export class MemoryRepo {
       `),
       insertSync: db.prepare(`
         INSERT OR IGNORE INTO memories
-          (id, type, title, content, context, source, project, tags, importance,
+          (id, type, title, content, context, source, project, tags, importance, base_importance,
            access_count, injection_count, created_at, updated_at, last_accessed, embedding, content_hash)
-        VALUES (@id, @type, @title, @content, @context, @source, @project, @tags, @importance,
+        VALUES (@id, @type, @title, @content, @context, @source, @project, @tags, @importance, @importance,
                 @accessCount, @injectionCount, @createdAt, @updatedAt, @lastAccessed, NULL, @contentHash)
       `),
       updateSync: db.prepare(`
         UPDATE memories SET
           title = @title, content = @content, context = @context,
           source = @source, project = @project, tags = @tags,
-          importance = @importance, access_count = @accessCount,
+          importance = @importance, base_importance = @importance, access_count = @accessCount,
           injection_count = @injectionCount, updated_at = @updatedAt,
           last_accessed = @lastAccessed, content_hash = @contentHash
         WHERE id = @id
@@ -181,6 +183,7 @@ export class MemoryRepo {
       project: input.project ?? null,
       tags: JSON.stringify(input.tags),
       importance: input.importance,
+      base_importance: input.importance,
       created_at: now,
       updated_at: now,
       access_count: 0,
@@ -259,7 +262,7 @@ export class MemoryRepo {
 
   updateImportance(id: string, importance: number): boolean {
     const now = new Date().toISOString();
-    const result = this.#stmts.updateImportance.run(importance, now, id);
+    const result = this.#stmts.updateImportance.run({ imp: importance, updatedAt: now, id });
     return result.changes > 0;
   }
 
@@ -368,7 +371,7 @@ export class MemoryRepo {
     return rows.map(r => ({ id: r.id, title: r.title, injectionCount: r.injection_count }));
   }
 
-  upsertFromSync(row: SyncMemoryRow): void {
+  upsertFromSync(row: SyncMemoryRow): boolean {
     const params = {
       id: row.id,
       type: row.type,
@@ -389,10 +392,10 @@ export class MemoryRepo {
 
     const existing = this.getById(row.id);
     if (existing) {
-      this.#stmts.updateSync.run(params);
-    } else {
-      this.#stmts.insertSync.run(params);
+      return this.#stmts.updateSync.run(params).changes > 0;
     }
+    // INSERT OR IGNORE: a per-project content_hash collision changes 0 rows.
+    return this.#stmts.insertSync.run(params).changes > 0;
   }
 
   getAllForSync(project?: string): readonly Memory[] {

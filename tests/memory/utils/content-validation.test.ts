@@ -123,3 +123,34 @@ describe('isGitLog', () => {
     expect(isGitLog('The commit message should follow conventional format.')).toBe(false);
   });
 });
+
+describe('secret detection (WP-047)', () => {
+  const secrets = [
+    ['OpenAI-style key', 'The key is sk-proj-Ab12Cd34Ef56Gh78Ij90KlMnOpQrStUv'],
+    ['AWS access key', 'Use AKIAIOSFODNN7EXAMPLE for the S3 bucket'],
+    ['private key block', '-----BEGIN RSA PRIVATE KEY-----\nMIIEow...'],
+    ['GitHub PAT', 'Auth with ghp_16C7e42F292c6912E7710c838347Ae178B4a'],
+    ['password assignment', 'Login with password=hunter2secret'],
+    ['slack token', 'Post via xoxb-1234567890-abcdefghijklmnop'],
+  ] as const;
+
+  for (const [label, content] of secrets) {
+    it(`rejects ${label}`, () => {
+      const result = validateMemoryContent(content);
+      expect(result.valid).toBe(false);
+      expect(result.reason).toMatch(/secret|credential|key|token/i);
+    });
+  }
+
+  const safe = [
+    ['prose about passwords', 'The password field is required and validated at the API boundary'],
+    ['token-based auth design', 'We chose token-based auth over sessions because the API is stateless'],
+    ['sk mention in prose', 'The sk- prefix convention identifies OpenAI keys; never store them'],
+  ] as const;
+
+  for (const [label, content] of safe) {
+    it(`accepts ${label}`, () => {
+      expect(validateMemoryContent(content).valid).toBe(true);
+    });
+  }
+});

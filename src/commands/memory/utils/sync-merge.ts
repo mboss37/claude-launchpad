@@ -71,11 +71,9 @@ export function mergeFromRemote(
 
     const local = memoryRepo.getById(remote.id);
     if (!local) {
-      memoryRepo.upsertFromSync(remote);
-      inserted++;
+      if (memoryRepo.upsertFromSync(remote)) inserted++;
     } else if (remote.updated_at > local.updatedAt) {
-      memoryRepo.upsertFromSync(remote);
-      updated++;
+      if (memoryRepo.upsertFromSync(remote)) updated++;
     }
   }
 

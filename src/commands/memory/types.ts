@@ -41,6 +41,7 @@ export interface Memory {
   readonly project: string | null;
   readonly tags: readonly string[];
   readonly importance: number;
+  readonly baseImportance: number;
   readonly createdAt: string;
   readonly updatedAt: string;
   readonly accessCount: number;

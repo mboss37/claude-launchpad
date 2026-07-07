@@ -299,3 +299,23 @@ describe('MemoryRepo', () => {
     });
   });
 });
+
+describe('content_hash scoped per project (WP-046)', () => {
+  it('stores identical content in two different projects', () => {
+    const db = createTestDb();
+    const repo = new MemoryRepo(db);
+    const input = { type: 'semantic' as const, content: 'use pnpm not npm', tags: [], importance: 0.5, source: 'manual' as const };
+    const a = repo.create({ ...input, project: 'project-a' }, null);
+    const b = repo.create({ ...input, project: 'project-b' }, null);
+    expect(a).not.toBeNull();
+    expect(b).not.toBeNull();
+  });
+
+  it('still dedupes identical content within the same project', () => {
+    const db = createTestDb();
+    const repo = new MemoryRepo(db);
+    const input = { type: 'semantic' as const, content: 'dedupe me please', tags: [], importance: 0.5, source: 'manual' as const, project: 'same-proj' };
+    expect(repo.create(input, null)).not.toBeNull();
+    expect(repo.create(input, null)).toBeNull();
+  });
+});

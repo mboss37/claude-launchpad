@@ -3,6 +3,8 @@ import * as migration001 from './migrations/001-initial.js';
 import * as migration002 from './migrations/002-add-project.js';
 import * as migration003 from './migrations/003-add-content-hash.js';
 import * as migration004 from './migrations/004-add-tombstones.js';
+import * as migration005 from './migrations/005-add-base-importance.js';
+import * as migration006 from './migrations/006-content-hash-per-project.js';
 
 interface Migration {
   readonly version: number;
@@ -14,6 +16,8 @@ const migrations: readonly Migration[] = [
   migration002,
   migration003,
   migration004,
+  migration005,
+  migration006,
 ];
 
 export function getSchemaVersion(db: Database.Database): number {

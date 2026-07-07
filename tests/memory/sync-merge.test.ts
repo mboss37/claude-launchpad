@@ -354,3 +354,18 @@ describe('sync-merge', () => {
     });
   });
 });
+
+describe('honest sync counts (WP-046)', () => {
+  it('does not count a hash-collision drop as inserted', () => {
+    const db = createTestDb();
+    const memoryRepo = new MemoryRepo(db);
+    const relationRepo = new RelationRepo(db);
+    memoryRepo.create({ type: 'semantic', content: 'shared insight text', tags: [], importance: 0.5, source: 'manual', project: 'proj-x' }, null);
+
+    const remote = makePayload([
+      makeSyncMemory({ id: 'remote-different-id', content: 'shared insight text', project: 'proj-x' }),
+    ]);
+    const result = mergeFromRemote(memoryRepo, relationRepo, remote);
+    expect(result.inserted).toBe(0);
+  });
+});

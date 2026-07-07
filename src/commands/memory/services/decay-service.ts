@@ -95,19 +95,19 @@ export class DecayService {
    */
   computeDecayedImportance(memory: Memory): number {
     const tau = this.#params.tauByType[memory.type];
-    if (tau === 0) return memory.importance;
+    if (tau === 0) return memory.baseImportance;
 
     const ageDays = (Date.now() - new Date(memory.createdAt).getTime()) / (1000 * 60 * 60 * 24);
-    if (ageDays < 0) return memory.importance;
+    if (ageDays < 0) return memory.baseImportance;
 
     // Synaptic consolidation window (days 0-7)
     if (ageDays <= 7) {
       if (memory.type === 'episodic') {
         // Ebbinghaus curve: steep initial drop with residual floor
         const ebbinghaus = Math.exp(-ageDays * 0.7) + 0.2;
-        return Math.max(this.#params.importanceFloor, memory.importance * Math.min(1, ebbinghaus));
+        return Math.max(this.#params.importanceFloor, memory.baseImportance * Math.min(1, ebbinghaus));
       }
-      return memory.importance;
+      return memory.baseImportance;
     }
 
     // Access modifier: logarithmic curve (spacing effect)
@@ -130,7 +130,7 @@ export class DecayService {
     }
 
     const decayFactor = Math.exp(-(ageDays - 7) / effectiveTau);
-    const newImportance = memory.importance * decayFactor;
+    const newImportance = memory.baseImportance * decayFactor;
 
     return Math.max(this.#params.importanceFloor, newImportance);
   }
