@@ -27,6 +27,7 @@
   2. Update CHANGELOG.md (format: `## [x.y.z] — YYYY-MM-DD` with Added/Changed/Fixed/Removed)
   3. Commit, push, then `pnpm publish:release`
   4. Create git tag + GitHub release: `git tag v<version> && git push origin v<version> && gh release create v<version>`
+  5. Flip the version's TASKS.md Release Plan line to `✅ shipped YYYY-MM-DD` and commit — the publish is not done until the plan matches npm
 - Docs-only / non-src changes: commit normally, no version bump, no publish
 
 ## Pre-Commit Checklist

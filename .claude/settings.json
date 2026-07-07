@@ -101,6 +101,15 @@
             "command": "bash .claude/hooks/sprint-size-check.sh TASKS.md 2>/dev/null; exit 0"
           }
         ]
+      },
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/release-state-check.sh 2>/dev/null; exit 0"
+          }
+        ]
       }
     ],
     "SessionEnd": [

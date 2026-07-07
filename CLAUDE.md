@@ -13,6 +13,7 @@ CLI toolkit that makes Claude Code setups measurably good — diagnose, scaffold
 ## Session Start
 - ALWAYS read @TASKS.md first — it tracks progress across sessions
 - Update TASKS.md as you complete work. Between sprints, `## Current Sprint` must be empty
+- TASKS.md/BACKLOG.md record intent, not world state. Before acting on any external fact they mention (npm publish state, CI status, open vulns), verify at the source (`npm view claude-launchpad dist-tags`, `gh`, `pnpm audit`) — the SessionStart release-state hook injects the npm truth automatically
 
 ## Backlog
 - See `.claude/rules/workflow.md` for the BACKLOG/TASKS lifecycle (path-scoped; auto-loads on edit)
@@ -109,7 +110,7 @@ This replaces the older "spawn an Explore agent" pattern. Both produce code revi
 ## Release Checklist
 **NEVER bump version on every commit.** Use the dev/release publish workflow:
 - **During dev**: commit freely, no version bump. When ready to test: `pnpm publish:dev` (publishes under `dev` tag, not `latest`)
-- **For release**: bump version in package.json + src/cli.ts, update CHANGELOG.md, commit, push, `pnpm publish:release`, then `git tag v<version> && git push origin v<version> && gh release create v<version>`
+- **For release**: bump version in package.json + src/cli.ts, update CHANGELOG.md, commit, push, `pnpm publish:release`, then `git tag v<version> && git push origin v<version> && gh release create v<version>`, then flip the TASKS.md Release Plan line to `✅ shipped YYYY-MM-DD` and commit — a publish without that edit is unfinished
 - **Non-src changes** (docs, TASKS.md): commit normally, no publish
 - See `.claude/rules/conventions.md` for full details
 
