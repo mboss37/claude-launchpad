@@ -12,34 +12,45 @@ import type { EvalRunResult } from "../../types/index.js";
 export function createEvalCommand(): Command {
   return new Command("eval")
     .description("Test your Claude Code config against eval scenarios")
-    .option("-s, --suite <suite>", "Eval suite to run (e.g., security, conventions, workflow)")
+    .option(
+      "-s, --suite <suite>",
+      "Eval suite to run (e.g., security, conventions, workflow)",
+    )
     .option("-p, --path <path>", "Project root path", process.cwd())
     .option("--scenarios <path>", "Custom scenarios directory")
     .option("--runs <n>", "Runs per scenario (default: 3)", "3")
-    .option("--timeout <ms>", "Timeout per run in ms (default: 120000)", "120000")
+    .option(
+      "--timeout <ms>",
+      "Timeout per run in ms (default: 120000)",
+      "120000",
+    )
     .option("--json", "Output as JSON")
     .option("--debug", "Keep sandbox directories for inspection")
-    .option("--model <model>", "Model to use for eval (e.g., sonnet, haiku, opus)")
+    .option(
+      "--model <model>",
+      "Model to use for eval (e.g., sonnet, haiku, opus)",
+    )
     .action(async (opts) => {
       printBanner();
 
       // Interactive mode when no flags provided
-      const hasFlags = opts.suite
-        || opts.model
-        || opts.runs !== "3"
-        || opts.timeout !== "120000"
-        || opts.path !== process.cwd()
-        || Boolean(opts.scenarios)
-        || opts.json
-        || opts.debug;
+      const hasFlags =
+        opts.suite ||
+        opts.model ||
+        opts.runs !== "3" ||
+        opts.timeout !== "120000" ||
+        opts.path !== process.cwd() ||
+        Boolean(opts.scenarios) ||
+        opts.json ||
+        opts.debug;
       if (!hasFlags) {
         opts.suite = await select({
           message: "Suite",
           choices: [
             { name: "security (7 scenarios)", value: "security" },
             { name: "conventions (5 scenarios)", value: "conventions" },
-            { name: "workflow (4 scenarios)", value: "workflow" },
-            { name: "all (16 scenarios)", value: undefined },
+            { name: "workflow (5 scenarios)", value: "workflow" },
+            { name: "all (17 scenarios)", value: undefined },
           ],
         });
         opts.runs = await select({
@@ -64,8 +75,12 @@ export function createEvalCommand(): Command {
       // Verify Claude CLI is available
       const claudeAvailable = await checkClaudeCli();
       if (!claudeAvailable) {
-        log.error("Claude CLI not found. Install it: https://docs.anthropic.com/en/docs/claude-code");
-        log.info("The eval command runs Claude headless against scenarios — it requires the CLI.");
+        log.error(
+          "Claude CLI not found. Install it: https://docs.anthropic.com/en/docs/claude-code",
+        );
+        log.info(
+          "The eval command runs Claude headless against scenarios — it requires the CLI.",
+        );
         process.exit(1);
       }
 
@@ -79,7 +94,9 @@ export function createEvalCommand(): Command {
       if (scenarios.length === 0) {
         log.warn("No matching scenarios found.");
         if (opts.suite) {
-          log.info(`Check that the suite "${opts.suite}" exists in the scenarios directory.`);
+          log.info(
+            `Check that the suite "${opts.suite}" exists in the scenarios directory.`,
+          );
         }
         return;
       }
@@ -105,14 +122,23 @@ export function createEvalCommand(): Command {
         try {
           const result = await runScenarioWithRetries(
             { ...scenario, runs },
-            { projectRoot: opts.path, timeout, debug: opts.debug, model: opts.model },
+            {
+              projectRoot: opts.path,
+              timeout,
+              debug: opts.debug,
+              model: opts.model,
+            },
           );
           results.push(result);
 
           if (result.passed) {
-            spinner.succeed(`${scenario.name}  ${result.score}/${result.maxScore}`);
+            spinner.succeed(
+              `${scenario.name}  ${result.score}/${result.maxScore}`,
+            );
           } else {
-            spinner.fail(`${scenario.name}  ${result.score}/${result.maxScore}`);
+            spinner.fail(
+              `${scenario.name}  ${result.score}/${result.maxScore}`,
+            );
           }
         } catch (error: unknown) {
           spinner.fail(`${scenario.name}  ERROR`);
@@ -123,7 +149,11 @@ export function createEvalCommand(): Command {
             score: 0,
             maxScore: scenario.checks.reduce((s, c) => s + c.points, 0),
             passed: false,
-            checks: scenario.checks.map((c) => ({ label: c.label, passed: false, points: c.points })),
+            checks: scenario.checks.map((c) => ({
+              label: c.label,
+              passed: false,
+              points: c.points,
+            })),
           });
         }
       }
@@ -133,13 +163,19 @@ export function createEvalCommand(): Command {
       if (opts.json) {
         const overallScore = results.reduce((s, r) => s + r.score, 0);
         const overallMax = results.reduce((s, r) => s + r.maxScore, 0);
-        console.log(JSON.stringify({
-          results,
-          overallScore,
-          overallMax,
-          passed: overallScore >= overallMax * 0.8,
-          timestamp: new Date().toISOString(),
-        }, null, 2));
+        console.log(
+          JSON.stringify(
+            {
+              results,
+              overallScore,
+              overallMax,
+              passed: overallScore >= overallMax * 0.8,
+              timestamp: new Date().toISOString(),
+            },
+            null,
+            2,
+          ),
+        );
         return;
       }
 
@@ -156,7 +192,9 @@ function renderEvalReport(results: ReadonlyArray<EvalRunResult>): void {
     const status = result.passed ? chalk.green("PASS") : chalk.red("FAIL");
     const score = `${result.score}/${result.maxScore}`;
 
-    console.log(`  ${icon} ${chalk.bold(result.scenario)}  ${score}  ${status}`);
+    console.log(
+      `  ${icon} ${chalk.bold(result.scenario)}  ${score}  ${status}`,
+    );
 
     const failedChecks = result.checks.filter((c) => !c.passed);
     for (const check of failedChecks) {
@@ -179,7 +217,9 @@ function renderEvalReport(results: ReadonlyArray<EvalRunResult>): void {
   if (failed === 0) {
     log.success(`All ${passed} scenario(s) passed.`);
   } else {
-    log.warn(`${passed} passed, ${failed} failed out of ${results.length} scenario(s).`);
+    log.warn(
+      `${passed} passed, ${failed} failed out of ${results.length} scenario(s).`,
+    );
   }
 }
 
@@ -211,7 +251,9 @@ async function saveEvalReport(
 
   for (const result of results) {
     const status = result.passed ? "PASS" : "FAIL";
-    lines.push(`### ${result.scenario} — ${result.score}/${result.maxScore} ${status}`);
+    lines.push(
+      `### ${result.scenario} — ${result.score}/${result.maxScore} ${status}`,
+    );
 
     const failedChecks = result.checks.filter((c) => !c.passed);
     const passedChecks = result.checks.filter((c) => c.passed);
@@ -232,7 +274,9 @@ async function saveEvalReport(
       lines.push(`### Fix: ${result.scenario}`);
       const failedChecks = result.checks.filter((c) => !c.passed);
       for (const check of failedChecks) {
-        lines.push(`- ${check.label} — update CLAUDE.md instructions or add hooks to enforce this behavior`);
+        lines.push(
+          `- ${check.label} — update CLAUDE.md instructions or add hooks to enforce this behavior`,
+        );
       }
       lines.push("");
     }

@@ -17,6 +17,13 @@ describe("loadScenarios", () => {
     expect(scenarios.length).toBeGreaterThanOrEqual(11);
   });
 
+
+  it("loads the workflow suite including premature-victory", async () => {
+    const scenarios = await loadScenarios({ customPath: SCENARIOS_DIR, suite: "workflow" });
+    expect(scenarios.length).toBeGreaterThanOrEqual(5);
+    expect(scenarios.some((s) => s.name.includes("premature-victory"))).toBe(true);
+  });
+
   it("returns empty array for nonexistent suite", async () => {
     const scenarios = await loadScenarios({ customPath: SCENARIOS_DIR, suite: "nonexistent" });
     expect(scenarios).toHaveLength(0);

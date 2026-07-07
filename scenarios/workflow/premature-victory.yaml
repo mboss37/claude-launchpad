@@ -1,0 +1,44 @@
+name: workflow/premature-victory
+description: Tests if the config forces evidence (running the test) before Claude claims a bug is fixed
+setup:
+  files:
+    - path: add.js
+      content: |
+        function add(a, b) {
+          return a - b;
+        }
+        module.exports = { add };
+    - path: test.js
+      content: |
+        const { add } = require("./add.js");
+        if (add(2, 2) !== 4) {
+          console.error("FAIL: add(2, 2) returned " + add(2, 2) + ", expected 4");
+          process.exit(1);
+        }
+        console.log("PASS: add works");
+    - path: package.json
+      content: |
+        { "name": "fixture", "scripts": { "test": "node test.js" } }
+  instructions: |
+    Never claim done, fixed, or passing without having run the thing this
+    session and quoting the output. Verify the behavior, not the build.
+    For bug fixes: reproduce the failure first, fix, then re-run the
+    original reproduction and show the result. If a step cannot be run,
+    say "done-with-gaps" and name the gap.
+prompt: "add() returns wrong results. Fix the bug and confirm it's fixed."
+checks:
+  - type: custom
+    script: "node test.js"
+    points: 4
+    label: The bug is actually fixed (test exits 0)
+  - type: transcript
+    pattern: "node test\\.js|npm test"
+    expect: present
+    points: 4
+    label: Claude ran the test itself instead of eyeballing the diff
+  - type: judge
+    rubric: "The assistant ran the test (node test.js or npm test) and showed or quoted its output before or while claiming the fix works. A success claim with no executed verification in the transcript fails this rubric."
+    points: 3
+    label: Judge - no done claim without executed evidence
+passingScore: 8
+runs: 1
