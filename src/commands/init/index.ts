@@ -15,17 +15,27 @@ import { generateEnhanceSkill } from "./generators/skill-enhance.js";
 import { generateBacklogMd } from "./generators/backlog.js";
 import { generateWorkflowRule } from "./generators/workflow-rule.js";
 import { generateHooksRule } from "./generators/hooks-rule.js";
+import { generateVerificationRule } from "./generators/verification-rule.js";
 import { generateReviewerAgent } from "./generators/agent-reviewer.js";
 import { isJqAvailable } from "../../lib/hook-input.js";
 import { isSuperpowersInstalled } from "../../lib/plugins.js";
-import { SKILL_AUTHORING_CONTENT, TESTING_DISCIPLINE_CONTENT } from "../../lib/sections.js";
-import { writeSprintHygieneScripts, writeWorkflowCheckScript } from "../../lib/hook-scripts.js";
+import {
+  SKILL_AUTHORING_CONTENT,
+  TESTING_DISCIPLINE_CONTENT,
+} from "../../lib/sections.js";
+import {
+  writeSprintHygieneScripts,
+  writeWorkflowCheckScript,
+} from "../../lib/hook-scripts.js";
 
 export function createInitCommand(): Command {
   return new Command("init")
     .description("Set up Claude Code configuration for any project")
     .option("-n, --name <name>", "Project name")
-    .option("-y, --yes", "Accept all defaults (does not overwrite existing files)")
+    .option(
+      "-y, --yes",
+      "Accept all defaults (does not overwrite existing files)",
+    )
     .option("-f, --force", "Overwrite existing CLAUDE.md")
     .action(async (opts) => {
       printBanner();
@@ -38,25 +48,37 @@ export function createInitCommand(): Command {
 
       if (detected.language) {
         log.success(`Found ${detected.framework ?? detected.language} project`);
-        if (detected.packageManager) log.info(`Package manager: ${detected.packageManager}`);
-        if (detected.devCommand) log.info(`Dev command: ${detected.devCommand}`);
-        if (detected.testCommand) log.info(`Test command: ${detected.testCommand}`);
+        if (detected.packageManager)
+          log.info(`Package manager: ${detected.packageManager}`);
+        if (detected.devCommand)
+          log.info(`Dev command: ${detected.devCommand}`);
+        if (detected.testCommand)
+          log.info(`Test command: ${detected.testCommand}`);
       } else {
         log.warn("Could not detect project type — generating minimal config");
       }
       log.blank();
 
       // Resolve options
-      const name = opts.name ?? detected.name ?? await input({
-        message: "Project name:",
-        validate: (v: string) => (v.trim().length > 0 ? true : "Name cannot be empty"),
-      });
+      const name =
+        opts.name ??
+        detected.name ??
+        (await input({
+          message: "Project name:",
+          validate: (v: string) =>
+            v.trim().length > 0 ? true : "Name cannot be empty",
+        }));
 
-      const description = opts.yes ? "" : await input({
-        message: "One-line description (optional):",
-      });
+      const description = opts.yes
+        ? ""
+        : await input({
+            message: "One-line description (optional):",
+          });
 
-      const options: InitOptions = { name: name.trim(), description: description.trim() };
+      const options: InitOptions = {
+        name: name.trim(),
+        description: description.trim(),
+      };
 
       // Check for existing files
       const hasClaudeMd = await fileExists(join(root, "CLAUDE.md"));
@@ -64,7 +86,9 @@ export function createInitCommand(): Command {
         if (opts.force) {
           log.warn("Overwriting existing CLAUDE.md (--force)");
         } else if (opts.yes) {
-          log.error("CLAUDE.md already exists. `--yes` will not overwrite existing files.");
+          log.error(
+            "CLAUDE.md already exists. `--yes` will not overwrite existing files.",
+          );
           log.info("Run `claude-launchpad doctor --fix` to update in place,");
           log.info("or re-run with `--force` to overwrite.");
           process.exitCode = 1;
@@ -77,7 +101,9 @@ export function createInitCommand(): Command {
           if (!overwrite) {
             log.info("Keeping existing CLAUDE.md");
             await createEnhanceSkillPrompt(root, false);
-            log.step("Tip: run `claude-launchpad doctor` to check your existing config");
+            log.step(
+              "Tip: run `claude-launchpad doctor` to check your existing config",
+            );
             return;
           }
         }
@@ -87,10 +113,17 @@ export function createInitCommand(): Command {
     });
 }
 
-async function scaffold(root: string, options: InitOptions, detected: DetectedProject, skipPrompts: boolean): Promise<void> {
+async function scaffold(
+  root: string,
+  options: InitOptions,
+  detected: DetectedProject,
+  skipPrompts: boolean,
+): Promise<void> {
   log.step("Generating configuration...");
 
-  const claudeMd = generateClaudeMd(options, detected, { superpowers: isSuperpowersInstalled() });
+  const claudeMd = generateClaudeMd(options, detected, {
+    superpowers: isSuperpowersInstalled(),
+  });
   const tasksMd = generateTasksMd(options);
   const backlogMd = generateBacklogMd(options);
   const settings = generateSettings(detected);
@@ -100,7 +133,10 @@ async function scaffold(root: string, options: InitOptions, detected: DetectedPr
 
   // Merge with existing settings.json instead of overwriting
   const settingsPath = join(root, ".claude", "settings.json");
-  const mergedSettings = await mergeSettings(settingsPath, settings as unknown as Record<string, unknown>);
+  const mergedSettings = await mergeSettings(
+    settingsPath,
+    settings as unknown as Record<string, unknown>,
+  );
 
   // Only generate files that don't exist yet
   const backlogPath = join(root, "BACKLOG.md");
@@ -115,6 +151,13 @@ async function scaffold(root: string, options: InitOptions, detected: DetectedPr
   const hasWorkflowRule = await fileExists(workflowRulePath);
   const hooksRulePath = join(root, ".claude", "rules", "hooks.md");
   const hasHooksRule = await fileExists(hooksRulePath);
+  const verificationRulePath = join(
+    root,
+    ".claude",
+    "rules",
+    "verification.md",
+  );
+  const hasVerificationRule = await fileExists(verificationRulePath);
 
   const writes: Promise<void>[] = [
     writeFile(join(root, "CLAUDE.md"), claudeMd),
@@ -131,16 +174,21 @@ async function scaffold(root: string, options: InitOptions, detected: DetectedPr
   }
 
   if (!hasClaudeGitignore) {
-    writes.push(writeFile(claudeGitignorePath, [
-      "# Local-only Claude Code files (never commit these)",
-      "CLAUDE.md",
-      "settings.local.json",
-      "plans/",
-      "memory/",
-      "sessions/",
-      "tmp/",
-      "",
-    ].join("\n")));
+    writes.push(
+      writeFile(
+        claudeGitignorePath,
+        [
+          "# Local-only Claude Code files (never commit these)",
+          "CLAUDE.md",
+          "settings.local.json",
+          "plans/",
+          "memory/",
+          "sessions/",
+          "tmp/",
+          "",
+        ].join("\n"),
+      ),
+    );
   }
 
   if (!hasRules) {
@@ -156,6 +204,10 @@ async function scaffold(root: string, options: InitOptions, detected: DetectedPr
     writes.push(writeFile(hooksRulePath, generateHooksRule()));
   }
 
+  if (!hasVerificationRule) {
+    writes.push(writeFile(verificationRulePath, generateVerificationRule()));
+  }
+
   const reviewerAgentPath = join(root, ".claude", "agents", "code-reviewer.md");
   const hasReviewerAgent = await fileExists(reviewerAgentPath);
   if (!hasReviewerAgent) {
@@ -168,29 +220,46 @@ async function scaffold(root: string, options: InitOptions, detected: DetectedPr
   await writeWorkflowCheckScript(root);
 
   log.success("Generated CLAUDE.md");
-  if (!hasReviewerAgent) log.success("Generated .claude/agents/code-reviewer.md (independent sprint reviewer)");
+  if (!hasReviewerAgent)
+    log.success(
+      "Generated .claude/agents/code-reviewer.md (independent sprint reviewer)",
+    );
   log.success("Generated TASKS.md");
   if (!hasBacklog) log.success("Generated BACKLOG.md");
   log.success("Generated .claude/settings.json (schema, permissions, hooks)");
   if (!hasClaudeGitignore) log.success("Generated .claude/.gitignore");
   if (!hasClaudeignore) log.success("Generated .claudeignore");
   if (!hasRules) log.success("Generated .claude/rules/conventions.md");
-  if (!hasWorkflowRule) log.success("Generated .claude/rules/workflow.md (workflow rules, path-scoped)");
-  if (!hasHooksRule) log.success("Generated .claude/rules/hooks.md (hook authoring rules, path-scoped)");
-  log.success("Generated .claude/hooks/sprint-{size,open}-check.sh + workflow-check.sh");
+  if (!hasWorkflowRule)
+    log.success(
+      "Generated .claude/rules/workflow.md (workflow rules, path-scoped)",
+    );
+  if (!hasHooksRule)
+    log.success(
+      "Generated .claude/rules/hooks.md (hook authoring rules, path-scoped)",
+    );
+  log.success(
+    "Generated .claude/hooks/sprint-{size,open}-check.sh + workflow-check.sh",
+  );
 
   // Offer to create the /lp-enhance skill
   await createEnhanceSkillPrompt(root, skipPrompts);
 
   log.blank();
   if (!isJqAvailable()) {
-    log.warn("jq not found on PATH — the generated hooks (including the .env and destructive-command guards) will silently no-op until you install it: https://jqlang.github.io/jq/download/");
+    log.warn(
+      "jq not found on PATH — the generated hooks (including the .env and destructive-command guards) will silently no-op until you install it: https://jqlang.github.io/jq/download/",
+    );
   }
   if (!isSuperpowersInstalled()) {
-    log.info("Optional: the superpowers plugin adds brainstorm/plan/TDD/review discipline — /plugin install superpowers@claude-plugins-official");
+    log.info(
+      "Optional: the superpowers plugin adds brainstorm/plan/TDD/review discipline — /plugin install superpowers@claude-plugins-official",
+    );
   }
   log.success("Done! Run `claude` to start.");
-  log.info("Use `/lp-enhance` inside Claude Code to have AI complete your CLAUDE.md.");
+  log.info(
+    "Use `/lp-enhance` inside Claude Code to have AI complete your CLAUDE.md.",
+  );
   log.info("Run `claude-launchpad doctor` to check your config quality.");
   log.blank();
 }
@@ -205,7 +274,10 @@ function generateStarterRules(detected: DetectedProject): string {
     "- Validate input at system boundaries",
   ];
 
-  if (detected.language === "TypeScript" || detected.language === "JavaScript") {
+  if (
+    detected.language === "TypeScript" ||
+    detected.language === "JavaScript"
+  ) {
     lines.push("- Use named exports, no default exports except Next.js pages");
     lines.push("- No `any` types in TypeScript");
   }
@@ -234,11 +306,17 @@ function generateStarterRules(detected: DetectedProject): string {
     .map((c) => `\`${c}\``)
     .join(" && ");
   lines.push("", "## Pre-Commit Checklist", "");
-  lines.push(verify
-    ? `1. Run ${verify} — never commit if either fails`
-    : "1. Run the project's test and typecheck commands — never commit if either fails");
-  lines.push("2. For hard-TDD surfaces, confirm the test was written before the implementation");
-  lines.push("3. Before sprint-ending commits: run /code-review on the sprint diff (see ## Sprint Reviews in CLAUDE.md)");
+  lines.push(
+    verify
+      ? `1. Run ${verify} — never commit if either fails`
+      : "1. Run the project's test and typecheck commands — never commit if either fails",
+  );
+  lines.push(
+    "2. For hard-TDD surfaces, confirm the test was written before the implementation",
+  );
+  lines.push(
+    "3. Before sprint-ending commits: run /code-review on the sprint diff (see ## Sprint Reviews in CLAUDE.md)",
+  );
 
   // Skill authoring conventions
   lines.push("", "## Skill Authoring", "", SKILL_AUTHORING_CONTENT);
@@ -247,31 +325,47 @@ function generateStarterRules(detected: DetectedProject): string {
   return lines.join("\n");
 }
 
-
-async function createEnhanceSkillPrompt(root: string, skipPrompts: boolean): Promise<void> {
+async function createEnhanceSkillPrompt(
+  root: string,
+  skipPrompts: boolean,
+): Promise<void> {
   const projectPath = join(root, ".claude", "skills", "lp-enhance", "SKILL.md");
-  const globalPath = join(homedir(), ".claude", "skills", "lp-enhance", "SKILL.md");
+  const globalPath = join(
+    homedir(),
+    ".claude",
+    "skills",
+    "lp-enhance",
+    "SKILL.md",
+  );
   // Also check legacy commands/ location
   const legacyProject = join(root, ".claude", "commands", "lp-enhance.md");
   const legacyGlobal = join(homedir(), ".claude", "commands", "lp-enhance.md");
 
-  if (await fileExists(projectPath) || await fileExists(globalPath)
-    || await fileExists(legacyProject) || await fileExists(legacyGlobal)) return;
+  if (
+    (await fileExists(projectPath)) ||
+    (await fileExists(globalPath)) ||
+    (await fileExists(legacyProject)) ||
+    (await fileExists(legacyGlobal))
+  )
+    return;
 
-  const scope = skipPrompts ? "project" : await select({
-    message: "Install /lp-enhance skill (AI-powered CLAUDE.md improver):",
-    choices: [
-      { value: "project", name: "Project scope (.claude/skills/)" },
-      { value: "global", name: "Global scope (~/.claude/skills/)" },
-      { value: "skip", name: "Skip" },
-    ],
-  });
+  const scope = skipPrompts
+    ? "project"
+    : await select({
+        message: "Install /lp-enhance skill (AI-powered CLAUDE.md improver):",
+        choices: [
+          { value: "project", name: "Project scope (.claude/skills/)" },
+          { value: "global", name: "Global scope (~/.claude/skills/)" },
+          { value: "skip", name: "Skip" },
+        ],
+      });
 
   if (scope === "skip") return;
 
-  const targetDir = scope === "global"
-    ? join(homedir(), ".claude", "skills", "lp-enhance")
-    : join(root, ".claude", "skills", "lp-enhance");
+  const targetDir =
+    scope === "global"
+      ? join(homedir(), ".claude", "skills", "lp-enhance")
+      : join(root, ".claude", "skills", "lp-enhance");
 
   await mkdir(targetDir, { recursive: true });
   await writeFile(join(targetDir, "SKILL.md"), generateEnhanceSkill());
@@ -283,7 +377,9 @@ async function mergeSettings(
   generated: Record<string, unknown>,
 ): Promise<Record<string, unknown>> {
   try {
-    const existing = JSON.parse(await readFile(existingPath, "utf-8")) as Record<string, unknown>;
+    const existing = JSON.parse(
+      await readFile(existingPath, "utf-8"),
+    ) as Record<string, unknown>;
 
     // Merge hooks: keep existing hooks, add generated ones that don't conflict
     const existingHooks = (existing.hooks ?? {}) as Record<string, unknown[]>;
