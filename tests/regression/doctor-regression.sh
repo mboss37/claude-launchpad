@@ -2,13 +2,15 @@
 set -e
 
 BASE="${TMPDIR:-/tmp}/claude-launchpad-regression"
-# Use the globally linked binary if present, otherwise the repo build (run `pnpm build` first)
+# ALWAYS test this repo's build — never a PATH binary. A global install/link
+# silently substituted a stale release for months (13/21 red on the dev Mac
+# while containers passed). `pnpm test:regression` builds first.
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-if command -v claude-launchpad >/dev/null 2>&1; then
-  CLI="claude-launchpad"
-else
-  CLI="node $REPO_ROOT/dist/cli.js"
+if [ ! -f "$REPO_ROOT/dist/cli.js" ]; then
+  echo "dist/cli.js not found — run 'pnpm build' (or use 'pnpm test:regression', which builds first)" >&2
+  exit 1
 fi
+CLI="node $REPO_ROOT/dist/cli.js"
 # Portable md5 (macOS: md5 -q, Linux: md5sum)
 hash_file() { if command -v md5 >/dev/null 2>&1; then md5 -q "$1"; else md5sum "$1" | cut -d' ' -f1; fi; }
 PASS=0
@@ -162,6 +164,7 @@ printf "node_modules\n.env\n" > .claudeignore
 printf "# Conventions\n- real content\n\n## Skill Authoring\n- TRIGGER clauses, allowed-tools, phases\n" > .claude/rules/conventions.md
 printf -- "---\npaths: [\"BACKLOG.md\", \"TASKS.md\"]\n---\n\n<!-- lp-workflow-version: 2 -->\n# Workflow rules\n" > .claude/rules/workflow.md
 printf "# Hook authoring rules\n- read stdin JSON via jq\n" > .claude/rules/hooks.md
+printf -- "# Verification rules\n\n<!-- lp-verification-version: 1 -->\n- evidence before done claims\n" > .claude/rules/verification.md
 # Skill needs current version marker to pass outdated check
 printf -- "---\nname: lp-enhance\n---\n<!-- lp-enhance-version: 10 -->\n# Enhance skill" > .claude/skills/lp-enhance/SKILL.md
 cat > .claude/settings.json <<'EOF'
