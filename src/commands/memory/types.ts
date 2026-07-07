@@ -167,6 +167,7 @@ export interface SyncMemoryRow {
   readonly project: string | null;
   readonly tags: readonly string[];
   readonly importance: number;
+  readonly base_importance?: number;
   readonly access_count: number;
   readonly injection_count: number;
   readonly created_at: string;
@@ -195,6 +196,7 @@ export const SyncPayloadSchema = z.object({
     project: z.string().nullable(),
     tags: z.array(z.string()),
     importance: z.number(),
+    base_importance: z.number().optional(),
     access_count: z.number(),
     injection_count: z.number(),
     created_at: z.string(),

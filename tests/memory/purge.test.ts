@@ -8,9 +8,9 @@ describe('deleteByProject', () => {
     const db = createTestDb();
     const repo = new MemoryRepo(db);
 
-    repo.create({ type: 'semantic', content: 'proj-a memory', tags: [], importance: 0.5, source: 'manual', project: 'proj-a' }, null);
-    repo.create({ type: 'semantic', content: 'proj-a second', tags: [], importance: 0.5, source: 'manual', project: 'proj-a' }, null);
-    repo.create({ type: 'semantic', content: 'proj-b memory', tags: [], importance: 0.5, source: 'manual', project: 'proj-b' }, null);
+    repo.create({ type: 'semantic', content: 'proj-a memory', tags: [], importance: 0.5, source: 'manual', project: 'proj-a' });
+    repo.create({ type: 'semantic', content: 'proj-a second', tags: [], importance: 0.5, source: 'manual', project: 'proj-a' });
+    repo.create({ type: 'semantic', content: 'proj-b memory', tags: [], importance: 0.5, source: 'manual', project: 'proj-b' });
 
     const deleted = repo.deleteByProject('proj-a');
 
@@ -34,9 +34,9 @@ describe('deleteOrphaned', () => {
     const memoryRepo = new MemoryRepo(db);
     const relationRepo = new RelationRepo(db);
 
-    const a = memoryRepo.create({ type: 'semantic', content: 'mem a', tags: [], importance: 0.5, source: 'manual', project: 'proj-a' }, null);
-    const b = memoryRepo.create({ type: 'semantic', content: 'mem b', tags: [], importance: 0.5, source: 'manual', project: 'proj-a' }, null);
-    const c = memoryRepo.create({ type: 'semantic', content: 'mem c', tags: [], importance: 0.5, source: 'manual', project: 'proj-b' }, null);
+    const a = memoryRepo.create({ type: 'semantic', content: 'mem a', tags: [], importance: 0.5, source: 'manual', project: 'proj-a' });
+    const b = memoryRepo.create({ type: 'semantic', content: 'mem b', tags: [], importance: 0.5, source: 'manual', project: 'proj-a' });
+    const c = memoryRepo.create({ type: 'semantic', content: 'mem c', tags: [], importance: 0.5, source: 'manual', project: 'proj-b' });
 
     relationRepo.create(a.id, b.id, 'relates_to');
     relationRepo.create(a.id, c.id, 'depends_on');
@@ -57,9 +57,9 @@ describe('deleteOrphaned', () => {
     const memoryRepo = new MemoryRepo(db);
     const relationRepo = new RelationRepo(db);
 
-    const a = memoryRepo.create({ type: 'semantic', content: 'mem a', tags: [], importance: 0.5, source: 'manual', project: 'proj-a' }, null);
-    const b = memoryRepo.create({ type: 'semantic', content: 'mem b', tags: [], importance: 0.5, source: 'manual', project: 'proj-b' }, null);
-    const c = memoryRepo.create({ type: 'semantic', content: 'mem c', tags: [], importance: 0.5, source: 'manual', project: 'proj-b' }, null);
+    const a = memoryRepo.create({ type: 'semantic', content: 'mem a', tags: [], importance: 0.5, source: 'manual', project: 'proj-a' });
+    const b = memoryRepo.create({ type: 'semantic', content: 'mem b', tags: [], importance: 0.5, source: 'manual', project: 'proj-b' });
+    const c = memoryRepo.create({ type: 'semantic', content: 'mem c', tags: [], importance: 0.5, source: 'manual', project: 'proj-b' });
 
     relationRepo.create(a.id, b.id, 'relates_to');
     relationRepo.create(b.id, c.id, 'extends');

@@ -49,7 +49,7 @@ describe('MemoryRepo', () => {
 
     it('should generate unique IDs', () => {
       const m1 = repo.create(baseInput, null);
-      const m2 = repo.create({ ...baseInput, content: 'Different content' }, null);
+      const m2 = repo.create({ ...baseInput, content: 'Different content' });
       expect(m1.id).not.toBe(m2.id);
     });
   });
@@ -70,9 +70,9 @@ describe('MemoryRepo', () => {
 
   describe('getAll', () => {
     it('should return all memories ordered by created_at DESC', () => {
-      repo.create({ ...baseInput, content: 'First' }, null);
-      repo.create({ ...baseInput, content: 'Second' }, null);
-      repo.create({ ...baseInput, content: 'Third' }, null);
+      repo.create({ ...baseInput, content: 'First' });
+      repo.create({ ...baseInput, content: 'Second' });
+      repo.create({ ...baseInput, content: 'Third' });
 
       const all = repo.getAll();
       expect(all).toHaveLength(3);
@@ -83,9 +83,9 @@ describe('MemoryRepo', () => {
 
   describe('getByType', () => {
     it('should filter by memory type', () => {
-      repo.create({ ...baseInput, type: 'semantic' }, null);
-      repo.create({ ...baseInput, type: 'episodic', content: 'Debugged auth' }, null);
-      repo.create({ ...baseInput, type: 'semantic', content: 'Uses pnpm' }, null);
+      repo.create({ ...baseInput, type: 'semantic' });
+      repo.create({ ...baseInput, type: 'episodic', content: 'Debugged auth' });
+      repo.create({ ...baseInput, type: 'semantic', content: 'Uses pnpm' });
 
       const semantics = repo.getByType('semantic');
       expect(semantics).toHaveLength(2);
@@ -134,13 +134,6 @@ describe('MemoryRepo', () => {
     });
   });
 
-  describe('updateImportance', () => {
-    it('should update importance score', () => {
-      const created = repo.create(baseInput, null);
-      repo.updateImportance(created.id, 0.3);
-      expect(repo.getById(created.id)!.importance).toBe(0.3);
-    });
-  });
 
   describe('incrementAccess / incrementInjection', () => {
     it('should increment access count and set last_accessed', () => {
@@ -189,7 +182,7 @@ describe('MemoryRepo', () => {
     });
 
     it('should write a tombstone when hard-deleting', () => {
-      const created = repo.create({ ...baseInput, project: 'proj-x' }, null);
+      const created = repo.create({ ...baseInput, project: 'proj-x' });
 
       repo.hardDelete(created.id);
       const ts = repo.getTombstone(created.id);
@@ -202,9 +195,9 @@ describe('MemoryRepo', () => {
 
   describe('deleteByType', () => {
     it('should delete all memories of a type', () => {
-      repo.create({ ...baseInput, type: 'working', content: 'temp 1' }, null);
-      repo.create({ ...baseInput, type: 'working', content: 'temp 2' }, null);
-      repo.create({ ...baseInput, type: 'semantic', content: 'keep me' }, null);
+      repo.create({ ...baseInput, type: 'working', content: 'temp 1' });
+      repo.create({ ...baseInput, type: 'working', content: 'temp 2' });
+      repo.create({ ...baseInput, type: 'semantic', content: 'keep me' });
 
       const deleted = repo.deleteByType('working');
       expect(deleted).toBe(2);
@@ -212,9 +205,9 @@ describe('MemoryRepo', () => {
     });
 
     it('should write tombstones for every deleted memory', () => {
-      const a = repo.create({ ...baseInput, type: 'working', content: 'a' }, null);
-      const b = repo.create({ ...baseInput, type: 'working', content: 'b' }, null);
-      repo.create({ ...baseInput, type: 'semantic', content: 'keep me' }, null);
+      const a = repo.create({ ...baseInput, type: 'working', content: 'a' });
+      const b = repo.create({ ...baseInput, type: 'working', content: 'b' });
+      repo.create({ ...baseInput, type: 'semantic', content: 'keep me' });
 
       repo.deleteByType('working');
       expect(repo.getTombstone(a.id)).not.toBeNull();
@@ -225,9 +218,9 @@ describe('MemoryRepo', () => {
 
   describe('deleteByProject', () => {
     it('should write tombstones for every memory in the project', () => {
-      const a = repo.create({ ...baseInput, content: 'a', project: 'doomed' }, null);
-      const b = repo.create({ ...baseInput, content: 'b', project: 'doomed' }, null);
-      const c = repo.create({ ...baseInput, content: 'c', project: 'safe' }, null);
+      const a = repo.create({ ...baseInput, content: 'a', project: 'doomed' });
+      const b = repo.create({ ...baseInput, content: 'b', project: 'doomed' });
+      const c = repo.create({ ...baseInput, content: 'c', project: 'safe' });
 
       const deleted = repo.deleteByProject('doomed');
       expect(deleted).toBe(2);
@@ -245,9 +238,9 @@ describe('MemoryRepo', () => {
     });
 
     it('should count by type', () => {
-      repo.create({ ...baseInput, type: 'semantic' }, null);
-      repo.create({ ...baseInput, type: 'episodic', content: 'event' }, null);
-      repo.create({ ...baseInput, type: 'semantic', content: 'fact' }, null);
+      repo.create({ ...baseInput, type: 'semantic' });
+      repo.create({ ...baseInput, type: 'episodic', content: 'event' });
+      repo.create({ ...baseInput, type: 'semantic', content: 'fact' });
 
       const counts = repo.countByType();
       expect(counts['semantic']).toBe(2);
@@ -282,7 +275,7 @@ describe('MemoryRepo', () => {
 
     it('should reject invalid relation type', () => {
       const m1 = repo.create(baseInput, null);
-      const m2 = repo.create({ ...baseInput, content: 'other' }, null);
+      const m2 = repo.create({ ...baseInput, content: 'other' });
       expect(() => {
         db.prepare(
           "INSERT INTO relations (source_id, target_id, relation_type) VALUES (?, ?, 'invalid')"
@@ -305,8 +298,8 @@ describe('content_hash scoped per project (WP-046)', () => {
     const db = createTestDb();
     const repo = new MemoryRepo(db);
     const input = { type: 'semantic' as const, content: 'use pnpm not npm', tags: [], importance: 0.5, source: 'manual' as const };
-    const a = repo.create({ ...input, project: 'project-a' }, null);
-    const b = repo.create({ ...input, project: 'project-b' }, null);
+    const a = repo.create({ ...input, project: 'project-a' });
+    const b = repo.create({ ...input, project: 'project-b' });
     expect(a).not.toBeNull();
     expect(b).not.toBeNull();
   });
@@ -317,5 +310,26 @@ describe('content_hash scoped per project (WP-046)', () => {
     const input = { type: 'semantic' as const, content: 'dedupe me please', tags: [], importance: 0.5, source: 'manual' as const, project: 'same-proj' };
     expect(repo.create(input, null)).not.toBeNull();
     expect(repo.create(input, null)).toBeNull();
+  });
+});
+
+describe('base_importance anchor discipline (review Important 3)', () => {
+  it('content-only update preserves the base anchor', () => {
+    const db = createTestDb();
+    const repo = new MemoryRepo(db);
+    const m = repo.create({ type: 'semantic', content: 'original text', tags: [], importance: 0.8, source: 'manual' })!;
+    db.prepare('UPDATE memories SET importance = 0.62 WHERE id = ?').run(m.id); // simulate decay
+    repo.updateContent(m.id, { content: "fixed a typo" });
+    expect(repo.getById(m.id)!.baseImportance).toBeCloseTo(0.8, 6);
+  });
+
+  it('explicit importance update re-anchors the base', () => {
+    const db = createTestDb();
+    const repo = new MemoryRepo(db);
+    const m = repo.create({ type: 'semantic', content: 'rate me again', tags: [], importance: 0.4, source: 'manual' })!;
+    repo.updateContent(m.id, { importance: 0.9 });
+    const after = repo.getById(m.id)!;
+    expect(after.importance).toBeCloseTo(0.9, 6);
+    expect(after.baseImportance).toBeCloseTo(0.9, 6);
   });
 });

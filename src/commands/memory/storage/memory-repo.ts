@@ -85,11 +85,10 @@ export class MemoryRepo {
       update: db.prepare(`
         UPDATE memories
         SET title = @title, content = @content, context = @context, tags = @tags,
-            importance = @importance, base_importance = @importance, updated_at = @updatedAt,
+            importance = @importance, base_importance = @baseImportance, updated_at = @updatedAt,
             content_hash = @contentHash
         WHERE id = @id
       `),
-      updateImportance: db.prepare('UPDATE memories SET importance = @imp, base_importance = @imp, updated_at = @updatedAt WHERE id = @id'),
       updateImportanceOnly: db.prepare('UPDATE memories SET importance = ? WHERE id = ?'),
       incrementAccess: db.prepare(`
         UPDATE memories SET access_count = access_count + 1, last_accessed = ? WHERE id = ?
@@ -114,14 +113,14 @@ export class MemoryRepo {
         INSERT OR IGNORE INTO memories
           (id, type, title, content, context, source, project, tags, importance, base_importance,
            access_count, injection_count, created_at, updated_at, last_accessed, content_hash)
-        VALUES (@id, @type, @title, @content, @context, @source, @project, @tags, @importance, @importance,
+        VALUES (@id, @type, @title, @content, @context, @source, @project, @tags, @importance, @baseImportance,
                 @accessCount, @injectionCount, @createdAt, @updatedAt, @lastAccessed, @contentHash)
       `),
       updateSync: db.prepare(`
         UPDATE memories SET
           title = @title, content = @content, context = @context,
           source = @source, project = @project, tags = @tags,
-          importance = @importance, base_importance = @importance, access_count = @accessCount,
+          importance = @importance, base_importance = @baseImportance, access_count = @accessCount,
           injection_count = @injectionCount, updated_at = @updatedAt,
           last_accessed = @lastAccessed, content_hash = @contentHash
         WHERE id = @id
@@ -148,7 +147,7 @@ export class MemoryRepo {
     };
   }
 
-  create(input: StoreInput, _embedding: Buffer | null = null): Memory | null {
+  create(input: StoreInput): Memory | null {
     const now = new Date().toISOString();
     const id = randomUUID();
     const contentHash = createHash('sha256').update(input.content).digest('hex');
@@ -248,6 +247,8 @@ export class MemoryRepo {
       context: updates.context !== undefined ? updates.context : existing.context,
       tags: JSON.stringify(updates.tags ?? existing.tags),
       importance: updates.importance ?? existing.importance,
+      // Content edits must not erode the anchor; only explicit re-rating moves it.
+      baseImportance: updates.importance ?? existing.baseImportance,
       updatedAt: now,
       contentHash: createHash('sha256').update(finalContent).digest('hex'),
     };
@@ -256,11 +257,6 @@ export class MemoryRepo {
     return true;
   }
 
-  updateImportance(id: string, importance: number): boolean {
-    const now = new Date().toISOString();
-    const result = this.#stmts.updateImportance.run({ imp: importance, updatedAt: now, id });
-    return result.changes > 0;
-  }
 
   /** Update importance without touching updated_at - used by decay to avoid resetting the clock. */
   updateImportanceOnly(id: string, importance: number): boolean {
@@ -378,6 +374,7 @@ export class MemoryRepo {
       project: row.project,
       tags: JSON.stringify(row.tags),
       importance: row.importance,
+      baseImportance: row.base_importance ?? row.importance,
       accessCount: row.access_count,
       injectionCount: row.injection_count,
       createdAt: row.created_at,

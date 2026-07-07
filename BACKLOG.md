@@ -45,55 +45,7 @@ One-paragraph description.
 
 ---
 
-## P0 — Memory review fallout (see docs/reviews/2026-07-07-memory-review.md)
-
-### WP-044 — Decay must be a pure function of age, not session count
-
-- **Priority:** P0
-- **Proposed:** 2026-07-07
-- **Stories / Docs:** review Cluster 2.1; decay-service.ts:133, context.ts:48
-- **Depends on:** none
-- **Estimate:** M
-- **Trigger to pull:** Next memory sprint (v1.14.0).
-- **Definition of done:** Migration adds immutable `base_importance`; decay computes `base * decayFactor(age)` so N session-starts produce identical importance to 1 (idempotency benchmark added); existing stores migrated (current importance becomes base); `pnpm bench:memory` green with thresholds updated + documented.
-
-Verified empirically: 23 session-starts over-decay a day-30 memory by 37% vs its own formula. Active users get punished hardest — the opposite of the model's intent.
-
----
-
 ## P1 — Soon (within 2–3 sprints)
-
-### WP-045 — Delete memory dead weight (incl. the sqlite-vec native dep)
-
-- **Priority:** P1
-- **Proposed:** 2026-07-07
-- **Stories / Docs:** review Cluster 2.2/2.6
-- **Depends on:** none
-- **Estimate:** M
-- **Trigger to pull:** With WP-044 (same migration window).
-- **Definition of done:** `memories_vec` table, `embedding` column, sqlite-vec load + dependency removed (migration); dead error helpers (`withRetry`/`isSqliteBusy`/unused templates), dead config knobs (`enableReranker`, `accessModifiers`), duplicate `ConsolidationService.prune` deleted; consolidation dedup O(n) via normalized-hash grouping; install/docs mention only better-sqlite3. If/when local embeddings ship (WP-051), sqlite-vec returns deliberately and wired.
-
-The vector layer is 100% dead but forces users to install a second native dep. Deleting it halves install friction today.
-
-### WP-046 — content_hash dedup scoped per project + honest sync counts
-
-- **Priority:** P1
-- **Proposed:** 2026-07-07
-- **Stories / Docs:** review Cluster 2.3; migrations/003:26, sync-merge.ts:74
-- **Depends on:** none
-- **Estimate:** S
-- **Trigger to pull:** With WP-044 (same migration window).
-- **Definition of done:** Unique index becomes `(content_hash, project)`; `inserted++` gated on `result.changes`; regression tests: same content in two projects both stored; sync of same-content/different-id rows reports accurate counts.
-
-### WP-047 — Secret detection in memory_store (the docs already promise it)
-
-- **Priority:** P1
-- **Proposed:** 2026-07-07
-- **Stories / Docs:** review Cluster 2.4; content-validation.ts
-- **Depends on:** none
-- **Estimate:** S
-- **Trigger to pull:** Next memory sprint — memories sync to GitHub Gists, this is a leak path.
-- **Definition of done:** content-validation rejects/redacts key-shaped content (`sk-`, `AKIA`, `-----BEGIN`, `password=`, high-entropy tokens); tests with true/false positives; memory.md rule claim becomes true.
 
 ### WP-048 — Dashboard: make find-then-act work
 
@@ -375,5 +327,7 @@ Supply-chain worm protection: newly published package versions can't enter the l
 - **2026-07-07:** WP-036 (P1, regression suite red on dev machine), WP-039 (P1, sub-agent briefs in Stop-and-Swarm), WP-040 (P1, Key Decisions why-log), WP-042 (P1, force-push hook false positive), WP-041 (P2, minimumReleaseAge guard) minted from session 49 (Fable Mode v2 gap analysis + security patch fallout). WP-037, WP-038 minted as P0 and pulled into Sprint 35 in the same edit (verification discipline arc: generated verification rule + doctor check/fixer + premature-victory eval scenario); scope + DoD live in the sprint plan.
 - **2026-07-07:** Sprint 35 closed. WP-037, WP-038 done (v1.13.0). Review: 0 Critical, 2 Important (dead scenario `runs` field now honored; landing-page scenario count) fixed in-sprint.
 - **2026-07-07:** WP-036, WP-043 pulled into Sprint 36 (v1.13.0 publish gate).
+- **2026-07-07:** WP-044..WP-047 pulled into Sprint 37 (v1.14.0 honest-memory core) and completed same session.
+- **2026-07-07:** Sprint 37 closed. WP-044..WP-047 done (v1.14.0). Review: 2 Critical (migration bricked existing installs; sync compounding) + 4 Important — all fixed in-sprint with legacy-DB fixture tests.
 - **2026-07-07:** Sprint 36 closed. WP-036, WP-043 done. Review: 5 Important fixed in-sprint (field migration for bare hooks, no-op --fix removed, pull --all exit code, duplicate matcher, CHANGELOG).
 - **2026-07-07:** WP-043..WP-051 minted from the 4-agent memory deep review (core+algorithms, CLI UX, dashboard TUI, competitive landscape) — see docs/reviews/2026-07-07-memory-review.md. P0: WP-043 (CLI exits 0 on failure/crash), WP-044 (decay compounds per session, 37% over-decay verified). P1: WP-045 (dead sqlite-vec native dep), WP-046 (global content_hash), WP-047 (promised secret detection missing), WP-048 (dashboard find-then-act broken). P2: WP-049, WP-050, WP-051 (strategy arc: auto-capture, local embeddings, plugin distribution).

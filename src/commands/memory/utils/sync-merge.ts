@@ -14,6 +14,7 @@ function memoryToSyncRow(m: Memory): SyncMemoryRow {
     project: m.project,
     tags: [...m.tags],
     importance: m.importance,
+    base_importance: m.baseImportance,
     access_count: m.accessCount,
     injection_count: m.injectionCount,
     created_at: m.createdAt,

@@ -130,7 +130,7 @@ describe('secret detection (WP-047)', () => {
     ['AWS access key', 'Use AKIAIOSFODNN7EXAMPLE for the S3 bucket'],
     ['private key block', '-----BEGIN RSA PRIVATE KEY-----\nMIIEow...'],
     ['GitHub PAT', 'Auth with ghp_16C7e42F292c6912E7710c838347Ae178B4a'],
-    ['password assignment', 'Login with password=hunter2secret'],
+    ['password assignment', 'Login with password=Sup3rS3cretValue99x'],
     ['slack token', 'Post via xoxb-1234567890-abcdefghijklmnop'],
   ] as const;
 
@@ -146,6 +146,9 @@ describe('secret detection (WP-047)', () => {
     ['prose about passwords', 'The password field is required and validated at the API boundary'],
     ['token-based auth design', 'We chose token-based auth over sessions because the API is stateless'],
     ['sk mention in prose', 'The sk- prefix convention identifies OpenAI keys; never store them'],
+    ['code-shaped token assignment', 'Auth design: token = jwt.sign(payload) on login'],
+    ['secret path reference', 'CI reads secret: projects/123/secrets/db-pass from GCP'],
+    ['short rotation note', 'Rotate the deploy token: quarterly'],
   ] as const;
 
   for (const [label, content] of safe) {

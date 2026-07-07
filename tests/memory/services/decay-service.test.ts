@@ -22,9 +22,9 @@ describe('DecayService', () => {
     it('deletes all working-type memories', () => {
       const { memoryRepo, decayService } = setup();
 
-      memoryRepo.create({ type: 'working', content: 'temp note', tags: [], importance: 0.5, source: 'manual' }, null);
-      memoryRepo.create({ type: 'working', content: 'another temp', tags: [], importance: 0.5, source: 'manual' }, null);
-      memoryRepo.create({ type: 'semantic', content: 'permanent', tags: [], importance: 0.5, source: 'manual' }, null);
+      memoryRepo.create({ type: 'working', content: 'temp note', tags: [], importance: 0.5, source: 'manual' });
+      memoryRepo.create({ type: 'working', content: 'another temp', tags: [], importance: 0.5, source: 'manual' });
+      memoryRepo.create({ type: 'semantic', content: 'permanent', tags: [], importance: 0.5, source: 'manual' });
 
       const cleared = decayService.clearWorkingMemories();
 
@@ -43,7 +43,7 @@ describe('DecayService', () => {
         tags: [],
         importance: 0.8,
         source: 'manual',
-      }, null);
+      });
 
       const result = decayService.computeDecayedImportance(memory);
       expect(result).toBe(0.8);
@@ -59,7 +59,7 @@ describe('DecayService', () => {
         tags: [],
         importance: 0.8,
         source: 'manual',
-      }, null);
+      });
 
       const threeDaysAgo = daysAgo(3);
       memoryRepo.updateContent(memory.id, { content: memory.content });
@@ -83,7 +83,7 @@ describe('DecayService', () => {
         tags: [],
         importance: 0.8,
         source: 'manual',
-      }, null);
+      });
 
       const db = (memoryRepo as unknown as { db: { prepare: (sql: string) => { run: (...args: unknown[]) => void } } }).db;
       db.prepare('UPDATE memories SET created_at = ?, updated_at = ? WHERE id = ?').run(daysAgo(30), daysAgo(30), memory.id);
@@ -105,7 +105,7 @@ describe('DecayService', () => {
         tags: [],
         importance: 0.1,
         source: 'manual',
-      }, null);
+      });
 
       const db = (memoryRepo as unknown as { db: { prepare: (sql: string) => { run: (...args: unknown[]) => void } } }).db;
       db.prepare('UPDATE memories SET created_at = ?, updated_at = ? WHERE id = ?').run(daysAgo(500), daysAgo(500), memory.id);
@@ -126,7 +126,7 @@ describe('DecayService', () => {
         tags: [],
         importance: 0.5,
         source: 'manual',
-      }, null);
+      });
 
       for (let i = 0; i < 6; i++) {
         memoryRepo.incrementInjection(memory.id);
@@ -184,9 +184,9 @@ describe('DecayService', () => {
         tags: [],
         importance: 0.05,
         source: 'manual',
-      }, null);
+      });
 
-      memoryRepo.updateImportance(memory.id, 0.05);
+      (memoryRepo as unknown as { db: { prepare: (sql: string) => { run: (...a: unknown[]) => void } } }).db.prepare('UPDATE memories SET importance = 0.05, base_importance = 0.05 WHERE id = ?').run(memory.id);
       const db = (memoryRepo as unknown as { db: { prepare: (sql: string) => { run: (...args: unknown[]) => void } } }).db;
       db.prepare('UPDATE memories SET created_at = ? WHERE id = ?').run(daysAgo(100), memory.id);
 
@@ -204,10 +204,10 @@ describe('DecayService', () => {
         tags: [],
         importance: 0.05,
         source: 'manual',
-      }, null);
+      });
 
       memoryRepo.incrementAccess(memory.id);
-      memoryRepo.updateImportance(memory.id, 0.05);
+      (memoryRepo as unknown as { db: { prepare: (sql: string) => { run: (...a: unknown[]) => void } } }).db.prepare('UPDATE memories SET importance = 0.05, base_importance = 0.05 WHERE id = ?').run(memory.id);
       const db = (memoryRepo as unknown as { db: { prepare: (sql: string) => { run: (...args: unknown[]) => void } } }).db;
       db.prepare('UPDATE memories SET created_at = ? WHERE id = ?').run(daysAgo(100), memory.id);
 
@@ -221,8 +221,8 @@ describe('DecayService', () => {
     it('executes full decay cycle', () => {
       const { memoryRepo, decayService } = setup();
 
-      memoryRepo.create({ type: 'working', content: 'temp', tags: [], importance: 0.5, source: 'manual' }, null);
-      memoryRepo.create({ type: 'semantic', content: 'keep', tags: [], importance: 0.5, source: 'manual' }, null);
+      memoryRepo.create({ type: 'working', content: 'temp', tags: [], importance: 0.5, source: 'manual' });
+      memoryRepo.create({ type: 'semantic', content: 'keep', tags: [], importance: 0.5, source: 'manual' });
 
       const report = decayService.run();
 
@@ -239,7 +239,7 @@ describe('decay idempotency (WP-044)', () => {
     const { db, memoryRepo, decayService } = setup();
     const m = memoryRepo.create({
       type: 'semantic', content: 'aged memory', tags: [], importance: 0.8, source: 'manual',
-    }, null);
+    });
     const old = daysAgo(30);
     db.prepare('UPDATE memories SET created_at = ?, updated_at = ? WHERE id = ?').run(old, old, m.id);
 

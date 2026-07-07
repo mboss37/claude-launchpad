@@ -30,16 +30,16 @@ describe('RelationRepo', () => {
 
   describe('create', () => {
     it('should create a relation between two memories', () => {
-      const m1 = memoryRepo.create({ ...baseInput, content: 'Memory A' }, null);
-      const m2 = memoryRepo.create({ ...baseInput, content: 'Memory B' }, null);
+      const m1 = memoryRepo.create({ ...baseInput, content: 'Memory A' });
+      const m2 = memoryRepo.create({ ...baseInput, content: 'Memory B' });
 
       const created = relationRepo.create(m1.id, m2.id, 'relates_to');
       expect(created).toBe(true);
     });
 
     it('should ignore duplicate relations (OR IGNORE)', () => {
-      const m1 = memoryRepo.create({ ...baseInput, content: 'A' }, null);
-      const m2 = memoryRepo.create({ ...baseInput, content: 'B' }, null);
+      const m1 = memoryRepo.create({ ...baseInput, content: 'A' });
+      const m2 = memoryRepo.create({ ...baseInput, content: 'B' });
 
       relationRepo.create(m1.id, m2.id, 'relates_to');
       const duplicate = relationRepo.create(m1.id, m2.id, 'relates_to');
@@ -47,8 +47,8 @@ describe('RelationRepo', () => {
     });
 
     it('should allow different relation types between same memories', () => {
-      const m1 = memoryRepo.create({ ...baseInput, content: 'A' }, null);
-      const m2 = memoryRepo.create({ ...baseInput, content: 'B' }, null);
+      const m1 = memoryRepo.create({ ...baseInput, content: 'A' });
+      const m2 = memoryRepo.create({ ...baseInput, content: 'B' });
 
       relationRepo.create(m1.id, m2.id, 'relates_to');
       relationRepo.create(m1.id, m2.id, 'extends');
@@ -60,9 +60,9 @@ describe('RelationRepo', () => {
 
   describe('getBySource / getByTarget / getByMemory', () => {
     it('should retrieve relations by source', () => {
-      const m1 = memoryRepo.create({ ...baseInput, content: 'Source' }, null);
-      const m2 = memoryRepo.create({ ...baseInput, content: 'Target 1' }, null);
-      const m3 = memoryRepo.create({ ...baseInput, content: 'Target 2' }, null);
+      const m1 = memoryRepo.create({ ...baseInput, content: 'Source' });
+      const m2 = memoryRepo.create({ ...baseInput, content: 'Target 1' });
+      const m3 = memoryRepo.create({ ...baseInput, content: 'Target 2' });
 
       relationRepo.create(m1.id, m2.id, 'depends_on');
       relationRepo.create(m1.id, m3.id, 'relates_to');
@@ -72,9 +72,9 @@ describe('RelationRepo', () => {
     });
 
     it('should retrieve relations by target', () => {
-      const m1 = memoryRepo.create({ ...baseInput, content: 'A' }, null);
-      const m2 = memoryRepo.create({ ...baseInput, content: 'B' }, null);
-      const m3 = memoryRepo.create({ ...baseInput, content: 'C' }, null);
+      const m1 = memoryRepo.create({ ...baseInput, content: 'A' });
+      const m2 = memoryRepo.create({ ...baseInput, content: 'B' });
+      const m3 = memoryRepo.create({ ...baseInput, content: 'C' });
 
       relationRepo.create(m1.id, m3.id, 'extends');
       relationRepo.create(m2.id, m3.id, 'extends');
@@ -84,9 +84,9 @@ describe('RelationRepo', () => {
     });
 
     it('should retrieve all relations for a memory (both directions)', () => {
-      const m1 = memoryRepo.create({ ...baseInput, content: 'Center' }, null);
-      const m2 = memoryRepo.create({ ...baseInput, content: 'Left' }, null);
-      const m3 = memoryRepo.create({ ...baseInput, content: 'Right' }, null);
+      const m1 = memoryRepo.create({ ...baseInput, content: 'Center' });
+      const m2 = memoryRepo.create({ ...baseInput, content: 'Left' });
+      const m3 = memoryRepo.create({ ...baseInput, content: 'Right' });
 
       relationRepo.create(m1.id, m2.id, 'relates_to');
       relationRepo.create(m3.id, m1.id, 'depends_on');
@@ -98,8 +98,8 @@ describe('RelationRepo', () => {
 
   describe('delete', () => {
     it('should delete a specific relation', () => {
-      const m1 = memoryRepo.create({ ...baseInput, content: 'A' }, null);
-      const m2 = memoryRepo.create({ ...baseInput, content: 'B' }, null);
+      const m1 = memoryRepo.create({ ...baseInput, content: 'A' });
+      const m2 = memoryRepo.create({ ...baseInput, content: 'B' });
 
       relationRepo.create(m1.id, m2.id, 'relates_to');
       const deleted = relationRepo.delete(m1.id, m2.id, 'relates_to');
@@ -114,8 +114,8 @@ describe('RelationRepo', () => {
 
   describe('cascade delete', () => {
     it('should delete relations when memory is deleted', () => {
-      const m1 = memoryRepo.create({ ...baseInput, content: 'A' }, null);
-      const m2 = memoryRepo.create({ ...baseInput, content: 'B' }, null);
+      const m1 = memoryRepo.create({ ...baseInput, content: 'A' });
+      const m2 = memoryRepo.create({ ...baseInput, content: 'B' });
 
       relationRepo.create(m1.id, m2.id, 'relates_to');
       expect(relationRepo.count()).toBe(1);
@@ -127,9 +127,9 @@ describe('RelationRepo', () => {
 
   describe('countByMemory / count', () => {
     it('should count relations for a specific memory', () => {
-      const m1 = memoryRepo.create({ ...baseInput, content: 'A' }, null);
-      const m2 = memoryRepo.create({ ...baseInput, content: 'B' }, null);
-      const m3 = memoryRepo.create({ ...baseInput, content: 'C' }, null);
+      const m1 = memoryRepo.create({ ...baseInput, content: 'A' });
+      const m2 = memoryRepo.create({ ...baseInput, content: 'B' });
+      const m3 = memoryRepo.create({ ...baseInput, content: 'C' });
 
       relationRepo.create(m1.id, m2.id, 'relates_to');
       relationRepo.create(m1.id, m3.id, 'extends');
@@ -139,8 +139,8 @@ describe('RelationRepo', () => {
     });
 
     it('should count total relations', () => {
-      const m1 = memoryRepo.create({ ...baseInput, content: 'A' }, null);
-      const m2 = memoryRepo.create({ ...baseInput, content: 'B' }, null);
+      const m1 = memoryRepo.create({ ...baseInput, content: 'A' });
+      const m2 = memoryRepo.create({ ...baseInput, content: 'B' });
 
       expect(relationRepo.count()).toBe(0);
       relationRepo.create(m1.id, m2.id, 'relates_to');

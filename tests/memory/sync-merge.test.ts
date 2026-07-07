@@ -360,12 +360,46 @@ describe('honest sync counts (WP-046)', () => {
     const db = createTestDb();
     const memoryRepo = new MemoryRepo(db);
     const relationRepo = new RelationRepo(db);
-    memoryRepo.create({ type: 'semantic', content: 'shared insight text', tags: [], importance: 0.5, source: 'manual', project: 'proj-x' }, null);
+    memoryRepo.create({ type: 'semantic', content: 'shared insight text', tags: [], importance: 0.5, source: 'manual', project: 'proj-x' });
 
     const remote = makePayload([
       makeSyncMemory({ id: 'remote-different-id', content: 'shared insight text', project: 'proj-x' }),
     ]);
     const result = mergeFromRemote(memoryRepo, relationRepo, remote);
     expect(result.inserted).toBe(0);
+  });
+});
+
+describe('base_importance survives sync (review Critical 2)', () => {
+  it('pushes the base anchor and re-anchors the receiving machine to it', () => {
+    const db = createTestDb();
+    const memoryRepo = new MemoryRepo(db);
+    const relationRepo = new RelationRepo(db);
+
+    // Machine A: base 0.8, decayed display value 0.62
+    const remote = makePayload([
+      makeSyncMemory({ id: 'anchored', importance: 0.62, base_importance: 0.8 }),
+    ]);
+    mergeFromRemote(memoryRepo, relationRepo, remote);
+    const ingested = memoryRepo.getById('anchored')!;
+    expect(ingested.baseImportance).toBeCloseTo(0.8, 6);
+    expect(ingested.importance).toBeCloseTo(0.62, 6);
+  });
+
+  it('legacy payloads without base_importance anchor to importance', () => {
+    const db = createTestDb();
+    const memoryRepo = new MemoryRepo(db);
+    const relationRepo = new RelationRepo(db);
+    const legacy = makePayload([makeSyncMemory({ id: 'legacy-row', importance: 0.5 })]);
+    mergeFromRemote(memoryRepo, relationRepo, legacy);
+    expect(memoryRepo.getById('legacy-row')!.baseImportance).toBeCloseTo(0.5, 6);
+  });
+
+  it('round-trip: memoryToSyncRow carries base_importance', () => {
+    const db = createTestDb();
+    const memoryRepo = new MemoryRepo(db);
+    const m = memoryRepo.create({ type: 'semantic', content: 'anchor me', tags: [], importance: 0.9, source: 'manual' });
+    const row = memoryToSyncRow(m!);
+    expect(row.base_importance).toBeCloseTo(0.9, 6);
   });
 });

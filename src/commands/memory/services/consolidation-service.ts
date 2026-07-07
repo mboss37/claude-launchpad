@@ -46,7 +46,7 @@ export class ConsolidationService {
     let merged = 0;
 
     for (const memory of memories) {
-      const key = normalizeText(memory.content);
+      const key = `${memory.project ?? '_global'}\n${normalizeText(memory.content)}`;
       const keeper = byNormalized.get(key);
       if (!keeper) {
         byNormalized.set(key, memory);
@@ -59,7 +59,7 @@ export class ConsolidationService {
       const mergedTags = [...new Set([...survivor.tags, ...discard.tags])];
       this.#deps.memoryRepo.updateContent(survivor.id, {
         tags: mergedTags,
-        importance: Math.max(survivor.importance, discard.importance),
+        importance: Math.max(survivor.baseImportance, discard.baseImportance),
       });
 
       this.#deps.memoryRepo.hardDelete(discard.id);

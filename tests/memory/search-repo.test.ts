@@ -72,7 +72,7 @@ describe('SearchRepo', () => {
       memoryRepo.create({
         ...makeMemory('Some random content here'),
         title: 'Authentication flow',
-      }, null);
+      });
       memoryRepo.create(makeMemory('The authentication system uses OAuth'), null);
 
       const results = searchRepo.searchFts({ query: 'authentication', limit: 10 });

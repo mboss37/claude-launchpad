@@ -146,9 +146,7 @@ export function registerStore(server: McpServer, deps: ToolDeps): void {
           context,
           source: args.source,
           project,
-        },
-        null,
-      );
+      });
 
       // Mark as stored (dedup window starts now)
       recentStores.set(contentHash, Date.now());

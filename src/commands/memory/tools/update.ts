@@ -1,3 +1,4 @@
+import { validateMemoryContent } from '../utils/content-validation.js';
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { ToolDeps } from './register.js';
@@ -41,6 +42,16 @@ export function registerUpdate(server: McpServer, deps: ToolDeps): void {
           content: [{ type: 'text' as const, text: `Memory ${args.id} not found.` }],
           isError: true,
         };
+      }
+
+      if (args.content !== undefined) {
+        const validation = validateMemoryContent(args.content);
+        if (!validation.valid) {
+          return {
+            content: [{ type: 'text' as const, text: validation.reason ?? 'Content rejected.' }],
+            isError: true,
+          };
+        }
       }
 
       const updated = deps.memoryRepo.updateContent(args.id, {

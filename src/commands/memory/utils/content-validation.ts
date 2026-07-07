@@ -20,7 +20,7 @@ const SECRET_PATTERNS: readonly RegExp[] = [
   /ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}/, // GitHub tokens
   /xox[baprs]-[A-Za-z0-9-]{10,}/,              // Slack tokens
   /AIza[0-9A-Za-z_-]{30,}/,                    // Google API keys
-  /(?:password|passwd|secret|token)\s*[=:]\s*[^\s'"]{8,}/i, // literal assignments
+  /(?:password|passwd|secret|token)\s*[=:]\s*(?=[^\s'"]*[A-Za-z])(?=[^\s'"]*\d)[^\s'"/]{16,}/i, // secret-shaped assignments (16+, mixed alnum, not a path)
 ];
 
 export function containsSecret(content: string): boolean {

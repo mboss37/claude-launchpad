@@ -55,9 +55,9 @@ describe('migrator', () => {
     expect(tables).toHaveLength(1);
   });
 
-  it('does not create the dead vec0 virtual table (WP-045)', async () => {
-    const db = createTestDb();
-    const tables = db
+  it('does not create the dead vec0 virtual table (WP-045)', () => {
+    const freshDb = createTestDb();
+    const tables = freshDb
       .prepare("SELECT name FROM sqlite_master WHERE name = 'memories_vec'")
       .all();
     expect(tables).toHaveLength(0);

@@ -24,7 +24,7 @@ describe('ConsolidationService', () => {
       memoryRepo.create({
         type: 'semantic', content: 'SQLite uses WAL mode', tags: ['tag1'],
         importance: 0.8, source: 'manual',
-      }, null);
+      });
 
       // Insert duplicate directly to bypass content_hash unique constraint
       const now = new Date().toISOString();
@@ -45,12 +45,12 @@ describe('ConsolidationService', () => {
       memoryRepo.create({
         type: 'semantic', content: 'topic alpha about databases', tags: [],
         importance: 0.5, source: 'manual',
-      }, null);
+      });
 
       memoryRepo.create({
         type: 'semantic', content: 'topic beta about networking', tags: [],
         importance: 0.5, source: 'manual',
-      }, null);
+      });
 
       const merged = consolidation.deduplicateMemories();
       expect(merged).toBe(0);
@@ -65,12 +65,12 @@ describe('ConsolidationService', () => {
       const episodic = memoryRepo.create({
         type: 'episodic', content: 'old observation', tags: [],
         importance: 0.1, source: 'manual',
-      }, null);
+      });
 
       const pattern = memoryRepo.create({
         type: 'pattern', content: 'derived pattern', tags: [],
         importance: 0.7, source: 'consolidation',
-      }, null);
+      });
 
       relationRepo.create(episodic.id, pattern.id, 'derived_from');
 
@@ -89,12 +89,12 @@ describe('ConsolidationService', () => {
       const episodic = memoryRepo.create({
         type: 'episodic', content: 'recent observation', tags: [],
         importance: 0.1, source: 'manual',
-      }, null);
+      });
 
       const pattern = memoryRepo.create({
         type: 'pattern', content: 'derived pattern', tags: [],
         importance: 0.7, source: 'consolidation',
-      }, null);
+      });
 
       relationRepo.create(episodic.id, pattern.id, 'derived_from');
 
@@ -111,7 +111,7 @@ describe('ConsolidationService', () => {
       memoryRepo.create({
         type: 'semantic', content: 'test memory', tags: [],
         importance: 0.5, source: 'manual',
-      }, null);
+      });
 
       const report = await consolidation.consolidate();
       expect(report).toHaveProperty('deduplicated');
