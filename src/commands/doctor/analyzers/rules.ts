@@ -4,13 +4,22 @@ import { homedir } from "node:os";
 import { fileExists } from "../../../lib/fs-utils.js";
 import { ENHANCE_SKILL_VERSION } from "../../init/generators/skill-enhance.js";
 import { WORKFLOW_RULE_VERSION } from "../../init/generators/workflow-rule.js";
+import { VERIFICATION_RULE_VERSION } from "../../init/generators/verification-rule.js";
 import { isSuperpowersInstalled } from "../../../lib/plugins.js";
-import type { ClaudeConfig, AnalyzerResult, DiagnosticIssue } from "../../../types/index.js";
+import type {
+  ClaudeConfig,
+  AnalyzerResult,
+  DiagnosticIssue,
+} from "../../../types/index.js";
 
-export async function analyzeRules(config: ClaudeConfig): Promise<AnalyzerResult> {
+export async function analyzeRules(
+  config: ClaudeConfig,
+): Promise<AnalyzerResult> {
   const issues: DiagnosticIssue[] = [];
 
-  const projectRoot = config.claudeMdPath ? dirname(config.claudeMdPath) : process.cwd();
+  const projectRoot = config.claudeMdPath
+    ? dirname(config.claudeMdPath)
+    : process.cwd();
 
   // Check for BACKLOG.md
   const hasBacklog = await fileExists(join(projectRoot, "BACKLOG.md"));
@@ -18,29 +27,36 @@ export async function analyzeRules(config: ClaudeConfig): Promise<AnalyzerResult
     issues.push({
       analyzer: "Rules",
       severity: "low",
-      message: "No BACKLOG.md found — deferred features get lost in conversation history",
+      message:
+        "No BACKLOG.md found — deferred features get lost in conversation history",
       fix: "Run `claude-launchpad init` or `doctor --fix` to generate one",
     });
   }
 
   // Check for workflow rule (path-scoped BACKLOG/TASKS rules)
-  const hasWorkflowRule = await fileExists(join(projectRoot, ".claude", "rules", "workflow.md"));
+  const hasWorkflowRule = await fileExists(
+    join(projectRoot, ".claude", "rules", "workflow.md"),
+  );
   if (!hasWorkflowRule) {
     issues.push({
       analyzer: "Rules",
       severity: "medium",
-      message: "No .claude/rules/workflow.md found — BACKLOG/TASKS workflow is unenforced",
+      message:
+        "No .claude/rules/workflow.md found — BACKLOG/TASKS workflow is unenforced",
       fix: "Run `doctor --fix` to generate it",
     });
   }
 
   // Independent reviewer agent — same-model self-review misses what fresh eyes catch
-  const hasReviewerAgent = await fileExists(join(projectRoot, ".claude", "agents", "code-reviewer.md"));
+  const hasReviewerAgent = await fileExists(
+    join(projectRoot, ".claude", "agents", "code-reviewer.md"),
+  );
   if (!hasReviewerAgent) {
     issues.push({
       analyzer: "Rules",
       severity: "low",
-      message: "No .claude/agents/code-reviewer.md — sprint reviews run as same-model self-checks",
+      message:
+        "No .claude/agents/code-reviewer.md — sprint reviews run as same-model self-checks",
       fix: "Run `doctor --fix` to generate a fresh-context reviewer agent",
     });
   }
@@ -51,13 +67,17 @@ export async function analyzeRules(config: ClaudeConfig): Promise<AnalyzerResult
     issues.push({
       analyzer: "Rules",
       severity: "info",
-      message: "Optional: the superpowers plugin adds brainstorm/plan/TDD/review discipline — /plugin install superpowers@claude-plugins-official",
+      message:
+        "Optional: the superpowers plugin adds brainstorm/plan/TDD/review discipline — /plugin install superpowers@claude-plugins-official",
     });
   }
 
   // Stale workflow rule — versioned marker lets --fix upgrade shipped copies
   if (hasWorkflowRule) {
-    const wfContent = await readFile(join(projectRoot, ".claude", "rules", "workflow.md"), "utf-8").catch(() => "");
+    const wfContent = await readFile(
+      join(projectRoot, ".claude", "rules", "workflow.md"),
+      "utf-8",
+    ).catch(() => "");
     const wfMatch = wfContent.match(/<!-- lp-workflow-version: (\d+) -->/);
     const wfVersion = wfMatch ? parseInt(wfMatch[1], 10) : null;
     if (wfVersion !== null && wfVersion < WORKFLOW_RULE_VERSION) {
@@ -71,14 +91,47 @@ export async function analyzeRules(config: ClaudeConfig): Promise<AnalyzerResult
   }
 
   // Check for hooks rule (path-scoped settings.json hook authoring rules)
-  const hasHooksRule = await fileExists(join(projectRoot, ".claude", "rules", "hooks.md"));
+  const hasHooksRule = await fileExists(
+    join(projectRoot, ".claude", "rules", "hooks.md"),
+  );
   if (!hasHooksRule) {
     issues.push({
       analyzer: "Rules",
       severity: "medium",
-      message: "No .claude/rules/hooks.md found — hook authoring rules unenforced (env-var bug, exit-code 2 vs 1, multi-matcher caveats)",
+      message:
+        "No .claude/rules/hooks.md found — hook authoring rules unenforced (env-var bug, exit-code 2 vs 1, multi-matcher caveats)",
       fix: "Run `doctor --fix` to generate it",
     });
+  }
+
+  // Check for verification rule (always-on evidence-before-assertion discipline)
+  const verificationPath = join(
+    projectRoot,
+    ".claude",
+    "rules",
+    "verification.md",
+  );
+  const hasVerificationRule = await fileExists(verificationPath);
+  if (!hasVerificationRule) {
+    issues.push({
+      analyzer: "Rules",
+      severity: "medium",
+      message:
+        "No .claude/rules/verification.md found — nothing stops premature 'done' claims without evidence",
+      fix: "Run `doctor --fix` to generate it",
+    });
+  } else {
+    const vContent = await readFile(verificationPath, "utf-8").catch(() => "");
+    const vMatch = vContent.match(/<!-- lp-verification-version: (\d+) -->/);
+    const vVersion = vMatch ? parseInt(vMatch[1], 10) : null;
+    if (vVersion !== null && vVersion < VERIFICATION_RULE_VERSION) {
+      issues.push({
+        analyzer: "Rules",
+        severity: "low",
+        message: `verification.md rule is outdated (v${vVersion}, latest v${VERIFICATION_RULE_VERSION})`,
+        fix: "Run `doctor --fix` to update it",
+      });
+    }
   }
 
   // Check for .claudeignore
@@ -87,22 +140,29 @@ export async function analyzeRules(config: ClaudeConfig): Promise<AnalyzerResult
     issues.push({
       analyzer: "Rules",
       severity: "low",
-      message: "No .claudeignore found — Claude may read noise files (node_modules, dist, lockfiles)",
+      message:
+        "No .claudeignore found — Claude may read noise files (node_modules, dist, lockfiles)",
       fix: "Run `claude-launchpad init` or `doctor --fix` to generate one",
     });
   }
 
   // Check for /lp-enhance skill (new skills/ format or legacy commands/ format)
-  const hasSkillInProject = config.skills.some((s) =>
-    basename(s) === "SKILL.md" && s.includes("lp-enhance") || basename(s) === "lp-enhance.md",
+  const hasSkillInProject = config.skills.some(
+    (s) =>
+      (basename(s) === "SKILL.md" && s.includes("lp-enhance")) ||
+      basename(s) === "lp-enhance.md",
   );
-  const hasSkillGlobal = await fileExists(join(homedir(), ".claude", "skills", "lp-enhance", "SKILL.md"))
-    || await fileExists(join(homedir(), ".claude", "commands", "lp-enhance.md"));
+  const hasSkillGlobal =
+    (await fileExists(
+      join(homedir(), ".claude", "skills", "lp-enhance", "SKILL.md"),
+    )) ||
+    (await fileExists(join(homedir(), ".claude", "commands", "lp-enhance.md")));
   if (!hasSkillInProject && !hasSkillGlobal) {
     issues.push({
       analyzer: "Rules",
       severity: "low",
-      message: "No /lp-enhance skill found — use it inside Claude Code to AI-complete your CLAUDE.md",
+      message:
+        "No /lp-enhance skill found — use it inside Claude Code to AI-complete your CLAUDE.md",
       fix: "Run `claude-launchpad init` or `doctor --fix` to generate the skill",
     });
   } else {

@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import { randomUUID } from "node:crypto";
 import { generateBacklogMd } from "../src/commands/init/generators/backlog.js";
 import { generateClaudeMd } from "../src/commands/init/generators/claude-md.js";
+import { generateVerificationRule, VERIFICATION_RULE_VERSION } from "../src/commands/init/generators/verification-rule.js";
 import { analyzeRules } from "../src/commands/doctor/analyzers/rules.js";
 import { applyFixes } from "../src/commands/doctor/fixer.js";
 import type { ClaudeConfig, DiagnosticIssue } from "../src/types/index.js";
@@ -332,5 +333,44 @@ describe("collapseMemoryHeadings fixer", () => {
     expect((updated.match(/^## Memory \(agentic-memory\)\s*$/gm) ?? []).length).toBe(1);
     expect(updated).toContain("first block");
     expect(updated).not.toContain("second block");
+  });
+});
+
+describe("rules analyzer checks for verification.md", () => {
+  let testDir: string;
+
+  beforeEach(async () => {
+    testDir = join(tmpdir(), `verification-test-${randomUUID()}`);
+    await mkdir(testDir, { recursive: true });
+  });
+
+  it("flags a project without .claude/rules/verification.md as medium", async () => {
+    const config = makeConfig({ claudeMdPath: join(testDir, "CLAUDE.md") });
+    const result = await analyzeRules(config);
+    const issue = result.issues.find((i) => i.message.includes("No .claude/rules/verification.md"));
+    expect(issue).toBeDefined();
+    expect(issue?.severity).toBe("medium");
+  });
+
+  it("flags an outdated verification.md (version marker below current)", async () => {
+    await mkdir(join(testDir, ".claude", "rules"), { recursive: true });
+    await writeFile(
+      join(testDir, ".claude", "rules", "verification.md"),
+      "# Verification Rules\n\n<!-- lp-verification-version: 0 -->\n",
+    );
+    const config = makeConfig({ claudeMdPath: join(testDir, "CLAUDE.md") });
+    const result = await analyzeRules(config);
+    expect(result.issues.some((i) => i.message.includes("verification.md rule is outdated"))).toBe(true);
+  });
+
+  it("does not flag a current verification.md", async () => {
+    await mkdir(join(testDir, ".claude", "rules"), { recursive: true });
+    await writeFile(
+      join(testDir, ".claude", "rules", "verification.md"),
+      generateVerificationRule(),
+    );
+    const config = makeConfig({ claudeMdPath: join(testDir, "CLAUDE.md") });
+    const result = await analyzeRules(config);
+    expect(result.issues.some((i) => i.message.toLowerCase().includes("verification"))).toBe(false);
   });
 });
