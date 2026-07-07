@@ -23,8 +23,7 @@ export async function runPull(opts: PullOpts): Promise<void> {
 
   const syncConfig = loadSyncConfig();
   if (!syncConfig) {
-    log.error('No sync gist found. Run `memory push` first.');
-    return;
+    throw new Error('No sync gist found. Run `memory push` first.');
   }
 
   const { requireMemoryDeps } = await import('../utils/require-deps.js');
@@ -45,8 +44,7 @@ export async function runPull(opts: PullOpts): Promise<void> {
 function pullProject(ctx: ReturnType<typeof initStorage>, gistId: string, opts: PullOpts = {}): void {
   const project = detectProject(process.cwd());
   if (!project) {
-    log.error('Could not detect project. Run from a project directory or use --all.');
-    return;
+    throw new Error('Could not detect project. Run from a project directory or use --all.');
   }
 
   const filename = projectToFilename(project);
@@ -54,10 +52,9 @@ function pullProject(ctx: ReturnType<typeof initStorage>, gistId: string, opts: 
   if (!payload) {
     if (opts.quietMissing) {
       log.info(`No remote memories yet for "${project}" — push will create them.`);
-    } else {
-      log.error(`No memories found for project "${project}" in gist.`);
+      return;
     }
-    return;
+    throw new Error(`No memories found for project "${project}" in gist.`);
   }
 
   const localCount = ctx.memoryRepo.count(project);

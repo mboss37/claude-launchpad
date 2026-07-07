@@ -83,14 +83,14 @@ export async function addSessionStartPullHook(root: string, placement: MemoryPla
   const target = placement === "local" ? "settings.local.json" : "settings.json";
   return addPlacementHook(root, placement, "SessionStart", "memory pull", {
     matcher: "startup",
-    hooks: [{ type: "command", command: "claude-launchpad memory pull -y 2>/dev/null; exit 0" }],
+    hooks: [{ type: "command", command: "npx claude-launchpad memory pull -y 2>/dev/null; exit 0" }],
   }, true, `Added SessionStart hook for memory sync to ${target}`);
 }
 
 export async function addSessionEndPushHook(root: string, placement: MemoryPlacement): Promise<boolean> {
   const target = placement === "local" ? "settings.local.json" : "settings.json";
   return addPlacementHook(root, placement, "SessionEnd", "memory push", {
-    hooks: [{ type: "command", command: "nohup claude-launchpad memory push -y </dev/null >/dev/null 2>&1 & exit 0" }],
+    hooks: [{ type: "command", command: "nohup npx claude-launchpad memory push -y </dev/null >/dev/null 2>&1 & exit 0" }],
   }, false, `Added SessionEnd hook for memory sync to ${target}`);
 }
 
@@ -113,7 +113,7 @@ export async function upgradeStaleSessionEndPushHook(root: string): Promise<bool
         const cmd = typeof h.command === "string" ? h.command : "";
         if (!cmd.includes("memory push") || cmd.includes("nohup")) return h;
         changed = true;
-        return { ...h, command: "nohup claude-launchpad memory push -y </dev/null >/dev/null 2>&1 & exit 0" };
+        return { ...h, command: "nohup npx claude-launchpad memory push -y </dev/null >/dev/null 2>&1 & exit 0" };
       });
       return { ...group, hooks: rewritten };
     });

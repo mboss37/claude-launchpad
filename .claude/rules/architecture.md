@@ -25,7 +25,7 @@
 │   │       ├── storage/           # SQLite repos (memory, relation, search, migrator)
 │   │       ├── services/          # Retrieval, decay, consolidation, session
 │   │       ├── tools/             # 7 MCP tool handlers
-│   │       ├── subcommands/       # install, stats, context, doctor, push, pull
+│   │       ├── subcommands/       # install, stats, doctor, push, pull, sync + hidden hook handlers (context, serve)
 │   │       ├── dashboard/         # Ink TUI (lazy-loaded via --dashboard)
 │   │       └── utils/             # require-deps, git-context, content-validation, gist-transport, sync-merge, similarity, mmr
 │   ├── lib/

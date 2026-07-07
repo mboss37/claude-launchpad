@@ -189,7 +189,7 @@ function addSessionStartPullHook(hooks: Record<string, unknown[]>): Record<strin
     dedupKeyword: 'memory pull',
     entry: {
       matcher: 'startup',
-      hooks: [{ type: 'command', command: 'claude-launchpad memory pull -y 2>/dev/null; exit 0' }],
+      hooks: [{ type: 'command', command: 'npx claude-launchpad memory pull -y 2>/dev/null; exit 0' }],
     },
     prepend: true,
   });
@@ -215,7 +215,7 @@ function addSessionEndPushHook(hooks: Record<string, unknown[]>): Record<string,
     event: 'SessionEnd',
     dedupKeyword: 'memory push',
     entry: {
-      hooks: [{ type: 'command', command: 'nohup claude-launchpad memory push -y </dev/null >/dev/null 2>&1 & exit 0' }],
+      hooks: [{ type: 'command', command: 'nohup npx claude-launchpad memory push -y </dev/null >/dev/null 2>&1 & exit 0' }],
     },
   });
   if (result.added) log.info('Session end: memories will auto-push to GitHub Gist');

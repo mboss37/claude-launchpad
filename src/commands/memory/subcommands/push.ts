@@ -78,8 +78,7 @@ async function pushProject(
 ): Promise<void> {
   const project = detectProject(process.cwd());
   if (!project) {
-    log.error('Could not detect project. Run from a project directory or use --all.');
-    return;
+    throw new Error('Could not detect project. Run from a project directory or use --all.');
   }
 
   const filename = projectToFilename(project);

@@ -25,22 +25,31 @@ async function handleSyncErrors(fn: () => Promise<void>): Promise<void> {
  */
 export function isMemoryInstalled(): boolean {
   const cwd = process.cwd();
-  const hookPresent = hasMemoryHook(join(cwd, ".claude", "settings.json"))
-    || hasMemoryHook(join(cwd, ".claude", "settings.local.json"));
+  const hookPresent =
+    hasMemoryHook(join(cwd, ".claude", "settings.json")) ||
+    hasMemoryHook(join(cwd, ".claude", "settings.local.json"));
   if (!hookPresent) return false;
   return isMemoryMcpRegistered(cwd);
 }
 
 function hasMemoryHook(path: string): boolean {
   try {
-    const settings = JSON.parse(readFileSync(path, "utf-8")) as Record<string, unknown>;
+    const settings = JSON.parse(readFileSync(path, "utf-8")) as Record<
+      string,
+      unknown
+    >;
     const hooks = settings.hooks as Record<string, unknown[]> | undefined;
     if (!hooks) return false;
-    const sessionStart = hooks.SessionStart as Record<string, unknown>[] | undefined;
-    return sessionStart?.some((h) => {
-      const inner = h.hooks as Record<string, unknown>[] | undefined;
-      return inner?.some((ih) => String(ih.command ?? "").includes("memory context"));
-    }) ?? false;
+    const sessionStart = hooks.SessionStart as
+      Record<string, unknown>[] | undefined;
+    return (
+      sessionStart?.some((h) => {
+        const inner = h.hooks as Record<string, unknown>[] | undefined;
+        return inner?.some((ih) =>
+          String(ih.command ?? "").includes("memory context"),
+        );
+      }) ?? false
+    );
   } catch {
     return false;
   }
@@ -49,11 +58,17 @@ function hasMemoryHook(path: string): boolean {
 export function createMemoryCommand(): Command {
   const memory = new Command("memory")
     .description("Project-scoped memory with decay, sync, and a TUI dashboard")
+    .showHelpAfterError(
+      "(see `claude-launchpad memory --help` for the available subcommands)",
+    )
+    .showSuggestionAfterError(true)
     .option("--dashboard", "Open the memory dashboard")
     .action(async (opts) => {
       if (opts.dashboard) {
         if (!isMemoryInstalled()) {
-          log.error("Knowledge base not set up yet. Run `claude-launchpad memory` first.");
+          log.error(
+            "Knowledge base not set up yet. Run `claude-launchpad memory` first.",
+          );
           return;
         }
         const { requireMemoryDeps } = await import("./utils/require-deps.js");
@@ -65,26 +80,47 @@ export function createMemoryCommand(): Command {
 
       // Smart default: install or show stats
       if (!isMemoryInstalled()) {
+        // Setup requires a human decision — never hang or crash in CI.
+        if (!process.stdin.isTTY) {
+          log.error(
+            "Knowledge base not set up and no TTY to prompt. Run `claude-launchpad memory install -y`.",
+          );
+          process.exitCode = 1;
+          return;
+        }
         // Check if config was already written (e.g. by doctor --fix) even though db isn't set up
-        const { detectExistingSetup } = await import("./subcommands/install.js");
+        const { detectExistingSetup } =
+          await import("./subcommands/install.js");
         const existing = detectExistingSetup(process.cwd());
-        const mcpMissing = existing !== null && !isMemoryMcpRegistered(process.cwd());
+        const mcpMissing =
+          existing !== null && !isMemoryMcpRegistered(process.cwd());
         if (existing) {
-          const location = existing === "local"
-            ? ".claude/CLAUDE.md + settings.local.json"
-            : "CLAUDE.md + settings.json";
+          const location =
+            existing === "local"
+              ? ".claude/CLAUDE.md + settings.local.json"
+              : "CLAUDE.md + settings.json";
           log.blank();
-          log.success(`Memory config found (${location}) but ${mcpMissing ? "MCP server not registered" : "database not set up"}.`);
+          log.success(
+            `Memory config found (${location}) but ${mcpMissing ? "MCP server not registered" : "database not set up"}.`,
+          );
           log.info("Run `claude-launchpad memory install` to complete setup.");
           log.blank();
         } else {
           log.blank();
-          log.step("Claude doesn't have a knowledge base for this project yet.");
+          log.step(
+            "Claude doesn't have a knowledge base for this project yet.",
+          );
           log.blank();
           log.info("After setup, Claude will:");
-          log.info("  - Remember decisions, gotchas, and learnings across sessions");
-          log.info("  - Automatically recall relevant context when you start a session");
-          log.info("  - Save important facts as you work, so nothing gets lost");
+          log.info(
+            "  - Remember decisions, gotchas, and learnings across sessions",
+          );
+          log.info(
+            "  - Automatically recall relevant context when you start a session",
+          );
+          log.info(
+            "  - Save important facts as you work, so nothing gets lost",
+          );
           log.blank();
         }
 
@@ -112,18 +148,51 @@ export function createMemoryCommand(): Command {
   // Use when `memory` detects a half-broken state (hook OK, MCP missing, etc.) or after a purge.
   memory.addCommand(
     new Command("install")
-      .description("Install (or re-install) the knowledge base for this project")
+      .description(
+        "Install (or re-install) the knowledge base for this project",
+      )
       .option("--db-path <path>", "Override the default data directory")
-      .option("-y, --yes", "Non-interactive: accept defaults (shared placement)")
+      .option(
+        "-y, --yes",
+        "Non-interactive: accept defaults (shared placement)",
+      )
       .action(async (opts) => {
         try {
           const { runInstall } = await import("./subcommands/install.js");
-          await runInstall({ ...(opts.dbPath ? { dbPath: opts.dbPath } : {}), yes: opts.yes === true });
+          await runInstall({
+            ...(opts.dbPath ? { dbPath: opts.dbPath } : {}),
+            yes: opts.yes === true,
+          });
         } catch (err) {
           // A cancelled prompt or failed step must NOT exit 0 — CI reads the code.
           log.error(err instanceof Error ? err.message : String(err));
           process.exitCode = 1;
         }
+      }),
+  );
+
+  // Diagnostics — `memory stats` and `memory doctor` are the natural guesses;
+  // they must work, not error with "too many arguments".
+  memory.addCommand(
+    new Command("stats")
+      .description("Show memory counts, health, and injection stats")
+      .option("--json", "JSON output")
+      .action(async (opts) => {
+        const { requireMemoryDeps } = await import("./utils/require-deps.js");
+        await requireMemoryDeps();
+        const { runStats } = await import("./subcommands/stats.js");
+        await runStats(opts);
+      }),
+  );
+
+  memory.addCommand(
+    new Command("doctor")
+      .description("Diagnose the memory setup (DB, hooks, MCP registration)")
+      .option("--json", "JSON output")
+      .option("--fix", "Apply automatic repairs")
+      .action(async (opts) => {
+        const { runMemoryDoctor } = await import("./subcommands/doctor.js");
+        await runMemoryDoctor(opts);
       }),
   );
 
@@ -169,7 +238,10 @@ export function createMemoryCommand(): Command {
     new Command("pull")
       .description("Pull current project's memories from GitHub Gist")
       .option("--all", "Pull all projects")
-      .option("-y, --yes", "Non-interactive (accepted for symmetry with push; pull never prompts)")
+      .option(
+        "-y, --yes",
+        "Non-interactive (accepted for symmetry with push; pull never prompts)",
+      )
       .action(async (opts) => {
         await handleSyncErrors(async () => {
           const { runPull } = await import("./subcommands/pull.js");
@@ -180,7 +252,9 @@ export function createMemoryCommand(): Command {
 
   // Sync commands — bare `memory sync` = pull + push in one call
   const sync = new Command("sync")
-    .description("Sync memories with the gist (pull + push); subcommands manage sync state")
+    .description(
+      "Sync memories with the gist (pull + push); subcommands manage sync state",
+    )
     .option("--all", "Sync all projects")
     .option("-y, --yes", "Skip confirmation prompt")
     .action(async (opts) => {
@@ -195,7 +269,8 @@ export function createMemoryCommand(): Command {
       .description("Show local vs remote memory counts per project")
       .action(async () => {
         await handleSyncErrors(async () => {
-          const { runSyncStatus } = await import("./subcommands/sync-status.js");
+          const { runSyncStatus } =
+            await import("./subcommands/sync-status.js");
           await runSyncStatus();
         });
       }),

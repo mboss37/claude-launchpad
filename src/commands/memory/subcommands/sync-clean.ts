@@ -18,8 +18,7 @@ export async function runSyncClean(project: string, opts: SyncCleanOpts): Promis
 
   const syncConfig = loadSyncConfig();
   if (!syncConfig) {
-    log.error('No sync gist found. Run `memory push` first.');
-    return;
+    throw new Error('No sync gist found. Run `memory push` first.');
   }
 
   const filename = projectToFilename(project);

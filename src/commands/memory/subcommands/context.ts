@@ -1,23 +1,23 @@
-import { readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { DecayService } from '../services/decay-service.js';
-import { ConsolidationService } from '../services/consolidation-service.js';
-import { InjectionService } from '../services/injection-service.js';
-import { detectProject } from '../utils/project.js';
-import { getGitContext } from '../utils/git-context.js';
-import { initStorage } from './init-storage.js';
+import { readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { DecayService } from "../services/decay-service.js";
+import { ConsolidationService } from "../services/consolidation-service.js";
+import { InjectionService } from "../services/injection-service.js";
+import { detectProject } from "../utils/project.js";
+import { getGitContext } from "../utils/git-context.js";
+import { initStorage } from "./init-storage.js";
 
 interface ContextOpts {
   readonly json?: boolean;
   readonly dbPath?: string;
 }
 
-const CONSOLIDATION_FILE = '.last-consolidation';
+const CONSOLIDATION_FILE = ".last-consolidation";
 
 function shouldConsolidate(dataDir: string, intervalDays: number): boolean {
   const checkpointPath = join(dataDir, CONSOLIDATION_FILE);
   try {
-    const raw = readFileSync(checkpointPath, 'utf-8').trim();
+    const raw = readFileSync(checkpointPath, "utf-8").trim();
     const lastRun = parseInt(raw, 10);
     if (isNaN(lastRun)) return true;
     const daysSince = (Date.now() - lastRun) / 86_400_000;
@@ -28,11 +28,11 @@ function shouldConsolidate(dataDir: string, intervalDays: number): boolean {
 }
 
 function markConsolidated(dataDir: string): void {
-  writeFileSync(join(dataDir, CONSOLIDATION_FILE), String(Date.now()), 'utf-8');
+  writeFileSync(join(dataDir, CONSOLIDATION_FILE), String(Date.now()), "utf-8");
 }
 
 function write(msg: string): void {
-  process.stdout.write(msg + '\n');
+  process.stdout.write(msg + "\n");
 }
 
 export async function runContext(opts: ContextOpts): Promise<void> {
@@ -56,7 +56,9 @@ export async function runContext(opts: ContextOpts): Promise<void> {
         markConsolidated(ctx.dataDir);
       }
     } catch (err) {
-      process.stderr.write(`[agentic-memory] maintenance error: ${err instanceof Error ? err.message : err}\n`);
+      process.stderr.write(
+        `[agentic-memory] maintenance error: ${err instanceof Error ? err.message : err}\n`,
+      );
     }
 
     const project = detectProject(process.cwd());
@@ -73,7 +75,20 @@ export async function runContext(opts: ContextOpts): Promise<void> {
       project ?? undefined,
     );
 
-    write(injectionService.formatInjection(result));
+    const formatted = injectionService.formatInjection(result);
+    if (opts.json) {
+      // Canonical SessionStart hook envelope — Claude Code injects additionalContext.
+      write(
+        JSON.stringify({
+          hookSpecificOutput: {
+            hookEventName: "SessionStart",
+            additionalContext: formatted,
+          },
+        }),
+      );
+    } else {
+      write(formatted);
+    }
   } finally {
     ctx.close();
   }
