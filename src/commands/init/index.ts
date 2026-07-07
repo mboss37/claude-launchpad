@@ -238,6 +238,10 @@ async function scaffold(
     log.success(
       "Generated .claude/rules/hooks.md (hook authoring rules, path-scoped)",
     );
+  if (!hasVerificationRule)
+    log.success(
+      "Generated .claude/rules/verification.md (evidence-before-assertion discipline)",
+    );
   log.success(
     "Generated .claude/hooks/sprint-{size,open}-check.sh + workflow-check.sh",
   );

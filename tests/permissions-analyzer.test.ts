@@ -15,7 +15,8 @@ beforeAll(async () => {
   process.env.HOME = isolatedHome;
 });
 afterAll(async () => {
-  process.env.HOME = realHome;
+  if (realHome === undefined) delete process.env.HOME;
+  else process.env.HOME = realHome;
   await rm(isolatedHome, { recursive: true, force: true });
 });
 

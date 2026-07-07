@@ -24,7 +24,7 @@ CLI toolkit that makes Claude Code setups measurably good — diagnose, scaffold
 - Four CLI commands: `init` (scaffold), `doctor` (diagnose), `eval` (test configs), `memory` (optional persistent memory)
 - Two skills: `/lp-enhance` (AI-powered CLAUDE.md improver, currently v9), `/lp-migrate-memory` (legacy memory migration)
 - `doctor` is pure static analysis — no API calls, no cost, works offline; `--fix` auto-repairs issues
-- `init` generates 9 files: CLAUDE.md, TASKS.md, BACKLOG.md, settings.json, .gitignore, .claudeignore, conventions.md, workflow.md, lp-enhance skill; plus three hook scripts (sprint-size, sprint-open, workflow-check)
+- `init` generates 12 files: CLAUDE.md, TASKS.md, BACKLOG.md, settings.json, .gitignore, .claudeignore, conventions.md, workflow.md, hooks.md, verification.md, code-reviewer agent, lp-enhance skill; plus three hook scripts (sprint-size, sprint-open, workflow-check)
 - `eval` runs Claude via Agent SDK (falls back to Claude CLI if SDK not installed)
 - `memory` is optional — SQLite + FTS5 + decay model + 7 MCP tools + TUI dashboard
 - Memory native deps (better-sqlite3, sqlite-vec) are NOT bundled — user installs when setting up memory

@@ -134,7 +134,7 @@ Reads your manifest files (package.json, go.mod, pyproject.toml, etc.) and gener
 
 **What init writes:**
 - Always: `CLAUDE.md`, `TASKS.md`, `BACKLOG.md`, `.claude/settings.json`
-- Creates when missing: `.claude/.gitignore`, `.claudeignore`, `.claude/rules/conventions.md`
+- Creates when missing: `.claude/.gitignore`, `.claudeignore`, `.claude/rules/conventions.md`, `.claude/rules/workflow.md`, `.claude/rules/hooks.md`, `.claude/rules/verification.md`, `.claude/agents/code-reviewer.md`
 - Offers `/lp-enhance` install (project/global/skip) if not already present
 - CLAUDE.md includes a stop-and-swarm rule: after 3 failed attempts, Claude spins up parallel agents instead of retrying the same approach
 

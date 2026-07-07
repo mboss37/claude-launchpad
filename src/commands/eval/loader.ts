@@ -93,3 +93,17 @@ async function listYamlFiles(dir: string): Promise<string[]> {
     return [];
   }
 }
+
+/**
+ * Scenario-level `runs` is honored unless the user explicitly chose a value
+ * (CLI flag or interactive prompt). Scenario authors pin low run counts on
+ * judge-check scenarios because every run costs an extra model call.
+ */
+export function resolveRuns(
+  scenarioRuns: number | undefined,
+  cliRuns: number,
+  userChoseRuns: boolean,
+): number {
+  if (userChoseRuns) return cliRuns;
+  return scenarioRuns ?? cliRuns;
+}

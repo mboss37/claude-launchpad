@@ -5,7 +5,7 @@ import chalk from "chalk";
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { printBanner, log, printScoreCard } from "../../lib/output.js";
-import { loadScenarios } from "./loader.js";
+import { loadScenarios, resolveRuns } from "./loader.js";
 import { runScenarioWithRetries } from "./runner.js";
 import type { EvalRunResult } from "../../types/index.js";
 
@@ -30,8 +30,9 @@ export function createEvalCommand(): Command {
       "--model <model>",
       "Model to use for eval (e.g., sonnet, haiku, opus)",
     )
-    .action(async (opts) => {
+    .action(async (opts, command) => {
       printBanner();
+      let userChoseRuns = command.getOptionValueSource("runs") === "cli";
 
       // Interactive mode when no flags provided
       const hasFlags =
@@ -61,6 +62,7 @@ export function createEvalCommand(): Command {
             { name: "5 — thorough", value: "5" },
           ],
         });
+        userChoseRuns = true;
         opts.model = await select({
           message: "Model",
           choices: [
@@ -107,13 +109,14 @@ export function createEvalCommand(): Command {
       }
       log.blank();
 
-      const runs = parseInt(opts.runs, 10);
+      const cliRuns = parseInt(opts.runs, 10);
       const timeout = parseInt(opts.timeout, 10);
 
       // Run scenarios
       const results: EvalRunResult[] = [];
 
       for (const scenario of scenarios) {
+        const runs = resolveRuns(scenario.runs, cliRuns, userChoseRuns);
         const spinner = ora({
           text: `Running: ${scenario.name} (${runs} run${runs > 1 ? "s" : ""})`,
           prefixText: "  ",

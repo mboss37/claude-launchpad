@@ -339,7 +339,7 @@ export default function HomePage() {
               description="A doctor score of 95% means your config looks good. An eval FAIL means Claude ignores those rules in practice. Eval closes the gap between configuration and actual behavior."
             />
             <div className="mt-6 space-y-3 text-sm text-fd-muted-foreground">
-              <p>15 built-in scenarios across 3 suites: security, conventions, and workflow.</p>
+              <p>17 built-in scenarios across 3 suites: security, conventions, and workflow.</p>
               <p>Each run creates an isolated sandbox with your full .claude/ config copied in. Your code is never touched.</p>
             </div>
             <div className="mt-6">
