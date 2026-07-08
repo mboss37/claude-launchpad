@@ -160,16 +160,6 @@ Currently the two PreToolUse guards grep `tool_input.command` / `tool_input.file
 - **Trigger to pull:** After WP-048 lands.
 - **Definition of done:** Soft-delete + undo toast (repo already supports it); pin/importance/tag editing in the TUI; dashboard search routed through FTS (delete the substring re-implementation); `context` field rendered in detail; keybinding bar handles narrow terminals; relations query debounced/cached off the keystroke path.
 
-### WP-050 — Memory benchmarks measure what they claim
-
-- **Priority:** P1
-- **Proposed:** 2026-07-07
-- **Stories / Docs:** review Cluster 2.5; injection-quality.bench.ts:96-158
-- **Depends on:** none
-- **Estimate:** S
-- **Trigger to pull:** Next sprint — mutation testing (2026-07-08) proved half the suite is decorative, and the landing copy now claims "benchmark-measured retrieval".
-- **Definition of done:** Mutation panel goes 4/4 red (today: decay-tau ✅, MMR-lambda ✅, SCORING_WEIGHTS.text→0 ❌ 8/8 passed, INJECTION_WEIGHTS gutted ❌ 14/14 passed). Oracle knapsack optimizes the same per-memory score the packer uses; retrieval fixtures include cases where text relevance MUST outrank recency/importance (kills the FTS-prefilter free ride); thresholds calibrated just under real baselines; noise-penalty test gets its missing assertion; git-path injection score normalized to ≤1.0. Keep the mutation panel as a documented manual check in the bench README.
-
 ### WP-051 — Memory strategy arc: auto-capture, local embeddings, plugin distribution
 
 - **Priority:** P2
@@ -328,6 +318,7 @@ Supply-chain worm protection: newly published package versions can't enter the l
 - **2026-07-07:** Sprint 35 closed. WP-037, WP-038 done (v1.13.0). Review: 0 Critical, 2 Important (dead scenario `runs` field now honored; landing-page scenario count) fixed in-sprint.
 - **2026-07-07:** WP-036, WP-043 pulled into Sprint 36 (v1.13.0 publish gate).
 - **2026-07-07:** WP-044..WP-047 pulled into Sprint 37 (v1.14.0 honest-memory core) and completed same session.
+- **2026-07-08:** WP-050 pulled into Sprint 38 (make the benchmark gate real or cut it).
 - **2026-07-08:** WP-050 promoted P2→P1 with mutation-test evidence: retrieval + injection benchmarks pass with text relevance zeroed and injection scoring gutted — they don't constrain the headline algorithms. Decay, diversity, and scale benches proven real (mutations caught).
 - **2026-07-07:** Sprint 37 closed. WP-044..WP-047 done (v1.14.0). Review: 2 Critical (migration bricked existing installs; sync compounding) + 4 Important — all fixed in-sprint with legacy-DB fixture tests.
 - **2026-07-07:** Sprint 36 closed. WP-036, WP-043 done. Review: 5 Important fixed in-sprint (field migration for bare hooks, no-op --fix removed, pull --all exit code, duplicate matcher, CHANGELOG).

@@ -43,8 +43,7 @@
 - **Sprint 35**: Verification Discipline (v1.13.0) — distilled Fable Mode v2's Verifier Loop into the product: init generates always-on `.claude/rules/verification.md` (evidence before done claims, verify behavior not build, verified/inferred/assumed labels, done-with-gaps, end-of-turn check) with `lp-verification-version` marker; doctor MEDIUM missing + LOW outdated + fixers (never clobbers unmarked user files); new `workflow/premature-victory` eval scenario (custom+transcript+judge prove Claude runs the test before claiming fixed); scenario-level `runs` now honored unless user chooses. Pre-sprint: security patch 35→0 vulns (critical shell-quote, vite-as-peer lesson) + permissions-test HOME isolation. 568 tests (+19), dogfooded (self-score 100%). Review: 0 Critical, 2 Important fixed in-sprint.
 
 ## Current Sprint
-
-<!-- EMPTY. Pull WPs from BACKLOG.md when ready. Format: `- [ ] WP-NNN — short title` -->
+- [ ] WP-050 — Memory benchmarks measure what they claim (mutation panel 4/4 red)
 
 ## Release Plan
 - **v1.14.0** ready to publish — Sprint 37 (honest memory core; migration-safe for every existing install). Publish after v1.13.0 or fold both into one release.
