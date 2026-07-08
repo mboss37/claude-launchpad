@@ -46,6 +46,7 @@ export function App({ dataSource }: AppProps): React.ReactNode {
     searchActive: state.searchActive,
     pickerOpen: state.showProjectPicker,
     expandOpen: state.showExpand,
+    modalOpen: state.showDeleteConfirm || state.showPurgeConfirm || state.showHelp,
   });
 
   if (state.showHelp) {

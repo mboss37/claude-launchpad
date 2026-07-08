@@ -59,7 +59,7 @@ export function useDashboardState(dataSource: DashboardDataSource) {
 
   // Clamp: narrowing filters/search must never strand the selection past the
   // end of the list (blank detail pane until a nav key was pressed).
-  const clampedIndex = Math.min(selectedIndex, Math.max(0, filteredMemories.length - 1));
+  const clampedIndex = Math.max(0, Math.min(selectedIndex, Math.max(0, filteredMemories.length - 1)));
   const selectedMemory = filteredMemories[clampedIndex];
   const relations = useMemo(
     () => selectedMemory ? dataSource.getRelationsForMemory(selectedMemory.id) : [],
@@ -67,11 +67,16 @@ export function useDashboardState(dataSource: DashboardDataSource) {
   );
   const stats = useMemo(() => { void revision; return dataSource.getStats(); }, [dataSource, revision]);
 
+  // Reconcile the raw index against the CURRENT list before stepping —
+  // otherwise k burns presses walking a stale out-of-range index down, and
+  // j on an empty list drives it negative.
   const navigateUp = useCallback(() => {
-    setSelectedIndex((i) => Math.max(0, i - 1));
-  }, []);
+    const last = filteredMemories.length - 1;
+    setSelectedIndex((i) => Math.max(0, Math.min(i, last) - 1));
+  }, [filteredMemories.length]);
   const navigateDown = useCallback(() => {
-    setSelectedIndex((i) => Math.min(filteredMemories.length - 1, i + 1));
+    const last = filteredMemories.length - 1;
+    setSelectedIndex((i) => Math.max(0, Math.min(last, Math.min(i, last) + 1)));
   }, [filteredMemories.length]);
 
   const cycleSort = useCallback(() => {

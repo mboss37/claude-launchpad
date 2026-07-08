@@ -81,16 +81,16 @@ describe("dashboard find-then-act (WP-048)", () => {
     const { stdin, lastFrame } = render(
       <App dataSource={stubDataSource(FIXTURE)} />,
     );
-    await delay(30);
+    await delay(80);
     stdin.write("/");
-    await delay(20);
+    await delay(80);
     stdin.write("alpha");
-    await delay(30);
+    await delay(80);
     expect(lastFrame()).not.toContain("beta note");
     stdin.write(ENTER);
-    await delay(20);
+    await delay(80);
     stdin.write("j");
-    await delay(30);
+    await delay(80);
     const frame = lastFrame()!;
     // Filter survived Enter, and j selected the second alpha (visible in detail pane)
     expect(frame).not.toContain("beta note");
@@ -101,32 +101,32 @@ describe("dashboard find-then-act (WP-048)", () => {
     const { stdin, lastFrame } = render(
       <App dataSource={stubDataSource(FIXTURE)} />,
     );
-    await delay(30);
+    await delay(80);
     stdin.write("/");
-    await delay(20);
+    await delay(80);
     stdin.write("alpha");
-    await delay(30);
+    await delay(80);
     stdin.write(ESC);
-    await delay(30);
+    await delay(80);
     expect(lastFrame()).toContain("beta note");
   });
 
   it("d prompts single-memory delete, X prompts project purge", async () => {
     const first = render(<App dataSource={stubDataSource(FIXTURE)} />);
-    await delay(30);
+    await delay(80);
     first.stdin.write("d");
-    await delay(30);
+    await delay(80);
     expect(first.lastFrame()).toContain("Delete memory?");
     expect(first.lastFrame()).not.toContain("all memories for project");
     first.unmount();
 
     const second = render(<App dataSource={stubDataSource(FIXTURE)} />);
-    await delay(30);
+    await delay(80);
     // X only fires with an active project — cycle to one first
     second.stdin.write("]");
-    await delay(20);
+    await delay(80);
     second.stdin.write("X");
-    await delay(30);
+    await delay(80);
     expect(second.lastFrame()).toContain("all memories for project");
   });
 
@@ -142,9 +142,9 @@ describe("dashboard find-then-act (WP-048)", () => {
     const { stdin, lastFrame } = render(
       <App dataSource={stubDataSource(FIXTURE, relations)} />,
     );
-    await delay(30);
+    await delay(80);
     stdin.write(ENTER); // expand first memory
-    await delay(30);
+    await delay(80);
     const frame = lastFrame()!;
     expect(frame).toContain("beta note");
     expect(frame).not.toContain("id-beta");
@@ -154,15 +154,15 @@ describe("dashboard find-then-act (WP-048)", () => {
     const { stdin, lastFrame } = render(
       <App dataSource={stubDataSource(FIXTURE)} />,
     );
-    await delay(30);
+    await delay(80);
     stdin.write("j");
-    await delay(15);
+    await delay(80);
     stdin.write("j"); // select 3rd (beta)
-    await delay(15);
+    await delay(80);
     stdin.write("/");
-    await delay(15);
+    await delay(80);
     stdin.write("alpha"); // narrows to 2 — old index 2 is out of range
-    await delay(30);
+    await delay(80);
     // Detail pane must show a real memory, not blank
     expect(lastFrame()).toContain("content of alpha");
   });
@@ -177,8 +177,45 @@ describe("dashboard find-then-act (WP-048)", () => {
         <Text>never</Text>
       </DashboardErrorBoundary>,
     );
-    await delay(20);
+    await delay(80);
     expect(lastFrame()).toContain("Dashboard crashed");
     expect(lastFrame()).toContain("kaboom");
+  });
+});
+
+describe('review findings: modal guards and index reconciliation', () => {
+  it('j and q are inert while the delete dialog is open (target cannot shift)', async () => {
+    const { stdin, lastFrame } = render(<App dataSource={stubDataSource(FIXTURE)} />);
+    await delay(80);
+    stdin.write('d');
+    await delay(80);
+    expect(lastFrame()).toContain('alpha one');
+    stdin.write('j');
+    await delay(80);
+    // Dialog still targets the first memory — selection did not move underneath it
+    expect(lastFrame()).toContain('alpha one');
+    expect(lastFrame()).not.toContain('alpha two');
+    stdin.write('q');
+    await delay(80);
+    // q must not quit from inside a destructive dialog
+    expect(lastFrame()).toContain('Delete memory?');
+  });
+
+  it('k works immediately after a narrowing filter (raw index reconciled)', async () => {
+    const { stdin, lastFrame } = render(<App dataSource={stubDataSource(FIXTURE)} />);
+    await delay(80);
+    stdin.write('j');
+    await delay(80);
+    stdin.write('j'); // raw index 2 (beta)
+    await delay(80);
+    stdin.write('/');
+    await delay(80);
+    stdin.write('alpha');
+    await delay(80);
+    stdin.write('\r'); // keep filter: 2 results, raw index still 2
+    await delay(80);
+    stdin.write('k'); // must move to alpha one IMMEDIATELY, not burn presses
+    await delay(80);
+    expect(lastFrame()).toContain('content of alpha one');
   });
 });

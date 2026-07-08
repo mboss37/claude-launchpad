@@ -29,9 +29,12 @@ export interface KeybindingActions {
 
 export function useKeybindings(
   actions: KeybindingActions,
-  opts: { searchActive: boolean; pickerOpen: boolean; expandOpen: boolean },
+  opts: { searchActive: boolean; pickerOpen: boolean; expandOpen: boolean; modalOpen: boolean },
 ): void {
   useInput((input, key) => {
+    // Confirm dialogs and help own the keyboard exclusively — global keys must
+    // not retarget a live delete, stack confirms, or quit mid-dialog.
+    if (opts.modalOpen) return;
     if (opts.expandOpen) return;
     if (opts.searchActive) {
       if (key.escape) actions.closeSearch();

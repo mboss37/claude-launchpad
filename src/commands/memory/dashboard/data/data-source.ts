@@ -80,7 +80,6 @@ export class DashboardDataSource {
     return results;
   }
 
-  /** Get all relations for a specific memory. */
   /** Resolve a memory id to its title for relation display (cache-only, no I/O). */
   getMemoryTitle(id: string): string | undefined {
     const m = this.#cachedMemories.find((mem) => mem.id === id);
