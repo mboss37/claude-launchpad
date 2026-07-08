@@ -1,11 +1,11 @@
 ---
-title: doctor
-description: Scan your Claude Code config, score it 0-100, and auto-fix issues.
+title: "doctor — Claude Code Config Linter"
+description: "Lint your Claude Code setup: score CLAUDE.md, hooks, permissions, and MCP config 0-100, then auto-fix the gaps offline and free. The CLAUDE.md linter with 9 analyzers."
 ---
 
 import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
 
-The core of the tool. Runs 7 analyzers against your `.claude/` directory and `CLAUDE.md`. An 8th (Memory) is added automatically when agentic-memory is detected.
+The core of the tool. Runs 7 core analyzers against your `.claude/` directory and `CLAUDE.md`, plus a Workflow analyzer when BACKLOG.md exists and a Memory analyzer when agentic-memory is detected.
 
 Low scores signal real problems: conventions ignored, credentials exposed, context lost mid-session, every session starting from scratch. Doctor finds these gaps before they waste your time.
 
@@ -31,7 +31,7 @@ claude-launchpad doctor
 | **Instruction Budget** | Past ~200 lines, Claude stops reliably following rules at the bottom of CLAUDE.md. Doctor warns before you hit that limit. |
 | **CLAUDE.md Quality** | Missing sections mean Claude guesses your stack, conventions, and boundaries. Vague instructions ("write good code") waste budget with zero signal. Also checks for a stop-and-swarm section so Claude spins up parallel agents after 3 failed attempts instead of retrying the same approach. Detects duplicate `## Memory` headings (can happen if `/lp-enhance` runs before `memory install`; `--fix` collapses them). |
 | **Settings** | Missing hooks, deprecated settings, auto-memory conflicts. Without proper settings, Claude runs without guardrails. |
-| **Hooks** | Missing SessionStart = Claude forgets where you left off. SessionStart matcher missing `compact` = context lost mid-session (there is NO PostCompact event — doctor flags dead PostCompact hooks HIGH and `--fix` migrates them). Missing SessionEnd = memories never sync. Missing auto-format = inconsistent style. Missing `workflow-check.sh` = BACKLOG/TASKS drift unmonitored. Missing `jq` on PATH = every generated hook (including the blocking guards) silently no-ops (MEDIUM). **Detects hooks reading non-existent `$TOOL_INPUT_*` env vars (HIGH, silently inert); `--fix` rewrites known shapes.** |
+| **Hooks** | Missing SessionStart = Claude forgets where you left off. SessionStart matcher missing `compact` = context lost mid-session (PostCompact exists but is side-effect-only — its stdout is never injected; doctor flags dead PostCompact injection hooks HIGH and `--fix` migrates them). Missing SessionEnd = memories never sync. Missing auto-format = inconsistent style. Missing `workflow-check.sh` = BACKLOG/TASKS drift unmonitored. Missing `jq` on PATH = every generated hook (including the blocking guards) silently no-ops (MEDIUM). **Detects hooks reading non-existent `$TOOL_INPUT_*` env vars (HIGH, silently inert); `--fix` rewrites known shapes.** |
 | **Rules** | Missing BACKLOG.md, missing `.claude/rules/workflow.md`, missing `.claude/rules/hooks.md`, missing `.claude/rules/verification.md` (nothing stops premature "done" claims without evidence), dead rule files, stale references. Without structure, deferred features get lost in conversation. |
 | **Permissions** | Credential exposure (SSH keys, AWS creds), bypass mode enabled, sandbox missing a `~/.agentic-memory` write grant when memory is installed (doctor scopes the sandbox — it never disables it). Security gaps that let Claude access what it shouldn't. |
 | **MCP Servers** | Invalid transport configs, missing commands/URLs, MCP servers not in `allowedMcpServers` whitelist. `allowedMcpServers` is a security setting that restricts which MCP servers Claude can use -- without it, any server added to `.mcp.json` or settings is auto-trusted. `--fix` populates it from your configured servers. |
@@ -51,7 +51,7 @@ claude-launchpad doctor
     - .env file protection hook (blocks reads/writes to .env files, 100% enforced)
     - Auto-format hook (prettier, gofmt, ruff, etc.) so every edit matches your style
     - Force-push protection hook (prevents accidental remote history destruction)
-    - PostCompact hook (re-injects TASKS.md after context compression so Claude stays on track mid-session)
+    - SessionStart `compact` matcher (re-injects TASKS.md after context compression; dead PostCompact TASKS.md hooks are migrated to it)
     - SessionEnd hook with memory push (memory projects only, auto-syncs memories when session closes)
   </Accordion>
   <Accordion title="CLAUDE.md">

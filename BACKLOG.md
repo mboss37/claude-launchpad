@@ -55,6 +55,18 @@ One-paragraph description.
 
 ---
 
+### WP-053 — SEO content pages: hooks guide, comparisons, CLAUDE.md best practices
+
+- **Priority:** P2
+- **Proposed:** 2026-07-08
+- **Stories / Docs:** SEO audit (session 49): "claude code hooks" has no target page despite being the core pitch; comparison queries (claude-mem alternative, mem0 vs) are high-intent/low-competition; doctor IS a CLAUDE.md linter but nothing targets that query.
+- **Depends on:** none
+- **Estimate:** M
+- **Trigger to pull:** Next content/growth session.
+- **Definition of done:** Three new docs pages, each targeting one query with a unique title/H1/description: (1) Claude Code hooks guide (anatomy, stdin contract, async, if:, our generated guards), (2) memory comparison page (honest table vs native/claude-mem/mem0 — zero-infra, free sync, measured retrieval), (3) CLAUDE.md best practices (budget, sections, what doctor checks). Cross-linked from home + relevant pages; added to sitemap.
+
+---
+
 ## P3 — Parked
 
 ### WP-051 — Memory strategy arc: auto-capture, local embeddings, plugin distribution
@@ -81,6 +93,7 @@ One-paragraph description.
 
 ## Changelog
 
+- **2026-07-08:** WP-053 minted (P2) from the docs SEO audit — three content pages targeting unowned high-intent queries.
 - **2026-07-08:** Sprint 41 closed. WP-010, WP-011, WP-020, WP-041, WP-049 done (v1.17.0). Review: 1 Critical (no-op supply-chain guard) + 3 Important fixed in-sprint. Backlog now: WP-051 only.
 - **2026-07-08:** WP-049, WP-020, WP-011, WP-010, WP-041 pulled into Sprint 41 (final polish sweep). WP-051 demoted P2→P3 per maintainer (strategy arc awaits deliberate commitment).
 - **2026-07-08:** Backlog purged to community-value minimum: WP-001..009, 020(kept), 021, 022 reviewed; 11 items deleted (no demand since May / superseded by WP-051 / internal-only). 5 items remain.

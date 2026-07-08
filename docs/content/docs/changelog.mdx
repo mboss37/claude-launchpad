@@ -5,6 +5,57 @@ description: Release history for Claude Launchpad.
 
 {/* Auto-generated from CHANGELOG.md - do not edit directly */}
 
+## [1.17.0] — 2026-07-08
+
+Sprint 41 — the polish sweep: curation, native async hooks, and a supply-chain guard that actually guards.
+
+### Added
+- **Dashboard curation (WP-049).** `d` soft-deletes with `u` to undo (failure reported honestly if the row was purged or synced away), `+`/`-` re-rates importance (re-anchoring the decay base), `t` edits tags (Enter saves, Esc cancels), the stored context renders in the detail pane, and search runs through ranked FTS instead of a substring re-implementation. Relations are cached per refresh — no more SQLite query per keystroke.
+- **`minimumReleaseAge: 10080` in pnpm-workspace.yaml (WP-041)** — freshly published dependency versions can't enter the lockfile for 7 days. Placed in workspace.yaml because pnpm silently ignores the package.json variant (verified empirically both ways).
+- **hooks.md v2 (WP-011):** when to use the `if:` field (single-rule scoping) and why multi-pattern guards keep jq+stdin; `async: true` guidance for SessionEnd work. Doctor flags v1 copies and `--fix` upgrades them.
+
+### Changed
+- **SessionEnd memory push uses native `async: true` (WP-010)** — verified empirically: plain SessionEnd hooks are killed on exit mid-push; async hooks survive. The nohup-wrapper era is over; doctor migrates both plain and legacy-nohup shapes in the field (our own repo included).
+- **Eval suite picker derives scenario counts from disk (WP-020)** — hand-maintained counts went stale twice.
+
+### Internal
+- 637 tests (+10), 59 bench, 21/21 regression, self-score 100%. Review: 1 Critical (the package.json supply-chain guard was a no-op) + 3 Important (dead nohup migration path, undo announcing success over a purged row, uncancellable tag editor) — all fixed in-sprint.
+
+
+## [1.16.0] — 2026-07-08
+
+Sprint 40 — the dashboard's find-then-act finally works.
+
+### Fixed
+- **Search leads somewhere (WP-048).** Enter keeps the filter and hands the keyboard back to the list — search, then j/k, then expand or delete. Esc cancels and clears. Before, Enter was wired to a no-op and Esc wiped your query: finding one memory among hundreds and acting on it was impossible.
+- **`d` deletes the selected memory; `X` purges the project.** The old layout put project-nuking (`d`) one key from item-delete (`r`) — against every TUI convention. `r` stays as an alias.
+- **Relations show memory titles, not raw UUIDs**, resolved from the data-source cache (cross-project too; deleted targets degrade to a short id).
+- **Confirm dialogs own the keyboard.** Global keys used to keep firing underneath: j retargeted a live delete dialog, q quit mid-confirm, d stacked dialogs. Now modals are exclusive.
+- **Selection survives narrowing filters.** The index reconciles against the current list — no more blank detail pane, dead k-presses on a stale index, or a reachable negative index on empty results.
+- **A crash can no longer strand your terminal.** DashboardErrorBoundary catches render errors and exits cleanly (q to quit). Handler-thrown exceptions remain the documented residual gap.
+- Tab "focus" removed — it changed a border color and nothing else.
+
+### Internal
+- First dashboard interaction tests: ink-testing-library harness, 8 behaviors, bite-verified (reverting the d/X fix goes red). vitest now includes .test.tsx. 627 tests (+8), 59 bench, 21/21 regression. Review: 2 Important fixed in-sprint (modal guard, write-time index reconciliation).
+
+
+## [1.15.0] — 2026-07-08
+
+Sprint 39 — guards and templates that tell the truth. A guard that blocks innocent commands teaches users to disable it; a fixer that claims repairs it didn't make is worse than none.
+
+### Fixed
+- **Force-push guard matches real force pushes only (WP-042).** The old `push.*--force|push.*-f` pattern blocked `git stash push … --frozen-lockfile`, filename greps, and even commands quoting the pattern itself. The new anchored ERE covers `-f`/`-fu` combined flags, `--force`, `--force-with-lease[=ref]`, `git -C dir`/`-c k=v` prefixes, `;`/`&` separators, and `+refspec` pushes — 19 behavioral grep tests both ways. Doctor flags the outdated pattern in shipped projects (LOW) and `--fix` upgrades it in both settings files.
+- **`doctor --fix` repairs settings.local.json env-var hooks too (WP-013)** — it previously reported the finding for both files but only patched `settings.json`.
+
+### Added
+- **Generated Stop-and-Swarm ships the agent-brief structure (WP-039):** every brief needs Mission, Context, Scope fence, and Return format; agent output is testimony, not truth — spot-check load-bearing claims.
+- **Key Decisions teaches the why-log format (WP-040):** `YYYY-MM-DD — Chose X over Y because Z. Revisit if W.`, appended at decision time. Doctor nudges (LOW) when the section is still placeholder-only after 20+ commits (own-repo git only — fresh projects inside mature monorepos are exempt).
+
+### Internal
+- Repo publish hook only announces publishes that actually succeeded (WP-052) — it congratulated a failed ENEEDAUTH publish and two doc commits containing the word "publish". Now gated on the npm success marker and excludes `publish:dev`.
+- 619 tests (+27), 21/21 regression, self-score 100%. Review: 2 Important fixed in-sprint (env-var rewriter still emitted the old pattern; ERE coverage regression on `--force-with-lease=<ref>` and `git -C`).
+
+
 ## [1.14.0] — 2026-07-07
 
 Sprint 37 — the honest memory core. Findings from the 4-agent memory review (docs/reviews/2026-07-07-memory-review.md): the decay math didn't do what it claimed, a native dependency did nothing, dedup was global when it should be per-project, and a documented safety guarantee didn't exist.

@@ -53,10 +53,13 @@ export async function generateMetadata(props: PageProps<'/docs/[[...slug]]'>): P
   const page = source.getPage(params.slug);
   if (!page) notFound();
 
+  const canonical = 'https://mboss37.github.io/claude-launchpad' + page.url;
   return {
     title: page.data.title,
     description: page.data.description,
+    alternates: { canonical },
     openGraph: {
+      url: canonical,
       images: getPageImage(page).url,
     },
   };

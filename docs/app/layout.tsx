@@ -7,6 +7,7 @@ const geist = Geist({ subsets: ['latin'], variable: '--font-geist' });
 const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-geist-mono' });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://mboss37.github.io'),
   title: { default: 'Claude Launchpad', template: '%s | Claude Launchpad' },
   description: 'Score your Claude Code setup, fix it with hooks, prove it with eval. Plus persistent Claude Code memory with free cross-machine sync — measured, not assumed.',
   openGraph: {

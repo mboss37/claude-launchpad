@@ -1,5 +1,5 @@
 ---
-title: memory
+title: "Claude Code Memory — Persistent, Synced, Measured"
 description: Persistent memory for Claude Code with free cross-machine sync via private GitHub Gist. Local SQLite, zero servers, zero API cost, ranked context injection (6-signal scoring + diversity + token budget), and benchmarks that measure retrieval quality. The alternative to cloud memory layers and machine-local native memory.
 ---
 
@@ -24,7 +24,7 @@ Claude Code ships its own auto-memory, and if you work on a single machine it ma
 | Deletions propagate across machines | — | Yes (tombstones; machines converge exactly) |
 | Injection strategy | Automatic | Relevance-scored + token-budgeted (6 signals, MMR diversity) |
 | Inspect / manage | Memory files | TUI dashboard, stats, purge, search |
-| Setup | Zero | Two native deps + `memory install` |
+| Setup | Zero | One native dep + `memory install` |
 
 Honest guidance: single machine, zero-setup preference → keep the built-in system. Two or more machines (or you want scored injection and a dashboard) → install Launchpad memory and let `memory sync` carry the project brain between them.
 
@@ -157,8 +157,12 @@ Keybindings:
 - `1`-`5` - filter by type (0 = all)
 - `l` - cycle lifespan filter (healthy/fading/stale)
 - `s` - cycle sort mode
-- `r` - remove the selected memory permanently (with confirmation)
-- `d` - purge all memories for the current project permanently (with confirmation). Both are destructive and cannot be undone.
+- `Enter` - expand the selected memory (full content + relations)
+- `d` / `r` - delete the selected memory (soft delete, with confirmation — press `u` to undo)
+- `u` - undo the last delete
+- `t` - edit the selected memory's tags
+- `+` / `-` - raise or lower importance (re-anchors the decay curve)
+- `X` - purge all memories for the current project (with confirmation — this one is permanent)
 - `p` - project picker
 - `?` - help
 
