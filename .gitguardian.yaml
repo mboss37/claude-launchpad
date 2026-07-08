@@ -1,0 +1,9 @@
+version: 2
+
+# tests/memory/utils/content-validation.test.ts contains DELIBERATELY fake
+# key-shaped strings (AWS docs example key, GitHub docs example PAT, hunter2,
+# sequential Slack token). They are fixtures for our own secret-detection
+# feature — the validator that REJECTS such content before it reaches storage.
+secret:
+  ignored_paths:
+    - tests/memory/utils/content-validation.test.ts
