@@ -89,8 +89,6 @@ Currently the two PreToolUse guards grep `tool_input.command` / `tool_input.file
 
 ---
 
-## P3 — Parked
-
 ### WP-049 — Dashboard curation + honesty pass
 
 - **Priority:** P2
@@ -122,6 +120,10 @@ Currently the two PreToolUse guards grep `tool_input.command` / `tool_input.file
 - **Definition of done:** `minimumReleaseAge` (7 days = 10080) set in root + docs pnpm config with `minimumReleaseAgeExclude` empty; `pnpm install` still resolves cleanly; one line in `.claude/rules/conventions.md` documenting the guard and how to bypass for an urgent CVE patch (temporary exclude, not removal).
 
 Supply-chain worm protection: newly published package versions can't enter the lockfile until they've survived N days in the wild. Was suspected during the security patch (it wasn't active); should be a deliberate yes.
+
+---
+
+## P3 — Parked
 
 ### WP-020 — Compute eval scenario counts instead of hand-maintaining them
 
