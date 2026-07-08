@@ -54,6 +54,8 @@ This requires a C++ compiler (Xcode on macOS, build-essential on Linux). The CLI
 |---|---|
 | `--dashboard` | Open the interactive memory TUI dashboard |
 | `install` | Explicitly (re-)run the install flow — useful when the setup is half-broken or after a purge |
+| `stats` | Memory counts, types, DB size, top-injected (`--json` for scripts) |
+| `doctor` | Diagnose the memory setup: DB health, hooks, MCP registration (`--json` for scripts) |
 
 ## Default behavior
 
@@ -122,6 +124,8 @@ Not all knowledge ages the same way. A bug you fixed last Tuesday matters less n
 
 Claude assigns a type when storing each memory. Short-lived events naturally fade. Core knowledge persists.
 
+Decay is a pure function of a memory's age. Opening many sessions never accelerates it: each run recomputes importance from an immutable anchor set when the memory was stored (or when you explicitly re-rate it), so heavy users and occasional users see the same curve.
+
 ## MCP tools
 
 These are the tools Claude uses to maintain its knowledge base. You rarely call them directly — Claude uses them as needed during sessions.
@@ -135,6 +139,8 @@ These are the tools Claude uses to maintain its knowledge base. You rarely call 
 | `memory_relate` | Create typed relations between memories |
 | `memory_stats` | Count, types, DB size, top-injected |
 | `memory_update` | Modify a memory while preserving access history |
+
+Both `memory_store` and `memory_update` validate content before it touches the database. Key-shaped content is rejected outright: API key prefixes (OpenAI, AWS, GitHub, Slack, Google), PEM private-key blocks, and `password=`/`token=` assignments with secret-shaped values. Memories sync to a GitHub Gist — credentials must never get that far. Prose about secrets ("rotate the deploy token quarterly") passes fine.
 
 ## Dashboard
 
@@ -244,6 +250,8 @@ When memory is detected, `doctor` adds a Memory analyzer that checks:
 ## How it works under the hood
 
 The sections above cover what memory does for you. This section is for those who want to understand the machinery.
+
+Every claim below is enforced by a 59-test benchmark suite that gates releases: retrieval precision/recall/MRR against a labeled query set, injection packing against a matched-objective optimum, decay invariants, and 10k-memory latency budgets. Thresholds sit just under measured baselines, and the suite is mutation-tested — deliberately breaking each algorithm makes it fail, so it cannot silently go decorative. The panel lives in [`tests/memory/benchmarks/README.md`](https://github.com/mboss37/claude-launchpad/blob/master/tests/memory/benchmarks/README.md).
 
 ### Session injection
 

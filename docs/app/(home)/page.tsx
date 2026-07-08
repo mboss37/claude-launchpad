@@ -433,6 +433,7 @@ export default function HomePage() {
                   <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Relevant memories injected automatically at session start</div>
                   <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Stale knowledge fades, important decisions persist</div>
                   <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Each project gets its own scoped memory</div>
+                  <div className="flex items-center gap-2"><span className="text-fd-foreground">✓</span> Retrieval quality is benchmark-gated: 59 tests, mutation-verified — measured, not assumed</div>
                 </div>
               </div>
               <div className="mt-5">
