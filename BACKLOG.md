@@ -57,55 +57,6 @@ One-paragraph description.
 - **Trigger to pull:** Next memory sprint.
 - **Definition of done:** Search submit keeps the filter and returns keyboard to the list (search → j/k → expand/delete works); Tab either routes keys by focused pane or is removed; relations show titles not UUIDs; selectedIndex clamps when the list narrows; `d` no longer means purge-project (move to X; d/r = single item); error boundary restores the terminal; interaction tests via ink-testing-library.
 
-### WP-039 — Sub-agent briefing structure in generated Stop-and-Swarm
-
-- **Priority:** P1
-- **Proposed:** 2026-07-07
-- **Stories / Docs:** `../templates/fable-mode-v2.md` (Sub-Agent System); session 49 gap analysis (Gap 2)
-- **Depends on:** none
-- **Estimate:** S
-- **Trigger to pull:** Next template-content sprint.
-- **Definition of done:** Generated Stop-and-Swarm section (`src/lib/sections.ts`) includes the 5-part agent brief template (Mission / Context / Scope fence / Return format / Evidence rule) and the "treat sub-agent output as testimony — spot-check load-bearing claims before building on them" rule. Repo's own `.claude/rules/conventions.md` Parallel Agents section gets the same. Generator tests updated.
-
-Stop-and-Swarm names agent roles but gives no brief structure, so swarm agents get vague prompts and their findings get forwarded unverified — the two failure modes the Fable Mode v2 sub-agent system exists to kill.
-
-### WP-040 — Key Decisions why-log discipline
-
-- **Priority:** P1
-- **Proposed:** 2026-07-07
-- **Stories / Docs:** `../templates/fable-mode-v2.md` (DECISIONS.md format); session 49 gap analysis (Gap 3)
-- **Depends on:** none
-- **Estimate:** S
-- **Trigger to pull:** Next template-content sprint, or paired with WP-039.
-- **Definition of done:** Generated `## Key Decisions` section ships the append-only entry format (`YYYY-MM-DD — Chose X over Y because Z. Revisit if W.`) plus a write-when-decided rule instead of the bare HTML placeholder. Doctor LOW finding when Key Decisions is still placeholder-only in a repo with 20+ commits. Generator + analyzer tests.
-
-The current placeholder produces empty sections in the field — a decision log nobody writes to at decision time never gets written.
-
-### WP-042 — Force-push hook false-positives on unrelated commands
-
-- **Priority:** P1
-- **Proposed:** 2026-07-07
-- **Stories / Docs:** hit live in session 49: `git stash push -- … && pnpm install --frozen-lockfile` was exit-2 blocked by `push.*--force|push.*-f`
-- **Depends on:** none
-- **Estimate:** S
-- **Trigger to pull:** Next sprint touching `settings.ts` generation or hooks.
-- **Definition of done:** The destructive-command guard matches actual `git push` force invocations only (anchored on `git push` + word-boundary `--force|--force-with-lease|-f`), not any command containing "push" followed by a token starting with `-f`. Updated in `src/commands/init/generators/settings.ts`, this repo's own `.claude/settings.json`, and covered by tests listing the known false positives (`git stash push … --frozen-lockfile`, `pnpm install --force` alone) and true positives.
-
-A guard that blocks legitimate commands trains users to bypass it — false positives are how security hooks die.
-
-### WP-013 — Extend `rewriteEnvVarHooks` to also patch `settings.local.json`
-
-- **Priority:** P1
-- **Proposed:** 2026-05-04
-- **Stories / Docs:** Sprint 32 code review (Important #2); `src/commands/doctor/fixer-hook-input.ts:115-127`
-- **Depends on:** none
-- **Estimate:** XS
-- **Trigger to pull:** Anytime `fixer-hook-input.ts` is touched, or as filler.
-- **Definition of done:** `rewriteEnvVarHooks(root)` reads/writes `settings.local.json` via `readSettingsLocalJson`/`writeSettingsLocalJson` in addition to `settings.json`. Test asserts a project with the bug ONLY in `settings.local.json` gets fixed by `doctor --fix`.
-
-The Sprint 32 fixer covers `settings.json` but the parser flags env-var hooks in either file. If a user added a custom env-var hook to `settings.local.json`, doctor reports the issue, claims it fixed it, but actually didn't touch the local file. Two-line addition.
-
-
 ---
 
 ## P2 — Post-MVP / nice-to-have
@@ -169,18 +120,6 @@ Currently the two PreToolUse guards grep `tool_input.command` / `tool_input.file
 - **Estimate:** XL (must decompose before pulling)
 - **Trigger to pull:** Decompose when the v1.14.0 quality sprint closes; each child is its own sprint.
 - **Definition of done:** (of the decomposition) Five child WPs minted with the review's ranking: (1) auto-capture via SessionEnd/Stop hooks (extract.ts is the head start), (2) local-embedding hybrid retrieval (re-introduces sqlite-vec, wired), (3) Claude Code plugin marketplace packaging, (4) native-memory continuous interop + markdown export, (5) git-committed team memory. Positioning updated: "memory as managed, measurable infrastructure", not "Claude remembers".
-
-### WP-052 — Publish hook announces success on failed publishes
-
-- **Priority:** P2
-- **Proposed:** 2026-07-08
-- **Stories / Docs:** observed live: `pnpm publish:release` failed ENEEDAUTH, PostToolUse hook still said "Published to npm. Remember to create a GitHub release"
-- **Depends on:** none
-- **Estimate:** XS
-- **Trigger to pull:** Next hooks touch, or as filler.
-- **Definition of done:** The hook inspects tool_response for npm failure markers (`npm error`, `ENEEDAUTH`, non-zero hints) before congratulating; a failed publish produces either silence or a warning. Same audit for any other outcome-blind celebratory hooks in our settings.
-
-A hook that pattern-matches the command instead of the outcome is a decorative hook — the exact disease doctor exists to cure.
 
 ### WP-041 — Enable pnpm minimumReleaseAge supply-chain guard
 
@@ -331,6 +270,7 @@ Supply-chain worm protection: newly published package versions can't enter the l
 - **2026-07-07:** WP-036, WP-043 pulled into Sprint 36 (v1.13.0 publish gate).
 - **2026-07-07:** WP-044..WP-047 pulled into Sprint 37 (v1.14.0 honest-memory core) and completed same session.
 - **2026-07-08:** WP-050 pulled into Sprint 38 (make the benchmark gate real or cut it).
+- **2026-07-08:** WP-013, WP-039, WP-040, WP-042, WP-052 pulled into Sprint 39 (guards and templates that tell the truth). WP-048 deliberately kept separate (M-sized, own test infra).
 - **2026-07-08:** Canary issue #7 closed as false alarm: workflow referenced a nonexistent ANTHROPIC_API_KEY secret since birth — never passed in CI until today. Fixed (OAuth secret + loud infra preflight); first green run on Claude Code 2.1.204, all 5 assertions.
 - **2026-07-08:** v1.14.0 published to npm (folds unreleased 1.13.0). WP-052 minted (publish hook celebrates failed publishes).
 - **2026-07-08:** Sprint 38 closed. WP-050 done — mutation panel 4/4 red, healthy 59/59 green. Review: 2 Important fixed in-sprint.

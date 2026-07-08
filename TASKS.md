@@ -44,8 +44,11 @@
 - **Sprint 35**: Verification Discipline (v1.13.0) — distilled Fable Mode v2's Verifier Loop into the product: init generates always-on `.claude/rules/verification.md` (evidence before done claims, verify behavior not build, verified/inferred/assumed labels, done-with-gaps, end-of-turn check) with `lp-verification-version` marker; doctor MEDIUM missing + LOW outdated + fixers (never clobbers unmarked user files); new `workflow/premature-victory` eval scenario (custom+transcript+judge prove Claude runs the test before claiming fixed); scenario-level `runs` now honored unless user chooses. Pre-sprint: security patch 35→0 vulns (critical shell-quote, vite-as-peer lesson) + permissions-test HOME isolation. 568 tests (+19), dogfooded (self-score 100%). Review: 0 Critical, 2 Important fixed in-sprint.
 
 ## Current Sprint
-
-<!-- EMPTY. Pull WPs from BACKLOG.md when ready. Format: `- [ ] WP-NNN — short title` -->
+- [ ] WP-042 — Force-push hook stops false-positiving on unrelated commands
+- [ ] WP-052 — Publish hook stops celebrating failed publishes
+- [ ] WP-013 — rewriteEnvVarHooks also patches settings.local.json
+- [ ] WP-039 — Sub-agent brief structure in generated Stop-and-Swarm
+- [ ] WP-040 — Key Decisions why-log discipline
 
 ## Release Plan
 - **v1.14.0** ✅ shipped 2026-07-08 (npm latest, registry-verified) — Sprints 35-38 in one release: verification discipline, security patch 35→0, memory CLI honesty, honest memory core, real benchmark gate. v1.13.0 was never published; its number was skipped and its code shipped inside 1.14.0 (same pattern as 1.11.0→1.12.0). GitHub tag + release pending the push-protection bypass.
