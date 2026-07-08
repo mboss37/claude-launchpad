@@ -133,8 +133,10 @@ export function useDashboardState(dataSource: DashboardDataSource) {
   }, [dataSource, selectedMemory]);
   const undoDelete = useCallback(() => {
     if (!lastDeleted) return;
-    dataSource.restoreMemory(lastDeleted);
-    setNotice(`Restored "${lastDeleted.title ?? lastDeleted.id.slice(0, 8)}"`);
+    const ok = dataSource.restoreMemory(lastDeleted);
+    setNotice(ok
+      ? `Restored "${lastDeleted.title ?? lastDeleted.id.slice(0, 8)}"`
+      : `Could not restore "${lastDeleted.title ?? lastDeleted.id.slice(0, 8)}" — it was purged or removed by sync`);
     setLastDeleted(null);
     dataSource.refresh();
     setRevision((r) => r + 1);

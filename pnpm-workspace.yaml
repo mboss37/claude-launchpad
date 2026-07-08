@@ -1,0 +1,7 @@
+# Not a multi-package workspace — this file exists because pnpm only honors
+# supply-chain settings here, NOT in package.json's pnpm field (verified
+# empirically 2026-07-08: package.json placement is silently ignored).
+packages:
+  - '.'
+
+minimumReleaseAge: 10080

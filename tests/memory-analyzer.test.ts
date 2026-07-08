@@ -265,7 +265,7 @@ describe("analyzeMemory", () => {
       mcpServers: [memoryServer],
       hooks: [sessionStartHook, sessionEndPush],
     }), "/test");
-    expect(result!.issues.some((i) => i.message.includes("SessionEnd"))).toBe(false);
+    expect(result!.issues.some((i) => i.message.includes("SessionEnd") && i.severity === "high")).toBe(false);
   });
 
 
@@ -454,5 +454,47 @@ describe("bare-binary memory hooks (npx migration)", () => {
     expect(cmds).not.toContain("npx npx");
     expect(await upgradeBareMemoryHooks(root)).toBe(false);
     await rm(root, { recursive: true, force: true });
+  });
+});
+
+describe("SessionEnd push upgrade fixer (WP-010 review)", () => {
+  it("upgrades plain and legacy-nohup shapes to async, preserving extra fields", async () => {
+    const { upgradeStaleSessionEndPushHook } = await import("../src/commands/doctor/fixer-memory.js");
+    const { readFile } = await import("node:fs/promises");
+    const root = await mkdtemp(join(tmpdir(), "async-up-"));
+    await mkdir(join(root, ".claude"), { recursive: true });
+    await writeFile(join(root, ".claude", "settings.json"), JSON.stringify({
+      hooks: {
+        SessionEnd: [{ matcher: "", hooks: [
+          { type: "command", command: "claude-launchpad memory push -y >/dev/null 2>&1; exit 0", timeout: 30 },
+          { type: "command", command: "nohup npx claude-launchpad memory push -y </dev/null >/dev/null 2>&1 & exit 0" },
+        ]}],
+      },
+    }));
+    expect(await upgradeStaleSessionEndPushHook(root)).toBe(true);
+    const updated = JSON.parse(await readFile(join(root, ".claude", "settings.json"), "utf-8"));
+    const hooks = updated.hooks.SessionEnd[0].hooks;
+    for (const h of hooks) {
+      expect(h.async).toBe(true);
+      expect(h.command).toBe("npx claude-launchpad memory push -y");
+    }
+    expect(hooks[0].timeout).toBe(30);
+    expect(await upgradeStaleSessionEndPushHook(root)).toBe(false);
+  });
+
+  it("analyzer flags the legacy nohup shape as low", async () => {
+    mockReadSyncConfig.mockReturnValueOnce({ gistId: "abc123" });
+    const nohupPush: HookConfig = {
+      event: "SessionEnd",
+      type: "command",
+      command: "nohup npx claude-launchpad memory push -y </dev/null >/dev/null 2>&1 & exit 0",
+    };
+    const result = await analyzeMemory(makeConfig({
+      mcpServers: [memoryServer],
+      hooks: [sessionStartHook, nohupPush],
+    }), "/test");
+    const issue = result!.issues.find((i) => i.message.includes("legacy nohup wrapper"));
+    expect(issue).toBeDefined();
+    expect(issue!.severity).toBe("low");
   });
 });

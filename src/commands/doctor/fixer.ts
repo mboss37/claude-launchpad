@@ -421,6 +421,12 @@ const FIX_TABLE: ReadonlyArray<{
     match: "SessionEnd push hook is neither async nor detached",
     fix: (root) => upgradeStaleSessionEndPushHook(root),
   },
+
+  {
+    analyzer: "Memory",
+    match: "uses the legacy nohup wrapper",
+    fix: (root) => upgradeStaleSessionEndPushHook(root),
+  },
   {
     analyzer: "Memory",
     match: "CLAUDE.md missing memory guidance",

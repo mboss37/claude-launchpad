@@ -1,4 +1,8 @@
-import type { ClaudeConfig, AnalyzerResult, DiagnosticIssue } from "../../../types/index.js";
+import type {
+  ClaudeConfig,
+  AnalyzerResult,
+  DiagnosticIssue,
+} from "../../../types/index.js";
 import { readSyncConfig } from "../../memory/utils/gist-transport.js";
 import {
   resolveHookCommand,
@@ -31,8 +35,11 @@ export async function hasMemoryIndicators(
   if (config.mcpServers.some((s) => s.name === "agentic-memory")) return true;
 
   // Tool permissions referencing agentic-memory (server may be registered via `claude mcp add`)
-  const permissions = (config.settings?.permissions as Record<string, unknown> | undefined) ?? {};
-  const localPermissions = (config.localSettings?.permissions as Record<string, unknown> | undefined) ?? {};
+  const permissions =
+    (config.settings?.permissions as Record<string, unknown> | undefined) ?? {};
+  const localPermissions =
+    (config.localSettings?.permissions as
+      Record<string, unknown> | undefined) ?? {};
   const allowList = [
     ...((permissions.allow as string[] | undefined) ?? []),
     ...((localPermissions.allow as string[] | undefined) ?? []),
@@ -41,8 +48,10 @@ export async function hasMemoryIndicators(
 
   // SessionStart hook referencing memory context injection — see through 1-level wrappers
   const resolved = await resolveAllHooks(config.hooks, projectRoot);
-  return config.hooks.some((h, i) =>
-    h.event === "SessionStart" && effectiveCommandText(resolved[i]).includes("memory context"),
+  return config.hooks.some(
+    (h, i) =>
+      h.event === "SessionStart" &&
+      effectiveCommandText(resolved[i]).includes("memory context"),
   );
 }
 
@@ -54,7 +63,7 @@ export async function analyzeMemory(
   config: ClaudeConfig,
   projectRoot: string,
 ): Promise<AnalyzerResult | null> {
-  if (!await hasMemoryIndicators(config, projectRoot)) return null;
+  if (!(await hasMemoryIndicators(config, projectRoot))) return null;
 
   const issues: DiagnosticIssue[] = [];
   const resolved = await resolveAllHooks(config.hooks, projectRoot);
@@ -62,7 +71,8 @@ export async function analyzeMemory(
 
   // 1. SessionStart hook with memory context (wrapper-aware)
   const hasSessionStart = config.hooks.some(
-    (h, i) => h.event === "SessionStart" && effectiveAt(i).includes("memory context"),
+    (h, i) =>
+      h.event === "SessionStart" && effectiveAt(i).includes("memory context"),
   );
   if (!hasSessionStart) {
     issues.push({
@@ -81,28 +91,32 @@ export async function analyzeMemory(
     issues.push({
       analyzer: "Memory",
       severity: "low",
-      message: "Deprecated Stop hook found (memory extract) — auto-extraction was removed, Claude stores memories directly via MCP tools",
+      message:
+        "Deprecated Stop hook found (memory extract) — auto-extraction was removed, Claude stores memories directly via MCP tools",
       fix: "Run `doctor --fix` to remove the stale Stop hook",
     });
   }
 
   // 3. autoMemoryEnabled should be false (built-in memory conflicts with agentic-memory)
-  const autoMemoryDisabled = config.settings?.autoMemoryEnabled === false
-    || config.localSettings?.autoMemoryEnabled === false;
+  const autoMemoryDisabled =
+    config.settings?.autoMemoryEnabled === false ||
+    config.localSettings?.autoMemoryEnabled === false;
   if (!autoMemoryDisabled) {
     issues.push({
       analyzer: "Memory",
       severity: "medium",
-      message: "autoMemoryEnabled not disabled — built-in memory may conflict with agentic-memory",
+      message:
+        "autoMemoryEnabled not disabled — built-in memory may conflict with agentic-memory",
       fix: "Set autoMemoryEnabled: false in settings.json or settings.local.json",
     });
   }
 
   // 5. CLAUDE.md memory guidance (check both shared and local)
-  const hasMemoryGuidance = config.claudeMdContent?.includes("agentic-memory")
-    || config.claudeMdContent?.includes("## Memory")
-    || config.localClaudeMdContent?.includes("agentic-memory")
-    || config.localClaudeMdContent?.includes("## Memory");
+  const hasMemoryGuidance =
+    config.claudeMdContent?.includes("agentic-memory") ||
+    config.claudeMdContent?.includes("## Memory") ||
+    config.localClaudeMdContent?.includes("agentic-memory") ||
+    config.localClaudeMdContent?.includes("## Memory");
   if (!hasMemoryGuidance) {
     issues.push({
       analyzer: "Memory",
@@ -113,8 +127,11 @@ export async function analyzeMemory(
   }
 
   // 6. MCP tool permissions (check both shared and local settings)
-  const permissions = (config.settings?.permissions as Record<string, unknown> | undefined) ?? {};
-  const localPermissions = (config.localSettings?.permissions as Record<string, unknown> | undefined) ?? {};
+  const permissions =
+    (config.settings?.permissions as Record<string, unknown> | undefined) ?? {};
+  const localPermissions =
+    (config.localSettings?.permissions as
+      Record<string, unknown> | undefined) ?? {};
   const allowList = [
     ...((permissions.allow as string[] | undefined) ?? []),
     ...((localPermissions.allow as string[] | undefined) ?? []),
@@ -136,7 +153,8 @@ export async function analyzeMemory(
     ...(Array.isArray(sharedAllowed) ? sharedAllowed : []),
     ...(Array.isArray(localAllowed) ? localAllowed : []),
   ] as Array<{ serverName?: unknown }>;
-  const hasAllowlist = Array.isArray(sharedAllowed) || Array.isArray(localAllowed);
+  const hasAllowlist =
+    Array.isArray(sharedAllowed) || Array.isArray(localAllowed);
   const memoryInAllowlist = allowedServers.some(
     (e) => e && typeof e === "object" && e.serverName === "agentic-memory",
   );
@@ -144,7 +162,8 @@ export async function analyzeMemory(
     issues.push({
       analyzer: "Memory",
       severity: "high",
-      message: "allowedMcpServers is set but does not include agentic-memory — MCP registration will be blocked",
+      message:
+        "allowedMcpServers is set but does not include agentic-memory — MCP registration will be blocked",
       fix: "Run `doctor --fix` to add agentic-memory to allowedMcpServers",
     });
   }
@@ -152,14 +171,16 @@ export async function analyzeMemory(
   // 6b. Bare-binary hooks fail on npx-only machines ("command not found",
   // swallowed by 2>/dev/null) — sync/context silently never runs.
   const hasBareBinaryHook = config.hooks.some(
-    (h) => h.command?.includes("claude-launchpad memory")
-      && !h.command.includes("npx claude-launchpad"),
+    (h) =>
+      h.command?.includes("claude-launchpad memory") &&
+      !h.command.includes("npx claude-launchpad"),
   );
   if (hasBareBinaryHook) {
     issues.push({
       analyzer: "Memory",
       severity: "medium",
-      message: "Memory hook(s) call the bare claude-launchpad binary — fails silently on machines without a global install",
+      message:
+        "Memory hook(s) call the bare claude-launchpad binary — fails silently on machines without a global install",
       fix: "Run `doctor --fix` to rewrite them to the npx form",
     });
   }
@@ -168,25 +189,29 @@ export async function analyzeMemory(
   const syncConfig = readSyncConfig();
   if (syncConfig) {
     const hasSessionStartPull = config.hooks.some(
-      (h, i) => h.event === "SessionStart" && effectiveAt(i).includes("memory pull"),
+      (h, i) =>
+        h.event === "SessionStart" && effectiveAt(i).includes("memory pull"),
     );
     if (!hasSessionStartPull) {
       issues.push({
         analyzer: "Memory",
         severity: "medium",
-        message: "Sync configured but no SessionStart hook to auto-pull memories before context injection",
+        message:
+          "Sync configured but no SessionStart hook to auto-pull memories before context injection",
         fix: "Run `doctor --fix` to add a SessionStart hook that pulls memories automatically",
       });
     }
 
     const hasSessionEndPush = config.hooks.some(
-      (h, i) => h.event === "SessionEnd" && effectiveAt(i).includes("memory push"),
+      (h, i) =>
+        h.event === "SessionEnd" && effectiveAt(i).includes("memory push"),
     );
     if (!hasSessionEndPush) {
       issues.push({
         analyzer: "Memory",
         severity: "medium",
-        message: "Sync configured but no SessionEnd hook to auto-push memories after each session",
+        message:
+          "Sync configured but no SessionEnd hook to auto-push memories after each session",
         fix: "Run `doctor --fix` to add a SessionEnd hook that pushes memories automatically",
       });
     }
@@ -195,17 +220,36 @@ export async function analyzeMemory(
     // Native fix (verified 2026-07-08): async: true. Legacy nohup wrappers also
     // work but get upgraded to the native form.
     const hasKillablePush = config.hooks.some(
-      (h) => h.event === "SessionEnd"
-        && h.command?.includes("memory push")
-        && !h.command.includes("nohup")
-        && h.async !== true,
+      (h) =>
+        h.event === "SessionEnd" &&
+        h.command?.includes("memory push") &&
+        !h.command.includes("nohup") &&
+        h.async !== true,
     );
     if (hasKillablePush) {
       issues.push({
         analyzer: "Memory",
         severity: "high",
-        message: "SessionEnd push hook is neither async nor detached — Claude Code kills it on exit before the push completes",
+        message:
+          "SessionEnd push hook is neither async nor detached — Claude Code kills it on exit before the push completes",
         fix: "Run `doctor --fix` to upgrade it to the native async form",
+      });
+    }
+
+    // Legacy nohup wrappers still work but the native async form is canonical.
+    const hasLegacyNohupPush = config.hooks.some(
+      (h) =>
+        h.event === "SessionEnd" &&
+        h.command?.includes("memory push") &&
+        h.command.includes("nohup"),
+    );
+    if (hasLegacyNohupPush) {
+      issues.push({
+        analyzer: "Memory",
+        severity: "low",
+        message:
+          "SessionEnd push hook uses the legacy nohup wrapper — the native async: true form is canonical",
+        fix: "Run `doctor --fix` to upgrade it",
       });
     }
   }
@@ -229,7 +273,10 @@ export async function analyzeMemory(
   const high = issues.filter((i) => i.severity === "high").length;
   const medium = issues.filter((i) => i.severity === "medium").length;
   const low = issues.filter((i) => i.severity === "low").length;
-  const score = Math.max(0, 100 - (critical * 40 + high * 20 + medium * 10 + low * 5));
+  const score = Math.max(
+    0,
+    100 - (critical * 40 + high * 20 + medium * 10 + low * 5),
+  );
 
   return { name: "Memory", issues, score };
 }

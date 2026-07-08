@@ -46,6 +46,7 @@ export function App({ dataSource }: AppProps): React.ReactNode {
     adjustImportanceUp: () => state.adjustImportance(0.1),
     adjustImportanceDown: () => state.adjustImportance(-0.1),
     openTagEditor: state.openTagEditor,
+    cancelTagEditor: state.cancelTagEditor,
     quit: exit,
   }, {
     searchActive: state.searchActive,

@@ -28,6 +28,7 @@ export interface KeybindingActions {
   readonly adjustImportanceUp: () => void;
   readonly adjustImportanceDown: () => void;
   readonly openTagEditor: () => void;
+  readonly cancelTagEditor: () => void;
   readonly quit: () => void;
 }
 
@@ -39,7 +40,10 @@ export function useKeybindings(
     // Confirm dialogs and help own the keyboard exclusively — global keys must
     // not retarget a live delete, stack confirms, or quit mid-dialog.
     if (opts.modalOpen) return;
-    if (opts.tagEditorOpen) return;
+    if (opts.tagEditorOpen) {
+      if (key.escape) actions.cancelTagEditor();
+      return;
+    }
     if (opts.expandOpen) return;
     if (opts.searchActive) {
       if (key.escape) actions.closeSearch();

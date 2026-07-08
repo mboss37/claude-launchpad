@@ -114,7 +114,8 @@ export async function upgradeStaleSessionEndPushHook(root: string): Promise<bool
         // Upgrade BOTH shapes: plain (killed on exit) and legacy nohup wrapper.
         if (!cmd.includes("memory push") || (h as { async?: boolean }).async === true) return h;
         changed = true;
-        return { type: "command", command: "npx claude-launchpad memory push -y", async: true };
+        // Preserve user fields (timeout etc.) — only the command/async change.
+        return { ...h, type: "command", command: "npx claude-launchpad memory push -y", async: true };
       });
       return { ...group, hooks: rewritten };
     });

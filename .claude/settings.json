@@ -9,7 +9,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cmd=$(jq -r '.tool_input.command // empty' 2>/dev/null); echo \"$cmd\" | grep -qE 'git +push[^|;&]*( -f| --force| --force-with-lease)( |$)' && { echo 'WARNING: Force push detected \u2014 this can destroy remote history' >&2; exit 2; }; exit 0"
+            "command": "cmd=$(jq -r '.tool_input.command // empty' 2>/dev/null); echo \"$cmd\" | grep -qE 'git +push[^|;&]*( -f| --force| --force-with-lease)( |$)' && { echo 'WARNING: Force push detected — this can destroy remote history' >&2; exit 2; }; exit 0"
           }
         ]
       },
@@ -112,7 +112,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "nohup npx claude-launchpad memory push -y </dev/null >/dev/null 2>&1 & exit 0"
+            "command": "npx claude-launchpad memory push -y",
+            "async": true
           }
         ]
       }

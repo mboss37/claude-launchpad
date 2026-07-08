@@ -54,7 +54,7 @@ export class DashboardDataSource {
     // Relations cached per memory so navigation never hits SQLite per keystroke.
     const byMemory = new Map<string, Relation[]>();
     for (const r of this.#relationRepo.getAll()) {
-      for (const id of [r.sourceId, r.targetId]) {
+      for (const id of new Set([r.sourceId, r.targetId])) {
         const list = byMemory.get(id) ?? [];
         list.push(r as Relation);
         byMemory.set(id, list);
@@ -154,7 +154,7 @@ export class DashboardDataSource {
     return this.#memoryRepo.updateContent(id, {
       ...(updates.importance !== undefined ? { importance: updates.importance } : {}),
       ...(updates.tags !== undefined ? { tags: updates.tags } : {}),
-    }) !== undefined && this.#memoryRepo.getById(id) !== undefined;
+    });
   }
 
   /** Count memories for a project (unfiltered). */
@@ -164,19 +164,8 @@ export class DashboardDataSource {
 
   /** Delete all memories for a project. Returns number of deleted memories. */
   purgeProject(project: string): number {
-    // hardDelete per id so tombstones are written — a purge that skips
-    // tombstones resurrects on the next sync pull.
-    // Repo-backed (not cache): purge must work pre-refresh and also sweep
-    // soft-deleted remnants the cache filters out.
-    const ids = this.#memoryRepo
-      .getAll()
-      .filter((m) => m.project === project)
-      .map((m) => m.id);
-    let deleted = 0;
-    for (const id of ids) {
-      if (this.#memoryRepo.hardDelete(id)) deleted++;
-    }
-    return deleted;
+    // deleteByProject tombstones in one transaction — deletions sync correctly.
+    return this.#memoryRepo.deleteByProject(project);
   }
 
   /** Stop watching the DB file. */

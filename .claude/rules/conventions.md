@@ -31,7 +31,7 @@
 - Docs-only / non-src changes: commit normally, no version bump, no publish
 
 ## Supply Chain
-- `pnpm.minimumReleaseAge: 10080` (7 days) in root + docs package.json — newly published dependency versions can't enter the lockfile until they've survived a week in the wild. For an urgent CVE patch on a fresh release, add the package to `pnpm.minimumReleaseAgeExclude` temporarily — never remove the guard itself.
+- `minimumReleaseAge: 10080` (7 days) in root + docs `pnpm-workspace.yaml` — pnpm silently ignores it in package.json's pnpm field (verified) — newly published dependency versions can't enter the lockfile until they've survived a week in the wild. For an urgent CVE patch on a fresh release, add the package to `minimumReleaseAgeExclude` in pnpm-workspace.yaml temporarily — never remove the guard itself.
 
 ## Pre-Commit Checklist
 1. Run `pnpm typecheck && pnpm test:run` — NEVER commit if either fails

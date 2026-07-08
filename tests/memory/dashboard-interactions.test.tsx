@@ -297,3 +297,34 @@ describe("curation (WP-049)", () => {
     expect(queried).toBe(true);
   });
 });
+
+describe("review fixes (Sprint 41)", () => {
+  it("Esc cancels the tag editor without saving", async () => {
+    const ds = stubDataSource([...FIXTURE.map((m) => ({ ...m }))]) as any;
+    const { stdin, lastFrame } = render(<App dataSource={ds} />);
+    await delay(80);
+    stdin.write("t");
+    await delay(80);
+    expect(lastFrame()).toContain("Tags (comma-separated)");
+    stdin.write(", junk");
+    await delay(80);
+    stdin.write("\u001B");
+    await delay(80);
+    expect(lastFrame()).not.toContain("Tags (comma-separated)");
+    expect(ds.updates.length).toBe(0);
+  });
+
+  it("undo reports failure honestly when the restore hits nothing", async () => {
+    const ds = stubDataSource([...FIXTURE.map((m) => ({ ...m }))]) as any;
+    ds.restoreMemory = () => false;
+    const { stdin, lastFrame } = render(<App dataSource={ds} />);
+    await delay(80);
+    stdin.write("d");
+    await delay(80);
+    stdin.write("y");
+    await delay(80);
+    stdin.write("u");
+    await delay(80);
+    expect(lastFrame()).toContain("Could not restore");
+  });
+});
