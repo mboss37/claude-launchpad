@@ -45,13 +45,24 @@ export function createEvalCommand(): Command {
         opts.json ||
         opts.debug;
       if (!hasFlags) {
+        // Counts derived from disk — hand-maintained numbers went stale twice.
+        const allScenarios = await loadScenarios({});
+        const suiteCounts = new Map<string, number>();
+        for (const s of allScenarios) {
+          const suiteName = s.name.split("/")[0] ?? "misc";
+          suiteCounts.set(suiteName, (suiteCounts.get(suiteName) ?? 0) + 1);
+        }
         opts.suite = await select({
           message: "Suite",
           choices: [
-            { name: "security (7 scenarios)", value: "security" },
-            { name: "conventions (5 scenarios)", value: "conventions" },
-            { name: "workflow (5 scenarios)", value: "workflow" },
-            { name: "all (17 scenarios)", value: undefined },
+            ...[...suiteCounts.entries()].map(([suiteName, count]) => ({
+              name: `${suiteName} (${count} scenario${count === 1 ? "" : "s"})`,
+              value: suiteName,
+            })),
+            {
+              name: `all (${allScenarios.length} scenarios)`,
+              value: undefined,
+            },
           ],
         });
         opts.runs = await select({

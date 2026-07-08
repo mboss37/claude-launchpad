@@ -4,6 +4,7 @@ import { homedir } from "node:os";
 import { fileExists } from "../../../lib/fs-utils.js";
 import { ENHANCE_SKILL_VERSION } from "../../init/generators/skill-enhance.js";
 import { WORKFLOW_RULE_VERSION } from "../../init/generators/workflow-rule.js";
+import { HOOKS_RULE_VERSION } from "../../init/generators/hooks-rule.js";
 import { VERIFICATION_RULE_VERSION } from "../../init/generators/verification-rule.js";
 import { isSuperpowersInstalled } from "../../../lib/plugins.js";
 import type {
@@ -102,6 +103,21 @@ export async function analyzeRules(
         "No .claude/rules/hooks.md found — hook authoring rules unenforced (env-var bug, exit-code 2 vs 1, multi-matcher caveats)",
       fix: "Run `doctor --fix` to generate it",
     });
+  }
+
+  // Stale hooks rule — versioned marker lets --fix upgrade shipped copies
+  if (hasHooksRule) {
+    const hContent = await readFile(join(projectRoot, ".claude", "rules", "hooks.md"), "utf-8").catch(() => "");
+    const hMatch = hContent.match(/<!-- lp-hooks-version: (\d+) -->/);
+    const hVersion = hMatch ? parseInt(hMatch[1], 10) : null;
+    if (hVersion !== null && hVersion < HOOKS_RULE_VERSION) {
+      issues.push({
+        analyzer: "Rules",
+        severity: "low",
+        message: `hooks.md rule is outdated (v${hVersion}, latest v${HOOKS_RULE_VERSION})`,
+        fix: "Run \`doctor --fix\` to update it",
+      });
+    }
   }
 
   // Check for verification rule (always-on evidence-before-assertion discipline)

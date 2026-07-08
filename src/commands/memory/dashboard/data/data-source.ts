@@ -32,6 +32,7 @@ export class DashboardDataSource {
   readonly #dbPath: string;
 
   #cachedMemories: readonly Memory[] = [];
+  #relationsByMemory: Map<string, Relation[]> = new Map();
 
   constructor(
     memoryRepo: MemoryRepo,
@@ -50,6 +51,16 @@ export class DashboardDataSource {
     this.#cachedMemories = this.#memoryRepo
       .getAll()
       .filter((m) => m.importance > 0);
+    // Relations cached per memory so navigation never hits SQLite per keystroke.
+    const byMemory = new Map<string, Relation[]>();
+    for (const r of this.#relationRepo.getAll()) {
+      for (const id of [r.sourceId, r.targetId]) {
+        const list = byMemory.get(id) ?? [];
+        list.push(r as Relation);
+        byMemory.set(id, list);
+      }
+    }
+    this.#relationsByMemory = byMemory;
   }
 
   /** Return cached memories, optionally filtered by type, project, or FTS query. */
@@ -87,7 +98,7 @@ export class DashboardDataSource {
   }
 
   getRelationsForMemory(id: string): readonly Relation[] {
-    return this.#relationRepo.getByMemory(id);
+    return this.#relationsByMemory.get(id) ?? [];
   }
 
   /** Compute aggregate stats from cached data + DB queries. */
@@ -125,9 +136,25 @@ export class DashboardDataSource {
     });
   }
 
-  /** Hard-delete a memory by ID. Returns true if deleted. */
-  deleteMemory(id: string): boolean {
-    return this.#memoryRepo.hardDelete(id);
+  /** Soft-delete a memory; returns a snapshot for undo (null if not found). */
+  deleteMemory(id: string): Memory | null {
+    const snapshot = this.#memoryRepo.getById(id);
+    if (!snapshot) return null;
+    this.#memoryRepo.softDelete(id);
+    return snapshot;
+  }
+
+  /** Undo a soft delete using the snapshot taken at delete time. */
+  restoreMemory(snapshot: Memory): boolean {
+    return this.#memoryRepo.restoreImportance(snapshot.id, snapshot.importance, snapshot.baseImportance);
+  }
+
+  /** Curation edits from the TUI: explicit re-rate re-anchors the decay base. */
+  updateMemory(id: string, updates: { importance?: number; tags?: readonly string[] }): boolean {
+    return this.#memoryRepo.updateContent(id, {
+      ...(updates.importance !== undefined ? { importance: updates.importance } : {}),
+      ...(updates.tags !== undefined ? { tags: updates.tags } : {}),
+    }) !== undefined && this.#memoryRepo.getById(id) !== undefined;
   }
 
   /** Count memories for a project (unfiltered). */
@@ -137,7 +164,19 @@ export class DashboardDataSource {
 
   /** Delete all memories for a project. Returns number of deleted memories. */
   purgeProject(project: string): number {
-    return this.#memoryRepo.deleteByProject(project);
+    // hardDelete per id so tombstones are written — a purge that skips
+    // tombstones resurrects on the next sync pull.
+    // Repo-backed (not cache): purge must work pre-refresh and also sweep
+    // soft-deleted remnants the cache filters out.
+    const ids = this.#memoryRepo
+      .getAll()
+      .filter((m) => m.project === project)
+      .map((m) => m.id);
+    let deleted = 0;
+    for (const id of ids) {
+      if (this.#memoryRepo.hardDelete(id)) deleted++;
+    }
+    return deleted;
   }
 
   /** Stop watching the DB file. */

@@ -146,6 +146,7 @@ async function readHooksFromFile(settingsPath: string): Promise<ReadonlyArray<Ho
               type: (h.type as HookConfig["type"]) ?? "command",
               matcher,
               command: h.command as string | undefined,
+              async: h.async === true,
               timeout: h.timeout as number | undefined,
             });
           }
@@ -155,6 +156,7 @@ async function readHooksFromFile(settingsPath: string): Promise<ReadonlyArray<Ho
             type: (g.type as HookConfig["type"]) ?? "command",
             matcher,
             command: g.command as string | undefined,
+            async: g.async === true,
             timeout: g.timeout as number | undefined,
           });
         }

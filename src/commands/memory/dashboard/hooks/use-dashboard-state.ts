@@ -25,6 +25,10 @@ export function useDashboardState(dataSource: DashboardDataSource) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showPurgeConfirm, setShowPurgeConfirm] = useState(false);
   const [showExpand, setShowExpand] = useState(false);
+  const [showTagEditor, setShowTagEditor] = useState(false);
+  const [tagDraft, setTagDraft] = useState('');
+  const [lastDeleted, setLastDeleted] = useState<Memory | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
     dataSource.refresh();
@@ -43,18 +47,12 @@ export function useDashboardState(dataSource: DashboardDataSource) {
 
   const filteredMemories = useMemo(() => {
     void revision;
-    const raw = dataSource.getMemories({ type: typeFilter, project: currentProject });
+    // FTS-ranked search (the substring re-implementation is gone — WP-049).
+    const raw = dataSource.getMemories({ type: typeFilter, project: currentProject, query: searchQuery || undefined });
     const withLife = lifespanFilter
       ? raw.filter((m) => computeLifespan(m).status === lifespanFilter)
       : raw;
-    const withSearch = searchQuery
-      ? withLife.filter((m) =>
-          (m.title?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
-          m.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          m.tags.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()))
-        )
-      : withLife;
-    return sortMemories(withSearch, sortMode);
+    return sortMemories(withLife, sortMode);
   }, [dataSource, revision, typeFilter, lifespanFilter, searchQuery, currentProject, sortMode]);
 
   // Clamp: narrowing filters/search must never strand the selection past the
@@ -123,12 +121,48 @@ export function useDashboardState(dataSource: DashboardDataSource) {
   }, [selectedMemory]);
   const confirmDelete = useCallback(() => {
     if (!selectedMemory) return;
-    dataSource.deleteMemory(selectedMemory.id);
+    const snapshot = dataSource.deleteMemory(selectedMemory.id);
+    if (snapshot) {
+      setLastDeleted(snapshot);
+      setNotice(`Deleted "${snapshot.title ?? snapshot.id.slice(0, 8)}" — press u to undo`);
+    }
     setShowDeleteConfirm(false);
     setSelectedIndex((i) => Math.max(0, i - 1));
     dataSource.refresh();
     setRevision((r) => r + 1);
   }, [dataSource, selectedMemory]);
+  const undoDelete = useCallback(() => {
+    if (!lastDeleted) return;
+    dataSource.restoreMemory(lastDeleted);
+    setNotice(`Restored "${lastDeleted.title ?? lastDeleted.id.slice(0, 8)}"`);
+    setLastDeleted(null);
+    dataSource.refresh();
+    setRevision((r) => r + 1);
+  }, [dataSource, lastDeleted]);
+  const adjustImportance = useCallback((delta: number) => {
+    if (!selectedMemory) return;
+    const next = Math.min(1, Math.max(0.05, Math.round((selectedMemory.importance + delta) * 100) / 100));
+    dataSource.updateMemory(selectedMemory.id, { importance: next });
+    setNotice(`Importance ${next.toFixed(2)} (re-anchored)`);
+    dataSource.refresh();
+    setRevision((r) => r + 1);
+  }, [dataSource, selectedMemory]);
+  const openTagEditor = useCallback(() => {
+    if (!selectedMemory) return;
+    setTagDraft(selectedMemory.tags.join(', '));
+    setShowTagEditor(true);
+  }, [selectedMemory]);
+  const submitTags = useCallback(() => {
+    if (selectedMemory) {
+      const tags = tagDraft.split(',').map((t) => t.trim()).filter(Boolean);
+      dataSource.updateMemory(selectedMemory.id, { tags });
+      setNotice(`Tags updated (${tags.length})`);
+      dataSource.refresh();
+      setRevision((r) => r + 1);
+    }
+    setShowTagEditor(false);
+  }, [dataSource, selectedMemory, tagDraft]);
+  const cancelTagEditor = useCallback(() => setShowTagEditor(false), []);
   const cancelDelete = useCallback(() => setShowDeleteConfirm(false), []);
   const promptPurge = useCallback(() => {
     if (currentProject) setShowPurgeConfirm(true);
@@ -150,6 +184,7 @@ export function useDashboardState(dataSource: DashboardDataSource) {
 
   return {
     typeFilter, lifespanFilter, searchQuery, searchActive, currentProject,
+    showTagEditor, tagDraft, setTagDraft, notice, lastDeleted,
     sortMode, showHelp, showProjectPicker, showDeleteConfirm, showPurgeConfirm, showExpand,
     filteredMemories, selectedMemory, relations, projects, stats,
     selectedIndex: clampedIndex,
@@ -158,6 +193,7 @@ export function useDashboardState(dataSource: DashboardDataSource) {
     cycleProjectNext, cycleProjectPrev, filterByType,
     openSearch, submitSearch, closeSearch, promptDelete, confirmDelete, cancelDelete,
     promptPurge, confirmPurge, cancelPurge, expandMemory, closeExpand,
+    undoDelete, adjustImportance, openTagEditor, submitTags, cancelTagEditor,
   };
 }
 

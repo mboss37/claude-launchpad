@@ -268,7 +268,23 @@ describe("analyzeMemory", () => {
     expect(result!.issues.some((i) => i.message.includes("SessionEnd"))).toBe(false);
   });
 
-  it("flags SessionEnd push hook that is not nohup-wrapped", async () => {
+
+  it("does not flag an async: true SessionEnd push hook", async () => {
+    mockReadSyncConfig.mockReturnValueOnce({ gistId: "abc123" });
+    const asyncPush: HookConfig = {
+      event: "SessionEnd",
+      type: "command",
+      command: "npx claude-launchpad memory push -y",
+      async: true,
+    };
+    const result = await analyzeMemory(makeConfig({
+      mcpServers: [memoryServer],
+      hooks: [sessionStartHook, asyncPush],
+    }), "/test");
+    expect(result!.issues.some((i) => i.message.includes("neither async"))).toBe(false);
+  });
+
+  it("flags a SessionEnd push hook that is neither async nor nohup-detached", async () => {
     mockReadSyncConfig.mockReturnValueOnce({ gistId: "abc123" });
 
     const sessionEndPush: HookConfig = {
@@ -280,7 +296,7 @@ describe("analyzeMemory", () => {
       mcpServers: [memoryServer],
       hooks: [sessionStartHook, sessionEndPush],
     }), "/test");
-    expect(result!.issues.some((i) => i.message.includes("not nohup-wrapped"))).toBe(true);
+    expect(result!.issues.some((i) => i.message.includes("neither async nor detached"))).toBe(true);
   });
 
   // ─── SessionStart pull hook ───

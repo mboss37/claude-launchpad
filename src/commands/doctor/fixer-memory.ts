@@ -90,7 +90,7 @@ export async function addSessionStartPullHook(root: string, placement: MemoryPla
 export async function addSessionEndPushHook(root: string, placement: MemoryPlacement): Promise<boolean> {
   const target = placement === "local" ? "settings.local.json" : "settings.json";
   return addPlacementHook(root, placement, "SessionEnd", "memory push", {
-    hooks: [{ type: "command", command: "nohup npx claude-launchpad memory push -y </dev/null >/dev/null 2>&1 & exit 0" }],
+    hooks: [{ type: "command", command: "npx claude-launchpad memory push -y", async: true }],
   }, false, `Added SessionEnd hook for memory sync to ${target}`);
 }
 
@@ -111,9 +111,10 @@ export async function upgradeStaleSessionEndPushHook(root: string): Promise<bool
       if (!inner) return group;
       const rewritten = inner.map((h) => {
         const cmd = typeof h.command === "string" ? h.command : "";
-        if (!cmd.includes("memory push") || cmd.includes("nohup")) return h;
+        // Upgrade BOTH shapes: plain (killed on exit) and legacy nohup wrapper.
+        if (!cmd.includes("memory push") || (h as { async?: boolean }).async === true) return h;
         changed = true;
-        return { ...h, command: "nohup npx claude-launchpad memory push -y </dev/null >/dev/null 2>&1 & exit 0" };
+        return { type: "command", command: "npx claude-launchpad memory push -y", async: true };
       });
       return { ...group, hooks: rewritten };
     });
@@ -122,7 +123,7 @@ export async function upgradeStaleSessionEndPushHook(root: string): Promise<bool
     const updated = { ...settings, hooks: { ...hooks, SessionEnd: upgraded } };
     await write(root, updated);
     const target = placement === "local" ? "settings.local.json" : "settings.json";
-    log.success(`Upgraded SessionEnd push hook in ${target} (now nohup-wrapped)`);
+    log.success(`Upgraded SessionEnd push hook in ${target} (native async: true)`);
     changedAny = true;
   }
   return changedAny;

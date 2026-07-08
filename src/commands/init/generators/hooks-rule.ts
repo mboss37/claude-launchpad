@@ -1,4 +1,4 @@
-export const HOOKS_RULE_VERSION = 1;
+export const HOOKS_RULE_VERSION = 2;
 
 export function generateHooksRule(): string {
   return `---
@@ -33,6 +33,17 @@ Reference: https://code.claude.com/docs/en/hooks
 - \`EventName\`: \`SessionStart\`, \`SessionEnd\`, \`PreToolUse\`, \`PostToolUse\`, \`PostToolUseFailure\`, \`UserPromptSubmit\`, \`Stop\`, \`PermissionRequest\`, \`PreCompact\`, \`PostCompact\`. PostCompact is side-effect-only (stdout is never injected) — to re-inject context after compaction, use SessionStart with matcher \`compact\`.
 - \`matcher\`: a regex-style string matching tool names (e.g. \`Bash\`, \`Read|Write|Edit\`). Empty string matches all tools for the event. For SessionStart use \`startup\`, \`resume\`, \`clear\`, or \`compact\`.
 - \`hooks\` array: every entry runs in parallel when the matcher fires. Identical command strings are deduplicated automatically.
+
+## The \`if\` field — when to use it
+
+- \`if\` (PreToolUse/PostToolUse/PostToolUseFailure/PermissionRequest) filters a hook with a SINGLE permission rule (e.g. \`"if": "Bash(terraform *)"\`) before your command ever spawns — cheaper than jq+grep for hooks targeting one narrow rule.
+- The generated guards intentionally do NOT use it: they match multiple patterns in one hook (rm -rf, DROP TABLE, force-push) and need exclusions (.env but not .env.example) that permission-rule syntax cannot express. Splitting them into per-rule entries would grow the config without changing behavior — the jq+stdin grep stays the single source of truth.
+- For your own single-pattern hooks, prefer \`if\` over an inline grep.
+
+## Long-running SessionEnd work — use \`async: true\`
+
+- Plain SessionEnd hooks are killed when Claude Code exits — a ~3s network push never completes (verified empirically). Mark the hook \`{"type": "command", "command": "...", "async": true}\` and it survives; output is logged without touching the conversation.
+- The old workaround was a \`nohup ... & exit 0\` wrapper — still works, but the native field is canonical now.
 
 ## Input — JSON on stdin, NOT env vars
 

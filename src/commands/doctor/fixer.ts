@@ -30,6 +30,7 @@ import {
 import {
   createWorkflowRule,
   createHooksRule,
+  updateHooksRule,
   createVerificationRule,
   collapseMemoryHeadings,
   updateWorkflowRule,
@@ -227,6 +228,11 @@ const FIX_TABLE: ReadonlyArray<{
   },
   {
     analyzer: "Rules",
+    match: "hooks.md rule is outdated",
+    fix: (root) => updateHooksRule(root),
+  },
+  {
+    analyzer: "Rules",
     match: "verification.md rule is outdated",
     fix: (root) => updateVerificationRule(root),
   },
@@ -412,7 +418,7 @@ const FIX_TABLE: ReadonlyArray<{
   },
   {
     analyzer: "Memory",
-    match: "SessionEnd push hook is not nohup-wrapped",
+    match: "SessionEnd push hook is neither async nor detached",
     fix: (root) => upgradeStaleSessionEndPushHook(root),
   },
   {

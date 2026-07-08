@@ -333,3 +333,17 @@ describe('base_importance anchor discipline (review Important 3)', () => {
     expect(after.baseImportance).toBeCloseTo(0.9, 6);
   });
 });
+
+describe('restoreImportance (WP-049 undo)', () => {
+  it('restores both importance and base after a soft delete', () => {
+    const db = createTestDb();
+    const repo = new MemoryRepo(db);
+    const m = repo.create({ type: 'semantic', content: 'bring me back', tags: [], importance: 0.7, source: 'manual' })!;
+    repo.softDelete(m.id);
+    expect(repo.getById(m.id)!.importance).toBe(0);
+    expect(repo.restoreImportance(m.id, 0.7, 0.7)).toBe(true);
+    const restored = repo.getById(m.id)!;
+    expect(restored.importance).toBeCloseTo(0.7, 6);
+    expect(restored.baseImportance).toBeCloseTo(0.7, 6);
+  });
+});

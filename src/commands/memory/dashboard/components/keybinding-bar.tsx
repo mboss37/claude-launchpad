@@ -10,14 +10,17 @@ const HINTS = [
   ['l', 'life'],
   ['s', 'sort'],
   ['d', 'delete'],
-  ['X', 'purge project'],
+  ['u', 'undo'],
+  ['t', 'tags'],
+  ['+/-', 'rate'],
+  ['X', 'purge'],
   ['?', 'help'],
   ['q', 'quit'],
 ] as const;
 
 export function KeybindingBar(): React.ReactNode {
   return (
-    <Box>
+    <Box overflow="hidden">
       {HINTS.map(([key, label], i) => (
         <React.Fragment key={key}>
           {i > 0 && <Text dimColor>  </Text>}

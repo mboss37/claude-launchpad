@@ -41,13 +41,13 @@ describe('DashboardDataSource', () => {
       const m = memoryRepo.create(make());
       ds.refresh();
 
-      expect(ds.deleteMemory(m.id)).toBe(true);
+      expect(ds.deleteMemory(m.id)).toBeTruthy();
       ds.refresh();
       expect(ds.getMemories()).toHaveLength(0);
     });
 
     it('should return false for nonexistent memory', () => {
-      expect(ds.deleteMemory('nonexistent-id')).toBe(false);
+      expect(ds.deleteMemory('nonexistent-id')).toBeNull();
     });
 
     it('should only delete the targeted memory', () => {

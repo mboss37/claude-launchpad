@@ -80,6 +80,9 @@ function DetailContent({ memory, relations, height, width, resolveTitle }: Detai
       {preview.lines.map((line, i) => (
         <Text key={`line-${i}`}>{line === '' ? ' ' : line}</Text>
       ))}
+      {memory.context && (
+        <Text dimColor wrap="truncate">ctx: {memory.context.slice(0, 120)}</Text>
+      )}
       {preview.truncated && (
         <Text dimColor>… +{preview.remainingLines} line{preview.remainingLines === 1 ? '' : 's'} · press Enter to view full</Text>
       )}

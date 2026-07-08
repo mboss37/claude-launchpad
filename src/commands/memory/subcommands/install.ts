@@ -215,7 +215,9 @@ function addSessionEndPushHook(hooks: Record<string, unknown[]>): Record<string,
     event: 'SessionEnd',
     dedupKeyword: 'memory push',
     entry: {
-      hooks: [{ type: 'command', command: 'nohup npx claude-launchpad memory push -y </dev/null >/dev/null 2>&1 & exit 0' }],
+      // async: true — verified 2026-07-08: SessionEnd async hooks survive Claude
+      // Code's exit; plain hooks are killed mid-push (the old nohup workaround).
+      hooks: [{ type: 'command', command: 'npx claude-launchpad memory push -y', async: true }],
     },
   });
   if (result.added) log.info('Session end: memories will auto-push to GitHub Gist');

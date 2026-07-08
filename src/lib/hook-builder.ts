@@ -5,6 +5,7 @@ export interface HookCommand {
   readonly type: "command";
   readonly command: string;
   readonly timeout?: number;
+  readonly async?: boolean;
 }
 
 export interface HookEntry {

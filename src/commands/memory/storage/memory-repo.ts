@@ -259,6 +259,14 @@ export class MemoryRepo {
 
 
   /** Update importance without touching updated_at - used by decay to avoid resetting the clock. */
+  /** Undo a soft delete: restore both the display value and the decay anchor. */
+  restoreImportance(id: string, importance: number, baseImportance: number): boolean {
+    const result = this.db
+      .prepare("UPDATE memories SET importance = ?, base_importance = ?, updated_at = ? WHERE id = ?")
+      .run(importance, baseImportance, new Date().toISOString(), id);
+    return result.changes > 0;
+  }
+
   updateImportanceOnly(id: string, importance: number): boolean {
     const result = this.#stmts.updateImportanceOnly.run(importance, id);
     return result.changes > 0;

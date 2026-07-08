@@ -30,6 +30,9 @@
   5. Flip the version's TASKS.md Release Plan line to `✅ shipped YYYY-MM-DD` and commit — the publish is not done until the plan matches npm
 - Docs-only / non-src changes: commit normally, no version bump, no publish
 
+## Supply Chain
+- `pnpm.minimumReleaseAge: 10080` (7 days) in root + docs package.json — newly published dependency versions can't enter the lockfile until they've survived a week in the wild. For an urgent CVE patch on a fresh release, add the package to `pnpm.minimumReleaseAgeExclude` temporarily — never remove the guard itself.
+
 ## Pre-Commit Checklist
 1. Run `pnpm typecheck && pnpm test:run` — NEVER commit if either fails
 2. If changes touch `src/commands/memory/` — run `pnpm bench:memory` and verify no regressions

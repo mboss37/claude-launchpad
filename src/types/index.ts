@@ -125,6 +125,7 @@ export interface HookConfig {
   readonly matcher?: string;
   readonly command?: string;
   readonly timeout?: number;
+  readonly async?: boolean;
 }
 
 export interface McpServerConfig {

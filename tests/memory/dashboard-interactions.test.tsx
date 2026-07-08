@@ -46,12 +46,18 @@ function stubDataSource(
     startWatching: () => {},
     stopWatching: () => {},
     getProjects: () => [...new Set(memories.map((m) => m.project ?? "(none)"))],
-    getMemories: (filter?: { type?: string; project?: string }) =>
-      memories.filter(
+    calls: [] as unknown[],
+    getMemories(filter?: { type?: string; project?: string; query?: string }) {
+      this.calls.push(filter);
+      return memories.filter(
         (m) =>
           (!filter?.type || m.type === filter.type) &&
-          (!filter?.project || m.project === filter.project),
-      ),
+          (!filter?.project || m.project === filter.project) &&
+          (!filter?.query ||
+            (m.title ?? "").toLowerCase().includes(filter.query.toLowerCase()) ||
+            m.content.toLowerCase().includes(filter.query.toLowerCase())),
+      );
+    },
     getRelationsForMemory: (id: string) =>
       relations.filter((r) => r.sourceId === id || r.targetId === id),
     getMemoryTitle: (id: string) =>
@@ -64,7 +70,24 @@ function stubDataSource(
     }),
     countByProject: (p: string) =>
       memories.filter((m) => m.project === p).length,
-    deleteMemory: () => true,
+    deleted: [] as string[],
+    restored: [] as string[],
+    updates: [] as unknown[],
+    deleteMemory(id: string) {
+      this.deleted.push(id);
+      const m = memories.find((x) => x.id === id) ?? null;
+      if (m) memories.splice(memories.indexOf(m), 1);
+      return m;
+    },
+    restoreMemory(snapshot: Memory) {
+      this.restored.push(snapshot.id);
+      memories.push(snapshot);
+      return true;
+    },
+    updateMemory(id: string, updates: unknown) {
+      this.updates.push({ id, updates });
+      return true;
+    },
     purgeProject: () => 0,
   };
   return stub as unknown as DashboardDataSource;
@@ -217,5 +240,60 @@ describe('review findings: modal guards and index reconciliation', () => {
     stdin.write('k'); // must move to alpha one IMMEDIATELY, not burn presses
     await delay(80);
     expect(lastFrame()).toContain('content of alpha one');
+  });
+});
+
+describe("curation (WP-049)", () => {
+  it("delete then u restores the memory", async () => {
+    const ds = stubDataSource([...FIXTURE.map((m) => ({ ...m }))]) as any;
+    const { stdin, lastFrame } = render(<App dataSource={ds} />);
+    await delay(80);
+    stdin.write("d");
+    await delay(80);
+    stdin.write("y");
+    await delay(80);
+    expect(ds.deleted).toContain("id-alpha-one");
+    expect(lastFrame()).toContain("press u to undo");
+    stdin.write("u");
+    await delay(80);
+    expect(ds.restored).toContain("id-alpha-one");
+    expect(lastFrame()).toContain("Restored");
+  });
+
+  it("+ re-rates importance through the data source", async () => {
+    const ds = stubDataSource([...FIXTURE.map((m) => ({ ...m }))]) as any;
+    const { stdin } = render(<App dataSource={ds} />);
+    await delay(80);
+    stdin.write("+");
+    await delay(80);
+    expect(ds.updates.length).toBe(1);
+    expect((ds.updates[0] as any).updates.importance).toBeCloseTo(0.7, 6);
+  });
+
+  it("t opens the tag editor and Enter saves", async () => {
+    const ds = stubDataSource([...FIXTURE.map((m) => ({ ...m }))]) as any;
+    const { stdin, lastFrame } = render(<App dataSource={ds} />);
+    await delay(80);
+    stdin.write("t");
+    await delay(80);
+    expect(lastFrame()).toContain("Tags (comma-separated)");
+    stdin.write(", extra");
+    await delay(80);
+    stdin.write("\r");
+    await delay(80);
+    expect(ds.updates.length).toBe(1);
+    expect((ds.updates[0] as any).updates.tags).toContain("extra");
+  });
+
+  it("search routes the query through the data source (FTS path)", async () => {
+    const ds = stubDataSource([...FIXTURE.map((m) => ({ ...m }))]) as any;
+    const { stdin } = render(<App dataSource={ds} />);
+    await delay(80);
+    stdin.write("/");
+    await delay(80);
+    stdin.write("alpha");
+    await delay(80);
+    const queried = (ds.calls as any[]).some((c) => c && c.query === "alpha");
+    expect(queried).toBe(true);
   });
 });

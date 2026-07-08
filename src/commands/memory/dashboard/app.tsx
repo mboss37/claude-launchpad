@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, useApp } from 'ink';
+import { Box, Text, useApp } from 'ink';
 import type { DashboardDataSource } from './data/data-source.js';
 import { useDashboardState } from './hooks/use-dashboard-state.js';
 import { useKeybindings } from './hooks/use-keybindings.js';
@@ -16,6 +16,7 @@ import { ProjectPicker } from './components/project-picker.js';
 import { DeleteConfirm } from './components/delete-confirm.js';
 import { PurgeConfirm } from './components/purge-confirm.js';
 import { ExpandMemory } from './components/expand-memory.js';
+import { TagEditor } from './components/tag-editor.js';
 
 interface AppProps {
   readonly dataSource: DashboardDataSource;
@@ -41,12 +42,17 @@ export function App({ dataSource }: AppProps): React.ReactNode {
     openProjectPicker: () => state.setShowProjectPicker((v) => !v),
     showHelp: () => state.setShowHelp((v) => !v),
     expandMemory: state.expandMemory,
+    undoDelete: state.undoDelete,
+    adjustImportanceUp: () => state.adjustImportance(0.1),
+    adjustImportanceDown: () => state.adjustImportance(-0.1),
+    openTagEditor: state.openTagEditor,
     quit: exit,
   }, {
     searchActive: state.searchActive,
     pickerOpen: state.showProjectPicker,
     expandOpen: state.showExpand,
     modalOpen: state.showDeleteConfirm || state.showPurgeConfirm || state.showHelp,
+    tagEditorOpen: state.showTagEditor,
   });
 
   if (state.showHelp) {
@@ -122,6 +128,16 @@ export function App({ dataSource }: AppProps): React.ReactNode {
         searchQuery={state.searchQuery}
         layout={layout}
       />
+      {state.showTagEditor && (
+        <TagEditor
+          value={state.tagDraft}
+          onChange={state.setTagDraft}
+          onSubmit={state.submitTags}
+        />
+      )}
+      {state.notice && !state.searchActive && !state.showTagEditor && (
+        <Text dimColor>  {state.notice}</Text>
+      )}
       {state.searchActive && (
         <SearchBar
           query={state.searchQuery}

@@ -79,6 +79,17 @@ export async function createHooksRule(root: string): Promise<boolean> {
   return true;
 }
 
+/** Overwrite a versioned, launchpad-authored hooks.md with the latest template. */
+export async function updateHooksRule(root: string): Promise<boolean> {
+  const hooksPath = join(root, ".claude", "rules", "hooks.md");
+  const content = await readFile(hooksPath, "utf-8").catch(() => null);
+  if (content === null) return false;
+  if (!/<!-- lp-hooks-version: \d+ -->/.test(content)) return false;
+  await writeFile(hooksPath, generateHooksRule());
+  log.success("Updated .claude/rules/hooks.md to the latest version");
+  return true;
+}
+
 export async function createVerificationRule(root: string): Promise<boolean> {
   const rulesDir = join(root, ".claude", "rules");
   const verificationPath = join(rulesDir, "verification.md");

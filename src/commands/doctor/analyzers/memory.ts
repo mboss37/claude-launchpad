@@ -191,18 +191,21 @@ export async function analyzeMemory(
       });
     }
 
-    // nohup check stays on the literal command — wrappers are expected to handle their own daemonisation.
-    const hasNonNohupPush = config.hooks.some(
+    // Plain SessionEnd hooks are killed on exit before a ~3s push completes.
+    // Native fix (verified 2026-07-08): async: true. Legacy nohup wrappers also
+    // work but get upgraded to the native form.
+    const hasKillablePush = config.hooks.some(
       (h) => h.event === "SessionEnd"
         && h.command?.includes("memory push")
-        && !h.command.includes("nohup"),
+        && !h.command.includes("nohup")
+        && h.async !== true,
     );
-    if (hasNonNohupPush) {
+    if (hasKillablePush) {
       issues.push({
         analyzer: "Memory",
         severity: "high",
-        message: "SessionEnd push hook is not nohup-wrapped — Claude Code cancels it on exit before the push completes",
-        fix: "Run `doctor --fix` to upgrade the hook to a nohup-wrapped push",
+        message: "SessionEnd push hook is neither async nor detached — Claude Code kills it on exit before the push completes",
+        fix: "Run `doctor --fix` to upgrade it to the native async form",
       });
     }
   }

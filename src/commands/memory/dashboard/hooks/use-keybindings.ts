@@ -24,17 +24,22 @@ export interface KeybindingActions {
   readonly removeMemory: () => void;
   readonly purgeProject: () => void;
   readonly expandMemory: () => void;
+  readonly undoDelete: () => void;
+  readonly adjustImportanceUp: () => void;
+  readonly adjustImportanceDown: () => void;
+  readonly openTagEditor: () => void;
   readonly quit: () => void;
 }
 
 export function useKeybindings(
   actions: KeybindingActions,
-  opts: { searchActive: boolean; pickerOpen: boolean; expandOpen: boolean; modalOpen: boolean },
+  opts: { searchActive: boolean; pickerOpen: boolean; expandOpen: boolean; modalOpen: boolean; tagEditorOpen: boolean },
 ): void {
   useInput((input, key) => {
     // Confirm dialogs and help own the keyboard exclusively — global keys must
     // not retarget a live delete, stack confirms, or quit mid-dialog.
     if (opts.modalOpen) return;
+    if (opts.tagEditorOpen) return;
     if (opts.expandOpen) return;
     if (opts.searchActive) {
       if (key.escape) actions.closeSearch();
@@ -60,6 +65,10 @@ export function useKeybindings(
     // project. The old mapping put project-nuking one key from item-delete.
     if (input === 'r' || input === 'd') actions.removeMemory();
     if (input === 'X') actions.purgeProject();
+    if (input === 'u') actions.undoDelete();
+    if (input === '+' || input === '=') actions.adjustImportanceUp();
+    if (input === '-') actions.adjustImportanceDown();
+    if (input === 't') actions.openTagEditor();
     if (input === '?') actions.showHelp();
     if (key.return) actions.expandMemory();
     if (input === 'q') actions.quit();
