@@ -260,6 +260,7 @@ Supply-chain worm protection: newly published package versions can't enter the l
 - **2026-07-07:** WP-036, WP-043 pulled into Sprint 36 (v1.13.0 publish gate).
 - **2026-07-07:** WP-044..WP-047 pulled into Sprint 37 (v1.14.0 honest-memory core) and completed same session.
 - **2026-07-08:** WP-050 pulled into Sprint 38 (make the benchmark gate real or cut it).
+- **2026-07-08:** Sprint 40 closed. WP-048 done (v1.16.0). Review: 2 Important fixed in-sprint (modal guard, index reconciliation).
 - **2026-07-08:** WP-048 pulled into Sprint 40 (dashboard find-then-act).
 - **2026-07-08:** Sprint 39 closed. WP-013, WP-039, WP-040, WP-042, WP-052 done (v1.15.0). Review: 2 Important fixed in-sprint.
 - **2026-07-08:** WP-013, WP-039, WP-040, WP-042, WP-052 pulled into Sprint 39 (guards and templates that tell the truth). WP-048 deliberately kept separate (M-sized, own test infra).

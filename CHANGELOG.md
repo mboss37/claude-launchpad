@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.16.0] — 2026-07-08
+
+Sprint 40 — the dashboard's find-then-act finally works.
+
+### Fixed
+- **Search leads somewhere (WP-048).** Enter keeps the filter and hands the keyboard back to the list — search, then j/k, then expand or delete. Esc cancels and clears. Before, Enter was wired to a no-op and Esc wiped your query: finding one memory among hundreds and acting on it was impossible.
+- **`d` deletes the selected memory; `X` purges the project.** The old layout put project-nuking (`d`) one key from item-delete (`r`) — against every TUI convention. `r` stays as an alias.
+- **Relations show memory titles, not raw UUIDs**, resolved from the data-source cache (cross-project too; deleted targets degrade to a short id).
+- **Confirm dialogs own the keyboard.** Global keys used to keep firing underneath: j retargeted a live delete dialog, q quit mid-confirm, d stacked dialogs. Now modals are exclusive.
+- **Selection survives narrowing filters.** The index reconciles against the current list — no more blank detail pane, dead k-presses on a stale index, or a reachable negative index on empty results.
+- **A crash can no longer strand your terminal.** DashboardErrorBoundary catches render errors and exits cleanly (q to quit). Handler-thrown exceptions remain the documented residual gap.
+- Tab "focus" removed — it changed a border color and nothing else.
+
+### Internal
+- First dashboard interaction tests: ink-testing-library harness, 8 behaviors, bite-verified (reverting the d/X fix goes red). vitest now includes .test.tsx. 627 tests (+8), 59 bench, 21/21 regression. Review: 2 Important fixed in-sprint (modal guard, write-time index reconciliation).
+
+
 ## [1.15.0] — 2026-07-08
 
 Sprint 39 — guards and templates that tell the truth. A guard that blocks innocent commands teaches users to disable it; a fixer that claims repairs it didn't make is worse than none.
