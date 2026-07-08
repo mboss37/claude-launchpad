@@ -23,7 +23,7 @@ CLI toolkit that makes Claude Code setups measurably good — diagnose, scaffold
 
 ## Architecture
 - Four CLI commands: `init` (scaffold), `doctor` (diagnose), `eval` (test configs), `memory` (optional persistent memory)
-- Two skills: `/lp-enhance` (AI-powered CLAUDE.md improver, currently v9), `/lp-migrate-memory` (legacy memory migration)
+- Two skills: `/lp-enhance` (AI-powered CLAUDE.md improver, currently v10), `/lp-migrate-memory` (legacy memory migration)
 - `doctor` is pure static analysis — no API calls, no cost, works offline; `--fix` auto-repairs issues
 - `init` generates 12 files: CLAUDE.md, TASKS.md, BACKLOG.md, settings.json, .gitignore, .claudeignore, conventions.md, workflow.md, hooks.md, verification.md, code-reviewer agent, lp-enhance skill; plus three hook scripts (sprint-size, sprint-open, workflow-check)
 - `eval` runs Claude via Agent SDK (falls back to Claude CLI if SDK not installed)
@@ -42,7 +42,7 @@ CLI toolkit that makes Claude Code setups measurably good — diagnose, scaffold
 - Run locally: `npx tsx src/cli.ts <command>`
 
 ## Test Layers
-- **Unit tests** (`pnpm test:run`): Vitest, 447 tests covering generators, analyzers, fixers, repos, services, utils
+- **Unit tests** (`pnpm test:run`): Vitest, 620+ tests covering generators, analyzers, fixers, repos, services, utils, dashboard interactions
 - **Regression tests** (`pnpm test:regression`): bash script that runs the real CLI against temp projects (doctor, --fix, JSON output, idempotency)
 - **Benchmarks** (`pnpm bench:memory`): 59 tests measuring memory retrieval, injection, decay, and scale — thresholds calibrated to measured baselines; mutation panel in tests/memory/benchmarks/README.md
 
