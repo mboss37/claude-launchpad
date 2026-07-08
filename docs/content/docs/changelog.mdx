@@ -5,6 +5,23 @@ description: Release history for Claude Launchpad.
 
 {/* Auto-generated from CHANGELOG.md - do not edit directly */}
 
+## [1.14.0] — 2026-07-07
+
+Sprint 37 — the honest memory core. Findings from the 4-agent memory review (docs/reviews/2026-07-07-memory-review.md): the decay math didn't do what it claimed, a native dependency did nothing, dedup was global when it should be per-project, and a documented safety guarantee didn't exist.
+
+### Fixed
+- **Decay is now a pure function of age (WP-044).** New immutable `base_importance` column anchors the formula; before, every session-start re-decayed the already-decayed value, so importance depended on how often you opened sessions (23 sessions = 37% over-decay on a day-30 memory). Active users were punished hardest. Idempotency is now tested: 10 decay runs produce the same value as 1. `softDelete` zeroes the base so decay can never resurrect deleted memories.
+- **Same insight, two projects — now allowed (WP-046).** The content-hash unique index is scoped to (hash, project); sync counts gate on rows actually changed, so hash-collision drops stop reporting as "inserted".
+- **Secret detection actually exists (WP-047).** `memory_store` rejects key-shaped content (OpenAI/AWS/GitHub/Slack/Google key patterns, PEM private keys, password/token assignments). Memories sync to GitHub Gists — the `memory.md` rule claimed this protection since v1.7; now it's real.
+
+- **Sync carries the decay anchor (review Critical).** Sync payloads now include `base_importance`; without it, machine B adopted machine A's decayed value as its new anchor and re-decayed it — compounding across machines, the exact bug WP-044 killed locally. Legacy payloads anchor to `importance`. Migration 007 loads sqlite-vec just for the drop (upgraders have it); if the module is gone the inert vtab entry stays and the upgrade still completes — proven by a real v1.13-shaped legacy-DB fixture test for both paths.
+- **The anchor survives edits.** Content-only `memory_update` no longer re-anchors base to the decayed value (fixing a typo used to halve importance); dedup merges anchor on base values and are scoped per project; `memory_update` runs the same secret validation as `memory_store`; the password/token pattern only rejects secret-shaped values (16+ mixed alphanumerics), not prose like "rotate the deploy token: quarterly".
+
+- **The benchmark gate is now proven alive (WP-050).** Mutation testing showed retrieval and injection benchmarks passed with scoring gutted (text weight zeroed: 8/8 green; injection weights gutted: 14/14 green). Thresholds are now calibrated just under measured baselines (MRR 0.78 vs baseline 0.87 — was asserting 0.4), the injection oracle optimizes the packer's own objective (was: a mismatched importance knapsack with a 0.3 floor), the noise-penalty test gained its missing assertions (control-vs-inflated), and two discriminator tests directly kill weight mutations. The 4-mutation panel is documented in tests/memory/benchmarks/README.md — verified 4/4 red, healthy 59/59 green. Git-path injection scores are normalized to the shared 0..1 scale (were reaching 1.05; margins shift ~5% for git users), covered by a golden-value test.
+
+### Removed
+- **The dead vector layer — and half the native install burden (WP-045).** sqlite-vec was loaded on every DB open, its table created, and never once written or queried. Extension load, `memories_vec` table, `embedding` column (migration 007), the devDep, and all install/docs references are gone. Memory setup now needs exactly one native dep (better-sqlite3). Also removed: unused retry/error scaffolding, dead config knobs (`enableReranker`, `accessModifiers`), and the duplicate consolidation pruner; consolidation dedup rewritten O(n²) → O(n).
+
 ## [1.13.0] — 2026-07-07
 
 Sprint 35 — verification discipline. Distilled from the Fable Mode v2 operating protocol: the generated config now enforces evidence-based "done" claims, and eval measures whether Claude actually complies.
