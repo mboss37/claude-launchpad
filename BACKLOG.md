@@ -270,6 +270,7 @@ Supply-chain worm protection: newly published package versions can't enter the l
 - **2026-07-07:** WP-036, WP-043 pulled into Sprint 36 (v1.13.0 publish gate).
 - **2026-07-07:** WP-044..WP-047 pulled into Sprint 37 (v1.14.0 honest-memory core) and completed same session.
 - **2026-07-08:** WP-050 pulled into Sprint 38 (make the benchmark gate real or cut it).
+- **2026-07-08:** Sprint 39 closed. WP-013, WP-039, WP-040, WP-042, WP-052 done (v1.15.0). Review: 2 Important fixed in-sprint.
 - **2026-07-08:** WP-013, WP-039, WP-040, WP-042, WP-052 pulled into Sprint 39 (guards and templates that tell the truth). WP-048 deliberately kept separate (M-sized, own test infra).
 - **2026-07-08:** Canary issue #7 closed as false alarm: workflow referenced a nonexistent ANTHROPIC_API_KEY secret since birth — never passed in CI until today. Fixed (OAuth secret + loud infra preflight); first green run on Claude Code 2.1.204, all 5 assertions.
 - **2026-07-08:** v1.14.0 published to npm (folds unreleased 1.13.0). WP-052 minted (publish hook celebrates failed publishes).

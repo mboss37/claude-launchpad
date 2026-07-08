@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { log } from "../../lib/output.js";
-import { hasEnvVarHookPattern, jqField } from "../../lib/hook-input.js";
+import { hasEnvVarHookPattern, jqField, FORCE_PUSH_ERE } from "../../lib/hook-input.js";
 import { readSettingsJson, writeSettingsJson, readSettingsLocalJson, writeSettingsLocalJson } from "../../lib/settings.js";
 import {
   SPRINT_COMPLETE_NUDGE,
@@ -40,12 +40,12 @@ export function rewriteEnvVarHookCommand(cmd: string): string | null {
 
   // Destructive bash block (PreToolUse Bash)
   if (cmd.includes("BLOCKED: Destructive command detected")) {
-    return `cmd=${jqField("command")}; echo "$cmd" | grep -qE 'rm\\s+-rf\\s+/|DROP\\s+TABLE|DROP\\s+DATABASE|push.*--force|push.*-f' && { echo 'BLOCKED: Destructive command detected' >&2; exit 2; }; exit 0`;
+    return `cmd=${jqField("command")}; echo "$cmd" | grep -qE 'rm\\s+-rf\\s+/|DROP\\s+TABLE|DROP\\s+DATABASE|${FORCE_PUSH_ERE}' && { echo 'BLOCKED: Destructive command detected' >&2; exit 2; }; exit 0`;
   }
 
   // Force-push warning (PreToolUse Bash)
   if (cmd.includes("WARNING: Force push detected") || cmd.includes("Force push detected")) {
-    return `cmd=${jqField("command")}; echo "$cmd" | grep -qE 'push.*--force|push.*-f' && { echo 'WARNING: Force push detected — this can destroy remote history' >&2; exit 2; }; exit 0`;
+    return `cmd=${jqField("command")}; echo "$cmd" | grep -qE '${FORCE_PUSH_ERE}' && { echo 'WARNING: Force push detected — this can destroy remote history' >&2; exit 2; }; exit 0`;
   }
 
   // Sprint-complete nudge (PostToolUse Edit|Write) — emit the CURRENT canonical

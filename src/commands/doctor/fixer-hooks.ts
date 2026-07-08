@@ -1,5 +1,5 @@
 import { addHookToSettings } from "../../lib/hook-builder.js";
-import { readSettingsJson, writeSettingsJson } from "../../lib/settings.js";
+import { readSettingsJson, writeSettingsJson, readSettingsLocalJson, writeSettingsLocalJson } from "../../lib/settings.js";
 import { log } from "../../lib/output.js";
 import { SESSION_START_MATCHER } from "../../lib/hook-scripts.js";
 import { jqField, FORCE_PUSH_ERE } from "../../lib/hook-input.js";
@@ -123,4 +123,43 @@ export async function addSessionStartHook(root: string): Promise<boolean> {
     matcher: SESSION_START_MATCHER,
     hooks: [{ type: "command", command: "cat TASKS.md 2>/dev/null; exit 0" }],
   }, "Added SessionStart hook (injects TASKS.md at startup/resume/compact/clear)");
+}
+
+/** Replace the outdated force-push pattern in hook commands (both settings files). */
+export async function upgradeForcePushPattern(root: string): Promise<boolean> {
+  const stale = "push.*--force|push.*-f";
+  let any = false;
+  for (const [read, write, label] of [
+    [readSettingsJson, writeSettingsJson, "settings.json"],
+    [readSettingsLocalJson, writeSettingsLocalJson, "settings.local.json"],
+  ] as const) {
+    const settings = await read(root);
+    if (settings === null) continue;
+    const raw = JSON.stringify(settings);
+    if (!raw.includes(stale.replace(/\\/g, "\\\\"))) {
+      // JSON.stringify escapes nothing in this pattern; plain check:
+      if (!raw.includes(stale)) continue;
+    }
+    const hooks = settings.hooks as Record<string, unknown[]> | undefined;
+    if (!hooks) continue;
+    let changed = false;
+    for (const groups of Object.values(hooks)) {
+      for (const group of groups as Record<string, unknown>[]) {
+        const inner = group.hooks as Record<string, unknown>[] | undefined;
+        if (!inner) continue;
+        for (const h of inner) {
+          const cmd = typeof h.command === "string" ? h.command : "";
+          if (cmd.includes(stale)) {
+            h.command = cmd.replace(stale, FORCE_PUSH_ERE);
+            changed = true;
+          }
+        }
+      }
+    }
+    if (!changed) continue;
+    await write(root, settings);
+    log.success(`Upgraded force-push guard pattern in ${label}`);
+    any = true;
+  }
+  return any;
 }

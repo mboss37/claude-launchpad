@@ -50,7 +50,10 @@ export function isJqAvailable(): boolean {
 /**
  * ERE for REAL git force pushes only: anchored on `git push`, flag confined to
  * the same shell segment. The old `push.*--force|push.*-f` matched any command
- * containing "push" and a later token starting with -f (`git stash push ...
+ * Covers: -f/-fu combined flags, --force, --force-with-lease[=ref],
+ * git -C dir / -c k=v prefixes, ;/& separators, and +refspec pushes.
+ * The old pattern matched any command containing "push" and a later token starting with -f (`git stash push ...
  * --frozen-lockfile`, filenames like hook-input-fixer.test.ts).
  */
-export const FORCE_PUSH_ERE = "git +push[^|;&]*( -f| --force| --force-with-lease)( |$)";
+export const FORCE_PUSH_ERE =
+  "git +(-[cC][^ ]* +([^ ]+ +)?)*push([^|;&]*( -[a-zA-Z]*f[a-zA-Z]*| --force| --force-with-lease(=[^ ;|&]*)?)( |$|;|&)|[^|;&]* \\+[^ ;|&]+)";

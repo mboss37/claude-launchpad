@@ -38,6 +38,7 @@ import {
   createReviewerAgent,
 } from "./fixer-quality.js";
 import {
+  upgradeForcePushPattern,
   addEnvProtectionHook,
   addAutoFormatHook,
   addForcePushProtection,
@@ -123,6 +124,11 @@ const FIX_TABLE: ReadonlyArray<{
       const d = await addSessionStartHook(root);
       return a || b || c || d;
     },
+  },
+  {
+    analyzer: "Hooks",
+    match: "outdated pattern",
+    fix: (root) => upgradeForcePushPattern(root),
   },
   {
     analyzer: "Hooks",

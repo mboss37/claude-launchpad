@@ -29,7 +29,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "payload=$(cat); cmd=$(echo \"$payload\" | jq -r '.tool_input.command // empty'); out=$(echo \"$payload\" | jq -r '(.tool_response.stdout // \"\") + (.tool_response.stderr // \"\")'); echo \"$cmd\" | grep -qE '(npm|pnpm) publish' && echo \"$out\" | grep -q '+ claude-launchpad@' && ! echo \"$out\" | grep -q 'npm error' && jq -n --arg ctx 'Published to npm. Remember to create a GitHub release with gh release create v<version>' '{hookSpecificOutput:{hookEventName:\"PostToolUse\",additionalContext:$ctx}}'; exit 0"
+            "command": "payload=$(cat); cmd=$(echo \"$payload\" | jq -r '.tool_input.command // empty'); out=$(echo \"$payload\" | jq -r '(.tool_response.stdout // \"\") + (.tool_response.stderr // \"\")'); echo \"$cmd\" | grep -qE '(npm|pnpm) publish' && ! echo \"$cmd\" | grep -q 'publish:dev' && echo \"$out\" | grep -q '+ claude-launchpad@' && ! echo \"$out\" | grep -q 'npm error' && jq -n --arg ctx 'Published to npm. Remember to create a GitHub release with gh release create v<version>' '{hookSpecificOutput:{hookEventName:\"PostToolUse\",additionalContext:$ctx}}'; exit 0"
           },
           {
             "type": "command",

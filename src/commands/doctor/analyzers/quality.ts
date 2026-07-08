@@ -1,4 +1,6 @@
 import { execSync } from "node:child_process";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import type {
   ClaudeConfig,
   AnalyzerResult,
@@ -175,6 +177,9 @@ export function isKeyDecisionsPlaceholder(content: string): boolean {
 }
 
 function commitCount(projectRoot: string): number {
+  // Only the project's own repo counts — a fresh CLAUDE.md inside a mature
+  // monorepo must not be scolded on day one.
+  if (!existsSync(join(projectRoot, ".git"))) return 0;
   try {
     return (
       parseInt(

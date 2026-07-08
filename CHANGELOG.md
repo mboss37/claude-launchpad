@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.15.0] — 2026-07-08
+
+Sprint 39 — guards and templates that tell the truth. A guard that blocks innocent commands teaches users to disable it; a fixer that claims repairs it didn't make is worse than none.
+
+### Fixed
+- **Force-push guard matches real force pushes only (WP-042).** The old `push.*--force|push.*-f` pattern blocked `git stash push … --frozen-lockfile`, filename greps, and even commands quoting the pattern itself. The new anchored ERE covers `-f`/`-fu` combined flags, `--force`, `--force-with-lease[=ref]`, `git -C dir`/`-c k=v` prefixes, `;`/`&` separators, and `+refspec` pushes — 19 behavioral grep tests both ways. Doctor flags the outdated pattern in shipped projects (LOW) and `--fix` upgrades it in both settings files.
+- **`doctor --fix` repairs settings.local.json env-var hooks too (WP-013)** — it previously reported the finding for both files but only patched `settings.json`.
+
+### Added
+- **Generated Stop-and-Swarm ships the agent-brief structure (WP-039):** every brief needs Mission, Context, Scope fence, and Return format; agent output is testimony, not truth — spot-check load-bearing claims.
+- **Key Decisions teaches the why-log format (WP-040):** `YYYY-MM-DD — Chose X over Y because Z. Revisit if W.`, appended at decision time. Doctor nudges (LOW) when the section is still placeholder-only after 20+ commits (own-repo git only — fresh projects inside mature monorepos are exempt).
+
+### Internal
+- Repo publish hook only announces publishes that actually succeeded (WP-052) — it congratulated a failed ENEEDAUTH publish and two doc commits containing the word "publish". Now gated on the npm success marker and excludes `publish:dev`.
+- 619 tests (+27), 21/21 regression, self-score 100%. Review: 2 Important fixed in-sprint (env-var rewriter still emitted the old pattern; ERE coverage regression on `--force-with-lease=<ref>` and `git -C`).
+
+
 ## [1.14.0] — 2026-07-07
 
 Sprint 37 — the honest memory core. Findings from the 4-agent memory review (docs/reviews/2026-07-07-memory-review.md): the decay math didn't do what it claimed, a native dependency did nothing, dedup was global when it should be per-project, and a documented safety guarantee didn't exist.

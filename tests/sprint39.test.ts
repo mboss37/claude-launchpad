@@ -45,6 +45,13 @@ describe("WP-042: force-push pattern matches real force pushes only", () => {
     "git push origin main --force",
     "git push origin main --force-with-lease",
     "cd repo && git push -f",
+    "git push --force-with-lease=origin/main",
+    "git -C /tmp/repo push -f",
+    "git -c core.editor=true push --force",
+    "git push -fu origin main",
+    "git push -f&&echo done",
+    "git push --force;true",
+    "git push origin +main",
   ];
   const allowed = [
     "git stash push -m wip -- package.json && pnpm install --frozen-lockfile",
@@ -52,6 +59,8 @@ describe("WP-042: force-push pattern matches real force pushes only", () => {
     "git push origin main",
     "grep -n force hook-input-fixer.test.ts",
     "git push origin main && rm notes -f",
+    "git push origin main; pnpm install --frozen-lockfile",
+    "echo 'how to git push safely' > notes-f.md",
   ];
   for (const cmd of blocked) {
     it(`blocks: ${cmd}`, () =>
@@ -66,7 +75,7 @@ describe("WP-042: force-push pattern matches real force pushes only", () => {
     const settings = JSON.stringify(generateSettings(DETECTED));
     expect(settings).not.toContain("push.*--force");
     expect(settings).not.toContain("push.*-f");
-    expect(settings).toContain("git +push");
+    expect(settings).toContain("git +(");
   });
 });
 
@@ -172,5 +181,35 @@ describe("WP-040: Key Decisions ships the why-log format", () => {
         (i) => i.message.includes("Key Decisions") && i.severity === "low",
       ),
     ).toBe(true);
+  });
+});
+
+describe("WP-042 field migration: stale pattern flagged and upgraded", () => {
+  const STALE = "cmd=$(jq -r '.tool_input.command // empty' 2>/dev/null); echo \"$cmd\" | grep -qE 'push.*--force|push.*-f' && { echo 'WARNING' >&2; exit 2; }; exit 0";
+
+  it("hooks analyzer flags the outdated pattern", async () => {
+    const { analyzeHooks } = await import("../src/commands/doctor/analyzers/hooks.js");
+    const result = await analyzeHooks({
+      claudeMdPath: "/t/CLAUDE.md", claudeMdContent: "# T", claudeMdInstructionCount: 1,
+      settingsPath: "/t/.claude/settings.json", settings: {}, localClaudeMdContent: null, localSettings: null,
+      hooks: [{ event: "PreToolUse", type: "command", matcher: "Bash", command: STALE }],
+      rules: [], mcpServers: [], skills: [], claudeignorePath: null, claudeignoreContent: null,
+    }, "/t");
+    expect(result.issues.some((i) => i.message.includes("outdated pattern"))).toBe(true);
+  });
+
+  it("upgradeForcePushPattern rewrites both settings files, idempotently", async () => {
+    const { upgradeForcePushPattern } = await import("../src/commands/doctor/fixer-hooks.js");
+    const { FORCE_PUSH_ERE } = await import("../src/lib/hook-input.js");
+    const root = await mkdtemp(join(tmpdir(), "wp042mig-"));
+    await mkdir(join(root, ".claude"), { recursive: true });
+    await writeFile(join(root, ".claude", "settings.json"), JSON.stringify({
+      hooks: { PreToolUse: [{ matcher: "Bash", hooks: [{ type: "command", command: STALE }] }] },
+    }));
+    expect(await upgradeForcePushPattern(root)).toBe(true);
+    const updated = await readFile(join(root, ".claude", "settings.json"), "utf-8");
+    expect(updated).not.toContain("push.*--force|push.*-f");
+    expect(JSON.parse(updated).hooks.PreToolUse[0].hooks[0].command).toContain(FORCE_PUSH_ERE);
+    expect(await upgradeForcePushPattern(root)).toBe(false);
   });
 });
