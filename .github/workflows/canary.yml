@@ -39,7 +39,10 @@ jobs:
 
       - name: Run canary assertions
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # The repo's standing secret. ANTHROPIC_API_KEY was referenced for
+          # months but never existed as a secret — every CI canary died on
+          # auth in <1s and the empty transcripts read as "hooks broken".
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
         # shell: bash gives -o pipefail, so canary.sh's exit code survives the tee
         shell: bash
         run: bash scripts/canary.sh 2>&1 | tee canary.log

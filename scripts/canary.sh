@@ -51,6 +51,16 @@ git init -q && git add -A && git -c user.name=canary -c user.email=c@c commit -q
 $CLI init -y || { echo "FATAL: init -y failed"; exit 1; }
 git add -A && git -c user.name=canary -c user.email=c@c commit -qm scaffold
 
+# Auth preflight — an unauthenticated claude dies in <1s with an empty
+# transcript, which then fails every assertion and reads as "config broken".
+# Infra failure must be loud and DISTINCT from assertion failure (exit 2).
+echo "== preflight: claude auth =="
+if ! "$TIMEOUT_BIN" 120 claude -p "Reply with exactly: AUTH_OK" --max-turns 1 --model "$MODEL" | grep -q "AUTH_OK"; then
+  echo "CANARY INFRA FAILURE: claude cannot run (auth/credits/startup) — assertions not attempted."
+  exit 2
+fi
+echo "  auth ok"
+
 run_claude() { # $1 = prompt; prints transcript to stdout, never fails the script
   "$TIMEOUT_BIN" 180 claude -p "$1" "${CLAUDE_ARGS[@]}" 2>/dev/null || true
 }
