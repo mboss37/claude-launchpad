@@ -12,8 +12,11 @@
 - **Sprint 40**: Dashboard Find-Then-Act (v1.16.0) — WP-048: search→Enter keeps filter + returns keyboard to list, d=delete/X=purge (convention), relation titles not UUIDs, modal keyboard exclusivity, write-time index reconciliation, error boundary. First-ever dashboard interaction tests (ink-testing-library, 8 behaviors, bite-verified). Review: 2 Important fixed in-sprint. 627 tests (+8), 59 bench, 21/21 regression.
 
 ## Current Sprint
-
-<!-- EMPTY. Pull WPs from BACKLOG.md when ready. Format: `- [ ] WP-NNN — short title` -->
+- [ ] WP-041 — minimumReleaseAge supply-chain guard
+- [ ] WP-020 — Computed eval scenario counts
+- [ ] WP-010 — async:true vs nohup (verify, then adopt or document)
+- [ ] WP-011 — if: syntax in generated hooks (verify API, then adopt or document)
+- [ ] WP-049 — Dashboard curation (undo, re-rate, tags, FTS, context)
 
 ## Release Plan
 - **v1.16.0** ✅ shipped 2026-07-08 (npm latest + tag + GitHub release) — dashboard find-then-act. Earlier releases: CHANGELOG.md.
