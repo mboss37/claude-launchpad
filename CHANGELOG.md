@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.17.0] — 2026-07-08
+
+Sprint 41 — the polish sweep: curation, native async hooks, and a supply-chain guard that actually guards.
+
+### Added
+- **Dashboard curation (WP-049).** `d` soft-deletes with `u` to undo (failure reported honestly if the row was purged or synced away), `+`/`-` re-rates importance (re-anchoring the decay base), `t` edits tags (Enter saves, Esc cancels), the stored context renders in the detail pane, and search runs through ranked FTS instead of a substring re-implementation. Relations are cached per refresh — no more SQLite query per keystroke.
+- **`minimumReleaseAge: 10080` in pnpm-workspace.yaml (WP-041)** — freshly published dependency versions can't enter the lockfile for 7 days. Placed in workspace.yaml because pnpm silently ignores the package.json variant (verified empirically both ways).
+- **hooks.md v2 (WP-011):** when to use the `if:` field (single-rule scoping) and why multi-pattern guards keep jq+stdin; `async: true` guidance for SessionEnd work. Doctor flags v1 copies and `--fix` upgrades them.
+
+### Changed
+- **SessionEnd memory push uses native `async: true` (WP-010)** — verified empirically: plain SessionEnd hooks are killed on exit mid-push; async hooks survive. The nohup-wrapper era is over; doctor migrates both plain and legacy-nohup shapes in the field (our own repo included).
+- **Eval suite picker derives scenario counts from disk (WP-020)** — hand-maintained counts went stale twice.
+
+### Internal
+- 637 tests (+10), 59 bench, 21/21 regression, self-score 100%. Review: 1 Critical (the package.json supply-chain guard was a no-op) + 3 Important (dead nohup migration path, undo announcing success over a purged row, uncancellable tag editor) — all fixed in-sprint.
+
+
 ## [1.16.0] — 2026-07-08
 
 Sprint 40 — the dashboard's find-then-act finally works.

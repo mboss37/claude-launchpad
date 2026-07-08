@@ -9,14 +9,12 @@
 - **Sprint 37**: Honest Memory Core (v1.14.0) — WP-044 decay purity (base_importance anchor, 10-runs==1 idempotency), WP-045 dead vector layer deleted (sqlite-vec gone: ONE native dep now; O(n) dedup; dead error/config code), WP-046 per-project content_hash + honest sync counts, WP-047 secret detection (real this time). Review caught 2 Critical: migration 007 would have bricked every existing install (vtab drop needs its module — now load-for-drop with safe fallback, proven by legacy-DB fixture tests) and sync re-imported compounding decay (payloads now carry base_importance). 4 Important also fixed (anchor erosion on edits, dedup scope, update validation bypass, greedy token regex). 591 tests, 57 bench, 21/21 regression.
 - **Sprint 38**: Real Benchmark Gate (v1.14.0) — mutation testing proved retrieval/injection benches were decorative (passed with scoring gutted). Calibrated thresholds to measured baselines, matched-objective oracle, noise control-vs-inflated assertions, two weight-mutation discriminators, git-path score normalized ≤1.0 w/ golden-value test. 4-mutation panel documented + verified 4/4 red, healthy 59/59. Review: 2 Important fixed in-sprint (git-path had zero coverage; vacuous-pass guard).
 - **Sprint 39**: Truthful Guards (v1.15.0) — WP-042 force-push ERE anchored+widened (19 behavioral tests; doctor migrates shipped projects), WP-052 publish hook gated on real success, WP-013 local-settings fixer gap, WP-039 agent-brief structure in Stop-and-Swarm, WP-040 Key Decisions why-log + 20-commit nudge. Review: 2 Important fixed in-sprint (rewriter emitted old pattern; ERE coverage regression). 619 tests (+27), 21/21 regression, self-score 100%.
+- **Sprint 41**: Polish Sweep (v1.17.0) — WP-049 curation (soft-delete+undo, re-rate, tags, FTS search, relations cache), WP-010 native async SessionEnd push (empirically verified; field migration incl. own repo), WP-011 if:/async guidance in hooks.md v2 (+upgrade path), WP-020 computed eval counts, WP-041 minimumReleaseAge (workspace.yaml — package.json variant was a silent no-op, caught by review). Review: 1 Critical + 3 Important fixed in-sprint. 637 tests, 59 bench, 21/21 regression.
 - **Sprint 40**: Dashboard Find-Then-Act (v1.16.0) — WP-048: search→Enter keeps filter + returns keyboard to list, d=delete/X=purge (convention), relation titles not UUIDs, modal keyboard exclusivity, write-time index reconciliation, error boundary. First-ever dashboard interaction tests (ink-testing-library, 8 behaviors, bite-verified). Review: 2 Important fixed in-sprint. 627 tests (+8), 59 bench, 21/21 regression.
 
 ## Current Sprint
-- [ ] WP-041 — minimumReleaseAge supply-chain guard
-- [ ] WP-020 — Computed eval scenario counts
-- [ ] WP-010 — async:true vs nohup (verify, then adopt or document)
-- [ ] WP-011 — if: syntax in generated hooks (verify API, then adopt or document)
-- [ ] WP-049 — Dashboard curation (undo, re-rate, tags, FTS, context)
+
+<!-- EMPTY. Pull WPs from BACKLOG.md when ready. Format: `- [ ] WP-NNN — short title` -->
 
 ## Release Plan
 - **v1.16.0** ✅ shipped 2026-07-08 (npm latest + tag + GitHub release) — dashboard find-then-act. Earlier releases: CHANGELOG.md.

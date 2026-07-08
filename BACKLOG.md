@@ -81,6 +81,7 @@ One-paragraph description.
 
 ## Changelog
 
+- **2026-07-08:** Sprint 41 closed. WP-010, WP-011, WP-020, WP-041, WP-049 done (v1.17.0). Review: 1 Critical (no-op supply-chain guard) + 3 Important fixed in-sprint. Backlog now: WP-051 only.
 - **2026-07-08:** WP-049, WP-020, WP-011, WP-010, WP-041 pulled into Sprint 41 (final polish sweep). WP-051 demoted P2→P3 per maintainer (strategy arc awaits deliberate commitment).
 - **2026-07-08:** Backlog purged to community-value minimum: WP-001..009, 020(kept), 021, 022 reviewed; 11 items deleted (no demand since May / superseded by WP-051 / internal-only). 5 items remain.
 - **2026-07-01:** WP-015..WP-019 minted from external project review (3.5/5 → path to 5/5). P0: WP-015 (stop stripping the sandbox — scope it), WP-016 (canary CI against latest real Claude Code). P1: WP-017 (eval custom/transcript/judge checks), WP-018 (intent-based checks replace template heuristics), WP-019 (cross-machine sync becomes the flagship memory story — repositioning, not spin-off, per maintainer feedback).
