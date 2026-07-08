@@ -49,6 +49,7 @@
 <!-- EMPTY. Pull WPs from BACKLOG.md when ready. Format: `- [ ] WP-NNN — short title` -->
 
 ## Release Plan
+- **v1.15.0** ✅ shipped 2026-07-08 (npm latest + tag + GitHub release, registry-verified) — Sprint 39 truthful guards.
 - **v1.14.0** ✅ shipped 2026-07-08 (npm latest, registry-verified) — Sprints 35-38 in one release: verification discipline, security patch 35→0, memory CLI honesty, honest memory core, real benchmark gate. v1.13.0 was never published; its number was skipped and its code shipped inside 1.14.0 (same pattern as 1.11.0→1.12.0). GitHub tag + release pending the push-protection bypass.
 - **v1.12.0** ✅ shipped 2026-07-02 (npm latest + GitHub release) — Sprints 33+34 combined. v1.11.0 was never published; its number was skipped and its code shipped inside 1.12.0.
 - **v1.10.1** ✅ shipped — Sprint 32 hook stdin input bug. **v1.10.0** ✅ shipped — Sprint 31 workflow discipline.
