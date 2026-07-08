@@ -67,18 +67,7 @@ export class InjectionService {
       return { memories: [], tokensUsed: 0, tokenBudget, totalCount };
     }
 
-    // Cold start: smooth ramp from 0.10 to INJECTION_MIN_SCORE
-    const minScore = candidates.length <= INJECTION_COLD_START_THRESHOLD
-      ? 0.10
-      : candidates.length <= INJECTION_COLD_START_RAMP_END
-        ? 0.10 + (INJECTION_MIN_SCORE - 0.10) * (candidates.length - INJECTION_COLD_START_THRESHOLD) / (INJECTION_COLD_START_RAMP_END - INJECTION_COLD_START_THRESHOLD)
-        : INJECTION_MIN_SCORE;
-
-    // Score all candidates
-    const scored = candidates
-      .map((m) => ({ memory: m, score: this.#scoreMemory(m) }))
-      .filter((s) => s.score >= minScore)
-      .sort((a, b) => b.score - a.score);
+    const scored = this.scoreEligibleCandidates(candidates);
 
     // MMR diversity re-ranking on non-pinned pool; pinned keep relevance order
     // so oracle-preferred high-importance memories are not demoted by duplicates.
@@ -94,6 +83,27 @@ export class InjectionService {
 
     // Greedy token-budget packing with tier assignment
     return this.#packBudget(ordered, tokenBudget, totalCount);
+  }
+
+  /**
+   * Score the eligible candidate pool with the exact composite objective the
+   * packer optimizes (cold-start ramp + min-score gate applied). Public so
+   * benchmarks can oracle against the same objective instead of a proxy.
+   */
+  scoreEligibleCandidates(
+    candidates: readonly Memory[],
+  ): readonly { readonly memory: Memory; readonly score: number }[] {
+    // Cold start: smooth ramp from 0.10 to INJECTION_MIN_SCORE
+    const minScore = candidates.length <= INJECTION_COLD_START_THRESHOLD
+      ? 0.10
+      : candidates.length <= INJECTION_COLD_START_RAMP_END
+        ? 0.10 + (INJECTION_MIN_SCORE - 0.10) * (candidates.length - INJECTION_COLD_START_THRESHOLD) / (INJECTION_COLD_START_RAMP_END - INJECTION_COLD_START_THRESHOLD)
+        : INJECTION_MIN_SCORE;
+
+    return candidates
+      .map((m) => ({ memory: m, score: this.#scoreMemory(m) }))
+      .filter((s) => s.score >= minScore)
+      .sort((a, b) => b.score - a.score);
   }
 
   formatInjection(result: InjectionResult): string {
@@ -164,6 +174,8 @@ export class InjectionService {
       );
     }
 
+    // Branch bonus rides on top of unit weights; normalize so git and
+    // no-git paths share the same 0..1 scale against fixed thresholds.
     return (
       ctx * W.context +
       val * W.value +
@@ -172,7 +184,7 @@ export class InjectionService {
       typ * W.typeBonus +
       noise * W.noise +
       branch * 0.05
-    );
+    ) / 1.05;
   }
 
   #contextRelevance(memory: Memory): number {

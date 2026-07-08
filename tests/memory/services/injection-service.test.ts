@@ -188,3 +188,30 @@ describe("InjectionService", () => {
     });
   });
 });
+
+describe('git-path score normalization (WP-050 review)', () => {
+  it('git-path composite score matches the golden value (catches any scale drift)', () => {
+    // Golden fixture measured 2026-07-08 with the /1.05 normalization in
+    // place: 0.7952. A divisor typo, a broken branch heuristic, or a weight
+    // change all move this number. Recency contributes ~1.0 (created now),
+    // so a 2-decimal tolerance absorbs the sub-second drift.
+    const m = memoryRepo.create({
+      type: 'pattern',
+      title: 'golden',
+      content: 'Golden git-path scoring fixture.',
+      context: JSON.stringify({ branch: 'fix/everything', files: ['src/a.ts'], intent: 'fix' }),
+      tags: ['#golden'],
+      importance: 0.9,
+      source: 'manual',
+    })!;
+    const svc = new InjectionService({
+      memoryRepo,
+      relationRepo,
+      gitContext: { branch: 'fix/everything', recentFiles: ['src/a.ts'] },
+    });
+    const scored = svc.scoreEligibleCandidates([memoryRepo.getById(m.id)!]);
+    expect(scored).toHaveLength(1);
+    expect(scored[0]!.score).toBeCloseTo(0.7952, 2);
+    expect(scored[0]!.score).toBeLessThanOrEqual(1.0);
+  });
+});

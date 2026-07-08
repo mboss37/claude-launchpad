@@ -319,6 +319,7 @@ Supply-chain worm protection: newly published package versions can't enter the l
 - **2026-07-07:** WP-036, WP-043 pulled into Sprint 36 (v1.13.0 publish gate).
 - **2026-07-07:** WP-044..WP-047 pulled into Sprint 37 (v1.14.0 honest-memory core) and completed same session.
 - **2026-07-08:** WP-050 pulled into Sprint 38 (make the benchmark gate real or cut it).
+- **2026-07-08:** Sprint 38 closed. WP-050 done — mutation panel 4/4 red, healthy 59/59 green. Review: 2 Important fixed in-sprint.
 - **2026-07-08:** WP-050 promoted P2→P1 with mutation-test evidence: retrieval + injection benchmarks pass with text relevance zeroed and injection scoring gutted — they don't constrain the headline algorithms. Decay, diversity, and scale benches proven real (mutations caught).
 - **2026-07-07:** Sprint 37 closed. WP-044..WP-047 done (v1.14.0). Review: 2 Critical (migration bricked existing installs; sync compounding) + 4 Important — all fixed in-sprint with legacy-DB fixture tests.
 - **2026-07-07:** Sprint 36 closed. WP-036, WP-043 done. Review: 5 Important fixed in-sprint (field migration for bare hooks, no-op --fix removed, pull --all exit code, duplicate matcher, CHANGELOG).

@@ -44,12 +44,12 @@ CLI toolkit that makes Claude Code setups measurably good — diagnose, scaffold
 ## Test Layers
 - **Unit tests** (`pnpm test:run`): Vitest, 447 tests covering generators, analyzers, fixers, repos, services, utils
 - **Regression tests** (`pnpm test:regression`): bash script that runs the real CLI against temp projects (doctor, --fix, JSON output, idempotency)
-- **Benchmarks** (`pnpm bench:memory`): 57 tests measuring memory retrieval, injection, decay, and scale
+- **Benchmarks** (`pnpm bench:memory`): 59 tests measuring memory retrieval, injection, decay, and scale — thresholds calibrated to measured baselines; mutation panel in tests/memory/benchmarks/README.md
 
 Unit tests for logic, regression tests for CLI end-to-end, benchmarks for memory algorithm quality.
 
 ## Memory Benchmarks
-Benchmark suite in `tests/memory/benchmarks/` — 57 tests across 4 files measuring retrieval quality, injection quality, decay accuracy, and scale performance. Excluded from `pnpm test`; run separately via `pnpm bench:memory`.
+Benchmark suite in `tests/memory/benchmarks/` — 59 tests across 5 files measuring retrieval quality, injection quality, decay accuracy, and scale performance. Excluded from `pnpm test`; run separately via `pnpm bench:memory`.
 
 **MANDATORY**: Before releasing any memory feature, bugfix, or algorithm change, run `pnpm bench:memory` and verify no regressions. Do NOT ship memory changes with failing benchmarks. If a change intentionally shifts metrics (e.g. tuning scoring weights), update the benchmark thresholds and document why in the commit message.
 

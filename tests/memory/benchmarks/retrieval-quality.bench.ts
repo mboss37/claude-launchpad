@@ -47,7 +47,7 @@ describe('Retrieval Quality Benchmarks', () => {
       reportMetrics('Precision@5 per query', perQuery);
       reportMetrics('Precision@5 aggregate', { average: avgP5 });
 
-      expect(avgP5).toBeGreaterThanOrEqual(0.3);
+      expect(avgP5).toBeGreaterThanOrEqual(0.42); // baseline 0.456 (2026-07-08); text-weight-zero mutation scores 0.416
     });
 
     it('Precision@10 across all queries', async () => {
@@ -62,7 +62,7 @@ describe('Retrieval Quality Benchmarks', () => {
 
       const avgP10 = totalP10 / BENCHMARK_QUERIES.length;
       reportMetrics('Precision@10 aggregate', { average: avgP10 });
-      expect(avgP10).toBeGreaterThanOrEqual(0.2);
+      expect(avgP10).toBeGreaterThanOrEqual(0.35); // baseline 0.386
     });
 
     it('Recall@5 across all queries', async () => {
@@ -77,7 +77,7 @@ describe('Retrieval Quality Benchmarks', () => {
 
       const avgR5 = totalR5 / BENCHMARK_QUERIES.length;
       reportMetrics('Recall@5 aggregate', { average: avgR5 });
-      expect(avgR5).toBeGreaterThanOrEqual(0.4);
+      expect(avgR5).toBeGreaterThanOrEqual(0.85); // baseline 0.939; mutation scores 0.794
     });
 
     it('Recall@10 across all queries', async () => {
@@ -92,7 +92,7 @@ describe('Retrieval Quality Benchmarks', () => {
 
       const avgR10 = totalR10 / BENCHMARK_QUERIES.length;
       reportMetrics('Recall@10 aggregate', { average: avgR10 });
-      expect(avgR10).toBeGreaterThanOrEqual(0.5);
+      expect(avgR10).toBeGreaterThanOrEqual(0.90); // baseline 0.972
     });
 
     it('MRR across all queries', async () => {
@@ -107,7 +107,7 @@ describe('Retrieval Quality Benchmarks', () => {
 
       const avgMRR = totalMRR / BENCHMARK_QUERIES.length;
       reportMetrics('MRR aggregate', { average: avgMRR });
-      expect(avgMRR).toBeGreaterThanOrEqual(0.4);
+      expect(avgMRR).toBeGreaterThanOrEqual(0.78); // baseline 0.869; mutation scores 0.591
     });
   });
 
@@ -160,6 +160,43 @@ describe('Retrieval Quality Benchmarks', () => {
       if (importances[highIdx]! - importances[lowIdx]! > 0.3) {
         expect(highIdx).toBeLessThan(lowIdx);
       }
+    });
+  });
+
+  describe('scoring discipline', () => {
+    it('at equal importance, a strong text match outranks a fresher weak match', async () => {
+      // Both match the query; same importance; rival is fresher but only
+      // shares one weak token. Healthy weights: text advantage (~0.2) dwarfs
+      // the recency delta (~0.01). With SCORING_WEIGHTS.text zeroed, the
+      // fresher rival wins and this test goes red.
+      const daysAgo = (d: number) => new Date(Date.now() - d * 86400000).toISOString();
+      const target = bench.memoryRepo.create({
+        type: 'pattern',
+        title: 'circuit breaker for flaky upstreams',
+        content: 'Circuit breaker pattern with exponential backoff for flaky upstream retries: open after 5 failures, half-open probe, full reset on success.',
+        tags: ['#resilience'], importance: 0.5, source: 'manual',
+      })!;
+      bench.db.prepare('UPDATE memories SET created_at = ?, updated_at = ? WHERE id = ?')
+        .run(daysAgo(10), daysAgo(10), target.id);
+      const rival = bench.memoryRepo.create({
+        type: 'pattern',
+        title: 'fresh unrelated note',
+        content: 'A fresh note that mentions retries once among unrelated day-to-day subjects.',
+        tags: ['#misc'], importance: 0.5, source: 'manual',
+      })!;
+
+      const results = await service.search({ query: 'circuit breaker exponential backoff retries', limit: 10, min_importance: 0 });
+      const ids = results.map(r => r.memory.id);
+      const targetRank = ids.indexOf(target.id);
+      const rivalRank = ids.indexOf(rival.id);
+      // Both MUST be present: if seed growth ever pushes the rival out of
+      // the FTS candidate cut, this fails loudly instead of passing vacuously.
+      expect(targetRank).toBeGreaterThanOrEqual(0);
+      expect(rivalRank).toBeGreaterThanOrEqual(0);
+      expect(targetRank).toBeLessThan(rivalRank);
+
+      bench.memoryRepo.hardDelete(target.id);
+      bench.memoryRepo.hardDelete(rival.id);
     });
   });
 });

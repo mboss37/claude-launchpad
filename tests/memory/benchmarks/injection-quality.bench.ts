@@ -93,31 +93,67 @@ describe('Injection Quality Benchmarks', () => {
   });
 
   describe('oracle comparison', () => {
-    it('greedy achieves >= 70% of optimal importance-weighted score', () => {
+    it('greedy packing achieves >= 90% of the optimal for the SAME objective', () => {
+      // The knapsack oracle optimizes the packer's own composite score —
+      // a matched objective. This validates PACKING quality (tiering lets
+      // greedy even beat the full-cost-only knapsack: baseline ratio 1.03).
+      // Scoring-weight sanity lives in the 'scoring discipline' test below.
       const budget = 3000;
       const result = injectionService.selectForInjection(budget);
-
-      // Compute greedy total score
       const greedyScore = result.memories.reduce((s, m) => s + m.score, 0);
 
-      // Oracle: DP knapsack over all candidates
-      const allMemories = bench.memoryRepo.getAll().filter(m => m.type !== 'working' && m.importance >= 0.05);
-      const oracleScore = dpKnapsack(allMemories.map(m => ({
-        value: m.importance,
-        weight: estimateTokenCost(m),
+      const candidates = bench.memoryRepo.getAll().filter(m => m.type !== 'working' && m.importance >= 0.05);
+      const scored = injectionService.scoreEligibleCandidates(candidates);
+      const oracleScore = dpKnapsack(scored.map(sc => ({
+        value: sc.score,
+        weight: estimateTokenCost(sc.memory),
       })), budget - INJECTION_HEADER_TOKENS);
 
       reportMetrics('Oracle comparison (budget=3000)', {
         greedyScore,
-        oracleImportanceSum: oracleScore,
+        oracleScore,
         ratio: oracleScore > 0 ? greedyScore / oracleScore : 1,
       });
 
-      // Greedy should be reasonably competitive
-      // Note: greedy optimizes a different score (not just importance), so this is a loose bound
-      if (oracleScore > 0) {
-        expect(greedyScore / oracleScore).toBeGreaterThanOrEqual(0.3);
+      expect(oracleScore).toBeGreaterThan(0);
+      expect(greedyScore / oracleScore).toBeGreaterThanOrEqual(0.9); // baseline 1.025 (2026-07-08)
+    });
+  });
+
+  describe('scoring discipline', () => {
+    it('month-old high-importance memories outscore fresh trivia', () => {
+      // Direct discriminator for INJECTION_WEIGHTS: gut context/value/
+      // importance in favor of recency and this ordering flips (verified
+      // baseline: golds 0.60 vs chaff 0.52 healthy; 0.53 vs 0.97 gutted).
+      const freshBench = createBenchDb();
+      const daysAgo = (d: number) => new Date(Date.now() - d * 86400000).toISOString();
+      const goldIds: string[] = [];
+      const chaffIds: string[] = [];
+      for (let i = 0; i < 4; i++) {
+        const g = freshBench.memoryRepo.create({
+          type: 'semantic', title: `gold ${i}`,
+          content: `Hard-won architectural decision ${i}: the canonical approach for subsystem ${i} and why alternatives failed.`,
+          tags: [`#topic${i}`], importance: 0.75, source: 'manual',
+        })!;
+        freshBench.db.prepare('UPDATE memories SET created_at = ?, updated_at = ? WHERE id = ?')
+          .run(daysAgo(30), daysAgo(30), g.id);
+        goldIds.push(g.id);
+        const c = freshBench.memoryRepo.create({
+          type: 'episodic', title: `chaff ${i}`,
+          content: `Minor note ${i} from this morning about a trivial thing nobody will need again.`,
+          tags: [`#noise${i}`], importance: 0.12, source: 'manual',
+        })!;
+        chaffIds.push(c.id);
       }
+      const svc = new InjectionService({ memoryRepo: freshBench.memoryRepo, relationRepo: freshBench.relationRepo });
+      const scored = svc.scoreEligibleCandidates(freshBench.memoryRepo.getAll());
+      const goldScores = scored.filter(sc => goldIds.includes(sc.memory.id)).map(sc => sc.score);
+      const chaffScores = scored.filter(sc => chaffIds.includes(sc.memory.id)).map(sc => sc.score);
+
+      expect(goldScores.length).toBe(4);
+      expect(chaffScores.length).toBe(4);
+      expect(Math.min(...goldScores)).toBeGreaterThan(Math.max(...chaffScores));
+      closeDatabase(freshBench.db);
     });
   });
 
@@ -148,10 +184,30 @@ describe('Injection Quality Benchmarks', () => {
         return id && selectedIds.has(id);
       }).length;
 
+      // Control: identical dataset, no injection inflation.
+      const controlBench = createBenchDb();
+      const controlIdMap = seedDatabase(controlBench.memoryRepo);
+      const controlService = new InjectionService({
+        memoryRepo: controlBench.memoryRepo,
+        relationRepo: controlBench.relationRepo,
+      });
+      const controlResult = controlService.selectForInjection(3000);
+      const controlSelected = new Set(controlResult.memories.map(m => m.memory.id));
+      const noisyInControl = noisyNames.filter(n => {
+        const id = controlIdMap.get(n);
+        return id && controlSelected.has(id);
+      }).length;
+      closeDatabase(controlBench.db);
+
       reportMetrics('Noise penalty', {
         noisyMemories: noisyNames.length,
+        noisyInControl,
         noisyInResult,
       });
+
+      // Baseline 2026-07-08: control selects 3/3, inflated selects 1/3.
+      expect(noisyInControl).toBeGreaterThanOrEqual(2);
+      expect(noisyInResult).toBeLessThan(noisyInControl);
 
       closeDatabase(freshBench.db);
     });
