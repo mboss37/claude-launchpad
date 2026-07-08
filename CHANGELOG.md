@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.17.1] — 2026-07-08
+
+### Fixed
+- **The 1.17.0 binary reported itself as 1.16.0.** The published tarball contained a `dist/` built before the version bump — the `prepublishOnly` build did not execute on that publish. Functionality was unaffected (the stale build post-dated all 1.17.0 changes); only the `-v` string lied. `publish:release` now builds explicitly and a preflight verifies the binary's version matches package.json before anything reaches the registry — the publish pipeline no longer trusts lifecycle hooks it can't see.
+
+
 ## [1.17.0] — 2026-07-08
 
 Sprint 41 — the polish sweep: curation, native async hooks, and a supply-chain guard that actually guards.
