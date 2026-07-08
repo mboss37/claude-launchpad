@@ -17,7 +17,7 @@
 <!-- EMPTY. Pull WPs from BACKLOG.md when ready. Format: `- [ ] WP-NNN — short title` -->
 
 ## Release Plan
-- **v1.17.0** ✅ shipped 2026-07-08 (npm latest + tag + GitHub release, registry-verified) — Sprint 41 polish sweep. Earlier releases: CHANGELOG.md.
+- **v1.17.1** ✅ shipped 2026-07-08 (npm latest, verified via clean-dir npx -v) — patch: 1.17.0 binary misreported its version (stale dist in tarball); publish pipeline now builds + verifies the artifact. Earlier releases: CHANGELOG.md.
 - **v2.0.0** not scheduled — reserved for a doctor plan/apply rewrite if ever committed to.
 - Rule: a release line says only "shipped" or "ready"; verify against `npm view claude-launchpad dist-tags` before trusting this section. Publishing ends with flipping this line — a publish without that edit is unfinished.
 
