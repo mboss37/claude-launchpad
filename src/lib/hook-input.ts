@@ -46,3 +46,11 @@ export function isJqAvailable(): boolean {
   }
   return jqChecked;
 }
+
+/**
+ * ERE for REAL git force pushes only: anchored on `git push`, flag confined to
+ * the same shell segment. The old `push.*--force|push.*-f` matched any command
+ * containing "push" and a later token starting with -f (`git stash push ...
+ * --frozen-lockfile`, filenames like hook-input-fixer.test.ts).
+ */
+export const FORCE_PUSH_ERE = "git +push[^|;&]*( -f| --force| --force-with-lease)( |$)";

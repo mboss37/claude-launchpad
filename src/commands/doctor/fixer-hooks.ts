@@ -2,7 +2,7 @@ import { addHookToSettings } from "../../lib/hook-builder.js";
 import { readSettingsJson, writeSettingsJson } from "../../lib/settings.js";
 import { log } from "../../lib/output.js";
 import { SESSION_START_MATCHER } from "../../lib/hook-scripts.js";
-import { jqField } from "../../lib/hook-input.js";
+import { jqField, FORCE_PUSH_ERE } from "../../lib/hook-input.js";
 import type { DetectedProject } from "../../types/index.js";
 
 const FORMATTERS: Record<string, { extensions: string[]; command: string }> = {
@@ -45,7 +45,7 @@ export async function addForcePushProtection(root: string): Promise<boolean> {
     matcher: "Bash",
     hooks: [{
       type: "command",
-      command: `cmd=${jqField("command")}; echo "$cmd" | grep -qE 'push.*--force|push.*-f' && { echo 'WARNING: Force push detected — this can destroy remote history' >&2; exit 2; }; exit 0`,
+      command: `cmd=${jqField("command")}; echo "$cmd" | grep -qE "${FORCE_PUSH_ERE}" && { echo 'WARNING: Force push detected — this can destroy remote history' >&2; exit 2; }; exit 0`,
     }],
   }, "Added force-push protection hook (PreToolUse → Bash)");
 }

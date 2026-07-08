@@ -110,3 +110,5 @@ Not every change touches all three. A new doctor check updates docs only. A new 
 - Stress testing: use one Bash call with a shell loop (agents can't run Bash — see memory)
 - Code review: spawn an Explore agent to audit while continuing to build
 - Never spawn agents for sequential/dependent work — only for independent parallel tasks
+- Every agent brief has four parts: Mission (one sentence), Context (paths, repro, constraints — agents start empty), Scope fence (what NOT to touch), Return format (structured findings with file:line evidence)
+- Treat agent output as testimony, not truth — spot-check load-bearing claims before building on them

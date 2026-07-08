@@ -1,5 +1,5 @@
 import type { DetectedProject } from "../../../types/index.js";
-import { jqField } from "../../../lib/hook-input.js";
+import { jqField, FORCE_PUSH_ERE } from "../../../lib/hook-input.js";
 import {
   WORKFLOW_CHECK_WRAPPER, SPRINT_OPEN_WRAPPER, SPRINT_SIZE_WRAPPER, SESSION_START_MATCHER,
   SPRINT_COMPLETE_NUDGE,
@@ -46,7 +46,7 @@ export function generateSettings(detected: DetectedProject): ClaudeSettings {
     matcher: "Bash",
     hooks: [{
       type: "command",
-      command: `cmd=${jqField("command")}; echo "$cmd" | grep -qE 'rm\\s+-rf\\s+/|DROP\\s+TABLE|DROP\\s+DATABASE|push.*--force|push.*-f' && { echo 'BLOCKED: Destructive command detected' >&2; exit 2; }; exit 0`,
+      command: `cmd=${jqField("command")}; echo "$cmd" | grep -qE 'rm\\s+-rf\\s+/|DROP\\s+TABLE|DROP\\s+DATABASE|${FORCE_PUSH_ERE}' && { echo 'BLOCKED: Destructive command detected' >&2; exit 2; }; exit 0`,
     }],
   });
 

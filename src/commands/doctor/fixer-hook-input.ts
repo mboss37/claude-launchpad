@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { log } from "../../lib/output.js";
 import { hasEnvVarHookPattern, jqField } from "../../lib/hook-input.js";
-import { readSettingsJson, writeSettingsJson } from "../../lib/settings.js";
+import { readSettingsJson, writeSettingsJson, readSettingsLocalJson, writeSettingsLocalJson } from "../../lib/settings.js";
 import {
   SPRINT_COMPLETE_NUDGE,
   writeWorkflowCheckScript,
@@ -130,6 +130,18 @@ export async function rewriteEnvVarHooks(root: string): Promise<boolean> {
     if (outcome.changed) {
       await writeSettingsJson(root, outcome.settings);
       log.success("Rewrote inert $TOOL_INPUT_* hooks in settings.json to canonical jq+stdin form");
+      didFix = true;
+    }
+  }
+
+  // 1b. Inline commands in settings.local.json — the analyzer flags both
+  // files; fixing only settings.json claimed repairs it didn't make (WP-013).
+  const localSettings = await readSettingsLocalJson(root);
+  if (localSettings !== null) {
+    const outcome = rewriteSettingsHooks(localSettings as Record<string, unknown>);
+    if (outcome.changed) {
+      await writeSettingsLocalJson(root, outcome.settings);
+      log.success("Rewrote inert $TOOL_INPUT_* hooks in settings.local.json to canonical jq+stdin form");
       didFix = true;
     }
   }

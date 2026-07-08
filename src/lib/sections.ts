@@ -24,7 +24,8 @@ export const STOP_AND_SWARM_CONTENT =
   "1. Root-cause debug agent\n" +
   "2. Upstream library/docs research agent\n" +
   "3. Alternative architecture agent\n" +
-  "Hand each agent the exact repro command, the full error text, and the list of already-failed fixes — subagents start with empty context.\n" +
+  "Every agent brief has four parts — agents start with empty context: Mission (one sentence), Context (exact repro command, full error text, already-failed fixes), Scope fence (files/questions NOT to touch), Return format (findings as file:line + evidence).\n" +
+  "Treat agent output as testimony, not truth — spot-check load-bearing claims (open the cited file, re-run the cited command) before acting on them.\n" +
   "Wait for all agents to return, synthesize their findings, then act.\n" +
   "For re-planning after repeated failure, switch to plan mode instead of attempting again.";
 

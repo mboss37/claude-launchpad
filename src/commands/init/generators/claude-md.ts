@@ -60,7 +60,8 @@ export function generateClaudeMd(options: InitOptions, detected: DetectedProject
 
   // Key Decisions
   sections.push("", `## Key Decisions
-<!-- Record architectural decisions as you make them -->`);
+<!-- Append one entry per non-obvious choice, at the moment it's made — not at sprint close: -->
+<!-- YYYY-MM-DD — Chose X over Y because Z. Revisit if W. -->`);
 
   return sections.join("\n") + "\n";
 }

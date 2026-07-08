@@ -1,4 +1,9 @@
-import type { ClaudeConfig, AnalyzerResult, DiagnosticIssue } from "../../../types/index.js";
+import { execSync } from "node:child_process";
+import type {
+  ClaudeConfig,
+  AnalyzerResult,
+  DiagnosticIssue,
+} from "../../../types/index.js";
 import { hasMemoryIndicators } from "./memory.js";
 import { STALE_SWARM_PHRASE } from "../../../lib/sections.js";
 import {
@@ -9,7 +14,10 @@ import {
 } from "./quality-intents.js";
 
 const VAGUE_PATTERNS = [
-  { pattern: /write (good|clean|quality|nice) code/i, label: "write good code" },
+  {
+    pattern: /write (good|clean|quality|nice) code/i,
+    label: "write good code",
+  },
   { pattern: /be (careful|thorough|diligent)/i, label: "be careful" },
   { pattern: /follow best practices/i, label: "follow best practices" },
   { pattern: /make sure (everything|it) works/i, label: "make sure it works" },
@@ -22,7 +30,10 @@ const SECRET_PATTERNS = [
   { pattern: /xoxb-[0-9]+-[a-zA-Z0-9]+/, label: "Slack bot token" },
 ] as const;
 
-export async function analyzeQuality(config: ClaudeConfig, projectRoot: string): Promise<AnalyzerResult> {
+export async function analyzeQuality(
+  config: ClaudeConfig,
+  projectRoot: string,
+): Promise<AnalyzerResult> {
   const issues: DiagnosticIssue[] = [];
   const content = config.claudeMdContent;
 
@@ -38,10 +49,12 @@ export async function analyzeQuality(config: ClaudeConfig, projectRoot: string):
 
   // Check essential sections via intent detection (keyword-based, not exact heading match).
   // Memory intent only checked if memory is installed.
-  const rules = await hasMemoryIndicators(config, projectRoot)
+  const rules = (await hasMemoryIndicators(config, projectRoot))
     ? [...INTENT_RULES, MEMORY_INTENT]
     : [...INTENT_RULES];
-  const combinedContent = [content, config.localClaudeMdContent].filter(Boolean).join("\n\n");
+  const combinedContent = [content, config.localClaudeMdContent]
+    .filter(Boolean)
+    .join("\n\n");
   const sections = parseSections(combinedContent);
   for (const rule of rules) {
     if (!documentSatisfiesIntent(sections, rule)) {
@@ -94,7 +107,8 @@ export async function analyzeQuality(config: ClaudeConfig, projectRoot: string):
     issues.push({
       analyzer: "Quality",
       severity: "low",
-      message: "Stop-and-Swarm section is outdated — it references the nonexistent 'Agent tool' (subagents are dispatched via the Task tool)",
+      message:
+        "Stop-and-Swarm section is outdated — it references the nonexistent 'Agent tool' (subagents are dispatched via the Task tool)",
       fix: "Run `doctor --fix` to modernize the known phrase (custom content is left alone)",
     });
   }
@@ -102,13 +116,28 @@ export async function analyzeQuality(config: ClaudeConfig, projectRoot: string):
   // Duplicate Memory headings — happens when /lp-enhance wrote `## Memory` first
   // and memory install later appended `## Memory (agentic-memory)` (or vice-versa).
   const plainMemory = (content.match(/^## Memory\s*$/gm) ?? []).length;
-  const taggedMemory = (content.match(/^## Memory \(agentic-memory\)\s*$/gm) ?? []).length;
+  const taggedMemory = (
+    content.match(/^## Memory \(agentic-memory\)\s*$/gm) ?? []
+  ).length;
   if (plainMemory + taggedMemory > 1) {
     issues.push({
       analyzer: "Quality",
       severity: "medium",
-      message: "Duplicate ## Memory headings in CLAUDE.md — memory install appended a second block",
+      message:
+        "Duplicate ## Memory headings in CLAUDE.md — memory install appended a second block",
       fix: "Run `doctor --fix` to collapse them",
+    });
+  }
+
+  // Key Decisions still placeholder-only in a mature repo — a decision log
+  // nobody writes to at decision time never gets written.
+  if (isKeyDecisionsPlaceholder(content) && commitCount(projectRoot) >= 20) {
+    issues.push({
+      analyzer: "Quality",
+      severity: "low",
+      message:
+        "Key Decisions is still placeholder-only after 20+ commits — decisions are being made but not logged",
+      fix: "Append entries at decision time: `YYYY-MM-DD — Chose X over Y because Z. Revisit if W.`",
     });
   }
 
@@ -118,6 +147,47 @@ export async function analyzeQuality(config: ClaudeConfig, projectRoot: string):
   const mediums = issues.filter((i) => i.severity === "medium").length;
   const lows = issues.filter((i) => i.severity === "low").length;
 
-  const score = Math.max(0, 100 - criticals * 40 - highs * 30 - mediums * 15 - lows * 5);
+  const score = Math.max(
+    0,
+    100 - criticals * 40 - highs * 30 - mediums * 15 - lows * 5,
+  );
   return { name: "CLAUDE.md Quality", issues, score };
+}
+
+/** True when a `## Key Decisions` section exists but contains only comments/blank lines. */
+export function isKeyDecisionsPlaceholder(content: string): boolean {
+  const lines = content.split("\n");
+  const start = lines.findIndex((l) => /^## Key Decisions\s*$/.test(l));
+  if (start === -1) return false;
+  let end = lines.length;
+  for (let i = start + 1; i < lines.length; i++) {
+    if (/^## /.test(lines[i]!)) {
+      end = i;
+      break;
+    }
+  }
+  const body = lines
+    .slice(start + 1, end)
+    .join("\n")
+    .replace(/<!--[\s\S]*?-->/g, "")
+    .trim();
+  return body.length === 0;
+}
+
+function commitCount(projectRoot: string): number {
+  try {
+    return (
+      parseInt(
+        execSync("git rev-list --count HEAD", {
+          cwd: projectRoot,
+          stdio: ["ignore", "pipe", "ignore"],
+        })
+          .toString()
+          .trim(),
+        10,
+      ) || 0
+    );
+  } catch {
+    return 0;
+  }
 }

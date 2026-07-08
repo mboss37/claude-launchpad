@@ -9,7 +9,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cmd=$(jq -r '.tool_input.command // empty' 2>/dev/null); echo \"$cmd\" | grep -qE 'push.*--force|push.*-f' && { echo 'WARNING: Force push detected — this can destroy remote history' >&2; exit 2; }; exit 0"
+            "command": "cmd=$(jq -r '.tool_input.command // empty' 2>/dev/null); echo \"$cmd\" | grep -qE 'git +push[^|;&]*( -f| --force| --force-with-lease)( |$)' && { echo 'WARNING: Force push detected \u2014 this can destroy remote history' >&2; exit 2; }; exit 0"
           }
         ]
       },
@@ -29,7 +29,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cmd=$(jq -r '.tool_input.command // empty' 2>/dev/null); echo \"$cmd\" | grep -qE 'npm publish' && jq -n --arg ctx 'Published to npm. Remember to create a GitHub release with gh release create v<version>' '{hookSpecificOutput:{hookEventName:\"PostToolUse\",additionalContext:$ctx}}'; exit 0"
+            "command": "payload=$(cat); cmd=$(echo \"$payload\" | jq -r '.tool_input.command // empty'); out=$(echo \"$payload\" | jq -r '(.tool_response.stdout // \"\") + (.tool_response.stderr // \"\")'); echo \"$cmd\" | grep -qE '(npm|pnpm) publish' && echo \"$out\" | grep -q '+ claude-launchpad@' && ! echo \"$out\" | grep -q 'npm error' && jq -n --arg ctx 'Published to npm. Remember to create a GitHub release with gh release create v<version>' '{hookSpecificOutput:{hookEventName:\"PostToolUse\",additionalContext:$ctx}}'; exit 0"
           },
           {
             "type": "command",
