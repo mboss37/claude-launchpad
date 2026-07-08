@@ -5,7 +5,6 @@ import type { DashboardStats } from '../data/data-source.js';
 import { computeLifespan, type LifespanStatus } from '../data/formatters.js';
 
 export type SortMode = 'importance' | 'age' | 'access' | 'lifespan';
-export type FocusedPane = 'list' | 'projects' | 'detail';
 
 const SORT_MODES: readonly SortMode[] = ['importance', 'age', 'access', 'lifespan'];
 const LIFESPAN_FILTERS: readonly (LifespanStatus | undefined)[] = [
@@ -21,7 +20,6 @@ export function useDashboardState(dataSource: DashboardDataSource) {
   const [currentProject, setCurrentProject] = useState<string | undefined>();
   const [sortMode, setSortMode] = useState<SortMode>('importance');
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [focusedPane, setFocusedPane] = useState<FocusedPane>('list');
   const [showHelp, setShowHelp] = useState(false);
   const [showProjectPicker, setShowProjectPicker] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -59,7 +57,10 @@ export function useDashboardState(dataSource: DashboardDataSource) {
     return sortMemories(withSearch, sortMode);
   }, [dataSource, revision, typeFilter, lifespanFilter, searchQuery, currentProject, sortMode]);
 
-  const selectedMemory = filteredMemories[selectedIndex];
+  // Clamp: narrowing filters/search must never strand the selection past the
+  // end of the list (blank detail pane until a nav key was pressed).
+  const clampedIndex = Math.min(selectedIndex, Math.max(0, filteredMemories.length - 1));
+  const selectedMemory = filteredMemories[clampedIndex];
   const relations = useMemo(
     () => selectedMemory ? dataSource.getRelationsForMemory(selectedMemory.id) : [],
     [dataSource, selectedMemory, revision],
@@ -96,14 +97,17 @@ export function useDashboardState(dataSource: DashboardDataSource) {
     });
     setSelectedIndex(0);
   }, [projects]);
-  const focusNext = useCallback(() => {
-    setFocusedPane((p) => p === 'list' ? 'projects' : p === 'projects' ? 'detail' : 'list');
-  }, []);
   const filterByType = useCallback((type: MemoryType | undefined) => {
     setTypeFilter(type);
     setSelectedIndex(0);
   }, []);
   const openSearch = useCallback(() => setSearchActive(true), []);
+  // Enter: keep the filter, hand the keyboard back to the list (find-then-act).
+  const submitSearch = useCallback(() => {
+    setSearchActive(false);
+    setSelectedIndex(0);
+  }, []);
+  // Esc: cancel — drop the filter entirely.
   const closeSearch = useCallback(() => {
     setSearchActive(false);
     setSearchQuery('');
@@ -141,12 +145,13 @@ export function useDashboardState(dataSource: DashboardDataSource) {
 
   return {
     typeFilter, lifespanFilter, searchQuery, searchActive, currentProject,
-    sortMode, selectedIndex, focusedPane, showHelp, showProjectPicker, showDeleteConfirm, showPurgeConfirm, showExpand,
+    sortMode, showHelp, showProjectPicker, showDeleteConfirm, showPurgeConfirm, showExpand,
     filteredMemories, selectedMemory, relations, projects, stats,
+    selectedIndex: clampedIndex,
     setSearchQuery, setCurrentProject, setSelectedIndex, setShowHelp, setShowProjectPicker,
     navigateUp, navigateDown, cycleSort, cycleLifespan,
-    cycleProjectNext, cycleProjectPrev, focusNext, filterByType,
-    openSearch, closeSearch, promptDelete, confirmDelete, cancelDelete,
+    cycleProjectNext, cycleProjectPrev, filterByType,
+    openSearch, submitSearch, closeSearch, promptDelete, confirmDelete, cancelDelete,
     promptPurge, confirmPurge, cancelPurge, expandMemory, closeExpand,
   };
 }

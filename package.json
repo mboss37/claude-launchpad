@@ -93,6 +93,7 @@
     "@types/react": "^19.2.14",
     "@types/shell-quote": "^1.7.5",
     "better-sqlite3": "^11.10.0",
+    "ink-testing-library": "^4.0.0",
     "sqlite-vec": "0.1.9",
     "tsup": "^8.5.1",
     "tsx": "^4.21.0",

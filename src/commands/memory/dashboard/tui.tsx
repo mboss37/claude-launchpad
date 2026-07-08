@@ -8,6 +8,7 @@ import { SearchRepo } from '../storage/search-repo.js';
 import { loadConfig, resolveDataDir } from '../config.js';
 import { DashboardDataSource } from './data/data-source.js';
 import { App } from './app.js';
+import { DashboardErrorBoundary } from './components/error-boundary.js';
 
 export interface TuiOptions {
   readonly dbPath?: string;
@@ -32,7 +33,9 @@ export async function startTui(options?: TuiOptions): Promise<void> {
   let shuttingDown = false;
 
   const { waitUntilExit, unmount } = render(
-    <App dataSource={dataSource} />,
+    <DashboardErrorBoundary>
+      <App dataSource={dataSource} />
+    </DashboardErrorBoundary>,
   );
 
   function shutdown(): void {

@@ -9,9 +9,8 @@ const HINTS = [
   ['1-5', 'type'],
   ['l', 'life'],
   ['s', 'sort'],
-  ['r', 'remove'],
-  ['d', 'delete project'],
-  ['Tab', 'focus'],
+  ['d', 'delete'],
+  ['X', 'purge project'],
   ['?', 'help'],
   ['q', 'quit'],
 ] as const;

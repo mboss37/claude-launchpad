@@ -81,6 +81,12 @@ export class DashboardDataSource {
   }
 
   /** Get all relations for a specific memory. */
+  /** Resolve a memory id to its title for relation display (cache-only, no I/O). */
+  getMemoryTitle(id: string): string | undefined {
+    const m = this.#cachedMemories.find((mem) => mem.id === id);
+    return m?.title ?? undefined;
+  }
+
   getRelationsForMemory(id: string): readonly Relation[] {
     return this.#relationRepo.getByMemory(id);
   }

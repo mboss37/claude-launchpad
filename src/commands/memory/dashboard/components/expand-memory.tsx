@@ -10,9 +10,10 @@ interface ExpandMemoryProps {
   readonly memory: Memory;
   readonly relations: readonly Relation[];
   readonly onClose: () => void;
+  readonly resolveTitle?: (id: string) => string | undefined;
 }
 
-export function ExpandMemory({ memory, relations, onClose }: ExpandMemoryProps): React.ReactNode {
+export function ExpandMemory({ memory, relations, onClose, resolveTitle }: ExpandMemoryProps): React.ReactNode {
   const { columns, rows } = useTerminalSize();
   const [scroll, setScroll] = useState(0);
 
@@ -67,7 +68,8 @@ export function ExpandMemory({ memory, relations, onClose }: ExpandMemoryProps):
             const relColor = RELATION_COLORS[r.relationType] ?? 'white';
             const direction = r.sourceId === memory.id ? '→' : '←';
             const otherId = r.sourceId === memory.id ? r.targetId : r.sourceId;
-            return <Text key={i}>  {direction} <Text color={relColor}>{r.relationType}</Text> {otherId}</Text>;
+            const label = resolveTitle?.(otherId) ?? otherId.slice(0, 8);
+            return <Text key={i}>  {direction} <Text color={relColor}>{r.relationType}</Text> {label}</Text>;
           })}
         </Box>
       )}

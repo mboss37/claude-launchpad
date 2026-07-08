@@ -36,7 +36,6 @@ export function App({ dataSource }: AppProps): React.ReactNode {
     cycleProjectNext: state.cycleProjectNext,
     cycleProjectPrev: state.cycleProjectPrev,
     cycleSort: state.cycleSort,
-    focusNext: state.focusNext,
     removeMemory: state.promptDelete,
     purgeProject: state.promptPurge,
     openProjectPicker: () => state.setShowProjectPicker((v) => !v),
@@ -58,6 +57,7 @@ export function App({ dataSource }: AppProps): React.ReactNode {
       <ExpandMemory
         memory={state.selectedMemory}
         relations={state.relations}
+        resolveTitle={(id) => dataSource.getMemoryTitle(id)}
         onClose={state.closeExpand}
       />
     );
@@ -125,7 +125,7 @@ export function App({ dataSource }: AppProps): React.ReactNode {
         <SearchBar
           query={state.searchQuery}
           onChange={state.setSearchQuery}
-          onClose={() => state.setSearchQuery(state.searchQuery)}
+          onSubmit={state.submitSearch}
         />
       )}
       <Box flexDirection={isNarrow ? 'column' : 'row'} height={isNarrow ? undefined : contentHeight}>
@@ -133,7 +133,7 @@ export function App({ dataSource }: AppProps): React.ReactNode {
           <MemoryList
             memories={state.filteredMemories}
             selectedIndex={state.selectedIndex}
-            isFocused={state.focusedPane === 'list'}
+            isFocused={true}
             height={listHeight}
           />
         </Box>
@@ -142,14 +142,15 @@ export function App({ dataSource }: AppProps): React.ReactNode {
             <ProjectList
               memories={state.filteredMemories}
               activeProject={state.currentProject}
-              isFocused={state.focusedPane === 'projects'}
+              isFocused={false}
               height={projectListHeight}
             />
           )}
           <MemoryDetail
             memory={state.selectedMemory}
             relations={state.relations}
-            isFocused={state.focusedPane === 'detail'}
+            resolveTitle={(id) => dataSource.getMemoryTitle(id)}
+            isFocused={false}
             height={detailHeight}
             width={rightWidth}
           />

@@ -19,7 +19,6 @@ export interface KeybindingActions {
   readonly cycleProjectNext: () => void;
   readonly cycleProjectPrev: () => void;
   readonly cycleSort: () => void;
-  readonly focusNext: () => void;
   readonly openProjectPicker: () => void;
   readonly showHelp: () => void;
   readonly removeMemory: () => void;
@@ -54,9 +53,10 @@ export function useKeybindings(
     if (input === 'p') actions.openProjectPicker();
     if (input === ']' || key.rightArrow) actions.cycleProjectNext();
     if (input === '[' || key.leftArrow) actions.cycleProjectPrev();
-    if (key.tab) actions.focusNext();
-    if (input === 'r') actions.removeMemory();
-    if (input === 'd') actions.purgeProject();
+    // d = delete the selected memory (TUI convention); X = purge the whole
+    // project. The old mapping put project-nuking one key from item-delete.
+    if (input === 'r' || input === 'd') actions.removeMemory();
+    if (input === 'X') actions.purgeProject();
     if (input === '?') actions.showHelp();
     if (key.return) actions.expandMemory();
     if (input === 'q') actions.quit();

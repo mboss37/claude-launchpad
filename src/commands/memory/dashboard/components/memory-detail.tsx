@@ -20,9 +20,10 @@ interface MemoryDetailProps {
   readonly isFocused: boolean;
   readonly height: number;
   readonly width: number;
+  readonly resolveTitle?: (id: string) => string | undefined;
 }
 
-export function MemoryDetail({ memory, relations, isFocused, height, width }: MemoryDetailProps): React.ReactNode {
+export function MemoryDetail({ memory, relations, isFocused, height, width, resolveTitle }: MemoryDetailProps): React.ReactNode {
   return (
     <Box
       flexDirection="column"
@@ -35,7 +36,7 @@ export function MemoryDetail({ memory, relations, isFocused, height, width }: Me
       {!memory ? (
         <Text dimColor>Select a memory to view details</Text>
       ) : (
-        <DetailContent memory={memory} relations={relations} height={height} width={width} />
+        <DetailContent resolveTitle={resolveTitle} memory={memory} relations={relations} height={height} width={width} />
       )}
     </Box>
   );
@@ -46,9 +47,10 @@ interface DetailContentProps {
   readonly relations: readonly Relation[];
   readonly height: number;
   readonly width: number;
+  readonly resolveTitle?: (id: string) => string | undefined;
 }
 
-function DetailContent({ memory, relations, height, width }: DetailContentProps): React.ReactNode {
+function DetailContent({ memory, relations, height, width, resolveTitle }: DetailContentProps): React.ReactNode {
   const life = computeLifespan(memory);
   const typeColor = TYPE_COLORS[memory.type] ?? 'white';
   const relationRows = relations.length > 0 ? relations.length + 2 : 0;
@@ -81,7 +83,7 @@ function DetailContent({ memory, relations, height, width }: DetailContentProps)
       {preview.truncated && (
         <Text dimColor>… +{preview.remainingLines} line{preview.remainingLines === 1 ? '' : 's'} · press Enter to view full</Text>
       )}
-      {relations.length > 0 && <RelationsList relations={relations} memoryId={memory.id} />}
+      {relations.length > 0 && <RelationsList resolveTitle={resolveTitle} relations={relations} memoryId={memory.id} />}
     </Box>
   );
 }
@@ -106,7 +108,7 @@ function truncateContent(content: string, maxRows: number, wrapWidth: number): C
   };
 }
 
-function RelationsList({ relations, memoryId }: { relations: readonly Relation[]; memoryId: string }): React.ReactNode {
+function RelationsList({ relations, memoryId, resolveTitle }: { relations: readonly Relation[]; memoryId: string; resolveTitle?: (id: string) => string | undefined }): React.ReactNode {
   return (
     <Box flexDirection="column" marginTop={1}>
       <Text bold>Relations</Text>
@@ -115,8 +117,9 @@ function RelationsList({ relations, memoryId }: { relations: readonly Relation[]
         const relColor = RELATION_COLORS[r.relationType] ?? 'white';
         const direction = r.sourceId === memoryId ? '→' : '←';
         const otherId = r.sourceId === memoryId ? r.targetId : r.sourceId;
+        const label = resolveTitle?.(otherId) ?? otherId.slice(0, 8);
         return (
-          <Text key={i}>  {direction} <Text color={relColor}>{r.relationType}</Text> {otherId}</Text>
+          <Text key={i}>  {direction} <Text color={relColor}>{r.relationType}</Text> {label}</Text>
         );
       })}
     </Box>

@@ -15,9 +15,8 @@ const BINDINGS = [
   ['s', 'Cycle sort mode'],
   ['p', 'Open project picker'],
   ['[ / ]', 'Previous / next project'],
-  ['r', 'Remove selected memory'],
-  ['d', 'Delete all memories for current project'],
-  ['Tab', 'Focus next pane'],
+  ['d / r', 'Delete selected memory'],
+  ['X', 'Purge all memories for current project'],
   ['?', 'Show this help'],
   ['q', 'Quit'],
 ] as const;
