@@ -170,6 +170,18 @@ Currently the two PreToolUse guards grep `tool_input.command` / `tool_input.file
 - **Trigger to pull:** Decompose when the v1.14.0 quality sprint closes; each child is its own sprint.
 - **Definition of done:** (of the decomposition) Five child WPs minted with the review's ranking: (1) auto-capture via SessionEnd/Stop hooks (extract.ts is the head start), (2) local-embedding hybrid retrieval (re-introduces sqlite-vec, wired), (3) Claude Code plugin marketplace packaging, (4) native-memory continuous interop + markdown export, (5) git-committed team memory. Positioning updated: "memory as managed, measurable infrastructure", not "Claude remembers".
 
+### WP-052 — Publish hook announces success on failed publishes
+
+- **Priority:** P2
+- **Proposed:** 2026-07-08
+- **Stories / Docs:** observed live: `pnpm publish:release` failed ENEEDAUTH, PostToolUse hook still said "Published to npm. Remember to create a GitHub release"
+- **Depends on:** none
+- **Estimate:** XS
+- **Trigger to pull:** Next hooks touch, or as filler.
+- **Definition of done:** The hook inspects tool_response for npm failure markers (`npm error`, `ENEEDAUTH`, non-zero hints) before congratulating; a failed publish produces either silence or a warning. Same audit for any other outcome-blind celebratory hooks in our settings.
+
+A hook that pattern-matches the command instead of the outcome is a decorative hook — the exact disease doctor exists to cure.
+
 ### WP-041 — Enable pnpm minimumReleaseAge supply-chain guard
 
 - **Priority:** P2
@@ -319,6 +331,7 @@ Supply-chain worm protection: newly published package versions can't enter the l
 - **2026-07-07:** WP-036, WP-043 pulled into Sprint 36 (v1.13.0 publish gate).
 - **2026-07-07:** WP-044..WP-047 pulled into Sprint 37 (v1.14.0 honest-memory core) and completed same session.
 - **2026-07-08:** WP-050 pulled into Sprint 38 (make the benchmark gate real or cut it).
+- **2026-07-08:** v1.14.0 published to npm (folds unreleased 1.13.0). WP-052 minted (publish hook celebrates failed publishes).
 - **2026-07-08:** Sprint 38 closed. WP-050 done — mutation panel 4/4 red, healthy 59/59 green. Review: 2 Important fixed in-sprint.
 - **2026-07-08:** WP-050 promoted P2→P1 with mutation-test evidence: retrieval + injection benchmarks pass with text relevance zeroed and injection scoring gutted — they don't constrain the headline algorithms. Decay, diversity, and scale benches proven real (mutations caught).
 - **2026-07-07:** Sprint 37 closed. WP-044..WP-047 done (v1.14.0). Review: 2 Critical (migration bricked existing installs; sync compounding) + 4 Important — all fixed in-sprint with legacy-DB fixture tests.
