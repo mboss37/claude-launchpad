@@ -129,9 +129,9 @@ describe('secret detection (WP-047)', () => {
     ['OpenAI-style key', 'The key is sk-proj-Ab12Cd34Ef56Gh78Ij90KlMnOpQrStUv'],
     ['AWS access key', 'Use AKIAIOSFODNN7EXAMPLE for the S3 bucket'],
     ['private key block', '-----BEGIN RSA PRIVATE KEY-----\nMIIEow...'],
-    ['GitHub PAT', 'Auth with ghp_16C7e42F292c6912E7710c838347Ae178B4a'],
+    ['GitHub PAT', 'Auth with ghp_16C7e42F292c6912E7710c838347Ae178B'],
     ['password assignment', 'Login with password=Sup3rS3cretValue99x'],
-    ['slack token', 'Post via xoxb-1234567890-abcdefghijklmnop'],
+    ['slack token', 'Post via xoxb-notrealtok-abcdefghijklmnop'],
   ] as const;
 
   for (const [label, content] of secrets) {
