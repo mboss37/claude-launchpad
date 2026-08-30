@@ -14,7 +14,8 @@
 
 ## Current Sprint
 
-<!-- EMPTY. Pull WPs from BACKLOG.md when ready. Format: `- [ ] WP-NNN — short title` -->
+- [ ] WP-058 — Cursor M2: doctor --fix + live canary
+- [ ] WP-055 — Cursor doctor and generator parity gaps
 
 ## Release Plan
 - **v1.17.1** ✅ shipped 2026-07-08 (npm latest, verified via clean-dir npx -v) — patch: 1.17.0 binary misreported its version (stale dist in tarball); publish pipeline now builds + verifies the artifact. Earlier releases: CHANGELOG.md.

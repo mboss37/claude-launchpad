@@ -75,18 +75,6 @@ One public Cursor release after the product is complete. M1-M4 do not bump versi
 
 The doctor refactor for harness dispatch dropped some human output and changed two CI-visible behaviors on the Claude path. None of it is data-loss, but the dry-run report got thinner and one extra full analyzer pass runs on every `--fix`.
 
-### WP-055 — Cursor doctor and generator parity gaps
-
-- **Priority:** P2
-- **Proposed:** 2026-08-30
-- **Stories / Docs:** Cursor M1 code review, Minor findings (Cursor surface)
-- **Depends on:** none
-- **Estimate:** M
-- **Trigger to pull:** With Cursor Milestone 2 (fixers), which touches the same files.
-- **Definition of done:** `.cursor/sandbox.json` parse errors surface as a diagnostic (today they're silently dropped and the `typeof` guard in `analyzers/security.ts` is unreachable); `scoreIssues` extracted from the five copy-pasted analyzer copies; harness profiles either wired into production call sites or deleted; Cursor `sprint-size.sh` gains the oversized (>7) and empty-sprint warnings the Claude script has; `FORMATTABLE` (13 languages) reconciled with `FORMATTERS` (5) so hooks.json never registers a generated no-op auto-format script.
-
-Parity and dead-code gaps found in review. Individually harmless, but they belong in one pass over the Cursor doctor/generator files before M2 builds fixers on top of them.
-
 ### WP-056 — init both-mode prompt flow
 
 - **Priority:** P2
@@ -141,6 +129,7 @@ Two small interaction bugs in `init` when both harnesses are selected: a decline
 
 ## Changelog
 
+- **2026-08-30:** WP-058 minted and pulled into Sprint 42 with WP-055. Cursor M2: `--fix` + live canary.
 - **2026-08-30:** WP-057 minted (P1). Cursor support is one npm/GitHub release at M5 (docs sweep + 1.18.0). M1-M4 stay unpublished.
 - **2026-08-30:** WP-054, WP-055, WP-056 minted (P2) from the Cursor M1 code review Minor findings. Critical + all 9 Important findings fixed in-branch before commit.
 - **2026-07-08:** WP-053 minted (P2) from the docs SEO audit — three content pages targeting unowned high-intent queries.
