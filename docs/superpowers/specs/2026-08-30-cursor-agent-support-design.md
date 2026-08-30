@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-30
 
-**Status:** Approved direction, implementation not started
+**Status:** Approved direction. M1 implemented on `feat/cursor-harness-support` (not on origin, not published). M2-M4 not started. M5 is the sole npm/GitHub release.
 
 ## Goal
 
@@ -222,23 +222,29 @@ Live tests record the Cursor version and avoid assertions against undocumented i
 
 ## Release Decomposition
 
+Milestones 1-4 land on `master` as ordinary commits. They do **not** bump the package version, do **not** publish to npm, and do **not** create a GitHub release. The public Cursor story is one release, after the product is complete.
+
 ### Milestone 1: Harness foundation, Cursor init, and read-only doctor
 
-Produces useful native Cursor configuration and an honest score without mutation.
+Produces useful native Cursor configuration and an honest score without mutation. **Done on `feat/cursor-harness-support` (2026-08-30).** Not on `origin`, not on npm.
 
 ### Milestone 2: Cursor deterministic fixes and live configuration canary
 
-Adds safe repair only after parser and analyzer behavior is proven.
+Adds safe repair only after parser and analyzer behavior is proven. Live Cursor Agent canary required. No version bump.
 
 ### Milestone 3: Cursor evaluation adapter
 
-Runs existing artifact scenarios and normalized behavioral scenarios through Cursor Agent.
+Runs existing artifact scenarios and normalized behavioral scenarios through Cursor Agent. No version bump.
 
 ### Milestone 4: Local Cursor memory adapter
 
-Connects the portable MCP/SQLite engine to local Cursor Agent and gates release on memory benchmarks.
+Connects the portable MCP/SQLite engine to local Cursor Agent and gates completion on memory benchmarks. Cursor Cloud memory remains unsupported. No version bump.
 
-Each milestone is independently releasable and gets its own sprint, implementation plan, review, and verification.
+### Milestone 5: Documentation sweep and package release
+
+The only ship gate. Clean remaining Claude-surface leaks in Cursor-generated files, rewrite public docs (README + Fumadocs / GitHub Pages) so they describe both harnesses and the honest limits, then publish one minor (`1.18.0`): version bump, CHANGELOG, `pnpm publish:release`, git tag, GitHub release, TASKS.md Release Plan flip.
+
+Each of M1-M4 gets its own sprint, implementation plan, review, and verification. M5 is a docs-and-release sprint, not a fifth feature.
 
 ## Non-Goals
 

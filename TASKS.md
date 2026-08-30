@@ -18,6 +18,7 @@
 
 ## Release Plan
 - **v1.17.1** ✅ shipped 2026-07-08 (npm latest, verified via clean-dir npx -v) — patch: 1.17.0 binary misreported its version (stale dist in tarball); publish pipeline now builds + verifies the artifact. Earlier releases: CHANGELOG.md.
+- **v1.18.0** not ready — Cursor as a second local harness. Lands only at Milestone 5 (docs sweep + publish) after M2 `--fix`, M3 eval, and M4 local memory. Do not publish from M1-M4.
 - **v2.0.0** not scheduled — reserved for a doctor plan/apply rewrite if ever committed to.
 - Rule: a release line says only "shipped" or "ready"; verify against `npm view claude-launchpad dist-tags` before trusting this section. Publishing ends with flipping this line — a publish without that edit is unfinished.
 
