@@ -7,6 +7,12 @@ import { printBanner, log } from "../../lib/output.js";
 import { fileExists } from "../../lib/fs-utils.js";
 import { detectProject } from "../../lib/detect.js";
 import type { InitOptions, DetectedProject } from "../../types/index.js";
+import type { HarnessSelection } from "../../harness/types.js";
+import {
+  parseHarnessSelection,
+  resolveHarnesses,
+} from "../../harness/registry.js";
+import { scaffoldCursor } from "../../harness/cursor/scaffold.js";
 import { generateClaudeMd } from "./generators/claude-md.js";
 import { generateTasksMd } from "./generators/tasks-md.js";
 import { generateSettings } from "./generators/settings.js";
@@ -28,15 +34,43 @@ import {
   writeWorkflowCheckScript,
 } from "../../lib/hook-scripts.js";
 
+export interface RunInitOptions extends InitOptions {
+  readonly harness: HarnessSelection;
+  readonly yes?: boolean;
+  readonly force?: boolean;
+}
+
+export async function runInit(
+  root: string,
+  options: RunInitOptions,
+  detected: DetectedProject,
+): Promise<void> {
+  if (options.harness === "auto") {
+    throw new Error("init does not accept --harness auto");
+  }
+  const harnesses = resolveHarnesses(options.harness, []);
+  if (harnesses.includes("claude")) {
+    await scaffold(root, options, detected, options.yes ?? false);
+  }
+  if (harnesses.includes("cursor")) {
+    await scaffoldCursor(root, options, detected);
+  }
+}
+
 export function createInitCommand(): Command {
   return new Command("init")
-    .description("Set up Claude Code configuration for any project")
+    .description("Set up coding agent configuration for any project")
     .option("-n, --name <name>", "Project name")
     .option(
       "-y, --yes",
       "Accept all defaults (does not overwrite existing files)",
     )
-    .option("-f, --force", "Overwrite existing CLAUDE.md")
+    .option("-f, --force", "Overwrite existing generated instruction file")
+    .option(
+      "--harness <harness>",
+      "Target harness: claude, cursor, or both",
+      "claude",
+    )
     .action(async (opts) => {
       printBanner();
 
@@ -75,14 +109,18 @@ export function createInitCommand(): Command {
             message: "One-line description (optional):",
           });
 
-      const options: InitOptions = {
+      const harness = parseHarnessSelection(String(opts.harness));
+      const options: RunInitOptions = {
         name: name.trim(),
         description: description.trim(),
+        harness,
+        yes: Boolean(opts.yes),
+        force: Boolean(opts.force),
       };
 
       // Check for existing files
       const hasClaudeMd = await fileExists(join(root, "CLAUDE.md"));
-      if (hasClaudeMd) {
+      if (hasClaudeMd && options.harness !== "cursor") {
         if (opts.force) {
           log.warn("Overwriting existing CLAUDE.md (--force)");
         } else if (opts.yes) {
@@ -109,7 +147,12 @@ export function createInitCommand(): Command {
         }
       }
 
-      await scaffold(root, options, detected, opts.yes);
+      try {
+        await runInit(root, options, detected);
+      } catch (error) {
+        log.error(error instanceof Error ? error.message : String(error));
+        process.exitCode = 1;
+      }
     });
 }
 
