@@ -23,9 +23,8 @@ export async function createOrMergeCursorHooks(
 ): Promise<boolean> {
   const path = join(root, HOOKS_PATH);
   const existingRaw = await readFileOrNull(path);
-  const existing = existingRaw
-    ? (JSON.parse(existingRaw) as Record<string, unknown>)
-    : { version: 1, hooks: {} };
+  const existing = parseHooksDocument(existingRaw);
+  if (existing === null) return false;
   const generated = generateCursorHooks(detected) as unknown as Record<
     string,
     unknown
@@ -82,4 +81,23 @@ async function shouldWriteScript(
 
 export function expectedHookVersion(): number {
   return CURSOR_HOOK_VERSION;
+}
+
+function parseHooksDocument(
+  raw: string | null,
+): Record<string, unknown> | null {
+  if (raw === null) return { version: 1, hooks: {} };
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (
+      parsed === null ||
+      typeof parsed !== "object" ||
+      Array.isArray(parsed)
+    ) {
+      return null;
+    }
+    return parsed as Record<string, unknown>;
+  } catch {
+    return null;
+  }
 }

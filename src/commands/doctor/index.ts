@@ -22,23 +22,12 @@ import {
 } from "../../harness/registry.js";
 import { parseCursorConfig } from "../../harness/cursor/parser.js";
 import { runCursorAnalyzers } from "../../harness/cursor/doctor.js";
+import {
+  applyCursorFixesReport,
+  applyCursorReportFixes,
+} from "./cursor-fix-report.js";
 
-export const CURSOR_FIX_UNAVAILABLE =
-  "Cursor --fix is not available yet. Run doctor without --fix for diagnostics.";
-
-/**
- * Only reject --fix when Cursor is the sole target. When Claude is also in
- * scope (explicit both, or auto-detection finding both surfaces) the Claude
- * fixes must keep working — Cursor issues are reported without fixes.
- */
-export function guardCursorFix(
-  harnesses: ReadonlyArray<HarnessId>,
-  fix: boolean,
-): void {
-  if (fix && harnesses.includes("cursor") && !harnesses.includes("claude")) {
-    throw new Error(CURSOR_FIX_UNAVAILABLE);
-  }
-}
+export { applyCursorReportFixes };
 
 export function createDoctorCommand(): Command {
   return new Command("doctor")
@@ -70,13 +59,6 @@ export function createDoctorCommand(): Command {
           });
         });
         return;
-      }
-
-      try {
-        guardCursorFix(harnesses, Boolean(opts.fix));
-      } catch (error) {
-        log.error(error instanceof Error ? error.message : String(error));
-        process.exit(1);
       }
 
       if (harnesses.length === 0) {
@@ -130,12 +112,21 @@ async function runCursorDoctor(opts: DoctorOpts): Promise<void> {
     log.step("Scanning Cursor Agent configuration...");
     log.blank();
   }
-  const results = [
+  let results = [
     ...(await runCursorAnalyzers(
       await parseCursorConfig(opts.path),
       opts.path,
     )),
   ];
+  if (opts.fix && !opts.json) {
+    await applyCursorFixesReport(results, opts);
+    results = [
+      ...(await runCursorAnalyzers(
+        await parseCursorConfig(opts.path),
+        opts.path,
+      )),
+    ];
+  }
   const overallScore = averageScore(results);
   if (opts.json) {
     console.log(
@@ -152,7 +143,7 @@ async function runCursorDoctor(opts: DoctorOpts): Promise<void> {
     exitOnMinScore(opts.minScore, overallScore);
     return;
   }
-  renderDoctorReport(results);
+  if (!opts.fix) renderDoctorReport(results);
   exitOnMinScore(opts.minScore, overallScore);
 }
 
@@ -210,8 +201,11 @@ async function runBothDoctor(opts: DoctorOpts): Promise<void> {
   log.blank();
   console.log(chalk.bold("  Cursor Agent"));
   log.blank();
-  if (opts.fix) log.warn(CURSOR_FIX_UNAVAILABLE);
-  renderDoctorReport(cursorResults);
+  if (opts.fix) {
+    await applyCursorFixesReport(cursorResults, opts);
+  } else {
+    renderDoctorReport(cursorResults);
+  }
   exitOnMinScore(opts.minScore, claudeScore);
   exitOnMinScore(opts.minScore, cursorScore);
 }

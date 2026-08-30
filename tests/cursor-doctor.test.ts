@@ -1,15 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import type { AnalyzerResult, DiagnosticIssue } from "../src/types/index.js";
 import { parseCursorConfig } from "../src/harness/cursor/parser.js";
 import { runCursorAnalyzers } from "../src/harness/cursor/doctor.js";
 import { scaffoldCursor } from "../src/harness/cursor/scaffold.js";
-import {
-  CURSOR_FIX_UNAVAILABLE,
-  guardCursorFix,
-} from "../src/commands/doctor/index.js";
+import { applyCursorReportFixes } from "../src/commands/doctor/index.js";
+import { applyCursorFixes } from "../src/harness/cursor/fixer.js";
 import { fixedDetectedProject } from "./fixtures/detected-project.js";
 
 function findIssue(
@@ -99,14 +97,73 @@ describe("Cursor doctor", () => {
     expect(overall).toBe(100);
   });
 
-  it("rejects --fix when Cursor is the only target", () => {
-    expect(() => guardCursorFix(["cursor"], true)).toThrow(
-      CURSOR_FIX_UNAVAILABLE,
+  it("applies Cursor --fix to a broken project", async () => {
+    const root = await mkdtemp(join(tmpdir(), "lp-cursor-fix-"));
+    await mkdir(join(root, ".cursor"), { recursive: true });
+    await writeFile(join(root, "AGENTS.md"), "# Demo\n- Use tests\n");
+    const before = await runCursorAnalyzers(
+      await parseCursorConfig(root),
+      root,
     );
+    const { written } = await applyCursorReportFixes(before, root, false);
+    expect(written).toBe(true);
+    expect(
+      await runCursorAnalyzers(await parseCursorConfig(root), root),
+    ).toEqual(
+      expect.arrayContaining([expect.objectContaining({ name: "Rules" })]),
+    );
+    const after = await applyCursorFixes(
+      [
+        {
+          analyzer: "Rules",
+          message: "No .cursor/rules/verification.mdc",
+          severity: "medium",
+        },
+      ],
+      root,
+    );
+    expect(after.fixed).toBe(0);
   });
 
-  it("allows --fix when Claude is also targeted (Claude fixes still run)", () => {
-    expect(() => guardCursorFix(["claude", "cursor"], true)).not.toThrow();
-    expect(() => guardCursorFix(["claude"], true)).not.toThrow();
+  it("dry-run lists Cursor fixes without writing", async () => {
+    const root = await mkdtemp(join(tmpdir(), "lp-cursor-dry-"));
+    await mkdir(join(root, ".cursor"), { recursive: true });
+    await writeFile(join(root, "AGENTS.md"), "# Demo\n");
+    const results = await runCursorAnalyzers(
+      await parseCursorConfig(root),
+      root,
+    );
+    const { written, preview } = await applyCursorReportFixes(
+      results,
+      root,
+      true,
+    );
+    expect(written).toBe(false);
+    expect(preview.length).toBeGreaterThan(0);
+    expect(
+      findIssue(results, "Rules", "No .cursor/rules/verification.mdc"),
+    ).toBeDefined();
+    const stillMissing = await runCursorAnalyzers(
+      await parseCursorConfig(root),
+      root,
+    );
+    expect(
+      findIssue(stillMissing, "Rules", "No .cursor/rules/verification.mdc"),
+    ).toBeDefined();
+  });
+
+  it("does not clobber malformed hooks.json", async () => {
+    const root = await mkdtemp(join(tmpdir(), "lp-cursor-malformed-"));
+    await mkdir(join(root, ".cursor"), { recursive: true });
+    await writeFile(join(root, ".cursor", "hooks.json"), "{ invalid\n");
+    await writeFile(join(root, "AGENTS.md"), "# Demo\n");
+    const results = await runCursorAnalyzers(
+      await parseCursorConfig(root),
+      root,
+    );
+    await applyCursorReportFixes(results, root, false);
+    expect(await readFile(join(root, ".cursor", "hooks.json"), "utf-8")).toBe(
+      "{ invalid\n",
+    );
   });
 });
