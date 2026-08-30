@@ -212,6 +212,17 @@ node scripts/verify-dist-version.mjs
 
 Expected: all green; `node dist/cli.js -v` prints `1.18.0`.
 
+- [ ] **Step 3b: Unlock GitHub Cursor canary (one-time, do not skip)**
+
+`.github/workflows/cursor-canary.yml` is dispatch-only and will fail without a secret. The Claude canary sat broken for months because `ANTHROPIC_API_KEY` was named but never created — do not repeat that.
+
+1. Create an API key in the Cursor dashboard.
+2. `gh secret set CURSOR_API_KEY --repo mboss37/claude-launchpad`
+3. Actions → **Cursor Agent Canary** → Run workflow
+4. Confirm green. Only then consider a schedule.
+
+Do not claim CI canary coverage for 1.18.0 if this secret is still missing. Local `pnpm canary:cursor` is not a substitute for the GitHub run.
+
 - [ ] **Step 4: Commit the release metadata**
 
 ```bash

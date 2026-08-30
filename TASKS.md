@@ -20,6 +20,7 @@
 ## Release Plan
 - **v1.17.1** ✅ shipped 2026-07-08 (npm latest, verified via clean-dir npx -v) — patch: 1.17.0 binary misreported its version (stale dist in tarball); publish pipeline now builds + verifies the artifact. Earlier releases: CHANGELOG.md.
 - **v1.18.0** not ready — Cursor as a second local harness. Lands only at Milestone 5 (docs sweep + publish) after M2 `--fix`, M3 eval, and M4 local memory. Do not publish from M1-M4.
+- **Cursor canary CI (blocked):** repo secret `CURSOR_API_KEY` is not set. Before dispatching **Cursor Agent Canary**, create a key in the Cursor dashboard and `gh secret set CURSOR_API_KEY`. Do not add a schedule until one GitHub run is green. Local canary already passed on Agent `2026.08.25-3e8eec8`.
 - **v2.0.0** not scheduled — reserved for a doctor plan/apply rewrite if ever committed to.
 - Rule: a release line says only "shipped" or "ready"; verify against `npm view claude-launchpad dist-tags` before trusting this section. Publishing ends with flipping this line — a publish without that edit is unfinished.
 

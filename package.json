@@ -20,7 +20,8 @@
     "docs:build": "cd docs && pnpm build",
     "bench:memory": "vitest run --config vitest.bench.config.ts --reporter=verbose",
     "test:regression": "pnpm build && bash tests/regression/doctor-regression.sh",
-    "test:regression:cursor": "pnpm build && bash tests/regression/cursor-doctor-regression.sh"
+    "test:regression:cursor": "pnpm build && bash tests/regression/cursor-doctor-regression.sh",
+    "canary:cursor": "bash scripts/canary-cursor.sh"
   },
   "keywords": [
     "claude",

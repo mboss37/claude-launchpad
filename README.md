@@ -10,7 +10,9 @@
 
 **Claude follows CLAUDE.md ~80% of the time. Hooks run at 100%. Most setups have zero hooks.**
 
-Launchpad scores your Claude Code config, fixes the gaps with hooks and permissions, and runs scenarios to prove Claude follows your rules. Local Cursor Agent projects can be scaffolded and diagnosed with `--harness cursor`; Cursor doctor is read-only in this milestone, and eval/memory remain Claude-only. Cursor Cloud memory is not supported.
+Launchpad scores your Claude Code config, fixes the gaps with hooks and permissions, and runs scenarios to prove Claude follows your rules. Local Cursor Agent projects can be scaffolded, diagnosed, and repaired with `--harness cursor`. Eval and memory remain Claude-only. Cursor Cloud memory is not supported.
+
+Cursor can also consume Claude Code files (`CLAUDE.md`, `.claude/skills/`, `.claude/agents/`, supported hooks) when [third-party configuration](https://cursor.com/docs/reference/third-party-hooks) is enabled. That is a migration bridge, not the native target. Launchpad generates native Cursor files (`AGENTS.md`, `.cursor/`) and certifies them with a live Agent canary. Verified against Cursor Agent `2026.08.25-3e8eec8` via `pnpm canary:cursor`.
 
 For developers using Claude Code who want consistent results: solo devs, vibe coders, AI-first teams.
 
@@ -81,8 +83,8 @@ Doctor flags MEDIUM when workflow.md is missing, LOW when the hook is missing, a
 | `claude-launchpad` | Score your config (routes to doctor) | Locally, free |
 | `claude-launchpad init` | Detect stack, generate config + hooks + permissions | Locally, free |
 | `claude-launchpad init --harness cursor` | Scaffold a local Cursor Agent project (`AGENTS.md`, `.cursor/`) | Locally, free |
-| `claude-launchpad doctor --fix` | Auto-fix issues found by doctor (Claude only; Cursor `--fix` is not shipped yet) | Locally, free |
-| `claude-launchpad doctor --harness cursor` | Read-only Cursor Agent diagnosis and independent score | Locally, free |
+| `claude-launchpad doctor --fix` | Auto-fix issues found by doctor (Claude, Cursor, or both) | Locally, free |
+| `claude-launchpad doctor --harness cursor` | Score a Cursor Agent project; add `--fix` to repair Launchpad-managed files | Locally, free |
 | `claude-launchpad eval` | Run Claude against test scenarios, score results | Via Claude CLI |
 | `claude-launchpad memory` | Optional knowledge base that persists across sessions | Locally |
 | `/lp-enhance` (skill) | Claude reads your code and completes CLAUDE.md | Inside Claude Code |

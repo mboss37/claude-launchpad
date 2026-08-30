@@ -1,0 +1,48 @@
+# Manual canary: does `init --harness cursor` config actually execute
+# on Cursor Agent? Unit tests validate what we emit; this validates
+# what Agent runs.
+#
+# BLOCKED until repo secret CURSOR_API_KEY exists (Cursor dashboard →
+# API keys, then `gh secret set CURSOR_API_KEY`). After it is set:
+# Actions → Cursor Agent Canary → Run workflow. Do not add a schedule
+# until that first GitHub run is green.
+#
+# Local proof already exists: pnpm canary:cursor passed on Agent
+# 2026.08.25-3e8eec8. Cost per CI run: a handful of short Agent sessions.
+name: Cursor Agent Canary
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  canary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Build CLI
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build
+
+      - name: Install Cursor Agent CLI
+        run: |
+          curl https://cursor.com/install -fsS | bash
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Run Cursor canary
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+        shell: bash
+        run: pnpm canary:cursor
