@@ -26,11 +26,16 @@ import { runCursorAnalyzers } from "../../harness/cursor/doctor.js";
 export const CURSOR_FIX_UNAVAILABLE =
   "Cursor --fix is not available yet. Run doctor without --fix for diagnostics.";
 
+/**
+ * Only reject --fix when Cursor is the sole target. When Claude is also in
+ * scope (explicit both, or auto-detection finding both surfaces) the Claude
+ * fixes must keep working — Cursor issues are reported without fixes.
+ */
 export function guardCursorFix(
   harnesses: ReadonlyArray<HarnessId>,
   fix: boolean,
 ): void {
-  if (fix && harnesses.includes("cursor")) {
+  if (fix && harnesses.includes("cursor") && !harnesses.includes("claude")) {
     throw new Error(CURSOR_FIX_UNAVAILABLE);
   }
 }
@@ -162,6 +167,7 @@ async function runBothDoctor(opts: DoctorOpts): Promise<void> {
       opts.path,
     )),
   ];
+  const cursorScore = averageScore(cursorResults);
   if (opts.json) {
     console.log(
       JSON.stringify(
@@ -172,7 +178,7 @@ async function runBothDoctor(opts: DoctorOpts): Promise<void> {
               analyzers: claudeResults,
             },
             cursor: {
-              overallScore: averageScore(cursorResults),
+              overallScore: cursorScore,
               analyzers: cursorResults,
             },
           },
@@ -182,6 +188,9 @@ async function runBothDoctor(opts: DoctorOpts): Promise<void> {
         2,
       ),
     );
+    // Never averaged: the gate fails if either harness is below threshold.
+    exitOnMinScore(opts.minScore, averageScore(claudeResults));
+    exitOnMinScore(opts.minScore, cursorScore);
     return;
   }
   printBanner();
@@ -189,11 +198,22 @@ async function runBothDoctor(opts: DoctorOpts): Promise<void> {
   log.blank();
   console.log(chalk.bold("  Claude Code"));
   log.blank();
-  renderDoctorReport(claudeResults);
+  let claudeScore = averageScore(claudeResults);
+  if (opts.fix) {
+    await applyClaudeFixes(claudeResults, opts);
+    claudeScore = averageScore(
+      await runClaudeAnalyzers(await parseClaudeConfig(opts.path), opts.path),
+    );
+  } else {
+    renderDoctorReport(claudeResults);
+  }
   log.blank();
   console.log(chalk.bold("  Cursor Agent"));
   log.blank();
+  if (opts.fix) log.warn(CURSOR_FIX_UNAVAILABLE);
   renderDoctorReport(cursorResults);
+  exitOnMinScore(opts.minScore, claudeScore);
+  exitOnMinScore(opts.minScore, cursorScore);
 }
 
 async function scanAndRender(

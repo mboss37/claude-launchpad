@@ -1,4 +1,4 @@
-import { access } from "node:fs/promises";
+import { access, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import type { HarnessId, HarnessSelection } from "./types.js";
 
@@ -14,12 +14,31 @@ export async function detectHarnesses(
 ): Promise<ReadonlyArray<HarnessId>> {
   const [claude, cursor] = await Promise.all([
     exists(join(root, "CLAUDE.md"), join(root, ".claude", "settings.json")),
-    exists(join(root, "AGENTS.md"), join(root, ".cursor")),
+    detectCursorConfig(root),
   ]);
   return [
     ...(claude ? ["claude" as const] : []),
     ...(cursor ? ["cursor" as const] : []),
   ];
+}
+
+/**
+ * A bare `.cursor/` directory is not evidence of Cursor Agent configuration —
+ * the Cursor IDE creates one (mcp.json, cache) in plenty of Claude-only
+ * repos. Require an actual agent surface: AGENTS.md, hooks.json, or rules.
+ */
+async function detectCursorConfig(root: string): Promise<boolean> {
+  if (
+    await exists(join(root, "AGENTS.md"), join(root, ".cursor", "hooks.json"))
+  ) {
+    return true;
+  }
+  try {
+    const entries = await readdir(join(root, ".cursor", "rules"));
+    return entries.some((entry) => entry.endsWith(".mdc"));
+  } catch {
+    return false;
+  }
 }
 
 export function resolveHarnesses(

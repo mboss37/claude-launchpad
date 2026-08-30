@@ -51,6 +51,42 @@ One-paragraph description.
 
 ## P2 — Post-MVP / nice-to-have
 
+### WP-054 — Doctor output and CI-semantics polish (Claude path)
+
+- **Priority:** P2
+- **Proposed:** 2026-08-30
+- **Stories / Docs:** Cursor M1 code review, Minor findings (doctor refactor)
+- **Depends on:** none
+- **Estimate:** S
+- **Trigger to pull:** Next doctor-focused sprint.
+- **Definition of done:** Dry-run prints the manual-intervention count and the `/lp-enhance` hint again; `--fix --dry-run --min-score` exit semantics documented (or restored to pre-refactor early return); `--fix` + `--min-score` no longer re-runs all analyzers twice; dead params removed (`scanAndRender` options, `analyzers/rules.ts` `void config`); the auto-mode empty-project error is harness-neutral and `--json` emits a machine-readable error object instead of exiting 1 silently.
+
+The doctor refactor for harness dispatch dropped some human output and changed two CI-visible behaviors on the Claude path. None of it is data-loss, but the dry-run report got thinner and one extra full analyzer pass runs on every `--fix`.
+
+### WP-055 — Cursor doctor and generator parity gaps
+
+- **Priority:** P2
+- **Proposed:** 2026-08-30
+- **Stories / Docs:** Cursor M1 code review, Minor findings (Cursor surface)
+- **Depends on:** none
+- **Estimate:** M
+- **Trigger to pull:** With Cursor Milestone 2 (fixers), which touches the same files.
+- **Definition of done:** `.cursor/sandbox.json` parse errors surface as a diagnostic (today they're silently dropped and the `typeof` guard in `analyzers/security.ts` is unreachable); `scoreIssues` extracted from the five copy-pasted analyzer copies; harness profiles either wired into production call sites or deleted; Cursor `sprint-size.sh` gains the oversized (>7) and empty-sprint warnings the Claude script has; `FORMATTABLE` (13 languages) reconciled with `FORMATTERS` (5) so hooks.json never registers a generated no-op auto-format script.
+
+Parity and dead-code gaps found in review. Individually harmless, but they belong in one pass over the Cursor doctor/generator files before M2 builds fixers on top of them.
+
+### WP-056 — init both-mode prompt flow
+
+- **Priority:** P2
+- **Proposed:** 2026-08-30
+- **Stories / Docs:** Cursor M1 code review, Minor findings (init flow)
+- **Depends on:** none
+- **Estimate:** XS
+- **Trigger to pull:** First user report, or alongside any init-touching sprint.
+- **Definition of done:** Declining the interactive "CLAUDE.md exists, overwrite?" prompt in `--harness both` still runs the Cursor scaffold (only the Claude overwrite is skipped); `--harness` is validated before the name/description prompts so a typo fails fast.
+
+Two small interaction bugs in `init` when both harnesses are selected: a declined Claude overwrite currently aborts the whole run including the Cursor half, and an invalid `--harness` value only errors after the user has answered the prompts.
+
 ---
 
 ---
@@ -93,6 +129,7 @@ One-paragraph description.
 
 ## Changelog
 
+- **2026-08-30:** WP-054, WP-055, WP-056 minted (P2) from the Cursor M1 code review Minor findings. Critical + all 9 Important findings fixed in-branch before commit.
 - **2026-07-08:** WP-053 minted (P2) from the docs SEO audit — three content pages targeting unowned high-intent queries.
 - **2026-07-08:** Sprint 41 closed. WP-010, WP-011, WP-020, WP-041, WP-049 done (v1.17.0). Review: 1 Critical (no-op supply-chain guard) + 3 Important fixed in-sprint. Backlog now: WP-051 only.
 - **2026-07-08:** WP-049, WP-020, WP-011, WP-010, WP-041 pulled into Sprint 41 (final polish sweep). WP-051 demoted P2→P3 per maintainer (strategy arc awaits deliberate commitment).

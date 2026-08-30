@@ -23,7 +23,7 @@ claude-launchpad doctor
 | `--min-score <n>` | Exit code 1 if below threshold (for CI) |
 | `--json` | Pure JSON, no banner |
 | `-p, --path <dir>` | Run on a different directory |
-| `--harness` | `auto` (default), `claude`, `cursor`, or `both`. Scores are never averaged. |
+| `--harness` | `auto` (default), `claude`, `cursor`, or `both`. Scores are never averaged; `--min-score` gates each harness separately. Cursor `--fix` isn't available yet — targeting Cursor alone with `--fix` errors, and in both mode Claude fixes apply while Cursor stays report-only. |
 
 ## Analyzers
 

@@ -1,20 +1,29 @@
 import { readdir, stat } from "node:fs/promises";
 import { join } from "node:path";
 import { log } from "../../lib/output.js";
-import { readFileOrNull } from "../../lib/fs-utils.js";
 import type { HarnessId } from "../../harness/types.js";
 
+/**
+ * Stat-based fingerprint (mtime ns + size per file) — the watcher polls every
+ * second, and .claude/ or .cursor/ can hold megabytes of sessions/memory, so
+ * reading contents on each tick is not acceptable.
+ */
 export async function getConfigSnapshot(
   projectRoot: string,
   harnesses: ReadonlyArray<HarnessId>,
 ): Promise<string> {
   const files = await collectWatchedFiles(projectRoot, harnesses);
-  const parts = await Promise.all(
-    files.map(
-      async (file) => `${file}:${(await readFileOrNull(file)) ?? "missing"}`,
-    ),
-  );
+  const parts = await Promise.all(files.map(fingerprintFile));
   return parts.join("|");
+}
+
+async function fingerprintFile(file: string): Promise<string> {
+  try {
+    const stats = await stat(file, { bigint: true });
+    return `${file}:${stats.mtimeNs}:${stats.size}`;
+  } catch {
+    return `${file}:missing`;
+  }
 }
 
 export async function watchConfig(
@@ -66,19 +75,20 @@ async function collectWatchedFiles(
 }
 
 async function listFilesRecursive(dir: string): Promise<ReadonlyArray<string>> {
+  // readdir must stay inside the try: this runs in a setInterval callback,
+  // where an unhandled rejection (e.g. ENOTDIR) would crash the process.
   try {
-    await stat(dir);
+    const entries = await readdir(dir, { withFileTypes: true });
+    const nested = await Promise.all(
+      entries
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => listFilesRecursive(join(dir, entry.name))),
+    );
+    const files = entries
+      .filter((entry) => entry.isFile())
+      .map((entry) => join(dir, entry.name));
+    return [...files, ...nested.flat()];
   } catch {
     return [];
   }
-  const entries = await readdir(dir, { withFileTypes: true });
-  const nested = await Promise.all(
-    entries
-      .filter((entry) => entry.isDirectory())
-      .map((entry) => listFilesRecursive(join(dir, entry.name))),
-  );
-  const files = entries
-    .filter((entry) => entry.isFile())
-    .map((entry) => join(dir, entry.name));
-  return [...files, ...nested.flat()];
 }

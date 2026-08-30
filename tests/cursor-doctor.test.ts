@@ -99,9 +99,14 @@ describe("Cursor doctor", () => {
     expect(overall).toBe(100);
   });
 
-  it("rejects Cursor --fix", () => {
+  it("rejects --fix when Cursor is the only target", () => {
     expect(() => guardCursorFix(["cursor"], true)).toThrow(
       CURSOR_FIX_UNAVAILABLE,
     );
+  });
+
+  it("allows --fix when Claude is also targeted (Claude fixes still run)", () => {
+    expect(() => guardCursorFix(["claude", "cursor"], true)).not.toThrow();
+    expect(() => guardCursorFix(["claude"], true)).not.toThrow();
   });
 });

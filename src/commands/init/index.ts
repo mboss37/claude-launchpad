@@ -12,7 +12,10 @@ import {
   parseHarnessSelection,
   resolveHarnesses,
 } from "../../harness/registry.js";
-import { scaffoldCursor } from "../../harness/cursor/scaffold.js";
+import {
+  scaffoldCursor,
+  type ScaffoldResult,
+} from "../../harness/cursor/scaffold.js";
 import { generateClaudeMd } from "./generators/claude-md.js";
 import { generateTasksMd } from "./generators/tasks-md.js";
 import { generateSettings } from "./generators/settings.js";
@@ -53,8 +56,36 @@ export async function runInit(
     await scaffold(root, options, detected, options.yes ?? false);
   }
   if (harnesses.includes("cursor")) {
-    await scaffoldCursor(root, options, detected);
+    const result = await scaffoldCursor(root, options, detected);
+    reportCursorScaffold(result, {
+      claudeAlsoScaffolded: harnesses.includes("claude"),
+    });
   }
+}
+
+function reportCursorScaffold(
+  result: ScaffoldResult,
+  context: { readonly claudeAlsoScaffolded: boolean },
+): void {
+  log.step("Generating Cursor Agent configuration...");
+  for (const file of result.created) log.success(`Generated ${file}`);
+  if (result.preserved.length > 0) {
+    log.info(
+      `Preserved (already exist, not overwritten): ${result.preserved.join(", ")}`,
+    );
+  }
+  log.blank();
+  // The Claude scaffold prints its own jq warning — don't repeat it in both mode.
+  if (!context.claudeAlsoScaffolded && !isJqAvailable()) {
+    log.warn(
+      "jq not found on PATH — the generated Cursor hooks are fail-closed and will DENY file reads and shell commands until you install it: https://jqlang.github.io/jq/download/",
+    );
+  }
+  log.success("Done! Open this project in Cursor to start.");
+  log.info(
+    "Run `claude-launchpad doctor --harness cursor` to check your config quality.",
+  );
+  log.blank();
 }
 
 export function createInitCommand(): Command {

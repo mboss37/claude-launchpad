@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  generateCursorEnhanceSkill,
   generateCursorHooks,
+  generateCursorReviewer,
   generateCursorRule,
 } from "../src/harness/cursor/generators.js";
 import { fixedDetectedProject } from "./fixtures/detected-project.js";
@@ -25,5 +27,31 @@ describe("Cursor generators", () => {
     expect(hooks.version).toBe(1);
     expect(hooks.hooks.beforeShellExecution?.[0]?.failClosed).toBe(true);
     expect(hooks.hooks.beforeReadFile?.[0]?.failClosed).toBe(true);
+  });
+
+  it("generates a Cursor-native enhance skill with no Claude Code references", () => {
+    const skill = generateCursorEnhanceSkill();
+    expect(skill).toContain("AGENTS.md");
+    expect(skill).toContain(".cursorignore");
+    expect(skill).toContain(".cursor/rules/");
+    expect(skill).toContain("globs:");
+    expect(skill).toContain("doctor --harness cursor");
+    // No Claude surface may leak through: these paths/concepts don't exist
+    // in a Cursor project and would send the agent to the wrong files.
+    expect(skill).not.toContain(".claudeignore");
+    expect(skill).not.toContain(".claude/");
+    expect(skill).not.toContain("CLAUDE.md");
+    expect(skill).not.toContain("settings.json");
+    expect(skill).not.toContain("allowed-tools");
+    expect(skill).not.toContain("Claude Code");
+    expect(skill).not.toContain("paths:");
+  });
+
+  it("generates a reviewer agent with no Claude surface references", () => {
+    const reviewer = generateCursorReviewer();
+    expect(reviewer).toContain("AGENTS.md");
+    expect(reviewer).toContain(".cursor/rules/");
+    expect(reviewer).not.toContain("CLAUDE.md");
+    expect(reviewer).not.toContain(".claude/");
   });
 });

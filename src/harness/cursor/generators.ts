@@ -3,7 +3,6 @@ import {
   buildAgentInstructions,
   renderAgentInstructions,
 } from "../../commands/init/generators/agent-instructions.js";
-import { generateEnhanceSkill } from "../../commands/init/generators/skill-enhance.js";
 import { generateReviewerAgent } from "../../commands/init/generators/agent-reviewer.js";
 import { generateWorkflowRule } from "../../commands/init/generators/workflow-rule.js";
 import { generateHooksRule } from "../../commands/init/generators/hooks-rule.js";
@@ -115,11 +114,7 @@ export function generateCursorReviewer(): string {
     .replaceAll(".claude/rules/", ".cursor/rules/");
 }
 
-export function generateCursorEnhanceSkill(): string {
-  return generateEnhanceSkill()
-    .replaceAll("CLAUDE.md", "AGENTS.md")
-    .replaceAll(".claude/", ".cursor/");
-}
+export { generateCursorEnhanceSkill } from "./skill-enhance.js";
 
 export function generateCursorWorkflowRule(): string {
   return generateCursorRule({

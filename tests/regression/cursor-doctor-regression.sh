@@ -66,7 +66,21 @@ $CLI init --harness both --yes --name demo >/dev/null
 BOTH=$($CLI doctor --harness both --json)
 echo "$BOTH" | grep -q '"claude"' && echo "$BOTH" | grep -q '"cursor"' && green "both-mode JSON has separate harness reports" || red "both-mode JSON should include claude and cursor"
 
-header "10: Malformed hooks.json is not clobbered"
+header "10: Claude-only project with an IDE .cursor dir stays Claude-only"
+S5="$BASE/claude-with-ide-cursor"
+mkdir -p "$S5/.cursor" && cd "$S5"
+git init -q && echo "# test" > README.md && git add . && git commit -qm "init"
+$CLI init --yes --name demo >/dev/null
+echo '{}' > .cursor/mcp.json
+JSON=$($CLI doctor --json)
+echo "$JSON" | grep -q '"overallScore"' && ! echo "$JSON" | grep -q '"harnesses"' \
+  && green "auto doctor keeps the Claude JSON shape" || red "auto doctor must not switch to both-mode JSON"
+FIX_OUT=$($CLI doctor --fix 2>&1 || true)
+echo "$FIX_OUT" | grep -q "Cursor --fix is not available" \
+  && red "doctor --fix must keep working with an IDE-only .cursor dir" \
+  || green "doctor --fix still works with an IDE-only .cursor dir"
+
+header "11: Malformed hooks.json is not clobbered"
 S4="$BASE/malformed"
 mkdir -p "$S4/.cursor" && cd "$S4"
 git init -q

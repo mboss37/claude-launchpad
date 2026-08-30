@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { access, mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
+import {
+  access,
+  mkdir,
+  mkdtemp,
+  readFile,
+  rm,
+  writeFile,
+} from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { fileExists } from "../src/lib/fs-utils.js";
@@ -61,6 +68,47 @@ describe("Cursor init scaffold", () => {
     );
     expect(first.created.length).toBeGreaterThan(0);
     expect(second.created).toEqual([]);
+  });
+
+  it("restores a deleted hook script while preserving customized ones", async () => {
+    const root = await mkdtemp(join(tmpdir(), "lp-cursor-scripts-"));
+    await scaffoldCursor(
+      root,
+      { name: "demo", description: "" },
+      fixedDetectedProject,
+    );
+    const destructive = join(root, ".cursor", "hooks", "destructive-shell.sh");
+    const workflow = join(root, ".cursor", "hooks", "workflow-check.sh");
+    await rm(destructive);
+    await writeFile(workflow, "#!/usr/bin/env bash\n# customized\nexit 0\n");
+
+    const result = await scaffoldCursor(
+      root,
+      { name: "demo", description: "" },
+      fixedDetectedProject,
+    );
+    expect(result.created).toContain(".cursor/hooks/destructive-shell.sh");
+    expect(result.preserved).toContain(".cursor/hooks/workflow-check.sh");
+    expect(await fileExists(destructive)).toBe(true);
+    expect(await readFile(workflow, "utf-8")).toContain("# customized");
+  });
+
+  it("overwrites AGENTS.md with --force but nothing else", async () => {
+    const root = await mkdtemp(join(tmpdir(), "lp-cursor-force-"));
+    await writeFile(join(root, "AGENTS.md"), "# User-authored\n");
+    await writeFile(join(root, "TASKS.md"), "# My tasks\n");
+    const result = await scaffoldCursor(
+      root,
+      { name: "demo", description: "", force: true },
+      fixedDetectedProject,
+    );
+    expect(result.created).toContain("AGENTS.md");
+    expect(await readFile(join(root, "AGENTS.md"), "utf-8")).not.toContain(
+      "User-authored",
+    );
+    expect(await readFile(join(root, "TASKS.md"), "utf-8")).toBe(
+      "# My tasks\n",
+    );
   });
 });
 

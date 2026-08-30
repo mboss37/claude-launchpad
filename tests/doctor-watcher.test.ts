@@ -24,6 +24,12 @@ describe("doctor watcher snapshots", () => {
     expect(after).not.toBe(before);
   });
 
+  it("does not throw when .cursor is a file instead of a directory", async () => {
+    const root = await mkdtemp(join(tmpdir(), "lp-watch-notdir-"));
+    await writeFile(join(root, ".cursor"), "not a directory\n");
+    await expect(getConfigSnapshot(root, ["cursor"])).resolves.toBeDefined();
+  });
+
   it("ignores Claude files when only Cursor is selected", async () => {
     const root = await mkdtemp(join(tmpdir(), "lp-watch-ignore-"));
     await mkdir(join(root, ".claude"), { recursive: true });

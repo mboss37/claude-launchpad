@@ -22,35 +22,45 @@ export interface ScaffoldResult {
   readonly preserved: ReadonlyArray<string>;
 }
 
+export interface CursorScaffoldOptions extends InitOptions {
+  /** Mirrors init --force: overwrite AGENTS.md only, never other files. */
+  readonly force?: boolean;
+}
+
 interface PlannedFile {
   readonly relative: string;
   readonly content: string;
+  readonly overwrite?: boolean;
 }
 
 export async function scaffoldCursor(
   root: string,
-  options: InitOptions,
+  options: CursorScaffoldOptions,
   detected: DetectedProject,
 ): Promise<ScaffoldResult> {
   const created: string[] = [];
   const preserved: string[] = [];
   for (const file of plannedCursorFiles(options, detected)) {
-    const wrote = await writeNewFile(root, file.relative, file.content);
+    const wrote = await writeGeneratedFile(root, file);
     if (wrote) created.push(file.relative);
     else preserved.push(file.relative);
   }
-  const scriptResult = await writeNewHookScripts(root, detected.language);
+  const scriptResult = await writeCursorHookScripts(root, detected.language);
   created.push(...scriptResult.created);
   preserved.push(...scriptResult.preserved);
   return { created, preserved };
 }
 
 function plannedCursorFiles(
-  options: InitOptions,
+  options: CursorScaffoldOptions,
   detected: DetectedProject,
 ): ReadonlyArray<PlannedFile> {
   return [
-    { relative: "AGENTS.md", content: generateAgentsMd(options, detected) },
+    {
+      relative: "AGENTS.md",
+      content: generateAgentsMd(options, detected),
+      overwrite: options.force === true,
+    },
     { relative: "TASKS.md", content: generateTasksMd(options) },
     { relative: "BACKLOG.md", content: generateBacklogMd(options) },
     {
@@ -82,39 +92,13 @@ function plannedCursorFiles(
   ];
 }
 
-async function writeNewFile(
+async function writeGeneratedFile(
   root: string,
-  relative: string,
-  content: string,
+  file: PlannedFile,
 ): Promise<boolean> {
-  const path = join(root, relative);
-  if (await fileExists(path)) return false;
+  const path = join(root, file.relative);
+  if (!file.overwrite && (await fileExists(path))) return false;
   await mkdir(dirname(path), { recursive: true });
-  await writeFile(path, content);
+  await writeFile(path, file.content);
   return true;
-}
-
-async function writeNewHookScripts(
-  root: string,
-  language: string | null,
-): Promise<ScaffoldResult> {
-  const envPath = join(root, ".cursor", "hooks", "env-read.sh");
-  if (await fileExists(envPath)) {
-    return {
-      created: [],
-      preserved: [
-        ".cursor/hooks/env-read.sh",
-        ".cursor/hooks/destructive-shell.sh",
-        ".cursor/hooks/auto-format.sh",
-        ".cursor/hooks/workflow-check.sh",
-        ".cursor/hooks/sprint-open.sh",
-        ".cursor/hooks/session-context.sh",
-        ".cursor/hooks/sprint-size.sh",
-      ],
-    };
-  }
-  return {
-    created: await writeCursorHookScripts(root, language),
-    preserved: [],
-  };
 }
