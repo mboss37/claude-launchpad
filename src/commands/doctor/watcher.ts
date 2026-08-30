@@ -1,35 +1,39 @@
 import { readdir, stat } from "node:fs/promises";
 import { join } from "node:path";
-import { parseClaudeConfig } from "../../lib/parser.js";
-import { log, renderDoctorReport } from "../../lib/output.js";
-import { analyzeBudget } from "./analyzers/budget.js";
-import { analyzeSettings } from "./analyzers/settings.js";
-import { analyzeHooks } from "./analyzers/hooks.js";
-import { analyzeRules } from "./analyzers/rules.js";
-import { analyzePermissions } from "./analyzers/permissions.js";
-import { analyzeMcp } from "./analyzers/mcp.js";
-import { analyzeQuality } from "./analyzers/quality.js";
-import type { AnalyzerResult } from "../../types/index.js";
+import { log } from "../../lib/output.js";
+import { readFileOrNull } from "../../lib/fs-utils.js";
+import type { HarnessId } from "../../harness/types.js";
 
-/**
- * Watch config files for changes using polling (reliable on all OS).
- * Re-runs doctor on every detected change.
- */
-export async function watchConfig(projectRoot: string): Promise<void> {
-  await runAndDisplay(projectRoot);
+export async function getConfigSnapshot(
+  projectRoot: string,
+  harnesses: ReadonlyArray<HarnessId>,
+): Promise<string> {
+  const files = await collectWatchedFiles(projectRoot, harnesses);
+  const parts = await Promise.all(
+    files.map(
+      async (file) => `${file}:${(await readFileOrNull(file)) ?? "missing"}`,
+    ),
+  );
+  return parts.join("|");
+}
 
+export async function watchConfig(
+  projectRoot: string,
+  harnesses: ReadonlyArray<HarnessId>,
+  scanAndRender: () => Promise<void>,
+): Promise<void> {
+  await scanAndRender();
   log.blank();
   log.info("Watching for changes... (Ctrl+C to stop)");
   log.blank();
 
-  let lastSnapshot = await getFileSnapshot(projectRoot);
-
+  let lastSnapshot = await getConfigSnapshot(projectRoot, harnesses);
   setInterval(async () => {
-    const currentSnapshot = await getFileSnapshot(projectRoot);
+    const currentSnapshot = await getConfigSnapshot(projectRoot, harnesses);
     if (currentSnapshot !== lastSnapshot) {
       lastSnapshot = currentSnapshot;
       console.clear();
-      await runAndDisplay(projectRoot);
+      await scanAndRender();
       log.blank();
       log.info("Watching for changes... (Ctrl+C to stop)");
       log.blank();
@@ -39,59 +43,42 @@ export async function watchConfig(projectRoot: string): Promise<void> {
   await new Promise(() => {});
 }
 
-async function getFileSnapshot(projectRoot: string): Promise<string> {
-  const files = [
-    join(projectRoot, "CLAUDE.md"),
-    join(projectRoot, ".claudeignore"),
-  ];
-
-  const claudeDir = join(projectRoot, ".claude");
-  try {
-    const entries = await readdir(claudeDir, { withFileTypes: true, recursive: true });
-    for (const entry of entries) {
-      if (entry.isFile()) {
-        const parentPath = (entry as unknown as { parentPath?: string }).parentPath ?? claudeDir;
-        files.push(join(parentPath, entry.name));
-      }
-    }
-  } catch {
-    // .claude/ doesn't exist
+async function collectWatchedFiles(
+  projectRoot: string,
+  harnesses: ReadonlyArray<HarnessId>,
+): Promise<ReadonlyArray<string>> {
+  const files: string[] = [];
+  if (harnesses.includes("claude")) {
+    files.push(
+      join(projectRoot, "CLAUDE.md"),
+      join(projectRoot, ".claudeignore"),
+    );
+    files.push(...(await listFilesRecursive(join(projectRoot, ".claude"))));
   }
-
-  const mtimes: string[] = [];
-  for (const file of files) {
-    try {
-      const s = await stat(file);
-      mtimes.push(`${file}:${s.mtimeMs}`);
-    } catch {
-      mtimes.push(`${file}:missing`);
-    }
+  if (harnesses.includes("cursor")) {
+    files.push(
+      join(projectRoot, "AGENTS.md"),
+      join(projectRoot, ".cursorignore"),
+    );
+    files.push(...(await listFilesRecursive(join(projectRoot, ".cursor"))));
   }
-
-  return mtimes.join("|");
+  return files;
 }
 
-async function runAndDisplay(projectRoot: string): Promise<void> {
-  console.log("\x1b[36m\x1b[1m  Claude Launchpad\x1b[0m");
-  console.log("\x1b[2m  Scaffold · Diagnose · Evaluate · Remember\x1b[0m");
-  log.blank();
-
-  const config = await parseClaudeConfig(projectRoot);
-
-  if (config.claudeMdContent === null && config.settings === null) {
-    log.error("No Claude Code configuration found.");
-    return;
+async function listFilesRecursive(dir: string): Promise<ReadonlyArray<string>> {
+  try {
+    await stat(dir);
+  } catch {
+    return [];
   }
-
-  const results: AnalyzerResult[] = await Promise.all([
-    analyzeBudget(config),
-    analyzeQuality(config, projectRoot),
-    analyzeSettings(config),
-    analyzeHooks(config, projectRoot),
-    analyzeRules(config),
-    analyzePermissions(config, projectRoot),
-    analyzeMcp(config),
-  ]);
-
-  renderDoctorReport(results);
+  const entries = await readdir(dir, { withFileTypes: true });
+  const nested = await Promise.all(
+    entries
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => listFilesRecursive(join(dir, entry.name))),
+  );
+  const files = entries
+    .filter((entry) => entry.isFile())
+    .map((entry) => join(dir, entry.name));
+  return [...files, ...nested.flat()];
 }
