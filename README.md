@@ -10,7 +10,7 @@
 
 **Claude follows CLAUDE.md ~80% of the time. Hooks run at 100%. Most setups have zero hooks.**
 
-Launchpad scores your Claude Code config, fixes the gaps with hooks and permissions, and runs scenarios to prove Claude follows your rules.
+Launchpad scores your Claude Code config, fixes the gaps with hooks and permissions, and runs scenarios to prove Claude follows your rules. Local Cursor Agent projects can be scaffolded and diagnosed with `--harness cursor`; Cursor doctor is read-only in this milestone, and eval/memory remain Claude-only. Cursor Cloud memory is not supported.
 
 For developers using Claude Code who want consistent results: solo devs, vibe coders, AI-first teams.
 
@@ -80,7 +80,9 @@ Doctor flags MEDIUM when workflow.md is missing, LOW when the hook is missing, a
 |---|---|---|
 | `claude-launchpad` | Score your config (routes to doctor) | Locally, free |
 | `claude-launchpad init` | Detect stack, generate config + hooks + permissions | Locally, free |
-| `claude-launchpad doctor --fix` | Auto-fix issues found by doctor | Locally, free |
+| `claude-launchpad init --harness cursor` | Scaffold a local Cursor Agent project (`AGENTS.md`, `.cursor/`) | Locally, free |
+| `claude-launchpad doctor --fix` | Auto-fix issues found by doctor (Claude only; Cursor `--fix` is not shipped yet) | Locally, free |
+| `claude-launchpad doctor --harness cursor` | Read-only Cursor Agent diagnosis and independent score | Locally, free |
 | `claude-launchpad eval` | Run Claude against test scenarios, score results | Via Claude CLI |
 | `claude-launchpad memory` | Optional knowledge base that persists across sessions | Locally |
 | `/lp-enhance` (skill) | Claude reads your code and completes CLAUDE.md | Inside Claude Code |
@@ -113,6 +115,7 @@ An optional Memory analyzer runs when agentic memory is detected.
 | `--json` | Pure JSON output for scripts and CI |
 | `--min-score <n>` | Exit code 1 if score is below threshold (for CI) |
 | `-p, --path <dir>` | Run on a different directory |
+| `--harness` | `auto` (default), `claude`, `cursor`, or `both`. Scores stay separate. |
 
 ## Init
 

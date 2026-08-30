@@ -17,7 +17,8 @@ claude-launchpad init
 |---|---|
 | `-n, --name` | Project name (auto-detected from directory) |
 | `-y, --yes` | Accept all defaults without prompting |
-| `-f, --force` | Overwrite existing CLAUDE.md |
+| `-f, --force` | Overwrite existing generated instruction file |
+| `--harness` | `claude` (default), `cursor`, or `both` |
 
 With `--yes`, `/lp-enhance` installation defaults to project scope (unless already installed). `--yes` without `--force` exits with code 1 when CLAUDE.md already exists; combine `-y --force` for full automation.
 
