@@ -91,6 +91,21 @@ AFTER=$(cat .cursor/hooks.json)
 echo "$OUTPUT" | grep -q "Invalid JSON" && green "doctor reports malformed hooks.json" || red "doctor should report Invalid JSON"
 [ "$BEFORE" = "$AFTER" ] && green "malformed hooks.json left untouched" || red "doctor must not clobber malformed hooks.json"
 
+header "12: Both-mode --fix rescans Cursor before --min-score"
+S6="$BASE/both-fix-score"
+mkdir -p "$S6" && cd "$S6"
+git init -q && echo "# test" > README.md && git add . && git commit -qm "init"
+$CLI init --harness both --yes --name demo >/dev/null
+rm -f .cursor/rules/verification.mdc
+if $CLI doctor --harness both --fix --min-score 90 >/dev/null; then
+  green "both-mode --fix --min-score uses post-fix Cursor score"
+else
+  red "both-mode --fix --min-score must rescan Cursor after repairs"
+fi
+[ -f .cursor/rules/verification.mdc ] \
+  && green "both-mode --fix restored verification.mdc" \
+  || red "both-mode --fix should restore verification.mdc"
+
 echo
 echo "Passed: $PASS  Failed: $FAIL"
 [ "$FAIL" -eq 0 ]

@@ -87,6 +87,23 @@ describe("parseCursorConfig", () => {
     ]);
   });
 
+  it("records a non-array hook event as a parse error", async () => {
+    const root = await mkdtemp(join(tmpdir(), "lp-cursor-hook-shape-"));
+    await mkdir(join(root, ".cursor"), { recursive: true });
+    await writeFile(
+      join(root, ".cursor", "hooks.json"),
+      JSON.stringify({ version: 1, hooks: { beforeReadFile: {} } }),
+    );
+    const config = await parseCursorConfig(root);
+    expect(config.hooks).toEqual([]);
+    expect(config.parseErrors).toEqual([
+      {
+        path: ".cursor/hooks.json",
+        message: "Malformed hook array for beforeReadFile",
+      },
+    ]);
+  });
+
   it("records malformed sandbox.json instead of dropping it", async () => {
     const root = await mkdtemp(join(tmpdir(), "lp-cursor-sandbox-"));
     await mkdir(join(root, ".cursor"), { recursive: true });

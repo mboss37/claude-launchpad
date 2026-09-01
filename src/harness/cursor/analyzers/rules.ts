@@ -18,7 +18,7 @@ export async function analyzeCursorRules(
       severity: "medium",
       message:
         "No .cursor/rules/verification.mdc found — nothing stops premature 'done' claims",
-      fix: "Run `claude-launchpad init --harness cursor` or wait for doctor --fix in a later milestone",
+      fix: "Run `claude-launchpad doctor --fix` to generate verification.mdc",
     });
     return { name: "Rules", issues, score: scoreIssues(issues) };
   }
@@ -31,7 +31,7 @@ export async function analyzeCursorRules(
       analyzer: "Rules",
       severity: "low",
       message: `verification.mdc rule is outdated (v${version}, latest v${CURSOR_VERIFICATION_RULE_VERSION})`,
-      fix: "Run doctor --fix once Cursor repairs ship",
+      fix: "Run `claude-launchpad doctor --fix` to refresh verification.mdc",
     });
   }
 

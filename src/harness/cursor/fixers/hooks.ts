@@ -24,12 +24,17 @@ export async function createOrMergeCursorHooks(
   const path = join(root, HOOKS_PATH);
   const existingRaw = await readFileOrNull(path);
   const existing = parseHooksDocument(existingRaw);
-  if (existing === null) return false;
+  if (existing === null || !isMergeableHooksDocument(existing)) return false;
   const generated = generateCursorHooks(detected) as unknown as Record<
     string,
     unknown
   >;
-  const merged = mergeCursorHooks(existing, generated);
+  let merged: Record<string, unknown>;
+  try {
+    merged = mergeCursorHooks(existing, generated);
+  } catch {
+    return false;
+  }
   const next = `${JSON.stringify(merged, null, 2)}\n`;
   if (next === existingRaw) return false;
   await mkdir(join(root, ".cursor"), { recursive: true });
@@ -81,6 +86,22 @@ async function shouldWriteScript(
 
 export function expectedHookVersion(): number {
   return CURSOR_HOOK_VERSION;
+}
+
+function isMergeableHooksDocument(doc: Record<string, unknown>): boolean {
+  const hooks = doc.hooks;
+  if (hooks === undefined) return true;
+  if (hooks === null || typeof hooks !== "object" || Array.isArray(hooks)) {
+    return false;
+  }
+  return Object.values(hooks as Record<string, unknown>).every(
+    (list) =>
+      Array.isArray(list) &&
+      list.every(
+        (entry) =>
+          entry !== null && typeof entry === "object" && !Array.isArray(entry),
+      ),
+  );
 }
 
 function parseHooksDocument(

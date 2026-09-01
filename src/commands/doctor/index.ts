@@ -201,13 +201,17 @@ async function runBothDoctor(opts: DoctorOpts): Promise<void> {
   log.blank();
   console.log(chalk.bold("  Cursor Agent"));
   log.blank();
+  let cursorScoreAfter = cursorScore;
   if (opts.fix) {
     await applyCursorFixesReport(cursorResults, opts);
+    cursorScoreAfter = averageScore(
+      await runCursorAnalyzers(await parseCursorConfig(opts.path), opts.path),
+    );
   } else {
     renderDoctorReport(cursorResults);
   }
   exitOnMinScore(opts.minScore, claudeScore);
-  exitOnMinScore(opts.minScore, cursorScore);
+  exitOnMinScore(opts.minScore, cursorScoreAfter);
 }
 
 async function scanAndRender(

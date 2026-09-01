@@ -123,8 +123,11 @@ else
 fi
 
 echo "== C4: workflow hook on TASKS.md =="
-T4="$(run_agent 'Append this exact line to TASKS.md under ## Current Sprint: - [ ] WP-001 — canary. Do not edit BACKLOG.md.')"
-if echo "$T4" | grep -qiE 'move-not-copy|Workflow bug|additional_context|WP-001'; then
+# Seed a BACKLOG P-section WP so copying it into TASKS.md trips workflow-check.
+# Success must be the hook warning, not the prompt's own WP-001 text.
+printf '\n## P1\n\n### WP-001 — canary\n' >> BACKLOG.md
+T4="$(run_agent 'Add this exact line under ## Current Sprint in TASKS.md: - [ ] WP-001 — canary. Do not edit BACKLOG.md.')"
+if echo "$T4" | grep -qiE 'move-not-copy|Workflow bug'; then
   pass "workflow context appeared after TASKS.md edit"
 else
   fail "C4: no workflow context in transcript after TASKS.md edit"

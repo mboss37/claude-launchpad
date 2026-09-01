@@ -83,6 +83,28 @@ describe("Cursor hook fixers", () => {
     );
   });
 
+  it("refuses to write when a hook event is not an array", async () => {
+    const root = await mkdtemp(join(tmpdir(), "lp-cursor-bad-event-"));
+    await writeHooks(root, { beforeReadFile: {} });
+    const before = await readFile(join(root, ".cursor", "hooks.json"), "utf-8");
+    expect(await createOrMergeCursorHooks(root, detected)).toBe(false);
+    expect(await readFile(join(root, ".cursor", "hooks.json"), "utf-8")).toBe(
+      before,
+    );
+  });
+
+  it("refuses to write when a hook entry is not an object", async () => {
+    const root = await mkdtemp(join(tmpdir(), "lp-cursor-bad-entry-"));
+    await writeHooks(root, {
+      beforeReadFile: [null, { command: ".cursor/hooks/env-read.sh" }],
+    });
+    const before = await readFile(join(root, ".cursor", "hooks.json"), "utf-8");
+    expect(await createOrMergeCursorHooks(root, detected)).toBe(false);
+    expect(await readFile(join(root, ".cursor", "hooks.json"), "utf-8")).toBe(
+      before,
+    );
+  });
+
   it("makes generated scripts executable", async () => {
     const root = await mkdtemp(join(tmpdir(), "lp-cursor-modes-"));
     expect(await refreshCursorHookScripts(root, detected)).toBe(true);

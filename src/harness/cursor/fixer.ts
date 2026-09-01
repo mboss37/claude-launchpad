@@ -55,6 +55,36 @@ const CURSOR_FIXES: ReadonlyArray<{
     match: "Hook script missing:",
     fix: (root, detected) => refreshCursorHookScripts(root, detected),
   },
+  {
+    analyzer: "Hooks",
+    match: "missing .env read protection",
+    fix: (root, detected) => createOrMergeCursorHooks(root, detected),
+  },
+  {
+    analyzer: "Hooks",
+    match: "missing destructive-shell protection",
+    fix: (root, detected) => createOrMergeCursorHooks(root, detected),
+  },
+  {
+    analyzer: "Hooks",
+    match: "missing auto-format",
+    fix: (root, detected) => createOrMergeCursorHooks(root, detected),
+  },
+  {
+    analyzer: "Hooks",
+    match: "missing workflow check",
+    fix: (root, detected) => createOrMergeCursorHooks(root, detected),
+  },
+  {
+    analyzer: "Hooks",
+    match: "missing session context",
+    fix: (root, detected) => createOrMergeCursorHooks(root, detected),
+  },
+  {
+    analyzer: "Hooks",
+    match: "stale Launchpad hook script",
+    fix: (root, detected) => refreshCursorHookScripts(root, detected),
+  },
 ];
 
 export async function applyCursorFixes(

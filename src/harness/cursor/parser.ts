@@ -45,6 +45,8 @@ export async function parseCursorConfig(root: string): Promise<CursorConfig> {
     listMarkdownTree(join(cursorDir, "agents"), MARKDOWN_EXTS),
   ]);
 
+  const hookShapeErrors = hookStructureErrors(hooksJson.value);
+
   return {
     instructionsPath: instructionsContent !== null ? instructionsFile : null,
     instructionsContent,
@@ -60,9 +62,12 @@ export async function parseCursorConfig(root: string): Promise<CursorConfig> {
     ignorePath: ignoreContent !== null ? ignoreFile : null,
     ignoreContent,
     sandbox: sandbox.value,
-    parseErrors: [hooksJson.error, mcpJson.error, sandbox.error].filter(
-      (error): error is CursorParseError => error !== null,
-    ),
+    parseErrors: [
+      hooksJson.error,
+      mcpJson.error,
+      sandbox.error,
+      ...hookShapeErrors,
+    ].filter((error): error is CursorParseError => error !== null),
   };
 }
 
@@ -97,6 +102,40 @@ async function readJsonObject(
       error: { path: relative, message: "Invalid JSON" },
     };
   }
+}
+
+function hookStructureErrors(
+  value: Record<string, unknown> | null,
+): ReadonlyArray<CursorParseError> {
+  if (value === null) return [];
+  const hooks = value.hooks;
+  if (hooks === undefined) return [];
+  if (hooks === null || typeof hooks !== "object" || Array.isArray(hooks)) {
+    return [{ path: ".cursor/hooks.json", message: "Invalid JSON" }];
+  }
+  return Object.entries(hooks as Record<string, unknown>).flatMap(
+    ([event, list]) => {
+      if (!Array.isArray(list)) {
+        return [
+          {
+            path: ".cursor/hooks.json",
+            message: `Malformed hook array for ${event}`,
+          },
+        ];
+      }
+      return list.some(
+        (entry) =>
+          entry === null || typeof entry !== "object" || Array.isArray(entry),
+      )
+        ? [
+            {
+              path: ".cursor/hooks.json",
+              message: `Malformed hook entry in ${event}`,
+            },
+          ]
+        : [];
+    },
+  );
 }
 
 function readCursorHooks(

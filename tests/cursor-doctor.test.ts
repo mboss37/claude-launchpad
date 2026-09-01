@@ -152,6 +152,74 @@ describe("Cursor doctor", () => {
     ).toBeDefined();
   });
 
+  it("flags missing Launchpad security hooks on a partial hooks.json", async () => {
+    const root = await mkdtemp(join(tmpdir(), "lp-cursor-partial-hooks-"));
+    await mkdir(join(root, ".cursor"), { recursive: true });
+    await writeFile(join(root, "AGENTS.md"), "# Demo\n- Use tests\n");
+    await writeFile(
+      join(root, ".cursor", "hooks.json"),
+      JSON.stringify({
+        version: 1,
+        hooks: { afterFileEdit: [{ command: "./lint.sh" }] },
+      }),
+    );
+    const result = await runCursorAnalyzers(
+      await parseCursorConfig(root),
+      root,
+    );
+    expect(
+      findIssue(result, "Hooks", "missing .env read protection")?.severity,
+    ).toBe("high");
+    expect(
+      findIssue(result, "Hooks", "missing destructive-shell protection")
+        ?.severity,
+    ).toBe("high");
+    await applyCursorFixes(
+      result.flatMap((entry) => entry.issues),
+      root,
+    );
+    const after = JSON.parse(
+      await readFile(join(root, ".cursor", "hooks.json"), "utf-8"),
+    ) as {
+      hooks: {
+        beforeReadFile?: ReadonlyArray<{ command: string }>;
+        afterFileEdit?: ReadonlyArray<{ command: string }>;
+      };
+    };
+    expect(after.hooks.afterFileEdit?.[0]?.command).toBe("./lint.sh");
+    expect(after.hooks.beforeReadFile?.[0]?.command).toBe(
+      ".cursor/hooks/env-read.sh",
+    );
+  });
+
+  it("refreshes a stale marked Launchpad hook script", async () => {
+    const root = await mkdtemp(join(tmpdir(), "lp-cursor-stale-"));
+    await scaffoldCursor(
+      root,
+      { name: "demo", description: "" },
+      fixedDetectedProject,
+    );
+    const script = join(root, ".cursor", "hooks", "env-read.sh");
+    await writeFile(
+      script,
+      "#!/bin/bash\n# lp-cursor-hook-version: 0\nexit 0\n",
+    );
+    const result = await runCursorAnalyzers(
+      await parseCursorConfig(root),
+      root,
+    );
+    expect(
+      findIssue(result, "Hooks", "stale Launchpad hook script"),
+    ).toBeDefined();
+    await applyCursorFixes(
+      result.flatMap((entry) => entry.issues),
+      root,
+    );
+    expect(await readFile(script, "utf-8")).toContain(
+      "lp-cursor-hook-version: 1",
+    );
+  });
+
   it("flags malformed sandbox.json as a Security diagnostic", async () => {
     const root = await mkdtemp(join(tmpdir(), "lp-cursor-sandbox-"));
     await mkdir(join(root, ".cursor"), { recursive: true });
