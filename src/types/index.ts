@@ -83,6 +83,7 @@ export interface EvalScenario {
   readonly checks: ReadonlyArray<EvalCheck>;
   readonly passingScore: number;
   readonly runs: number;
+  readonly harnesses?: ReadonlyArray<"claude" | "cursor">;
 }
 
 export interface EvalRunResult {
@@ -95,6 +96,15 @@ export interface EvalRunResult {
     readonly passed: boolean;
     readonly points: number;
   }>;
+  readonly skipped?: boolean;
+  readonly skipReason?: string;
+  readonly metadata?: {
+    readonly harness: "claude" | "cursor";
+    readonly runtime: "sdk-local" | "cli-local";
+    readonly productVersion: string;
+    readonly model: string;
+    readonly configSources: ReadonlyArray<string>;
+  };
 }
 
 export interface EvalReport {

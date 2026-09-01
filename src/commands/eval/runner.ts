@@ -2,7 +2,7 @@ import { rm } from "node:fs/promises";
 import type { EvalScenario, EvalRunResult } from "../../types/index.js";
 import type { RuntimeTranscript } from "./runtime.js";
 import { evaluateChecks, makeClaudeJudge } from "./checks.js";
-import { claudeEvalRuntime } from "./runtimes/claude.js";
+import type { EvalRuntime } from "./runtime.js";
 import { createEvalSandbox } from "./sandbox.js";
 import { normalizeClaudeRaw, serializeCanonicalEvents } from "./transcript.js";
 
@@ -11,6 +11,7 @@ interface RunOptions {
   readonly timeout: number;
   readonly debug?: boolean;
   readonly model?: string;
+  readonly runtime: EvalRuntime;
 }
 
 /**
@@ -27,13 +28,13 @@ export async function runScenario(
   options: RunOptions,
 ): Promise<EvalRunResult> {
   const sandboxDir = await createEvalSandbox(
-    claudeEvalRuntime,
+    options.runtime,
     scenario,
     options.projectRoot,
   );
 
   try {
-    const transcript = await claudeEvalRuntime.run({
+    const transcript = await options.runtime.run({
       cwd: sandboxDir,
       prompt: scenario.prompt,
       timeout: options.timeout,
@@ -95,5 +96,6 @@ async function scoreResults(
     maxScore,
     passed: score >= scenario.passingScore,
     checks: checkResults,
+    metadata: transcript.metadata,
   };
 }

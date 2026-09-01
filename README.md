@@ -85,7 +85,7 @@ Doctor flags MEDIUM when workflow.md is missing, LOW when the hook is missing, a
 | `claude-launchpad init --harness cursor` | Scaffold a local Cursor Agent project (`AGENTS.md`, `.cursor/`) | Locally, free |
 | `claude-launchpad doctor --fix` | Auto-fix issues found by doctor (Claude, Cursor, or both) | Locally, free |
 | `claude-launchpad doctor --harness cursor` | Score a Cursor Agent project; add `--fix` to repair Launchpad-managed files | Locally, free |
-| `claude-launchpad eval` | Run Claude against test scenarios, score results | Via Claude CLI |
+| `claude-launchpad eval` | Run Claude or Cursor Agent against test scenarios | Via the selected harness CLI/SDK |
 | `claude-launchpad memory` | Optional knowledge base that persists across sessions | Locally |
 | `/lp-enhance` (skill) | Claude reads your code and completes CLAUDE.md | Inside Claude Code |
 
@@ -161,7 +161,7 @@ Stays under the 200-instruction budget. Overflows detailed content to `.claude/r
 
 ## Eval
 
-Runs Claude against real test scenarios and scores the results.
+Runs the selected coding agent against real test scenarios and scores the results.
 
 ```bash
 # Interactive mode (pick suite, runs, model)
@@ -169,9 +169,10 @@ claude-launchpad eval
 
 # Or pass flags directly
 claude-launchpad eval --suite security --runs 1 --model haiku
+claude-launchpad eval --harness cursor --suite security --runs 1 --model auto
 ```
 
-Each scenario creates an isolated sandbox with your full Claude Code config copied in. It runs Claude with a task and checks if your configuration made Claude follow the rules.
+If both Claude and Cursor configs are present, `--harness` is required. Each scenario creates an isolated sandbox with only that harness's project config. It runs the agent and checks whether the configuration made it follow the rules.
 
 ```
   ✓ security/sql-injection            10/10  PASS
@@ -184,7 +185,7 @@ Each scenario creates an isolated sandbox with your full Claude Code config copi
   Config Eval Score      ━━━━━━━━━━━━━━━━━━━─    95%
 ```
 
-Results save to `.claude/eval/` as structured markdown. Feed them back to Claude to fix failures.
+Results save to `.claude/eval/` or `.cursor/eval/` as structured markdown. Feed them back to the agent to fix failures.
 
 **Suites:**
 
@@ -201,7 +202,8 @@ Results save to `.claude/eval/` as structured markdown. Feed them back to Claude
 | `--suite <name>` | Run one suite: `security`, `conventions`, or `workflow` |
 | `-p, --path <dir>` | Project root to evaluate (defaults to cwd) |
 | `--scenarios <path>` | Use a custom scenarios directory |
-| `--model <model>` | Model to use: `haiku`, `sonnet`, `opus` |
+| `--harness <name>` | `claude` or `cursor` (required when both configs exist) |
+| `--model <model>` | Model to use: `haiku`, `sonnet`, `opus`, or a Cursor model id / `auto` |
 | `--runs <n>` | Runs per scenario (default 3, median score used) |
 | `--debug` | Keep sandbox directories for inspection |
 | `--json` | JSON output |

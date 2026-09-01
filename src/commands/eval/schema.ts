@@ -18,8 +18,18 @@ export function validateScenario(raw: unknown, filePath: string): EvalScenario {
   const checks = validateChecks(obj.checks, filePath);
   const passingScore = requireNumber(obj, "passingScore", filePath);
   const runs = optionalNumber(obj, "runs") ?? 3;
+  const harnesses = validateHarnesses(obj.harnesses, filePath);
 
-  return { name, description, setup, prompt, checks, passingScore, runs };
+  return {
+    name,
+    description,
+    setup,
+    prompt,
+    checks,
+    passingScore,
+    runs,
+    harnesses,
+  };
 }
 
 // ─── Field Validators ───
@@ -155,6 +165,29 @@ function validateChecks(
 }
 
 // ─── Helpers ───
+
+function validateHarnesses(
+  raw: unknown,
+  filePath: string,
+): ReadonlyArray<"claude" | "cursor"> | undefined {
+  if (raw === undefined) return undefined;
+  if (!Array.isArray(raw) || raw.length === 0) {
+    throw new ScenarioError(
+      filePath,
+      '"harnesses" must be a non-empty array of "claude" or "cursor"',
+    );
+  }
+  const allowed = new Set(["claude", "cursor"]);
+  for (const item of raw) {
+    if (typeof item !== "string" || !allowed.has(item)) {
+      throw new ScenarioError(
+        filePath,
+        '"harnesses" must be a non-empty array of "claude" or "cursor"',
+      );
+    }
+  }
+  return raw as ReadonlyArray<"claude" | "cursor">;
+}
 
 function requireString(
   obj: Record<string, unknown>,

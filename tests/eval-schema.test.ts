@@ -202,4 +202,33 @@ describe("validateScenario", () => {
       "checks[0].target",
     );
   });
+
+  it("accepts an optional harnesses list", () => {
+    const result = validateScenario(
+      { ...VALID_SCENARIO, harnesses: ["claude"] },
+      "test.yaml",
+    );
+    expect(result.harnesses).toEqual(["claude"]);
+  });
+
+  it("treats omitted harnesses as supported by both", () => {
+    expect(
+      validateScenario(VALID_SCENARIO, "test.yaml").harnesses,
+    ).toBeUndefined();
+  });
+
+  it("rejects an empty harnesses array", () => {
+    expect(() =>
+      validateScenario({ ...VALID_SCENARIO, harnesses: [] }, "test.yaml"),
+    ).toThrow(/harnesses/);
+  });
+
+  it("rejects unknown harness names", () => {
+    expect(() =>
+      validateScenario(
+        { ...VALID_SCENARIO, harnesses: ["windsurf"] },
+        "test.yaml",
+      ),
+    ).toThrow(/harnesses/);
+  });
 });

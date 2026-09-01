@@ -1,17 +1,28 @@
 import { Command } from "commander";
 import { select } from "@inquirer/prompts";
 import ora from "ora";
-import chalk from "chalk";
-import { mkdir, writeFile } from "node:fs/promises";
-import { join } from "node:path";
-import { printBanner, log, printScoreCard } from "../../lib/output.js";
+import { printBanner, log } from "../../lib/output.js";
+import { detectHarnesses } from "../../harness/registry.js";
 import { loadScenarios, resolveRuns } from "./loader.js";
 import { runScenarioWithRetries } from "./runner.js";
+import { renderEvalReport, saveEvalReport } from "./report.js";
+import {
+  buildEvalJsonReport,
+  defaultRuntimeMetadata,
+  evalRuntimeFor,
+  listCursorModelChoices,
+  metadataFromResults,
+  parseEvalHarness,
+  resolveEvalHarness,
+  scenarioSupportsHarness,
+  skippedEvalResult,
+} from "./select.js";
 import type { EvalRunResult } from "../../types/index.js";
+import type { HarnessId } from "../../harness/types.js";
 
 export function createEvalCommand(): Command {
   return new Command("eval")
-    .description("Test your Claude Code config against eval scenarios")
+    .description("Test your coding agent config against eval scenarios")
     .option(
       "-s, --suite <suite>",
       "Eval suite to run (e.g., security, conventions, workflow)",
@@ -28,290 +39,226 @@ export function createEvalCommand(): Command {
     .option("--debug", "Keep sandbox directories for inspection")
     .option(
       "--model <model>",
-      "Model to use for eval (e.g., sonnet, haiku, opus)",
+      "Model to use for eval (e.g., sonnet, haiku, opus, auto)",
     )
+    .option("--harness <harness>", "Target harness: claude or cursor")
     .action(async (opts, command) => {
       printBanner();
       let userChoseRuns = command.getOptionValueSource("runs") === "cli";
-
-      // Interactive mode when no flags provided
-      const hasFlags =
-        opts.suite ||
-        opts.model ||
-        opts.runs !== "3" ||
-        opts.timeout !== "120000" ||
-        opts.path !== process.cwd() ||
-        Boolean(opts.scenarios) ||
-        opts.json ||
-        opts.debug;
-      if (!hasFlags) {
-        // Counts derived from disk — hand-maintained numbers went stale twice.
-        const allScenarios = await loadScenarios({});
-        const suiteCounts = new Map<string, number>();
-        for (const s of allScenarios) {
-          const suiteName = s.name.split("/")[0] ?? "misc";
-          suiteCounts.set(suiteName, (suiteCounts.get(suiteName) ?? 0) + 1);
-        }
-        opts.suite = await select({
-          message: "Suite",
-          choices: [
-            ...[...suiteCounts.entries()].map(([suiteName, count]) => ({
-              name: `${suiteName} (${count} scenario${count === 1 ? "" : "s"})`,
-              value: suiteName,
-            })),
-            {
-              name: `all (${allScenarios.length} scenarios)`,
-              value: undefined,
-            },
-          ],
-        });
-        opts.runs = await select({
-          message: "Runs per scenario",
-          choices: [
-            { name: "1 — fast", value: "1" },
-            { name: "3 — default", value: "3" },
-            { name: "5 — thorough", value: "5" },
-          ],
-        });
-        userChoseRuns = true;
-        opts.model = await select({
-          message: "Model",
-          choices: [
-            { name: "haiku — cheapest", value: "haiku" },
-            { name: "sonnet — balanced", value: "sonnet" },
-            { name: "opus — best", value: "opus" },
-          ],
-        });
-        log.blank();
-      }
-
-      // Verify Claude CLI is available
-      const claudeAvailable = await checkClaudeCli();
-      if (!claudeAvailable) {
+      const harness = await resolveHarnessOrExit(opts);
+      const runtime = evalRuntimeFor(harness);
+      if (!(await runtime.isAvailable())) {
         log.error(
-          "Claude CLI not found. Install it: https://docs.anthropic.com/en/docs/claude-code",
-        );
-        log.info(
-          "The eval command runs Claude headless against scenarios — it requires the CLI.",
+          harness === "cursor"
+            ? "Cursor Agent is not available. Install the Cursor CLI or @cursor/sdk."
+            : "Claude CLI not found. Install it: https://docs.anthropic.com/en/docs/claude-code",
         );
         process.exit(1);
       }
 
-      // Load scenarios
+      if (!hasEvalFlags(opts)) {
+        await promptEvalOptions(opts);
+        userChoseRuns = true;
+      } else if (harness === "cursor" && !opts.model) {
+        opts.model = "auto";
+      }
+
       log.step("Loading eval scenarios...");
       const scenarios = await loadScenarios({
         suite: opts.suite,
         customPath: opts.scenarios,
       });
-
       if (scenarios.length === 0) {
         log.warn("No matching scenarios found.");
-        if (opts.suite) {
-          log.info(
-            `Check that the suite "${opts.suite}" exists in the scenarios directory.`,
-          );
-        }
         return;
       }
-
       log.success(`Loaded ${scenarios.length} scenario(s)`);
-      if (opts.model) {
-        log.info(`Model: ${opts.model}`);
-      }
+      if (opts.model) log.info(`Model: ${opts.model}`);
+      log.info(`Harness: ${harness}`);
       log.blank();
 
       const cliRuns = parseInt(opts.runs, 10);
       const timeout = parseInt(opts.timeout, 10);
+      const results = await runLoadedScenarios(scenarios, {
+        harness,
+        runtime,
+        projectRoot: opts.path,
+        timeout,
+        debug: opts.debug,
+        model: opts.model,
+        cliRuns,
+        userChoseRuns,
+      });
 
-      // Run scenarios
-      const results: EvalRunResult[] = [];
-
-      for (const scenario of scenarios) {
-        const runs = resolveRuns(scenario.runs, cliRuns, userChoseRuns);
-        const spinner = ora({
-          text: `Running: ${scenario.name} (${runs} run${runs > 1 ? "s" : ""})`,
-          prefixText: "  ",
-        }).start();
-
-        try {
-          const result = await runScenarioWithRetries(
-            { ...scenario, runs },
-            {
-              projectRoot: opts.path,
-              timeout,
-              debug: opts.debug,
-              model: opts.model,
-            },
-          );
-          results.push(result);
-
-          if (result.passed) {
-            spinner.succeed(
-              `${scenario.name}  ${result.score}/${result.maxScore}`,
-            );
-          } else {
-            spinner.fail(
-              `${scenario.name}  ${result.score}/${result.maxScore}`,
-            );
-          }
-        } catch (error: unknown) {
-          spinner.fail(`${scenario.name}  ERROR`);
-          const msg = error instanceof Error ? error.message : String(error);
-          log.error(`  ${msg}`);
-          results.push({
-            scenario: scenario.name,
-            score: 0,
-            maxScore: scenario.checks.reduce((s, c) => s + c.points, 0),
-            passed: false,
-            checks: scenario.checks.map((c) => ({
-              label: c.label,
-              passed: false,
-              points: c.points,
-            })),
-          });
-        }
-      }
-
-      log.blank();
-
+      const metadata = metadataFromResults(
+        results,
+        defaultRuntimeMetadata(harness, opts.model),
+      );
       if (opts.json) {
-        const overallScore = results.reduce((s, r) => s + r.score, 0);
-        const overallMax = results.reduce((s, r) => s + r.maxScore, 0);
         console.log(
           JSON.stringify(
-            {
-              results,
-              overallScore,
-              overallMax,
-              passed: overallScore >= overallMax * 0.8,
-              timestamp: new Date().toISOString(),
-            },
+            buildEvalJsonReport(results, metadata, cliRuns),
             null,
             2,
           ),
         );
         return;
       }
-
       renderEvalReport(results);
-
-      // Save report to .claude/eval/
-      await saveEvalReport(results, opts.path, opts.suite, opts.model);
+      await saveEvalReport(results, opts.path, metadata, opts.suite);
     });
 }
 
-function renderEvalReport(results: ReadonlyArray<EvalRunResult>): void {
-  for (const result of results) {
-    const icon = result.passed ? chalk.green("✓") : chalk.red("✗");
-    const status = result.passed ? chalk.green("PASS") : chalk.red("FAIL");
-    const score = `${result.score}/${result.maxScore}`;
-
-    console.log(
-      `  ${icon} ${chalk.bold(result.scenario)}  ${score}  ${status}`,
-    );
-
-    const failedChecks = result.checks.filter((c) => !c.passed);
-    for (const check of failedChecks) {
-      console.log(`    ${chalk.red("✗")} ${chalk.dim(check.label)}`);
-    }
-  }
-
-  log.blank();
-
-  const totalScore = results.reduce((s, r) => s + r.score, 0);
-  const totalMax = results.reduce((s, r) => s + r.maxScore, 0);
-  const pct = totalMax > 0 ? Math.round((totalScore / totalMax) * 100) : 0;
-
-  printScoreCard("Config Eval Score", pct);
-  log.blank();
-
-  const passed = results.filter((r) => r.passed).length;
-  const failed = results.length - passed;
-
-  if (failed === 0) {
-    log.success(`All ${passed} scenario(s) passed.`);
-  } else {
-    log.warn(
-      `${passed} passed, ${failed} failed out of ${results.length} scenario(s).`,
-    );
-  }
+function hasEvalFlags(opts: {
+  suite?: string;
+  model?: string;
+  runs: string;
+  timeout: string;
+  path: string;
+  scenarios?: string;
+  json?: boolean;
+  debug?: boolean;
+  harness?: string;
+}): boolean {
+  return Boolean(
+    opts.suite ||
+    opts.model ||
+    opts.harness ||
+    opts.runs !== "3" ||
+    opts.timeout !== "120000" ||
+    opts.path !== process.cwd() ||
+    opts.scenarios ||
+    opts.json ||
+    opts.debug,
+  );
 }
 
-async function saveEvalReport(
-  results: ReadonlyArray<EvalRunResult>,
-  projectRoot: string,
-  suite?: string,
-  model?: string,
-): Promise<void> {
-  const totalScore = results.reduce((s, r) => s + r.score, 0);
-  const totalMax = results.reduce((s, r) => s + r.maxScore, 0);
-  const pct = totalMax > 0 ? Math.round((totalScore / totalMax) * 100) : 0;
-  const passed = results.filter((r) => r.passed).length;
-  const failed = results.length - passed;
-  const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
-
-  const lines: string[] = [
-    `# Eval Report — ${timestamp}`,
-    "",
-    `**Score: ${pct}%** (${passed} passed, ${failed} failed out of ${results.length} scenarios)`,
-    "",
-    `- Suite: ${suite ?? "all"}`,
-    `- Model: ${model ?? "default"}`,
-    `- Date: ${new Date().toISOString().split("T")[0]}`,
-    "",
-    "## Results",
-    "",
-  ];
-
-  for (const result of results) {
-    const status = result.passed ? "PASS" : "FAIL";
-    lines.push(
-      `### ${result.scenario} — ${result.score}/${result.maxScore} ${status}`,
-    );
-
-    const failedChecks = result.checks.filter((c) => !c.passed);
-    const passedChecks = result.checks.filter((c) => c.passed);
-
-    for (const check of passedChecks) {
-      lines.push(`- PASSED: ${check.label} (${check.points} pts)`);
-    }
-    for (const check of failedChecks) {
-      lines.push(`- FAILED: ${check.label} (${check.points} pts)`);
-    }
-    lines.push("");
-  }
-
-  if (failed > 0) {
-    lines.push("## Recommendations");
-    lines.push("");
-    for (const result of results.filter((r) => !r.passed)) {
-      lines.push(`### Fix: ${result.scenario}`);
-      const failedChecks = result.checks.filter((c) => !c.passed);
-      for (const check of failedChecks) {
-        lines.push(
-          `- ${check.label} — update CLAUDE.md instructions or add hooks to enforce this behavior`,
-        );
-      }
-      lines.push("");
-    }
-  }
-
-  const evalDir = join(projectRoot, ".claude", "eval");
-  await mkdir(evalDir, { recursive: true });
-  const filename = `eval-${suite ?? "all"}-${timestamp}.md`;
-  await writeFile(join(evalDir, filename), lines.join("\n"));
-  log.success(`Report saved to .claude/eval/${filename}`);
-}
-
-async function checkClaudeCli(): Promise<boolean> {
-  const { execFile } = await import("node:child_process");
-  const { promisify } = await import("node:util");
-  const exec = promisify(execFile);
-
+async function resolveHarnessOrExit(opts: {
+  path: string;
+  harness?: string;
+}): Promise<HarnessId> {
   try {
-    await exec("claude", ["--version"]);
-    return true;
-  } catch {
-    return false;
+    const detected = await detectHarnesses(opts.path);
+    return resolveEvalHarness(
+      opts.harness ? parseEvalHarness(String(opts.harness)) : undefined,
+      detected,
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    log.error(message);
+    process.exit(1);
   }
+}
+
+async function promptEvalOptions(opts: {
+  suite?: string;
+  runs: string;
+  model?: string;
+  path: string;
+}): Promise<void> {
+  const allScenarios = await loadScenarios({});
+  const suiteCounts = new Map<string, number>();
+  for (const scenario of allScenarios) {
+    const suiteName = scenario.name.split("/")[0] ?? "misc";
+    suiteCounts.set(suiteName, (suiteCounts.get(suiteName) ?? 0) + 1);
+  }
+  opts.suite = await select({
+    message: "Suite",
+    choices: [
+      ...[...suiteCounts.entries()].map(([suiteName, count]) => ({
+        name: `${suiteName} (${count} scenario${count === 1 ? "" : "s"})`,
+        value: suiteName,
+      })),
+      { name: `all (${allScenarios.length} scenarios)`, value: undefined },
+    ],
+  });
+  opts.runs = await select({
+    message: "Runs per scenario",
+    choices: [
+      { name: "1 — fast", value: "1" },
+      { name: "3 — default", value: "3" },
+      { name: "5 — thorough", value: "5" },
+    ],
+  });
+  const detected = await detectHarnesses(opts.path);
+  const harness = resolveEvalHarness(undefined, detected);
+  opts.model = await select({
+    message: "Model",
+    choices:
+      harness === "cursor"
+        ? await listCursorModelChoices()
+        : [
+            { name: "haiku — cheapest", value: "haiku" },
+            { name: "sonnet — balanced", value: "sonnet" },
+            { name: "opus — best", value: "opus" },
+          ],
+  });
+  log.blank();
+}
+
+async function runLoadedScenarios(
+  scenarios: ReadonlyArray<Awaited<ReturnType<typeof loadScenarios>>[number]>,
+  options: {
+    readonly harness: HarnessId;
+    readonly runtime: ReturnType<typeof evalRuntimeFor>;
+    readonly projectRoot: string;
+    readonly timeout: number;
+    readonly debug?: boolean;
+    readonly model?: string;
+    readonly cliRuns: number;
+    readonly userChoseRuns: boolean;
+  },
+): Promise<EvalRunResult[]> {
+  const results: EvalRunResult[] = [];
+  for (const scenario of scenarios) {
+    if (!scenarioSupportsHarness(scenario, options.harness)) {
+      const skipped = skippedEvalResult(scenario.name, options.harness);
+      results.push(skipped);
+      log.warn(`${scenario.name}  SKIP  ${skipped.skipReason}`);
+      continue;
+    }
+    const runs = resolveRuns(
+      scenario.runs,
+      options.cliRuns,
+      options.userChoseRuns,
+    );
+    const spinner = ora({
+      text: `Running: ${scenario.name} (${runs} run${runs > 1 ? "s" : ""})`,
+      prefixText: "  ",
+    }).start();
+    try {
+      const result = await runScenarioWithRetries(
+        { ...scenario, runs },
+        {
+          projectRoot: options.projectRoot,
+          timeout: options.timeout,
+          debug: options.debug,
+          model: options.model,
+          runtime: options.runtime,
+        },
+      );
+      results.push(result);
+      if (result.passed) {
+        spinner.succeed(`${scenario.name}  ${result.score}/${result.maxScore}`);
+      } else {
+        spinner.fail(`${scenario.name}  ${result.score}/${result.maxScore}`);
+      }
+    } catch (error: unknown) {
+      spinner.fail(`${scenario.name}  ERROR`);
+      const msg = error instanceof Error ? error.message : String(error);
+      log.error(`  ${msg}`);
+      results.push({
+        scenario: scenario.name,
+        score: 0,
+        maxScore: scenario.checks.reduce((sum, check) => sum + check.points, 0),
+        passed: false,
+        checks: scenario.checks.map((check) => ({
+          label: check.label,
+          passed: false,
+          points: check.points,
+        })),
+      });
+    }
+  }
+  return results;
 }
