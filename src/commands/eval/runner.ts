@@ -1,16 +1,10 @@
-import { mkdir, writeFile, rm } from "node:fs/promises";
-import { join, dirname } from "node:path";
-import { tmpdir } from "node:os";
-import { randomUUID } from "node:crypto";
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
+import { rm } from "node:fs/promises";
 import type { EvalScenario, EvalRunResult } from "../../types/index.js";
 import type { RuntimeTranscript } from "./runtime.js";
 import { evaluateChecks, makeClaudeJudge } from "./checks.js";
 import { claudeEvalRuntime } from "./runtimes/claude.js";
+import { createEvalSandbox } from "./sandbox.js";
 import { normalizeClaudeRaw, serializeCanonicalEvents } from "./transcript.js";
-
-const exec = promisify(execFile);
 
 interface RunOptions {
   readonly projectRoot: string;
@@ -32,10 +26,13 @@ export async function runScenario(
   scenario: EvalScenario,
   options: RunOptions,
 ): Promise<EvalRunResult> {
-  const sandboxDir = join(tmpdir(), `claude-eval-${randomUUID()}`);
+  const sandboxDir = await createEvalSandbox(
+    claudeEvalRuntime,
+    scenario,
+    options.projectRoot,
+  );
 
   try {
-    await setupSandbox(sandboxDir, scenario, options.projectRoot);
     const transcript = await claudeEvalRuntime.run({
       cwd: sandboxDir,
       prompt: scenario.prompt,
@@ -68,36 +65,6 @@ export async function runScenarioWithRetries(
 
   const sorted = [...results].sort((a, b) => a.score - b.score);
   return sorted[Math.floor(sorted.length / 2)];
-}
-
-async function setupSandbox(
-  sandboxDir: string,
-  scenario: EvalScenario,
-  projectRoot: string,
-): Promise<void> {
-  await mkdir(sandboxDir, { recursive: true });
-  for (const file of scenario.setup.files) {
-    const filePath = join(sandboxDir, file.path);
-    await mkdir(dirname(filePath), { recursive: true });
-    await writeFile(filePath, file.content);
-  }
-  await claudeEvalRuntime.prepareSandbox(sandboxDir, projectRoot, scenario);
-  await exec("git", ["init", "-q"], { cwd: sandboxDir });
-  await exec("git", ["add", "-A"], { cwd: sandboxDir });
-  await exec(
-    "git",
-    [
-      "-c",
-      "user.name=eval",
-      "-c",
-      "user.email=eval@test",
-      "commit",
-      "-q",
-      "-m",
-      "eval setup",
-    ],
-    { cwd: sandboxDir },
-  );
 }
 
 async function scoreResults(

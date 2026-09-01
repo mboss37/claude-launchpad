@@ -1,5 +1,12 @@
+import { join } from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+import type { EvalScenario } from "../../../types/index.js";
+import {
+  copyDirIfExists,
+  copyIfExists,
+  copyJsonWithoutSecrets,
+} from "../sandbox.js";
 import type {
   EvalRuntime,
   RuntimeMetadata,
@@ -29,7 +36,7 @@ export const cursorEvalRuntime: EvalRuntime = {
       return cursorCliExists();
     }
   },
-  prepareSandbox: async () => undefined,
+  prepareSandbox: copyCursorProjectConfig,
   run: runCursor,
 };
 
@@ -188,6 +195,39 @@ function safeParse(line: string): unknown {
     return JSON.parse(line);
   } catch {
     return line;
+  }
+}
+
+async function copyCursorProjectConfig(
+  sandboxDir: string,
+  projectRoot: string,
+  _scenario: EvalScenario,
+): Promise<void> {
+  await copyIfExists(
+    join(projectRoot, "AGENTS.md"),
+    join(sandboxDir, "AGENTS.md"),
+  );
+  await copyIfExists(
+    join(projectRoot, ".cursorignore"),
+    join(sandboxDir, ".cursorignore"),
+  );
+  await copyIfExists(
+    join(projectRoot, ".cursor", "hooks.json"),
+    join(sandboxDir, ".cursor", "hooks.json"),
+  );
+  await copyIfExists(
+    join(projectRoot, ".cursor", "sandbox.json"),
+    join(sandboxDir, ".cursor", "sandbox.json"),
+  );
+  await copyJsonWithoutSecrets(
+    join(projectRoot, ".cursor", "mcp.json"),
+    join(sandboxDir, ".cursor", "mcp.json"),
+  );
+  for (const dir of ["hooks", "rules", "skills", "agents"] as const) {
+    await copyDirIfExists(
+      join(projectRoot, ".cursor", dir),
+      join(sandboxDir, ".cursor", dir),
+    );
   }
 }
 

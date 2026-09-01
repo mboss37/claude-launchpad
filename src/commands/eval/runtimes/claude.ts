@@ -1,9 +1,12 @@
-import { mkdir, writeFile, cp } from "node:fs/promises";
 import { join } from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import type { EvalScenario } from "../../../types/index.js";
-import { fileExists } from "../../../lib/fs-utils.js";
+import {
+  copyDirIfExists,
+  copyIfExists,
+  copyJsonWithoutSecrets,
+} from "../sandbox.js";
 import type {
   EvalRuntime,
   RuntimeMetadata,
@@ -137,27 +140,18 @@ async function claudeCliExists(): Promise<boolean> {
 async function copyClaudeProjectConfig(
   sandboxDir: string,
   projectRoot: string,
-  scenario: EvalScenario,
+  _scenario: EvalScenario,
 ): Promise<void> {
-  const claudeDir = join(projectRoot, ".claude");
-  const sandboxClaudeDir = join(sandboxDir, ".claude");
-  const settingsPath = join(claudeDir, "settings.json");
-  if (await fileExists(settingsPath)) {
-    await mkdir(sandboxClaudeDir, { recursive: true });
-    await cp(settingsPath, join(sandboxClaudeDir, "settings.json"));
-  }
-  const rulesDir = join(claudeDir, "rules");
-  if (await fileExists(rulesDir)) {
-    await cp(rulesDir, join(sandboxClaudeDir, "rules"), { recursive: true });
-  }
-  const ignorePath = join(projectRoot, ".claudeignore");
-  if (await fileExists(ignorePath)) {
-    await cp(ignorePath, join(sandboxDir, ".claudeignore"));
-  }
-  if (scenario.setup.instructions) {
-    await writeFile(
-      join(sandboxDir, "CLAUDE.md"),
-      `# Eval Scenario\n\n${scenario.setup.instructions}\n`,
-    );
-  }
+  await copyJsonWithoutSecrets(
+    join(projectRoot, ".claude", "settings.json"),
+    join(sandboxDir, ".claude", "settings.json"),
+  );
+  await copyDirIfExists(
+    join(projectRoot, ".claude", "rules"),
+    join(sandboxDir, ".claude", "rules"),
+  );
+  await copyIfExists(
+    join(projectRoot, ".claudeignore"),
+    join(sandboxDir, ".claudeignore"),
+  );
 }
