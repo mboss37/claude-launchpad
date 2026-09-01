@@ -11,6 +11,7 @@ const exec = promisify(execFile);
 /** How a session is graded: the captured transcript plus a judge for rubric checks. */
 export interface CheckContext {
   readonly transcript: string;
+  readonly rawTranscript: string;
   readonly judge: (rubric: string, transcript: string) => Promise<boolean>;
 }
 
@@ -50,6 +51,8 @@ async function evaluateSingleCheck(
       return checkCustom(check, sandboxDir);
     case "transcript":
       return checkTranscript(check, context.transcript);
+    case "raw-transcript":
+      return checkTranscript(check, context.rawTranscript);
     case "judge":
       return checkJudge(check, context);
     default:
@@ -59,7 +62,10 @@ async function evaluateSingleCheck(
 
 // ─── Individual Check Implementations ───
 
-async function checkGrep(check: EvalCheck, sandboxDir: string): Promise<boolean> {
+async function checkGrep(
+  check: EvalCheck,
+  sandboxDir: string,
+): Promise<boolean> {
   if (!check.pattern || !check.target) return false;
   try {
     const content = await readFile(join(sandboxDir, check.target), "utf-8");
@@ -75,7 +81,10 @@ async function checkGrep(check: EvalCheck, sandboxDir: string): Promise<boolean>
   }
 }
 
-async function checkFilePresence(check: EvalCheck, sandboxDir: string): Promise<boolean> {
+async function checkFilePresence(
+  check: EvalCheck,
+  sandboxDir: string,
+): Promise<boolean> {
   if (!check.target) return false;
   try {
     await readFile(join(sandboxDir, check.target));
@@ -85,7 +94,10 @@ async function checkFilePresence(check: EvalCheck, sandboxDir: string): Promise<
   }
 }
 
-async function checkMaxLines(check: EvalCheck, sandboxDir: string): Promise<boolean> {
+async function checkMaxLines(
+  check: EvalCheck,
+  sandboxDir: string,
+): Promise<boolean> {
   if (!check.target) return false;
   const maxLines = parseInt(check.pattern ?? "800", 10);
   try {
@@ -107,7 +119,10 @@ async function checkMaxLines(check: EvalCheck, sandboxDir: string): Promise<bool
  * Runs with a scrubbed env — scenario YAML is shareable, and custom scripts
  * must never see API keys or other secrets from the parent process.
  */
-async function checkCustom(check: EvalCheck, sandboxDir: string): Promise<boolean> {
+async function checkCustom(
+  check: EvalCheck,
+  sandboxDir: string,
+): Promise<boolean> {
   if (!check.script) return false;
   const env = {
     PATH: process.env.PATH ?? "",
@@ -115,7 +130,11 @@ async function checkCustom(check: EvalCheck, sandboxDir: string): Promise<boolea
     TMPDIR: process.env.TMPDIR ?? "",
   };
   try {
-    await exec("bash", ["-c", check.script], { cwd: sandboxDir, timeout: 30_000, env });
+    await exec("bash", ["-c", check.script], {
+      cwd: sandboxDir,
+      timeout: 30_000,
+      env,
+    });
     return true;
   } catch {
     return false;
@@ -133,13 +152,19 @@ function checkTranscript(check: EvalCheck, transcript: string): boolean {
   return check.expect === "present" ? found : !found;
 }
 
-async function checkJudge(check: EvalCheck, context: CheckContext): Promise<boolean> {
+async function checkJudge(
+  check: EvalCheck,
+  context: CheckContext,
+): Promise<boolean> {
   if (!check.rubric) return false;
   try {
     return await context.judge(check.rubric, context.transcript);
   } catch (err) {
     // Fail closed — a broken judge never awards points — but never silently
-    log.warnOnce("judge-check-error", `judge check could not run (scoring FAIL): ${err instanceof Error ? err.message : String(err)}`);
+    log.warnOnce(
+      "judge-check-error",
+      `judge check could not run (scoring FAIL): ${err instanceof Error ? err.message : String(err)}`,
+    );
     return false;
   }
 }
@@ -173,7 +198,10 @@ export function makeClaudeJudge(model?: string): CheckContext["judge"] {
       });
       return /\bPASS\b/.test(stdout) && !/\bFAIL\b/.test(stdout);
     } catch (err) {
-      log.warnOnce("judge-cli-error", `judge could not invoke the claude CLI (scoring FAIL): ${err instanceof Error ? err.message : String(err)}`);
+      log.warnOnce(
+        "judge-cli-error",
+        `judge could not invoke the claude CLI (scoring FAIL): ${err instanceof Error ? err.message : String(err)}`,
+      );
       return false;
     }
   };
@@ -188,7 +216,7 @@ async function listAllFiles(dir: string): Promise<string[]> {
     for (const entry of entries) {
       const fullPath = join(dir, entry.name);
       if (entry.isDirectory()) {
-        results.push(...await listAllFiles(fullPath));
+        results.push(...(await listAllFiles(fullPath)));
       } else {
         results.push(fullPath);
       }

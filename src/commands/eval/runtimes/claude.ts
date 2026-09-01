@@ -10,6 +10,7 @@ import type {
   RuntimeRunOptions,
   RuntimeTranscript,
 } from "../runtime.js";
+import { normalizeClaudeRaw } from "../transcript.js";
 
 const exec = promisify(execFile);
 
@@ -43,14 +44,14 @@ async function runClaude(
     const raw = await runClaudeSdk(options);
     return {
       raw,
-      events: [],
+      events: normalizeClaudeRaw(raw),
       metadata: claudeMetadata("sdk-local", options.model),
     };
   } catch {
     const raw = await runClaudeCli(options);
     return {
       raw,
-      events: [],
+      events: normalizeClaudeRaw(raw),
       metadata: claudeMetadata("cli-local", options.model),
     };
   }

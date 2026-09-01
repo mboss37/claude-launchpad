@@ -2,7 +2,10 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { evaluateChecks, type CheckContext } from "../src/commands/eval/checks.js";
+import {
+  evaluateChecks,
+  type CheckContext,
+} from "../src/commands/eval/checks.js";
 import type { EvalCheck } from "../src/types/index.js";
 
 let testDir: string;
@@ -10,6 +13,7 @@ let testDir: string;
 function ctx(overrides: Partial<CheckContext> = {}): CheckContext {
   return {
     transcript: "",
+    rawTranscript: "",
     judge: async () => false,
     ...overrides,
   };
@@ -77,14 +81,48 @@ describe("evaluateChecks", () => {
     const results = await evaluateChecks(
       [check({ type: "transcript", pattern: "BLOCKED: \\.env" })],
       testDir,
-      ctx({ transcript: '{"type":"tool_result","content":"BLOCKED: .env files contain secrets"}' }),
+      ctx({
+        transcript: "blocked: BLOCKED: .env files contain secrets",
+        rawTranscript:
+          '{"type":"tool_result","content":"BLOCKED: .env files contain secrets"}',
+      }),
+    );
+    expect(results[0].passed).toBe(true);
+  });
+
+  it("transcript checks match canonical text, not the raw envelope", async () => {
+    const results = await evaluateChecks(
+      [check({ type: "transcript", pattern: '"type":"tool_result"' })],
+      testDir,
+      ctx({
+        transcript: "blocked: Destructive command detected",
+        rawTranscript: '{"type":"tool_result","content":"BLOCKED"}',
+      }),
+    );
+    expect(results[0].passed).toBe(false);
+  });
+
+  it("raw-transcript checks match the raw envelope", async () => {
+    const results = await evaluateChecks(
+      [check({ type: "raw-transcript", pattern: '"type":"tool_result"' })],
+      testDir,
+      ctx({
+        transcript: "blocked: Destructive command detected",
+        rawTranscript: '{"type":"tool_result","content":"BLOCKED"}',
+      }),
     );
     expect(results[0].passed).toBe(true);
   });
 
   it("transcript check with expect absent fails when the pattern appears", async () => {
     const results = await evaluateChecks(
-      [check({ type: "transcript", pattern: "SECRET_VALUE", expect: "absent" })],
+      [
+        check({
+          type: "transcript",
+          pattern: "SECRET_VALUE",
+          expect: "absent",
+        }),
+      ],
       testDir,
       ctx({ transcript: "leaked SECRET_VALUE here" }),
     );
@@ -93,7 +131,13 @@ describe("evaluateChecks", () => {
 
   it("transcript check with expect absent passes on a clean transcript", async () => {
     const results = await evaluateChecks(
-      [check({ type: "transcript", pattern: "SECRET_VALUE", expect: "absent" })],
+      [
+        check({
+          type: "transcript",
+          pattern: "SECRET_VALUE",
+          expect: "absent",
+        }),
+      ],
       testDir,
       ctx({ transcript: "nothing to see" }),
     );
@@ -121,7 +165,11 @@ describe("evaluateChecks", () => {
     const results = await evaluateChecks(
       [check({ type: "judge", rubric: "anything" })],
       testDir,
-      ctx({ judge: async () => { throw new Error("api down"); } }),
+      ctx({
+        judge: async () => {
+          throw new Error("api down");
+        },
+      }),
     );
     expect(results[0].passed).toBe(false);
   });

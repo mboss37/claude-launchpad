@@ -5,8 +5,10 @@ import { randomUUID } from "node:crypto";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import type { EvalScenario, EvalRunResult } from "../../types/index.js";
+import type { RuntimeTranscript } from "./runtime.js";
 import { evaluateChecks, makeClaudeJudge } from "./checks.js";
 import { claudeEvalRuntime } from "./runtimes/claude.js";
+import { normalizeClaudeRaw, serializeCanonicalEvents } from "./transcript.js";
 
 const exec = promisify(execFile);
 
@@ -40,12 +42,7 @@ export async function runScenario(
       timeout: options.timeout,
       model: options.model,
     });
-    return await scoreResults(
-      scenario,
-      sandboxDir,
-      transcript.raw,
-      options.model,
-    );
+    return await scoreResults(scenario, sandboxDir, transcript, options.model);
   } finally {
     if (options.debug) {
       console.log(`  DEBUG: Sandbox preserved at ${sandboxDir}`);
@@ -106,11 +103,16 @@ async function setupSandbox(
 async function scoreResults(
   scenario: EvalScenario,
   sandboxDir: string,
-  transcript: string,
+  transcript: RuntimeTranscript,
   model?: string,
 ): Promise<EvalRunResult> {
+  const canonical =
+    transcript.events.length > 0
+      ? serializeCanonicalEvents(transcript.events)
+      : serializeCanonicalEvents(normalizeClaudeRaw(transcript.raw));
   const checkResults = await evaluateChecks(scenario.checks, sandboxDir, {
-    transcript,
+    transcript: canonical,
+    rawTranscript: transcript.raw,
     judge: makeClaudeJudge(model),
   });
 

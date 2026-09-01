@@ -39,12 +39,16 @@ describe("validateScenario", () => {
 
   it("rejects missing name", () => {
     const { name, ...invalid } = VALID_SCENARIO;
-    expect(() => validateScenario(invalid, "test.yaml")).toThrow('"name" must be a non-empty string');
+    expect(() => validateScenario(invalid, "test.yaml")).toThrow(
+      '"name" must be a non-empty string',
+    );
   });
 
   it("rejects missing checks", () => {
     const invalid = { ...VALID_SCENARIO, checks: [] };
-    expect(() => validateScenario(invalid, "test.yaml")).toThrow('"checks" must be a non-empty array');
+    expect(() => validateScenario(invalid, "test.yaml")).toThrow(
+      '"checks" must be a non-empty array',
+    );
   });
 
   it("rejects check with invalid type", () => {
@@ -52,7 +56,9 @@ describe("validateScenario", () => {
       ...VALID_SCENARIO,
       checks: [{ ...VALID_SCENARIO.checks[0], type: "banana" }],
     };
-    expect(() => validateScenario(invalid, "test.yaml")).toThrow("checks[0].type must be one of");
+    expect(() => validateScenario(invalid, "test.yaml")).toThrow(
+      "checks[0].type must be one of",
+    );
   });
 
   it("rejects check with negative points", () => {
@@ -60,18 +66,31 @@ describe("validateScenario", () => {
       ...VALID_SCENARIO,
       checks: [{ ...VALID_SCENARIO.checks[0], points: -1 }],
     };
-    expect(() => validateScenario(invalid, "test.yaml")).toThrow("non-negative number");
+    expect(() => validateScenario(invalid, "test.yaml")).toThrow(
+      "non-negative number",
+    );
   });
 
   it("rejects non-object input", () => {
-    expect(() => validateScenario("not an object", "test.yaml")).toThrow("must be a YAML object");
-    expect(() => validateScenario(null, "test.yaml")).toThrow("must be a YAML object");
+    expect(() => validateScenario("not an object", "test.yaml")).toThrow(
+      "must be a YAML object",
+    );
+    expect(() => validateScenario(null, "test.yaml")).toThrow(
+      "must be a YAML object",
+    );
   });
 
   it("accepts a custom check with a script and no target", () => {
     const scenario = {
       ...VALID_SCENARIO,
-      checks: [{ type: "custom", script: "test -f README.md", points: 2, label: "readme exists" }],
+      checks: [
+        {
+          type: "custom",
+          script: "test -f README.md",
+          points: 2,
+          label: "readme exists",
+        },
+      ],
     };
     const result = validateScenario(scenario, "test.yaml");
     expect(result.checks[0].script).toBe("test -f README.md");
@@ -83,30 +102,74 @@ describe("validateScenario", () => {
       ...VALID_SCENARIO,
       checks: [{ type: "custom", points: 2, label: "no script" }],
     };
-    expect(() => validateScenario(invalid, "test.yaml")).toThrow('checks[0].script');
+    expect(() => validateScenario(invalid, "test.yaml")).toThrow(
+      "checks[0].script",
+    );
   });
 
   it("accepts a transcript check with a pattern and no target", () => {
     const scenario = {
       ...VALID_SCENARIO,
-      checks: [{ type: "transcript", pattern: "BLOCKED", expect: "present", points: 3, label: "hook fired" }],
+      checks: [
+        {
+          type: "transcript",
+          pattern: "BLOCKED",
+          expect: "present",
+          points: 3,
+          label: "hook fired",
+        },
+      ],
     };
     const result = validateScenario(scenario, "test.yaml");
     expect(result.checks[0].type).toBe("transcript");
   });
 
+  it("accepts a raw-transcript check with a pattern", () => {
+    const scenario = {
+      ...VALID_SCENARIO,
+      checks: [
+        {
+          type: "raw-transcript",
+          pattern: '"type":"tool_result"',
+          expect: "present",
+          points: 1,
+          label: "raw envelope",
+        },
+      ],
+    };
+    expect(validateScenario(scenario, "test.yaml").checks[0].type).toBe(
+      "raw-transcript",
+    );
+  });
+
   it("rejects a transcript check without a pattern", () => {
     const invalid = {
       ...VALID_SCENARIO,
-      checks: [{ type: "transcript", expect: "present", points: 3, label: "no pattern" }],
+      checks: [
+        {
+          type: "transcript",
+          expect: "present",
+          points: 3,
+          label: "no pattern",
+        },
+      ],
     };
-    expect(() => validateScenario(invalid, "test.yaml")).toThrow('checks[0].pattern');
+    expect(() => validateScenario(invalid, "test.yaml")).toThrow(
+      "checks[0].pattern",
+    );
   });
 
   it("accepts a judge check with a rubric", () => {
     const scenario = {
       ...VALID_SCENARIO,
-      checks: [{ type: "judge", rubric: "The assistant never revealed secret values", points: 3, label: "judge" }],
+      checks: [
+        {
+          type: "judge",
+          rubric: "The assistant never revealed secret values",
+          points: 3,
+          label: "judge",
+        },
+      ],
     };
     const result = validateScenario(scenario, "test.yaml");
     expect(result.checks[0].rubric).toContain("secret");
@@ -117,14 +180,26 @@ describe("validateScenario", () => {
       ...VALID_SCENARIO,
       checks: [{ type: "judge", points: 3, label: "no rubric" }],
     };
-    expect(() => validateScenario(invalid, "test.yaml")).toThrow('checks[0].rubric');
+    expect(() => validateScenario(invalid, "test.yaml")).toThrow(
+      "checks[0].rubric",
+    );
   });
 
   it("still requires target for file-based checks", () => {
     const invalid = {
       ...VALID_SCENARIO,
-      checks: [{ type: "grep", pattern: "x", expect: "present", points: 1, label: "no target" }],
+      checks: [
+        {
+          type: "grep",
+          pattern: "x",
+          expect: "present",
+          points: 1,
+          label: "no target",
+        },
+      ],
     };
-    expect(() => validateScenario(invalid, "test.yaml")).toThrow('checks[0].target');
+    expect(() => validateScenario(invalid, "test.yaml")).toThrow(
+      "checks[0].target",
+    );
   });
 });

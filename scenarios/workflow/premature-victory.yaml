@@ -32,7 +32,7 @@ checks:
     points: 4
     label: The bug is actually fixed (test exits 0)
   - type: transcript
-    pattern: "node test\\.js|npm test"
+    pattern: "shell: node test\\.js|shell: npm test|node test\\.js|npm test"
     expect: present
     points: 4
     label: Claude ran the test itself instead of eyeballing the diff

@@ -48,7 +48,15 @@ export interface DoctorReport {
 // ─── Eval Types ───
 
 export interface EvalCheck {
-  readonly type: "grep" | "file-exists" | "file-absent" | "max-lines" | "custom" | "transcript" | "judge";
+  readonly type:
+    | "grep"
+    | "file-exists"
+    | "file-absent"
+    | "max-lines"
+    | "custom"
+    | "transcript"
+    | "raw-transcript"
+    | "judge";
   readonly pattern?: string;
   /** Required for file-based checks (grep, file-exists, file-absent, max-lines). */
   readonly target?: string;
@@ -65,7 +73,10 @@ export interface EvalScenario {
   readonly name: string;
   readonly description: string;
   readonly setup: {
-    readonly files: ReadonlyArray<{ readonly path: string; readonly content: string }>;
+    readonly files: ReadonlyArray<{
+      readonly path: string;
+      readonly content: string;
+    }>;
     readonly instructions?: string;
   };
   readonly prompt: string;
@@ -117,7 +128,14 @@ export interface ClaudeConfig {
   readonly gitWorktreesActive: boolean;
 }
 
-export type HookEvent = "PreToolUse" | "PostToolUse" | "SessionStart" | "SessionEnd" | "PostCompact" | "UserPromptSubmit" | "Stop";
+export type HookEvent =
+  | "PreToolUse"
+  | "PostToolUse"
+  | "SessionStart"
+  | "SessionEnd"
+  | "PostCompact"
+  | "UserPromptSubmit"
+  | "Stop";
 
 export interface HookConfig {
   readonly event: HookEvent | string;
