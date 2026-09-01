@@ -16,12 +16,29 @@ export function serializeCanonicalEvents(
 }
 
 export function normalizeClaudeRaw(raw: string): ReadonlyArray<CanonicalEvent> {
+  return normalizeJsonLines(raw, eventsFromUnknown);
+}
+
+export function normalizeCursorRaw(raw: string): ReadonlyArray<CanonicalEvent> {
+  return normalizeJsonLines(raw, eventsFromCursorValue);
+}
+
+export function normalizeCursorSdkEvent(
+  event: unknown,
+): ReadonlyArray<CanonicalEvent> {
+  return eventsFromCursorValue(event);
+}
+
+function normalizeJsonLines(
+  raw: string,
+  parse: (value: unknown) => ReadonlyArray<CanonicalEvent>,
+): ReadonlyArray<CanonicalEvent> {
   const events: CanonicalEvent[] = [];
   for (const line of raw.split("\n")) {
     const trimmed = line.trim();
     if (!trimmed) continue;
     try {
-      events.push(...eventsFromUnknown(JSON.parse(trimmed)));
+      events.push(...parse(JSON.parse(trimmed)));
     } catch {
       if (/BLOCKED/i.test(trimmed)) {
         events.push({ kind: "blocked", reason: blockedReason(trimmed) });
@@ -130,6 +147,64 @@ function findAssistantText(value: unknown): string | null {
     }
   }
   return null;
+}
+
+function eventsFromCursorValue(value: unknown): ReadonlyArray<CanonicalEvent> {
+  if (value === null || typeof value !== "object") return [];
+  const record = value as Record<string, unknown>;
+  const events: CanonicalEvent[] = [];
+  const blocked = findBlocked(record);
+  if (blocked) events.push({ kind: "blocked", reason: blocked });
+  const command = findCursorShell(record);
+  if (command) events.push({ kind: "shell", command });
+  const tool = findCursorTool(record);
+  if (tool) events.push(tool);
+  const text = findAssistantText(record);
+  if (text) events.push({ kind: "text", role: "assistant", content: text });
+  return events;
+}
+
+function findCursorShell(record: Record<string, unknown>): string | null {
+  const fromClaude = findShellCommand(record);
+  if (fromClaude) return fromClaude;
+  if (record.name === "shell" || record.name === "Shell") {
+    return commandFromArgs(record.args);
+  }
+  const toolCall = record.tool_call;
+  if (toolCall !== null && typeof toolCall === "object") {
+    const shell = (toolCall as { shellToolCall?: { args?: unknown } })
+      .shellToolCall;
+    return commandFromArgs(shell?.args);
+  }
+  return null;
+}
+
+function findCursorTool(
+  record: Record<string, unknown>,
+): Extract<CanonicalEvent, { kind: "tool" }> | null {
+  if (record.type !== "tool_call") return null;
+  const name = typeof record.name === "string" ? record.name : "";
+  if (!name || name.toLowerCase() === "shell") return null;
+  return { kind: "tool", name, summary: summarizeArgs(record.args) };
+}
+
+function commandFromArgs(args: unknown): string | null {
+  if (args !== null && typeof args === "object" && "command" in args) {
+    const command = (args as { command: unknown }).command;
+    return typeof command === "string" ? command : null;
+  }
+  return null;
+}
+
+function summarizeArgs(args: unknown): string {
+  if (args === null || args === undefined) return "";
+  if (typeof args === "string") return args;
+  if (typeof args !== "object") return String(args);
+  const record = args as Record<string, unknown>;
+  for (const key of ["path", "query", "pattern", "command"] as const) {
+    if (typeof record[key] === "string") return `${key}=${record[key]}`;
+  }
+  return "";
 }
 
 function blockedReason(text: string): string {
