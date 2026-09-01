@@ -43,7 +43,7 @@ export function createEvalCommand(): Command {
     )
     .option("--harness <harness>", "Target harness: claude or cursor")
     .action(async (opts, command) => {
-      printBanner();
+      if (!opts.json) printBanner();
       let userChoseRuns = command.getOptionValueSource("runs") === "cli";
       const harness = await resolveHarnessOrExit(opts);
       const runtime = evalRuntimeFor(harness);
@@ -63,19 +63,21 @@ export function createEvalCommand(): Command {
         opts.model = "auto";
       }
 
-      log.step("Loading eval scenarios...");
+      if (!opts.json) log.step("Loading eval scenarios...");
       const scenarios = await loadScenarios({
         suite: opts.suite,
         customPath: opts.scenarios,
       });
       if (scenarios.length === 0) {
-        log.warn("No matching scenarios found.");
+        if (!opts.json) log.warn("No matching scenarios found.");
         return;
       }
-      log.success(`Loaded ${scenarios.length} scenario(s)`);
-      if (opts.model) log.info(`Model: ${opts.model}`);
-      log.info(`Harness: ${harness}`);
-      log.blank();
+      if (!opts.json) {
+        log.success(`Loaded ${scenarios.length} scenario(s)`);
+        if (opts.model) log.info(`Model: ${opts.model}`);
+        log.info(`Harness: ${harness}`);
+        log.blank();
+      }
 
       const cliRuns = parseInt(opts.runs, 10);
       const timeout = parseInt(opts.timeout, 10);
@@ -86,8 +88,10 @@ export function createEvalCommand(): Command {
         timeout,
         debug: opts.debug,
         model: opts.model,
+        judgeModel: harness === "claude" ? opts.model : undefined,
         cliRuns,
         userChoseRuns,
+        json: Boolean(opts.json),
       });
 
       const metadata = metadataFromResults(
@@ -105,7 +109,9 @@ export function createEvalCommand(): Command {
       } else {
         renderEvalReport(results);
       }
-      await saveEvalReport(results, opts.path, metadata, opts.suite);
+      await saveEvalReport(results, opts.path, metadata, opts.suite, {
+        silent: Boolean(opts.json),
+      });
     });
 }
 
@@ -205,8 +211,10 @@ async function runLoadedScenarios(
     readonly timeout: number;
     readonly debug?: boolean;
     readonly model?: string;
+    readonly judgeModel?: string;
     readonly cliRuns: number;
     readonly userChoseRuns: boolean;
+    readonly json?: boolean;
   },
 ): Promise<EvalRunResult[]> {
   const results: EvalRunResult[] = [];
@@ -214,7 +222,9 @@ async function runLoadedScenarios(
     if (!scenarioSupportsHarness(scenario, options.harness)) {
       const skipped = skippedEvalResult(scenario.name, options.harness);
       results.push(skipped);
-      log.warn(`${scenario.name}  SKIP  ${skipped.skipReason}`);
+      if (!options.json) {
+        log.warn(`${scenario.name}  SKIP  ${skipped.skipReason}`);
+      }
       continue;
     }
     const runs = resolveRuns(
@@ -234,6 +244,7 @@ async function runLoadedScenarios(
           timeout: options.timeout,
           debug: options.debug,
           model: options.model,
+          judgeModel: options.judgeModel,
           runtime: options.runtime,
         },
       );

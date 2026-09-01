@@ -49,6 +49,7 @@ export async function saveEvalReport(
   projectRoot: string,
   metadata: RuntimeMetadata,
   suite?: string,
+  options?: { readonly silent?: boolean },
 ): Promise<void> {
   const scored = results.filter((result) => !result.skipped);
   const totalScore = scored.reduce((sum, result) => sum + result.score, 0);
@@ -70,7 +71,9 @@ export async function saveEvalReport(
   await writeFile(join(evalDir, filename), lines.join("\n"));
   const relative =
     metadata.harness === "cursor" ? ".cursor/eval" : ".claude/eval";
-  log.success(`Report saved to ${relative}/${filename}`);
+  if (!options?.silent) {
+    log.success(`Report saved to ${relative}/${filename}`);
+  }
 }
 
 function reportLines(

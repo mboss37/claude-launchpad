@@ -11,6 +11,7 @@ interface RunOptions {
   readonly timeout: number;
   readonly debug?: boolean;
   readonly model?: string;
+  readonly judgeModel?: string;
   readonly runtime: EvalRuntime;
 }
 
@@ -40,7 +41,12 @@ export async function runScenario(
       timeout: options.timeout,
       model: options.model,
     });
-    return await scoreResults(scenario, sandboxDir, transcript, options.model);
+    return await scoreResults(
+      scenario,
+      sandboxDir,
+      transcript,
+      options.judgeModel,
+    );
   } finally {
     if (options.debug) {
       console.log(`  DEBUG: Sandbox preserved at ${sandboxDir}`);

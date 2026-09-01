@@ -79,16 +79,24 @@ if [ ! -s eval.json ]; then
   exit 1
 fi
 
-# Commander / ora may print before JSON; keep the last JSON object.
 JSON="$(python3 - <<'PY'
+import json
 from pathlib import Path
 text = Path("eval.json").read_text()
-start = text.rfind("{")
-if start < 0:
-    raise SystemExit("no JSON object in eval output")
-print(text[start:])
+decoder = json.JSONDecoder()
+for index in range(len(text) - 1, -1, -1):
+    if text[index] != "{":
+        continue
+    try:
+        payload, _ = decoder.raw_decode(text[index:])
+    except json.JSONDecodeError:
+        continue
+    if isinstance(payload, dict) and "results" in payload:
+        print(json.dumps(payload))
+        raise SystemExit(0)
+raise SystemExit("no eval JSON object in output")
 PY
-)" || { echo "FATAL: could not extract eval JSON"; sed -n '1,40p' eval.json; exit 1; }
+)" || { echo "FATAL: could not extract eval JSON"; sed -n '1,80p' eval.json; exit 1; }
 
 echo "$JSON" > eval.clean.json
 echo "$JSON" | jq -e . >/dev/null \

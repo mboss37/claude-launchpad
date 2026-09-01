@@ -1,5 +1,9 @@
 import chalk from "chalk";
-import type { Severity, AnalyzerResult, DiagnosticIssue } from "../types/index.js";
+import type {
+  Severity,
+  AnalyzerResult,
+  DiagnosticIssue,
+} from "../types/index.js";
 import { hasAutoFix } from "../commands/doctor/fixer.js";
 
 // ─── Colors ───
@@ -35,11 +39,11 @@ const warnedKeys = new Set<string>();
 export const log = {
   success: (msg: string): void => console.log(`  ${chalk.green("✓")} ${msg}`),
   error: (msg: string): void => console.log(`  ${chalk.red("✗")} ${msg}`),
-  warn: (msg: string): void => console.log(`  ${chalk.yellow("!")} ${msg}`),
+  warn: (msg: string): void => console.error(`  ${chalk.yellow("!")} ${msg}`),
   warnOnce: (key: string, msg: string): void => {
     if (warnedKeys.has(key)) return;
     warnedKeys.add(key);
-    console.log(`  ${chalk.yellow("!")} ${msg}`);
+    console.error(`  ${chalk.yellow("!")} ${msg}`);
   },
   step: (msg: string): void => console.log(`  ${chalk.cyan("→")} ${msg}`),
   info: (msg: string): void => console.log(`  ${chalk.dim("·")} ${msg}`),
@@ -57,10 +61,16 @@ export function printBanner(): void {
 
 // ─── Score Display ───
 
-export function printScoreCard(label: string, score: number, max: number = 100): void {
+export function printScoreCard(
+  label: string,
+  score: number,
+  max: number = 100,
+): void {
   const pct = Math.round((score / max) * 100);
   const bar = renderBar(pct, 20);
-  console.log(`  ${chalk.bold(label.padEnd(22))} ${bar} ${colors.score(pct).padStart(12)}`);
+  console.log(
+    `  ${chalk.bold(label.padEnd(22))} ${bar} ${colors.score(pct).padStart(12)}`,
+  );
 }
 
 function renderBar(pct: number, width: number): string {
@@ -72,7 +82,11 @@ function renderBar(pct: number, width: number): string {
 
 // ─── Issues List (replaces table) ───
 
-export function printIssue(severity: Severity, _analyzer: string, message: string): void {
+export function printIssue(
+  severity: Severity,
+  _analyzer: string,
+  message: string,
+): void {
   const sevLabel: Record<Severity, string> = {
     critical: chalk.bgRed.white.bold(" CRIT "),
     high: chalk.red.bold("HIGH"),
@@ -85,7 +99,10 @@ export function printIssue(severity: Severity, _analyzer: string, message: strin
 
 // ─── Report Rendering (shared by doctor + watcher) ───
 
-export function renderDoctorReport(results: ReadonlyArray<AnalyzerResult>, options?: { afterFix?: boolean }): {
+export function renderDoctorReport(
+  results: ReadonlyArray<AnalyzerResult>,
+  options?: { afterFix?: boolean },
+): {
   overallScore: number;
   actionableCount: number;
 } {
@@ -109,7 +126,13 @@ export function renderDoctorReport(results: ReadonlyArray<AnalyzerResult>, optio
   }
 
   const sorted = [...actionable].sort((a, b) => {
-    const order: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3, info: 4 };
+    const order: Record<string, number> = {
+      critical: 0,
+      high: 1,
+      medium: 2,
+      low: 3,
+      info: 4,
+    };
     return (order[a.severity] ?? 4) - (order[b.severity] ?? 4);
   });
 
@@ -119,11 +142,15 @@ export function renderDoctorReport(results: ReadonlyArray<AnalyzerResult>, optio
 
   log.blank();
   if (options?.afterFix) {
-    log.info(`${actionable.length} remaining issue(s) require manual intervention.`);
+    log.info(
+      `${actionable.length} remaining issue(s) require manual intervention.`,
+    );
   } else {
     const fixable = actionable.filter((i) => hasAutoFix(i));
     if (fixable.length > 0) {
-      log.info(`${actionable.length} issue(s). Run ${chalk.bold("--fix")} to auto-repair or ${chalk.bold("--fix --dry-run")} to preview.`);
+      log.info(
+        `${actionable.length} issue(s). Run ${chalk.bold("--fix")} to auto-repair or ${chalk.bold("--fix --dry-run")} to preview.`,
+      );
     } else {
       log.info(`${actionable.length} issue(s) require manual intervention.`);
     }
