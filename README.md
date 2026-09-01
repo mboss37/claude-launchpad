@@ -12,7 +12,7 @@
 
 Launchpad scores your Claude Code config, fixes the gaps with hooks and permissions, and runs scenarios to prove Claude follows your rules. Local Cursor Agent projects can be scaffolded, diagnosed, and repaired with `--harness cursor`. Eval and memory remain Claude-only. Cursor Cloud memory is not supported.
 
-Cursor can also consume Claude Code files (`CLAUDE.md`, `.claude/skills/`, `.claude/agents/`, supported hooks) when [third-party configuration](https://cursor.com/docs/reference/third-party-hooks) is enabled. That is a migration bridge, not the native target. Launchpad generates native Cursor files (`AGENTS.md`, `.cursor/`) and certifies them with a live Agent canary. Verified against Cursor Agent `2026.08.25-3e8eec8` via `pnpm canary:cursor`.
+Cursor can also consume Claude Code files (`CLAUDE.md`, `.claude/skills/`, `.claude/agents/`, supported hooks) when [third-party configuration](https://cursor.com/docs/reference/third-party-hooks) is enabled. That is a migration bridge, not the native target. Launchpad generates native Cursor files (`AGENTS.md`, `.cursor/`) and certifies them with a live Agent canary. Verified against Cursor Agent `2026.08.25-3e8eec8` via `pnpm canary:cursor`. Eval through Cursor Agent is `pnpm canary:cursor:eval`.
 
 For developers using Claude Code who want consistent results: solo devs, vibe coders, AI-first teams.
 

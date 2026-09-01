@@ -102,9 +102,9 @@ export function createEvalCommand(): Command {
             2,
           ),
         );
-        return;
+      } else {
+        renderEvalReport(results);
       }
-      renderEvalReport(results);
       await saveEvalReport(results, opts.path, metadata, opts.suite);
     });
 }

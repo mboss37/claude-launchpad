@@ -46,3 +46,10 @@ jobs:
           CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
         shell: bash
         run: pnpm canary:cursor
+
+      - name: Run Cursor eval canary
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+          CURSOR_CANARY_MODEL: auto
+        shell: bash
+        run: pnpm canary:cursor:eval

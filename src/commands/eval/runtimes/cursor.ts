@@ -31,6 +31,7 @@ export const cursorEvalRuntime: EvalRuntime = {
   async isAvailable() {
     try {
       await import("@cursor/sdk");
+      await rememberAgentVersion();
       return true;
     } catch {
       return cursorCliExists();
@@ -54,6 +55,9 @@ async function runCursor(
 async function runCursorSdk(
   options: RuntimeRunOptions,
 ): Promise<RuntimeTranscript> {
+  if (!process.env.CURSOR_API_KEY) {
+    throw new Error("SDK unavailable");
+  }
   const sdk = await import("@cursor/sdk");
   const agent = await sdk.Agent.create({
     apiKey: process.env.CURSOR_API_KEY,
@@ -159,15 +163,28 @@ function cursorMetadata(
   return {
     harness: "cursor",
     runtime,
-    productVersion: "unknown",
+    productVersion: cachedAgentVersion ?? "unknown",
     model: model ?? "default",
     configSources: ["project"],
   };
 }
 
+let cachedAgentVersion: string | undefined;
+
+async function rememberAgentVersion(): Promise<void> {
+  if (cachedAgentVersion) return;
+  try {
+    const { stdout } = await exec("agent", ["--version"], { timeout: 5_000 });
+    cachedAgentVersion = stdout.trim() || "unknown";
+  } catch {
+    cachedAgentVersion = "unknown";
+  }
+}
+
 async function cursorCliExists(): Promise<boolean> {
   try {
-    await exec("agent", ["--version"]);
+    const { stdout } = await exec("agent", ["--version"], { timeout: 5_000 });
+    cachedAgentVersion = stdout.trim() || "unknown";
     return true;
   } catch {
     return false;

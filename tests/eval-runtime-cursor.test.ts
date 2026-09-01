@@ -98,6 +98,7 @@ describe("cursorEvalRuntime", () => {
   });
 
   it("creates a local project-scoped agent and disposes it", async () => {
+    process.env.CURSOR_API_KEY = "test-key";
     captured.sdkMode = "ok";
     captured.createOptions = null;
     captured.disposed = false;
@@ -120,6 +121,7 @@ describe("cursorEvalRuntime", () => {
   });
 
   it("falls back to agent -p without --force when the SDK is unavailable", async () => {
+    delete process.env.CURSOR_API_KEY;
     captured.sdkMode = "unavailable";
     captured.cliArgs = null;
     const transcript = await cursorEvalRuntime.run({
@@ -143,6 +145,7 @@ describe("cursorEvalRuntime", () => {
   });
 
   it("does not duplicate a paid run after an authentication failure", async () => {
+    process.env.CURSOR_API_KEY = "bad-key";
     captured.sdkMode = "auth";
     captured.cliArgs = null;
     await expect(
@@ -157,6 +160,7 @@ describe("cursorEvalRuntime", () => {
   });
 
   it("does not fall back after the SDK run has started", async () => {
+    process.env.CURSOR_API_KEY = "test-key";
     captured.sdkMode = "run-fail";
     captured.cliArgs = null;
     captured.disposed = false;
