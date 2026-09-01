@@ -129,6 +129,7 @@ Two small interaction bugs in `init` when both harnesses are selected: a decline
 
 ## Changelog
 
+- **2026-09-01:** WP-059 minted and pulled into Sprint 43. Cursor M3: eval through Cursor Agent.
 - **2026-09-01:** Sprint 42 closed. WP-058, WP-055 done (Cursor `--fix` + live canary + doctor/generator parity). No version bump.
 - **2026-08-30:** WP-058 minted and pulled into Sprint 42 with WP-055. Cursor M2: `--fix` + live canary.
 - **2026-08-30:** WP-057 minted (P1). Cursor support is one npm/GitHub release at M5 (docs sweep + 1.18.0). M1-M4 stay unpublished.
