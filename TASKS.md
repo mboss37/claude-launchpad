@@ -11,11 +11,11 @@
 - **Sprint 39**: Truthful Guards (v1.15.0) — WP-042 force-push ERE anchored+widened (19 behavioral tests; doctor migrates shipped projects), WP-052 publish hook gated on real success, WP-013 local-settings fixer gap, WP-039 agent-brief structure in Stop-and-Swarm, WP-040 Key Decisions why-log + 20-commit nudge. Review: 2 Important fixed in-sprint (rewriter emitted old pattern; ERE coverage regression). 619 tests (+27), 21/21 regression, self-score 100%.
 - **Sprint 41**: Polish Sweep (v1.17.0) — WP-049 curation (soft-delete+undo, re-rate, tags, FTS search, relations cache), WP-010 native async SessionEnd push (empirically verified; field migration incl. own repo), WP-011 if:/async guidance in hooks.md v2 (+upgrade path), WP-020 computed eval counts, WP-041 minimumReleaseAge (workspace.yaml — package.json variant was a silent no-op, caught by review). Review: 1 Critical + 3 Important fixed in-sprint. 637 tests, 59 bench, 21/21 regression.
 - **Sprint 40**: Dashboard Find-Then-Act (v1.16.0) — WP-048: search→Enter keeps filter + returns keyboard to list, d=delete/X=purge (convention), relation titles not UUIDs, modal keyboard exclusivity, write-time index reconciliation, error boundary. First-ever dashboard interaction tests (ink-testing-library, 8 behaviors, bite-verified). Review: 2 Important fixed in-sprint. 627 tests (+8), 59 bench, 21/21 regression.
+- **Sprint 42**: Cursor M2 (unpublished) — WP-058: `doctor --fix` for Cursor/both + live Agent canary green on `2026.08.25-3e8eec8`. WP-055: sandbox parse errors, shared `scoreIssues`, wired harness profiles, sprint-size parity, formatter alignment. Review: 0 Critical, 4 Important fixed in-sprint (both-mode `--min-score` stale score, structurally bad `hooks.json`, missing/stale hook repair, tautological C4). 705 tests, 21/21 + 25/25 regression. No version bump.
 
 ## Current Sprint
 
-- [ ] WP-058 — Cursor M2: doctor --fix + live canary
-- [ ] WP-055 — Cursor doctor and generator parity gaps
+<!-- EMPTY. Pull WPs from BACKLOG.md when ready. Format: `- [ ] WP-NNN — short title` -->
 
 ## Release Plan
 - **v1.17.1** ✅ shipped 2026-07-08 (npm latest, verified via clean-dir npx -v) — patch: 1.17.0 binary misreported its version (stale dist in tarball); publish pipeline now builds + verifies the artifact. Earlier releases: CHANGELOG.md.
@@ -25,8 +25,8 @@
 - Rule: a release line says only "shipped" or "ready"; verify against `npm view claude-launchpad dist-tags` before trusting this section. Publishing ends with flipping this line — a publish without that edit is unfinished.
 
 ## Session Log
+### 2026-09-01
+- Closed Sprint 42 on `feat/cursor-harness-support`: Cursor `--fix` + live canary (Agent `2026.08.25-3e8eec8`) + WP-055 parity. Review 4 Important fixed in-sprint. GitHub canary still blocked on `CURSOR_API_KEY`. Next: M3 eval. Do not publish.
+
 ### 2026-07-08 (session 49, day 2)
 - Shipped THREE releases: v1.14.0 (honest memory core + security patch), v1.15.0 (truthful guards), v1.16.0 (dashboard find-then-act). Fixed the canary (never had a working credential — first green run ever), proved benchmarks alive by mutation (2 of 4 files were decorative), first dashboard interaction tests. Purged backlog to 6 community-value items; compressed this file. Next: decompose WP-051 (auto-capture first) when strategic energy exists.
-
-### 2026-07-07 (session 49)
-- Fable's last day: security patch 35→0 CVEs, Fable Mode v2 distilled into shipped verification discipline (Sprint 35), publish gate fixed (Sprint 36), 4-agent memory review → honest core (Sprints 37-38). Release-state SessionStart hook added — npm is the truth, files record intent.
