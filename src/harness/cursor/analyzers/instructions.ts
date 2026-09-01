@@ -5,6 +5,7 @@ import {
   parseSections,
 } from "../../../commands/doctor/analyzers/quality-intents.js";
 import type { CursorConfig } from "../types.js";
+import { scoreIssues } from "./score.js";
 
 export async function analyzeCursorInstructions(
   config: CursorConfig,
@@ -53,11 +54,4 @@ export async function analyzeCursorInstructions(
   }
 
   return { name: "Instructions", issues, score: scoreIssues(issues) };
-}
-
-function scoreIssues(issues: ReadonlyArray<DiagnosticIssue>): number {
-  return Math.max(
-    0,
-    100 - issues.filter((issue) => issue.severity !== "info").length * 25,
-  );
 }

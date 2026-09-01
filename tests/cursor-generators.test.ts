@@ -5,6 +5,7 @@ import {
   generateCursorReviewer,
   generateCursorRule,
 } from "../src/harness/cursor/generators.js";
+import { autoFormatScript } from "../src/harness/cursor/hook-scripts.js";
 import { fixedDetectedProject } from "./fixtures/detected-project.js";
 
 describe("Cursor generators", () => {
@@ -20,6 +21,32 @@ describe("Cursor generators", () => {
     expect(content).toContain("globs: {BACKLOG.md,TASKS.md}");
     expect(content).toContain("alwaysApply: false");
     expect(content).toContain("<!-- lp-cursor-workflow-version: 1 -->");
+  });
+
+  it("registers auto-format only when a real formatter command exists", () => {
+    const ruby = generateCursorHooks({
+      ...fixedDetectedProject,
+      language: "Ruby",
+    });
+    expect(
+      ruby.hooks.afterFileEdit?.some((hook) =>
+        hook.command.includes("auto-format.sh"),
+      ),
+    ).toBe(true);
+    expect(autoFormatScript("Ruby")).toContain("rubocop");
+
+    const unknown = generateCursorHooks({
+      ...fixedDetectedProject,
+      language: "COBOL",
+    });
+    expect(
+      unknown.hooks.afterFileEdit?.some((hook) =>
+        hook.command.includes("auto-format.sh"),
+      ),
+    ).toBe(false);
+    expect(autoFormatScript("COBOL")).toContain("echo '{}'");
+    expect(autoFormatScript("COBOL")).not.toContain("rubocop");
+    expect(autoFormatScript("COBOL")).not.toContain("prettier");
   });
 
   it("renders native fail-closed security hooks", () => {

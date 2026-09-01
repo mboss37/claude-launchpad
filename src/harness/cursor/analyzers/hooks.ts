@@ -2,6 +2,7 @@ import { access } from "node:fs/promises";
 import { join } from "node:path";
 import type { AnalyzerResult, DiagnosticIssue } from "../../../types/index.js";
 import type { CursorConfig, CursorHookConfig } from "../types.js";
+import { scoreIssues } from "./score.js";
 
 const SECURITY_COMMANDS = [
   ".cursor/hooks/env-read.sh",
@@ -70,11 +71,4 @@ async function addMissingScriptIssue(
       fix: "Run `claude-launchpad init --harness cursor` to restore Launchpad hook scripts",
     });
   }
-}
-
-function scoreIssues(issues: ReadonlyArray<DiagnosticIssue>): number {
-  return Math.max(
-    0,
-    100 - issues.filter((issue) => issue.severity !== "info").length * 25,
-  );
 }

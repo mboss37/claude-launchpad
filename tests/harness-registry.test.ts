@@ -2,8 +2,11 @@ import { describe, expect, it } from "vitest";
 import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
+import { claudeHarnessProfile } from "../src/harness/claude/profile.js";
+import { cursorHarnessProfile } from "../src/harness/cursor/profile.js";
 import {
   detectHarnesses,
+  HARNESS_PROFILES,
   parseHarnessSelection,
   resolveHarnesses,
 } from "../src/harness/registry.js";
@@ -53,6 +56,23 @@ describe("harness registry", () => {
     const root = await mkdtemp(join(tmpdir(), "lp-harness-agents-"));
     await writeFile(join(root, "AGENTS.md"), "# Agents");
     expect(await detectHarnesses(root)).toEqual(["cursor"]);
+  });
+
+  it("wires harness profiles into production detection", async () => {
+    expect(HARNESS_PROFILES.claude).toBe(claudeHarnessProfile);
+    expect(HARNESS_PROFILES.cursor).toBe(cursorHarnessProfile);
+    const root = await mkdtemp(join(tmpdir(), "lp-harness-profiles-"));
+    await writeFile(join(root, "CLAUDE.md"), "# Claude");
+    await writeFile(join(root, "AGENTS.md"), "# Agents");
+    const detected = await detectHarnesses(root);
+    const fromProfiles = (
+      await Promise.all(
+        (["claude", "cursor"] as const).map(async (id) =>
+          (await HARNESS_PROFILES[id].detect(root)) ? id : null,
+        ),
+      )
+    ).filter((id): id is "claude" | "cursor" => id !== null);
+    expect(detected).toEqual(fromProfiles);
   });
 
   it("resolves auto to every detected harness", () => {

@@ -152,6 +152,20 @@ describe("Cursor doctor", () => {
     ).toBeDefined();
   });
 
+  it("flags malformed sandbox.json as a Security diagnostic", async () => {
+    const root = await mkdtemp(join(tmpdir(), "lp-cursor-sandbox-"));
+    await mkdir(join(root, ".cursor"), { recursive: true });
+    await writeFile(join(root, "AGENTS.md"), "# Demo\n- Use tests\n");
+    await writeFile(join(root, ".cursor", "sandbox.json"), "{ invalid\n");
+    const result = await runCursorAnalyzers(
+      await parseCursorConfig(root),
+      root,
+    );
+    expect(
+      findIssue(result, "Security", "Malformed .cursor/sandbox.json")?.severity,
+    ).toBe("high");
+  });
+
   it("does not clobber malformed hooks.json", async () => {
     const root = await mkdtemp(join(tmpdir(), "lp-cursor-malformed-"));
     await mkdir(join(root, ".cursor"), { recursive: true });

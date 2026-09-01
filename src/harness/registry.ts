@@ -1,8 +1,13 @@
-import { access, readdir } from "node:fs/promises";
-import { join } from "node:path";
+import { claudeHarnessProfile } from "./claude/profile.js";
+import { cursorHarnessProfile } from "./cursor/profile.js";
 import type { HarnessId, HarnessSelection } from "./types.js";
 
 const VALID = new Set<HarnessSelection>(["auto", "claude", "cursor", "both"]);
+
+export const HARNESS_PROFILES = {
+  claude: claudeHarnessProfile,
+  cursor: cursorHarnessProfile,
+} as const;
 
 export function parseHarnessSelection(value: string): HarnessSelection {
   if (VALID.has(value as HarnessSelection)) return value as HarnessSelection;
@@ -12,33 +17,13 @@ export function parseHarnessSelection(value: string): HarnessSelection {
 export async function detectHarnesses(
   root: string,
 ): Promise<ReadonlyArray<HarnessId>> {
-  const [claude, cursor] = await Promise.all([
-    exists(join(root, "CLAUDE.md"), join(root, ".claude", "settings.json")),
-    detectCursorConfig(root),
-  ]);
-  return [
-    ...(claude ? ["claude" as const] : []),
-    ...(cursor ? ["cursor" as const] : []),
-  ];
-}
-
-/**
- * A bare `.cursor/` directory is not evidence of Cursor Agent configuration —
- * the Cursor IDE creates one (mcp.json, cache) in plenty of Claude-only
- * repos. Require an actual agent surface: AGENTS.md, hooks.json, or rules.
- */
-async function detectCursorConfig(root: string): Promise<boolean> {
-  if (
-    await exists(join(root, "AGENTS.md"), join(root, ".cursor", "hooks.json"))
-  ) {
-    return true;
-  }
-  try {
-    const entries = await readdir(join(root, ".cursor", "rules"));
-    return entries.some((entry) => entry.endsWith(".mdc"));
-  } catch {
-    return false;
-  }
+  const ids = Object.keys(HARNESS_PROFILES) as Array<
+    keyof typeof HARNESS_PROFILES
+  >;
+  const flags = await Promise.all(
+    ids.map((id) => HARNESS_PROFILES[id].detect(root)),
+  );
+  return ids.filter((_, index) => flags[index]);
 }
 
 export function resolveHarnesses(
@@ -48,15 +33,4 @@ export function resolveHarnesses(
   if (selection === "both") return ["claude", "cursor"];
   if (selection === "auto") return [...detected];
   return [selection];
-}
-
-async function exists(...paths: ReadonlyArray<string>): Promise<boolean> {
-  const checks = await Promise.all(
-    paths.map((path) =>
-      access(path)
-        .then(() => true)
-        .catch(() => false),
-    ),
-  );
-  return checks.some(Boolean);
 }

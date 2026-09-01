@@ -1,5 +1,6 @@
 import type { AnalyzerResult, DiagnosticIssue } from "../../../types/index.js";
 import type { CursorConfig } from "../types.js";
+import { scoreIssues } from "./score.js";
 
 export async function analyzeCursorMcp(
   config: CursorConfig,
@@ -36,11 +37,4 @@ export async function analyzeCursorMcp(
   }
 
   return { name: "MCP", issues, score: scoreIssues(issues) };
-}
-
-function scoreIssues(issues: ReadonlyArray<DiagnosticIssue>): number {
-  return Math.max(
-    0,
-    100 - issues.filter((issue) => issue.severity !== "info").length * 25,
-  );
 }

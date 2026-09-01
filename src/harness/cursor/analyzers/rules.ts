@@ -4,6 +4,7 @@ import type { AnalyzerResult, DiagnosticIssue } from "../../../types/index.js";
 import { fileExists } from "../../../lib/fs-utils.js";
 import { CURSOR_VERIFICATION_RULE_VERSION } from "../generators.js";
 import type { CursorConfig } from "../types.js";
+import { scoreIssues } from "./score.js";
 
 export async function analyzeCursorRules(
   config: CursorConfig,
@@ -49,11 +50,4 @@ export async function analyzeCursorRules(
 
 function hasFrontmatter(content: string): boolean {
   return content.startsWith("---\n") && content.includes("\nalwaysApply:");
-}
-
-function scoreIssues(issues: ReadonlyArray<DiagnosticIssue>): number {
-  return Math.max(
-    0,
-    100 - issues.filter((issue) => issue.severity !== "info").length * 25,
-  );
 }

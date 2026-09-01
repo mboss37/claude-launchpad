@@ -9,6 +9,7 @@ import { generateHooksRule } from "../../commands/init/generators/hooks-rule.js"
 import { generateVerificationRule } from "../../commands/init/generators/verification-rule.js";
 import { TESTING_DISCIPLINE_CONTENT } from "../../lib/sections.js";
 import type { DetectedProject, InitOptions } from "../../types/index.js";
+import { CURSOR_FORMATTERS } from "./hook-scripts.js";
 
 export const CURSOR_WORKFLOW_RULE_VERSION = 1;
 export const CURSOR_HOOKS_RULE_VERSION = 1;
@@ -39,22 +40,6 @@ export interface CursorHooksDocument {
   };
 }
 
-const FORMATTABLE = new Set([
-  "TypeScript",
-  "JavaScript",
-  "Python",
-  "Go",
-  "Rust",
-  "Ruby",
-  "Dart",
-  "PHP",
-  "Kotlin",
-  "Java",
-  "Swift",
-  "Elixir",
-  "C#",
-]);
-
 export function generateCursorRule(options: CursorRuleOptions): string {
   const frontmatter = [
     "---",
@@ -70,7 +55,7 @@ export function generateCursorHooks(
   detected: DetectedProject,
 ): CursorHooksDocument {
   const afterFileEdit = [
-    ...(detected.language && FORMATTABLE.has(detected.language)
+    ...(detected.language && detected.language in CURSOR_FORMATTERS
       ? [{ command: ".cursor/hooks/auto-format.sh" }]
       : []),
     { command: ".cursor/hooks/workflow-check.sh" },

@@ -85,6 +85,47 @@ describe("Cursor sprint-open.sh (afterShellExecution, inspects the last commit)"
   });
 });
 
+describe("Cursor sprint-size.sh (sessionStart)", () => {
+  async function projectWithTasks(tasks: string): Promise<string> {
+    const root = join(tmpdir(), `cursor-size-${randomUUID()}`);
+    await mkdir(root, { recursive: true });
+    await writeCursorHookScripts(root, "TypeScript");
+    await writeFile(join(root, "TASKS.md"), tasks);
+    return root;
+  }
+
+  it("warns when Current Sprint has no work packages", async () => {
+    const root = await projectWithTasks(
+      "## Current Sprint\n\n## Session Log\n",
+    );
+    const parsed = JSON.parse(runHook(root, "sprint-size.sh", {})) as {
+      additional_context?: string;
+    };
+    expect(parsed.additional_context).toMatch(/no work packages/i);
+  });
+
+  it("warns when Current Sprint is oversized", async () => {
+    const items = Array.from(
+      { length: 8 },
+      (_, i) => `- [ ] WP-00${i + 1} — x`,
+    ).join("\n");
+    const root = await projectWithTasks(`## Current Sprint\n${items}\n`);
+    const parsed = JSON.parse(runHook(root, "sprint-size.sh", {})) as {
+      additional_context?: string;
+    };
+    expect(parsed.additional_context).toMatch(/oversized/i);
+  });
+
+  it("is silent in the 3-6 sweet spot", async () => {
+    const items = Array.from(
+      { length: 4 },
+      (_, i) => `- [ ] WP-00${i + 1} — x`,
+    ).join("\n");
+    const root = await projectWithTasks(`## Current Sprint\n${items}\n`);
+    expect(runHook(root, "sprint-size.sh", {})).toBe("{}");
+  });
+});
+
 describe("Cursor workflow-check.sh (afterFileEdit)", () => {
   it("only acts on BACKLOG.md / TASKS.md edits", async () => {
     const root = await gitProject();

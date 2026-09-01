@@ -86,4 +86,18 @@ describe("parseCursorConfig", () => {
       },
     ]);
   });
+
+  it("records malformed sandbox.json instead of dropping it", async () => {
+    const root = await mkdtemp(join(tmpdir(), "lp-cursor-sandbox-"));
+    await mkdir(join(root, ".cursor"), { recursive: true });
+    await writeFile(join(root, ".cursor", "sandbox.json"), "[1, 2]");
+    const config = await parseCursorConfig(root);
+    expect(config.sandbox).toBeNull();
+    expect(config.parseErrors).toEqual([
+      {
+        path: ".cursor/sandbox.json",
+        message: "Invalid JSON",
+      },
+    ]);
+  });
 });

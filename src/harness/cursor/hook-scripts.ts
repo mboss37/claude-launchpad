@@ -4,7 +4,7 @@ import { FORCE_PUSH_ERE } from "../../lib/hook-input.js";
 
 export const CURSOR_HOOK_VERSION = 1;
 
-const FORMATTERS: Record<
+export const CURSOR_FORMATTERS: Record<
   string,
   { extensions: ReadonlyArray<string>; command: string }
 > = {
@@ -13,6 +13,14 @@ const FORMATTERS: Record<
   Python: { extensions: ["py"], command: "ruff format" },
   Go: { extensions: ["go"], command: "gofmt -w" },
   Rust: { extensions: ["rs"], command: "rustfmt" },
+  Ruby: { extensions: ["rb"], command: "rubocop -A" },
+  Dart: { extensions: ["dart"], command: "dart format" },
+  PHP: { extensions: ["php"], command: "vendor/bin/pint" },
+  Kotlin: { extensions: ["kt", "kts"], command: "ktlint -F" },
+  Java: { extensions: ["java"], command: "google-java-format -i" },
+  Swift: { extensions: ["swift"], command: "swift-format format -i" },
+  Elixir: { extensions: ["ex", "exs"], command: "mix format" },
+  "C#": { extensions: ["cs"], command: "dotnet format" },
 };
 
 function header(): string {
@@ -48,7 +56,7 @@ exit 0
 }
 
 export function autoFormatScript(language: string | null): string {
-  const config = language ? FORMATTERS[language] : undefined;
+  const config = language ? CURSOR_FORMATTERS[language] : undefined;
   if (!config) {
     return `${header()}echo '{}'\nexit 0\n`;
   }
@@ -164,12 +172,22 @@ exit 0
 export function sprintSizeScript(): string {
   return `${header()}
 [ -f TASKS.md ] || { echo '{}'; exit 0; }
-section=$(sed -n '/^## Current/,/^## /p' TASKS.md 2>/dev/null)
-unchecked=$(echo "$section" | grep -cE '^[[:space:]]*- \\[ \\]' || true)
 command -v jq >/dev/null 2>&1 || { echo '{}'; exit 0; }
-if [ "$unchecked" -gt 0 ] && [ "$unchecked" -lt 3 ]; then
-  jq -n --arg ctx "NOTE: Current sprint has $unchecked open work package(s)." '{additional_context:$ctx}'
-  exit 0
+section=$(sed -n '/^## Current/,/^## /p' TASKS.md 2>/dev/null)
+[ -z "$section" ] && { echo '{}'; exit 0; }
+unchecked=$(echo "$section" | grep -cE '^[[:space:]]*- \\[ \\]' || true)
+checked=$(echo "$section" | grep -cE '^[[:space:]]*- \\[[xX]\\]' || true)
+total=$((unchecked + checked))
+emit() { jq -n --arg ctx "$1" '{additional_context:$ctx}'; exit 0; }
+if [ "$total" -eq 0 ]; then
+  emit "NOTE: Current sprint has no work packages yet. Pull 3-6 from BACKLOG.md to start."
+fi
+[ "$unchecked" -eq 0 ] && { echo '{}'; exit 0; }
+if [ "$unchecked" -lt 3 ]; then
+  emit "NOTE: Current sprint has $unchecked open work package(s) — that's a microsprint. Pull from BACKLOG.md (aim 3-6)."
+fi
+if [ "$unchecked" -gt 7 ]; then
+  emit "NOTE: Current sprint has $unchecked open work packages — oversized (soft target 3-6; above 15, workflow-check requires a split)."
 fi
 echo '{}'
 exit 0
