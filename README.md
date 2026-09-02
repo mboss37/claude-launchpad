@@ -10,7 +10,7 @@
 
 **Claude follows CLAUDE.md ~80% of the time. Hooks run at 100%. Most setups have zero hooks.**
 
-Launchpad scores your Claude Code config, fixes the gaps with hooks and permissions, and runs scenarios to prove Claude follows your rules. Local Cursor Agent projects can be scaffolded, diagnosed, and repaired with `--harness cursor`. Eval and memory remain Claude-only. Cursor Cloud memory is not supported.
+Launchpad scores your coding-agent config, fixes gaps with hooks and permissions, and runs scenarios to prove the agent follows your rules. Local Cursor Agent projects can be scaffolded, diagnosed, repaired, and evaluated with `--harness cursor`. Memory is the same local SQLite store and MCP server for both harnesses (`memory install --harness claude|cursor|both`). Cursor Cloud memory is not supported.
 
 Cursor can also consume Claude Code files (`CLAUDE.md`, `.claude/skills/`, `.claude/agents/`, supported hooks) when [third-party configuration](https://cursor.com/docs/reference/third-party-hooks) is enabled. That is a migration bridge, not the native target. Launchpad generates native Cursor files (`AGENTS.md`, `.cursor/`) and certifies them with a live Agent canary. Verified against Cursor Agent `2026.08.25-3e8eec8` via `pnpm canary:cursor`. Eval through Cursor Agent is `pnpm canary:cursor:eval`.
 
@@ -244,9 +244,10 @@ Claude's built-in memory resets per machine. Launchpad gives each project persis
 
 ```bash
 claude-launchpad memory
+claude-launchpad memory install --harness cursor
 ```
 
-Interactive setup if not installed, stats if it is. The one native dep is installed for you (`npm install -g better-sqlite3`) or on demand. Sync requires the [GitHub CLI](https://cli.github.com/).
+Interactive setup if not installed, stats if it is. The one native dep is installed for you (`npm install -g better-sqlite3`) or on demand. Sync requires the [GitHub CLI](https://cli.github.com/). `--harness claude|cursor|both` writes the MCP file for the selected local harness. Cursor Agent uses `.cursor/mcp.json` and does not auto-inject memories; Cursor Cloud Agents cannot use this local server.
 
 Once set up, `claude-launchpad memory sync` is the everyday command — pull + push in one call, so every machine has the same project brain. Deletions propagate too (tombstones): machines converge to the same memory set, never more, never less. This is the piece Claude Code's built-in memory doesn't do — see [built-in vs Launchpad memory](https://mboss37.github.io/claude-launchpad/docs/memory#built-in-memory-vs-launchpad-memory).
 

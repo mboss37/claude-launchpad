@@ -3,7 +3,10 @@ import { join } from "node:path";
 import { Command } from "commander";
 import { confirm } from "@inquirer/prompts";
 import { log } from "../../lib/output.js";
-import { isMemoryMcpRegistered } from "../../lib/memory-registration.js";
+import {
+  hasCursorMemoryMcp,
+  isMemoryMcpRegistered,
+} from "../../lib/memory-registration.js";
 
 export { isMemoryMcpRegistered };
 
@@ -17,19 +20,22 @@ async function handleSyncErrors(fn: () => Promise<void>): Promise<void> {
 }
 
 /**
- * Memory is "installed" when BOTH:
- * (1) the SessionStart context hook is present in project settings
- * (2) the agentic-memory MCP server is registered in project (.mcp.json),
- *     local (settings.local.json), or user scope (~/.claude.json)
- * Missing either half means the setup is half-broken (hooks fire but no tools, or tools present but no context injection).
+ * Memory is installed when the agentic-memory MCP server is registered and
+ * the selected harness can actually use it:
+ * - Claude: SessionStart context hook + MCP in .mcp.json / settings / ~/.claude.json
+ * - Cursor: MCP in .cursor/mcp.json (no lifecycle hook)
  */
 export function isMemoryInstalled(): boolean {
-  const cwd = process.cwd();
-  const hookPresent =
-    hasMemoryHook(join(cwd, ".claude", "settings.json")) ||
-    hasMemoryHook(join(cwd, ".claude", "settings.local.json"));
-  if (!hookPresent) return false;
-  return isMemoryMcpRegistered(cwd);
+  return isMemoryInstalledAt(process.cwd());
+}
+
+export function isMemoryInstalledAt(projectRoot: string): boolean {
+  if (!isMemoryMcpRegistered(projectRoot)) return false;
+  return (
+    hasCursorMemoryMcp(projectRoot) ||
+    hasMemoryHook(join(projectRoot, ".claude", "settings.json")) ||
+    hasMemoryHook(join(projectRoot, ".claude", "settings.local.json"))
+  );
 }
 
 function hasMemoryHook(path: string): boolean {
@@ -89,16 +95,13 @@ export function createMemoryCommand(): Command {
           return;
         }
         // Check if config was already written (e.g. by doctor --fix) even though db isn't set up
-        const { detectExistingSetup } =
+        const { detectExistingSetup, existingSetupLabel } =
           await import("./subcommands/install.js");
         const existing = detectExistingSetup(process.cwd());
         const mcpMissing =
           existing !== null && !isMemoryMcpRegistered(process.cwd());
         if (existing) {
-          const location =
-            existing === "local"
-              ? ".claude/CLAUDE.md + settings.local.json"
-              : "CLAUDE.md + settings.json";
+          const location = existingSetupLabel(process.cwd(), existing);
           log.blank();
           log.success(
             `Memory config found (${location}) but ${mcpMissing ? "MCP server not registered" : "database not set up"}.`,
@@ -107,17 +110,13 @@ export function createMemoryCommand(): Command {
           log.blank();
         } else {
           log.blank();
-          log.step(
-            "Claude doesn't have a knowledge base for this project yet.",
-          );
+          log.step("This project does not have a knowledge base yet.");
           log.blank();
-          log.info("After setup, Claude will:");
+          log.info("After setup, the selected agent will:");
           log.info(
             "  - Remember decisions, gotchas, and learnings across sessions",
           );
-          log.info(
-            "  - Automatically recall relevant context when you start a session",
-          );
+          log.info("  - Recall relevant context in later sessions");
           log.info(
             "  - Save important facts as you work, so nothing gets lost",
           );
@@ -135,7 +134,12 @@ export function createMemoryCommand(): Command {
         }
 
         const { runInstall } = await import("./subcommands/install.js");
-        await runInstall({});
+        try {
+          await runInstall({});
+        } catch (err) {
+          log.error(err instanceof Error ? err.message : String(err));
+          process.exitCode = 1;
+        }
       } else {
         const { requireMemoryDeps } = await import("./utils/require-deps.js");
         await requireMemoryDeps();
@@ -156,12 +160,20 @@ export function createMemoryCommand(): Command {
         "-y, --yes",
         "Non-interactive: accept defaults (shared placement)",
       )
+      .option(
+        "--harness <harness>",
+        "Install into claude, cursor, or both (default: detect and ask)",
+      )
       .action(async (opts) => {
         try {
-          const { runInstall } = await import("./subcommands/install.js");
+          const { parseMemoryInstallHarness, runInstall } =
+            await import("./subcommands/install.js");
           await runInstall({
             ...(opts.dbPath ? { dbPath: opts.dbPath } : {}),
             yes: opts.yes === true,
+            ...(opts.harness
+              ? { harness: parseMemoryInstallHarness(String(opts.harness)) }
+              : {}),
           });
         } catch (err) {
           // A cancelled prompt or failed step must NOT exit 0 — CI reads the code.
@@ -210,7 +222,7 @@ export function createMemoryCommand(): Command {
 
   memory.addCommand(
     new Command("serve")
-      .description("Start MCP server (Claude Code)")
+      .description("Start MCP server")
       .action(async () => {
         const { startServer } = await import("./server.js");
         await startServer();

@@ -1,18 +1,40 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { execSync } from 'node:child_process';
-import { createDatabase, closeDatabase } from '../storage/database.js';
-import { migrate } from '../storage/migrator.js';
-import { loadConfig, resolveDataDir } from '../config.js';
-import { readSettingsJson, writeSettingsJson, readSettingsLocalJson, writeSettingsLocalJson } from '../../../lib/settings.js';
-import { addOrUpdateHook } from '../../../lib/hook-builder.js';
-import { getMemoryPlacement } from '../../../lib/memory-placement.js';
-import { log } from '../../../lib/output.js';
-import type { MemoryPlacement } from '../../../types/index.js';
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { execSync } from "node:child_process";
+import { checkbox } from "@inquirer/prompts";
+import { createDatabase, closeDatabase } from "../storage/database.js";
+import { migrate } from "../storage/migrator.js";
+import { loadConfig, resolveDataDir } from "../config.js";
+import {
+  readSettingsJson,
+  writeSettingsJson,
+  readSettingsLocalJson,
+  writeSettingsLocalJson,
+} from "../../../lib/settings.js";
+import { getMemoryPlacement } from "../../../lib/memory-placement.js";
+import { configureClaudeMemorySettings } from "../install-claude-settings.js";
+import { log } from "../../../lib/output.js";
+import { detectHarnesses } from "../../../harness/registry.js";
+import type { HarnessId } from "../../../harness/types.js";
+import type { MemoryPlacement } from "../../../types/index.js";
+import { hasCursorMemoryMcp } from "../../../lib/memory-registration.js";
+import { registerCursorMemoryMcp } from "../cursor-mcp.js";
+import {
+  injectAgentsMdGuidance,
+  injectClaudeMdGuidance,
+  installMemorySkills,
+} from "../install-guidance.js";
+import {
+  parseMemoryInstallHarness,
+  resolveMemoryInstallTargets,
+  type MemoryInstallHarness,
+} from "../install-targets.js";
+
+export { injectAgentsMdGuidance, injectClaudeMdGuidance };
 
 function isGhAuthenticated(): boolean {
   try {
-    execSync('gh auth status', { stdio: 'pipe', timeout: 5000 });
+    execSync("gh auth status", { stdio: "pipe", timeout: 5000 });
     return true;
   } catch {
     return false;
@@ -21,7 +43,7 @@ function isGhAuthenticated(): boolean {
 
 function isClaudeCliOnPath(): boolean {
   try {
-    execSync('claude --version', { stdio: 'pipe', timeout: 5000 });
+    execSync("claude --version", { stdio: "pipe", timeout: 5000 });
     return true;
   } catch {
     return false;
@@ -30,244 +52,274 @@ function isClaudeCliOnPath(): boolean {
 
 function isGhOnPath(): boolean {
   try {
-    execSync('gh --version', { stdio: 'pipe', timeout: 5000 });
+    execSync("gh --version", { stdio: "pipe", timeout: 5000 });
     return true;
   } catch {
     return false;
   }
 }
 
-function preflight(): void {
-  if (!isClaudeCliOnPath()) {
-    log.error('The `claude` CLI was not found on PATH.');
+export const CURSOR_CLOUD_MEMORY_WARNING =
+  "Cursor Cloud Agents cannot use this local MCP server.";
+
+export function knowledgeBaseStepLabel(
+  targets: ReadonlyArray<HarnessId>,
+): string {
+  return targets.includes("claude")
+    ? "[1/5] Creating knowledge base..."
+    : "Creating knowledge base...";
+}
+
+export function missingGhAdvice(targets: ReadonlyArray<HarnessId>): string {
+  return targets.includes("claude")
+    ? "Recommended: install the GitHub CLI for cross-device memory sync:"
+    : "Optional: install the GitHub CLI for `memory push` / `memory pull`.";
+}
+
+function preflight(targets: ReadonlyArray<HarnessId>): void {
+  if (targets.includes("claude") && !isClaudeCliOnPath()) {
+    log.error("The `claude` CLI was not found on PATH.");
     log.blank();
-    log.info('The knowledge base installs as a Claude Code MCP server, so the CLI is required.');
-    log.info('Install: https://docs.claude.com/en/docs/claude-code');
+    log.info(
+      "The knowledge base installs as a Claude Code MCP server, so the CLI is required.",
+    );
+    log.info("Install: https://docs.claude.com/en/docs/claude-code");
     process.exit(1);
   }
   if (!isGhOnPath()) {
-    log.warn('The GitHub CLI (`gh`) was not found on PATH — cross-device memory sync will be disabled.');
-    log.info('Install later for sync: https://cli.github.com/ then `gh auth login`.');
+    log.warn(missingGhAdvice(targets));
+    log.info("Install later: https://cli.github.com/ then `gh auth login`.");
     log.blank();
   }
 }
 
 interface InstallOpts {
   readonly dbPath?: string;
-  /** Non-interactive: default placement to "shared" instead of prompting. */
   readonly yes?: boolean;
+  readonly harness?: MemoryInstallHarness;
 }
 
 export async function runInstall(opts: InstallOpts): Promise<void> {
   log.blank();
-  log.step('Setting up your knowledge base');
+  log.step("Setting up your knowledge base");
   log.blank();
 
-  // Preflight: `claude` CLI is hard-required; `gh` is a soft warning for sync.
-  preflight();
-
-  // Step 0: Ensure native deps are installed globally
+  const projectRoot = process.cwd();
+  const targets = await selectInstallTargets(opts, projectRoot);
+  preflight(targets);
   await ensureNativeDeps();
 
-  // Prompt for placement before any config writes. Non-interactive contexts
-  // (-y, or stdin not a TTY — CI, pipes) default to "shared" instead of
-  // letting inquirer throw ExitPromptError with a misleading exit 0.
   const nonInteractive = opts.yes === true || !process.stdin.isTTY;
-  if (nonInteractive) log.info('Non-interactive: using "shared" memory placement (CLAUDE.md + settings.json).');
-  const placement = await getMemoryPlacement(process.cwd(), nonInteractive);
+  const wantsClaude = targets.includes("claude");
+  if (wantsClaude && nonInteractive) {
+    log.info(
+      'Non-interactive: using "shared" memory placement (CLAUDE.md + settings.json).',
+    );
+  }
+  const placement = wantsClaude
+    ? await getMemoryPlacement(projectRoot, nonInteractive)
+    : "shared";
 
   const config = loadConfig(opts.dbPath ? { dataDir: opts.dbPath } : undefined);
   const dataDir = resolveDataDir(config.dataDir);
-
-  // Step 1: Database
-  log.step('[1/5] Creating knowledge base...');
-  if (!existsSync(dataDir)) {
-    mkdirSync(dataDir, { recursive: true });
-  }
+  log.step(knowledgeBaseStepLabel(targets));
+  if (!existsSync(dataDir)) mkdirSync(dataDir, { recursive: true });
   const db = createDatabase({ dataDir });
   migrate(db);
   closeDatabase(db);
   log.success(`Knowledge base created at ${dataDir}/memory.db`);
 
-  // Step 2: Configure Claude Code settings
-  log.step('[2/5] Connecting to Claude Code...');
-  await configureSettings(process.cwd(), placement);
+  if (wantsClaude) await installClaudeMemory(projectRoot, placement);
+  if (targets.includes("cursor")) installCursorMemory(projectRoot);
+  finishInstall(targets);
+}
 
-  // Step 3: Register MCP server (project scope for shared, local scope for local)
-  log.step('[3/5] Enabling memory tools...');
+export { parseMemoryInstallHarness };
+
+async function selectInstallTargets(
+  opts: InstallOpts,
+  projectRoot: string,
+): Promise<ReadonlyArray<HarnessId>> {
+  const detected = await detectHarnesses(projectRoot);
+  const nonInteractive = opts.yes === true || !process.stdin.isTTY;
+  if (opts.harness || detected.length <= 1 || nonInteractive) {
+    return resolveMemoryInstallTargets({
+      detected,
+      explicit: opts.harness,
+      allDetectedWhenUnspecified: opts.harness === undefined,
+    });
+  }
+  const selected = await checkbox<HarnessId>({
+    message: "Install memory into which harnesses?",
+    choices: detected.map((id) => ({
+      name: id === "cursor" ? "Cursor Agent" : "Claude Code",
+      value: id,
+      checked: true,
+    })),
+  });
+  return resolveMemoryInstallTargets({
+    detected,
+    allDetectedWhenUnspecified: false,
+    selected,
+  });
+}
+
+async function installClaudeMemory(
+  projectRoot: string,
+  placement: MemoryPlacement,
+): Promise<void> {
+  log.step("[2/5] Connecting to Claude Code...");
+  await configureClaudeMemorySettings(projectRoot, placement);
+  log.step("[3/5] Enabling memory tools...");
   const mcpScope = placement === "local" ? "local" : "project";
-  // Must run BEFORE `claude mcp add` — otherwise the add silently fails with "not allowed by policy"
-  await ensureAllowedMcpServerIncludesMemory(process.cwd(), placement);
+  await ensureAllowedMcpServerIncludesMemory(projectRoot, placement);
   const registered = registerMcpServer(mcpScope);
   if (registered) {
-    log.success('Memory tools available in Claude Code');
+    log.success("Memory tools available in Claude Code");
   } else {
-    log.warn('Could not enable memory tools automatically.');
-    log.info(`Run: claude mcp add --scope ${mcpScope} agentic-memory -- npx claude-launchpad memory serve`);
+    log.warn("Could not enable memory tools automatically.");
+    log.info(
+      `Run: claude mcp add --scope ${mcpScope} agentic-memory -- npx claude-launchpad memory serve`,
+    );
   }
-
-  // Step 4: CLAUDE.md + skills
-  log.step('[4/5] Adding instructions...');
-  const guidanceAdded = injectClaudeMdGuidance(process.cwd(), placement);
-  if (guidanceAdded) {
+  log.step("[4/5] Adding instructions...");
+  if (injectClaudeMdGuidance(projectRoot, placement)) {
     const label = placement === "local" ? ".claude/CLAUDE.md" : "CLAUDE.md";
     log.success(`${label} updated with memory instructions`);
   }
   if (placement === "shared") {
-    const skillsInstalled = installSkills(process.cwd());
+    const skillsInstalled = installMemorySkills(projectRoot);
     if (skillsInstalled > 0) {
       log.success(`Installed ${skillsInstalled} skill(s) to .claude/skills/`);
     }
   }
+}
 
-  log.blank();
-  log.success('Knowledge base is ready. Claude will now remember across sessions.');
-  log.info('Restart your Claude Code session to activate.');
-
-  // Sync guidance
-  if (isGhAuthenticated()) {
-    log.info('Cross-device sync available. Run `memory push` to back up, or it auto-syncs each session.');
+function installCursorMemory(projectRoot: string): void {
+  log.step("Connecting to Cursor Agent...");
+  if (registerCursorMemoryMcp(projectRoot)) {
+    log.success("Memory tools registered in .cursor/mcp.json");
   } else {
+    log.info("Memory tools already registered in .cursor/mcp.json");
+  }
+  if (injectAgentsMdGuidance(projectRoot)) {
+    log.success("AGENTS.md updated with memory instructions");
+  } else if (!existsSync(join(projectRoot, "AGENTS.md"))) {
+    log.info(
+      "No AGENTS.md found — skipped memory guidance. Add AGENTS.md and re-run install to append it.",
+    );
+  }
+}
+
+function finishInstall(targets: ReadonlyArray<HarnessId>): void {
+  const names = targets
+    .map((id) => (id === "cursor" ? "Cursor Agent" : "Claude Code"))
+    .join(" and ");
+  log.blank();
+  log.success(`Knowledge base is ready for ${names}.`);
+  log.info("Restart the selected agent session to activate.");
+  if (targets.includes("cursor")) {
+    log.info(CURSOR_CLOUD_MEMORY_WARNING);
+  }
+  if (isGhAuthenticated() && targets.includes("claude")) {
+    log.info(
+      "Cross-device sync available. Run `memory push` to back up, or it auto-syncs each session.",
+    );
+  } else if (!isGhAuthenticated()) {
     log.blank();
-    log.info('Recommended: install the GitHub CLI for cross-device memory sync:');
-    log.step('  https://cli.github.com/');
-    log.step('  gh auth login');
+    log.info(missingGhAdvice(targets));
+    log.step("  https://cli.github.com/");
+    log.step("  gh auth login");
   }
   log.blank();
 }
 
-export function detectExistingSetup(projectDir: string): MemoryPlacement | null {
+export function existingSetupLabel(
+  projectDir: string,
+  placement: MemoryPlacement,
+): string {
+  if (placement === "local") return ".claude/CLAUDE.md + settings.local.json";
+  const parts: string[] = [];
+  try {
+    const claude = readFileSync(join(projectDir, "CLAUDE.md"), "utf-8");
+    if (claude.includes("## Memory (agentic-memory)")) parts.push("CLAUDE.md");
+  } catch {
+    /* not found */
+  }
+  try {
+    const agents = readFileSync(join(projectDir, "AGENTS.md"), "utf-8");
+    if (/^## Memory( \(agentic-memory\))?\s*$/m.test(agents)) {
+      parts.push("AGENTS.md");
+    }
+  } catch {
+    /* not found */
+  }
+  if (hasCursorMemoryMcp(projectDir)) parts.push(".cursor/mcp.json");
+  return parts.length > 0 ? parts.join(" + ") : "project memory config";
+}
+
+export function detectExistingSetup(
+  projectDir: string,
+): MemoryPlacement | null {
   // Check local CLAUDE.md
   try {
-    const localClaude = readFileSync(join(projectDir, '.claude', 'CLAUDE.md'), 'utf-8');
-    if (localClaude.includes('## Memory') || localClaude.includes('agentic-memory')) return "local";
-  } catch { /* not found */ }
+    const localClaude = readFileSync(
+      join(projectDir, ".claude", "CLAUDE.md"),
+      "utf-8",
+    );
+    if (
+      localClaude.includes("## Memory") ||
+      localClaude.includes("agentic-memory")
+    )
+      return "local";
+  } catch {
+    /* not found */
+  }
 
   // Check root CLAUDE.md
   try {
-    const rootClaude = readFileSync(join(projectDir, 'CLAUDE.md'), 'utf-8');
-    if (rootClaude.includes('## Memory (agentic-memory)')) return "shared";
-  } catch { /* not found */ }
+    const rootClaude = readFileSync(join(projectDir, "CLAUDE.md"), "utf-8");
+    if (rootClaude.includes("## Memory (agentic-memory)")) return "shared";
+  } catch {
+    /* not found */
+  }
+
+  try {
+    const agents = readFileSync(join(projectDir, "AGENTS.md"), "utf-8");
+    if (/^## Memory( \(agentic-memory\))?\s*$/m.test(agents)) return "shared";
+  } catch {
+    /* not found */
+  }
+  if (hasCursorMemoryMcp(projectDir)) return "shared";
 
   return null;
 }
 
-async function configureSettings(projectDir: string, placement: MemoryPlacement): Promise<void> {
-  const read = placement === "local" ? readSettingsLocalJson : readSettingsJson;
-  const write = placement === "local" ? writeSettingsLocalJson : writeSettingsJson;
-  const settings = await read(projectDir);
-  if (settings === null) {
-    throw new Error("settings.json is unreadable; repair or remove it before installing memory.");
-  }
-
-  // Disable built-in auto-memory
-  log.info('Built-in auto-memory disabled (replaced by knowledge base)');
-
-  // Build hooks immutably — always add sync hooks (they fail silently without gh)
-  const baseHooks = (settings['hooks'] ?? {}) as Record<string, unknown[]>;
-  const withPull = addSessionStartPullHook(baseHooks);
-  const withContext = addSessionStartHook(withPull);
-  const withPush = addSessionEndPushHook(withContext);
-
-  // Build permissions immutably
-  const withPermissions = addToolPermissions(settings);
-
-  const updated = {
-    ...withPermissions,
-    autoMemoryEnabled: false,
-    hooks: withPush,
-  };
-
-  await write(projectDir, updated);
-  const target = placement === "local" ? "settings.local.json" : "settings.json";
-  log.success(`Claude Code configured in ${target}`);
-}
-
-function addSessionStartPullHook(hooks: Record<string, unknown[]>): Record<string, unknown[]> {
-  const result = addOrUpdateHook(hooks, {
-    event: 'SessionStart',
-    dedupKeyword: 'memory pull',
-    entry: {
-      matcher: 'startup',
-      hooks: [{ type: 'command', command: 'npx claude-launchpad memory pull -y 2>/dev/null; exit 0' }],
-    },
-    prepend: true,
-  });
-  if (result.added) log.info('Session start: memories will auto-pull from GitHub Gist');
-  return result.hooks;
-}
-
-function addSessionStartHook(hooks: Record<string, unknown[]>): Record<string, unknown[]> {
-  const result = addOrUpdateHook(hooks, {
-    event: 'SessionStart',
-    dedupKeyword: 'claude-launchpad memory context',
-    entry: {
-      matcher: 'startup|resume',
-      hooks: [{ type: 'command', command: 'npx claude-launchpad memory context --json 2>/dev/null; exit 0' }],
-    },
-  });
-  if (result.added) log.info('Session start: Claude will recall relevant context automatically');
-  return result.hooks;
-}
-
-function addSessionEndPushHook(hooks: Record<string, unknown[]>): Record<string, unknown[]> {
-  const result = addOrUpdateHook(hooks, {
-    event: 'SessionEnd',
-    dedupKeyword: 'memory push',
-    entry: {
-      // async: true — verified 2026-07-08: SessionEnd async hooks survive Claude
-      // Code's exit; plain hooks are killed mid-push (the old nohup workaround).
-      hooks: [{ type: 'command', command: 'npx claude-launchpad memory push -y', async: true }],
-    },
-  });
-  if (result.added) log.info('Session end: memories will auto-push to GitHub Gist');
-  return result.hooks;
-}
-
-function addToolPermissions(settings: Record<string, unknown>): Record<string, unknown> {
-  const permissions = (settings['permissions'] ?? {}) as Record<string, unknown>;
-  const allowList = (permissions['allow'] ?? []) as readonly string[];
-
-  const memoryTools = [
-    'mcp__agentic-memory__memory_store',
-    'mcp__agentic-memory__memory_search',
-    'mcp__agentic-memory__memory_recent',
-    'mcp__agentic-memory__memory_forget',
-    'mcp__agentic-memory__memory_relate',
-    'mcp__agentic-memory__memory_stats',
-    'mcp__agentic-memory__memory_update',
-  ];
-
-  const missing = memoryTools.filter((t) => !allowList.includes(t));
-  if (missing.length === 0) return settings;
-
-  log.info(`${missing.length} memory tools auto-approved`);
-  return {
-    ...settings,
-    permissions: { ...permissions, allow: [...allowList, ...missing] },
-  };
-}
-
 async function ensureNativeDeps(): Promise<void> {
-  const { cwdRequire } = await import('../utils/require-deps.js');
+  const { cwdRequire } = await import("../utils/require-deps.js");
   try {
-    cwdRequire('better-sqlite3');
+    cwdRequire("better-sqlite3");
     return;
   } catch {
     // Not installed — install globally
   }
 
-  log.step('Installing required database libraries...');
+  log.step("Installing required database libraries...");
   try {
-    execSync('npm install -g better-sqlite3', { stdio: 'pipe', timeout: 120000 });
-    log.success('Database libraries installed');
+    execSync("npm install -g better-sqlite3", {
+      stdio: "pipe",
+      timeout: 120000,
+    });
+    log.success("Database libraries installed");
   } catch {
-    log.error('Could not install database libraries automatically.');
+    log.error("Could not install database libraries automatically.");
     log.blank();
-    log.info('Install manually:');
-    log.step('  npm install -g better-sqlite3');
+    log.info("Install manually:");
+    log.step("  npm install -g better-sqlite3");
     log.blank();
-    log.info('Requires a C++ compiler (Xcode on macOS, build-essential on Linux).');
+    log.info(
+      "Requires a C++ compiler (Xcode on macOS, build-essential on Linux).",
+    );
     process.exit(1);
   }
 }
@@ -277,7 +329,8 @@ async function ensureAllowedMcpServerIncludesMemory(
   placement: MemoryPlacement,
 ): Promise<void> {
   const read = placement === "local" ? readSettingsLocalJson : readSettingsJson;
-  const write = placement === "local" ? writeSettingsLocalJson : writeSettingsJson;
+  const write =
+    placement === "local" ? writeSettingsLocalJson : writeSettingsJson;
   const settings = await read(projectDir);
   if (settings === null) return;
   const existing = settings.allowedMcpServers as unknown;
@@ -285,7 +338,9 @@ async function ensureAllowedMcpServerIncludesMemory(
   if (!Array.isArray(existing)) return;
 
   const list = existing as Array<{ serverName?: unknown }>;
-  const hasMemory = list.some((e) => e && typeof e === "object" && e.serverName === "agentic-memory");
+  const hasMemory = list.some(
+    (e) => e && typeof e === "object" && e.serverName === "agentic-memory",
+  );
   if (hasMemory) return;
 
   const updated = {
@@ -293,125 +348,28 @@ async function ensureAllowedMcpServerIncludesMemory(
     allowedMcpServers: [{ serverName: "agentic-memory" }, ...list],
   };
   await write(projectDir, updated);
-  const target = placement === "local" ? "settings.local.json" : "settings.json";
+  const target =
+    placement === "local" ? "settings.local.json" : "settings.json";
   log.info(`Added agentic-memory to allowedMcpServers in ${target}`);
 }
 
 function registerMcpServer(scope: "project" | "local"): boolean {
   try {
-    const existing = execSync('claude mcp list', { stdio: 'pipe', timeout: 10000, encoding: 'utf-8' });
-    if (existing.includes('agentic-memory')) {
-      log.info('Memory tools already registered');
+    const existing = execSync("claude mcp list", {
+      stdio: "pipe",
+      timeout: 10000,
+      encoding: "utf-8",
+    });
+    if (existing.includes("agentic-memory")) {
+      log.info("Memory tools already registered");
       return true;
     }
     execSync(
       `claude mcp add --scope ${scope} agentic-memory -- npx claude-launchpad memory serve`,
-      { stdio: 'pipe', timeout: 10000 },
+      { stdio: "pipe", timeout: 10000 },
     );
     return true;
   } catch {
     return false;
   }
-}
-
-const MEMORY_GUIDANCE = `
-## Memory (agentic-memory)
-This project uses **agentic-memory** for persistent memory across sessions.
-- **DO NOT** use the built-in auto-memory system (~/.claude/projects/*/memory/)
-- Memory context is **automatically injected** at session start via SessionStart hook - no need to call memory_recent manually
-- Use \`memory_search\` to find specific memories by keyword
-- Use \`memory_store\` to save decisions, gotchas, and learnings worth remembering
-- Use \`memory_stats\` to check memory health
-- **STORE IMMEDIATELY** when: a dependency strategy changes, an architecture decision is made, a convention is established, a bug pattern is discovered, or a feature is killed/added
-`;
-
-export function injectClaudeMdGuidance(projectDir: string, placement: MemoryPlacement): boolean {
-  const claudeMdPath = placement === "local"
-    ? join(projectDir, '.claude', 'CLAUDE.md')
-    : join(projectDir, 'CLAUDE.md');
-
-  let content = '';
-  try {
-    content = readFileSync(claudeMdPath, 'utf-8');
-  } catch {
-    if (placement !== "local") return false;
-    // Create local .claude/CLAUDE.md
-    mkdirSync(join(projectDir, '.claude'), { recursive: true });
-    content = '# Local Claude Config\n';
-  }
-
-  if (/^## Memory( \(agentic-memory\))?\s*$/m.test(content)) {
-    return false;
-  }
-
-  const updated = content.trimEnd() + '\n' + MEMORY_GUIDANCE;
-  writeFileSync(claudeMdPath, updated, 'utf-8');
-  return true;
-}
-
-const MIGRATE_MEMORY_SKILL = `---
-name: lp-migrate-memory
-description: Migrate legacy Claude Code auto-memory files (~/.claude/projects/*/memory/*.md) into agentic-memory. Use when setting up agentic-memory on a project that already has built-in memories.
-allowed-tools: Read, Glob, Grep, mcp__agentic-memory__memory_store, mcp__agentic-memory__memory_search
----
-
-# Migrate Legacy Claude Code Memories
-
-Migrate memory files from Claude Code's built-in auto-memory system into agentic-memory.
-
-## Steps
-
-1. **Find legacy memory files** for this project:
-   - Scan \`~/.claude/projects/*/memory/*.md\` for directories whose slug matches the current project path
-   - The slug format is the absolute path with \`/\` replaced by \`-\` and leading \`-\` (e.g. \`-Users-john-projects-myapp\`)
-   - Also check \`~/.claude/projects/*/memory/team/*.md\` for team memories
-
-2. **For each memory file found**, read it and parse:
-   - YAML frontmatter: \`name\`, \`description\`, \`type\` (user/feedback/project/reference)
-   - Body content (everything after the frontmatter closing \`---\`)
-   - Skip \`MEMORY.md\` (it's just an index file, not a memory)
-
-3. **Before storing**, check for duplicates:
-   - Call \`memory_search\` with the memory description or first 100 chars of content
-   - If a close match exists (same topic), skip it and report
-
-4. **Map types and store** each memory via \`memory_store\`:
-   - \`user\` -> type: \`semantic\`, tags: [\`user\`, \`migrated\`], importance: 0.7
-   - \`feedback\` -> type: \`semantic\`, tags: [\`feedback\`, \`migrated\`], importance: 0.8
-   - \`project\` -> type: \`semantic\`, tags: [\`project\`, \`migrated\`], importance: 0.6
-   - \`reference\` -> type: \`semantic\`, tags: [\`reference\`, \`migrated\`], importance: 0.5
-   - Use the frontmatter \`name\` as the title
-   - Use the body content as the memory content
-   - Set source: \`import\`
-   - Adjust importance up/down based on the content (decisions and gotchas deserve higher importance)
-
-5. **Report results**: list what was migrated, what was skipped (duplicates), and what failed
-
-## Important
-
-- Do NOT delete the original files - the user can do that manually after verifying
-- Do NOT migrate content that is purely derived from code (architecture, file structure) - it belongs in CLAUDE.md, not memory
-- If unsure about a memory's value, migrate it anyway - the decay system will naturally prune low-value memories over time
-`;
-
-const SKILLS: Readonly<Record<string, string>> = {
-  'lp-migrate-memory': MIGRATE_MEMORY_SKILL,
-};
-
-function installSkills(projectDir: string): number {
-  const skillsDir = join(projectDir, '.claude', 'skills');
-  let installed = 0;
-
-  for (const [name, content] of Object.entries(SKILLS)) {
-    const skillDir = join(skillsDir, name);
-    const skillPath = join(skillDir, 'SKILL.md');
-
-    if (existsSync(skillPath)) continue;
-
-    mkdirSync(skillDir, { recursive: true });
-    writeFileSync(skillPath, content.trimStart(), 'utf-8');
-    installed++;
-  }
-
-  return installed;
 }
