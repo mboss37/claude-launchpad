@@ -192,6 +192,26 @@ describe("Cursor doctor", () => {
     );
   });
 
+  it("flags workflow context registered on an event that discards output", async () => {
+    const root = await mkdtemp(join(tmpdir(), "lp-cursor-workflow-event-"));
+    await mkdir(join(root, ".cursor"), { recursive: true });
+    await writeFile(join(root, "AGENTS.md"), "# Demo\n- Use tests\n");
+    await writeFile(
+      join(root, ".cursor", "hooks.json"),
+      JSON.stringify({
+        version: 1,
+        hooks: {
+          afterFileEdit: [{ command: ".cursor/hooks/workflow-check.sh" }],
+        },
+      }),
+    );
+    const result = await runCursorAnalyzers(
+      await parseCursorConfig(root),
+      root,
+    );
+    expect(findIssue(result, "Hooks", "missing workflow check")).toBeDefined();
+  });
+
   it("refreshes a stale marked Launchpad hook script", async () => {
     const root = await mkdtemp(join(tmpdir(), "lp-cursor-stale-"));
     await scaffoldCursor(
@@ -216,7 +236,7 @@ describe("Cursor doctor", () => {
       root,
     );
     expect(await readFile(script, "utf-8")).toContain(
-      "lp-cursor-hook-version: 1",
+      "lp-cursor-hook-version: 2",
     );
   });
 

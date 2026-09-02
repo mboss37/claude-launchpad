@@ -58,10 +58,12 @@ export async function saveEvalReport(
   const passed = scored.filter((result) => result.passed).length;
   const failed = scored.length - passed;
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+  const skipped = results.length - scored.length;
   const lines = reportLines(results, metadata, {
     pct,
     passed,
     failed,
+    skipped,
     suite,
     timestamp,
   });
@@ -83,14 +85,19 @@ function reportLines(
     readonly pct: number;
     readonly passed: number;
     readonly failed: number;
+    readonly skipped: number;
     readonly suite?: string;
     readonly timestamp: string;
   },
 ): string[] {
+  const totalRuns = results.reduce(
+    (sum, result) => sum + (result.runs ?? 0),
+    0,
+  );
   const lines = [
     `# Eval Report — ${summary.timestamp}`,
     "",
-    `**Score: ${summary.pct}%** (${summary.passed} passed, ${summary.failed} failed out of ${results.length} scenarios)`,
+    `**Score: ${summary.pct}%** (${summary.passed} passed, ${summary.failed} failed, ${summary.skipped} skipped out of ${results.length} scenarios)`,
     "",
     `- Suite: ${summary.suite ?? "all"}`,
     `- Harness: ${metadata.harness}`,
@@ -98,6 +105,7 @@ function reportLines(
     `- Product: ${metadata.productVersion}`,
     `- Model: ${metadata.model}`,
     `- Config: ${metadata.configSources.join(", ")}`,
+    `- Runs: ${totalRuns}`,
     `- Date: ${new Date().toISOString().split("T")[0]}`,
     "",
     "## Results",
@@ -113,6 +121,7 @@ function reportLines(
     lines.push(
       `### ${result.scenario} — ${result.score}/${result.maxScore} ${result.passed ? "PASS" : "FAIL"}`,
     );
+    lines.push(`- Runs: ${result.runs ?? "unknown"}`);
     for (const check of result.checks) {
       lines.push(
         `- ${check.passed ? "PASSED" : "FAILED"}: ${check.label} (${check.points} pts)`,

@@ -4,9 +4,14 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import {
   evaluateChecks,
+  makeRuntimeJudge,
   type CheckContext,
 } from "../src/commands/eval/checks.js";
 import type { EvalCheck } from "../src/types/index.js";
+import type {
+  EvalRuntime,
+  RuntimeRunOptions,
+} from "../src/commands/eval/runtime.js";
 
 let testDir: string;
 
@@ -172,5 +177,38 @@ describe("evaluateChecks", () => {
       }),
     );
     expect(results[0].passed).toBe(false);
+  });
+
+  it("grades through the selected runtime without another harness", async () => {
+    let runOptions: RuntimeRunOptions | undefined;
+    const runtime: EvalRuntime = {
+      id: "cursor",
+      isAvailable: async () => true,
+      prepareSandbox: async () => undefined,
+      run: async (options) => {
+        runOptions = options;
+        return {
+          raw: "",
+          events: [
+            {
+              kind: "text",
+              role: "assistant",
+              content: "PASS",
+            },
+          ],
+          metadata: {
+            harness: "cursor",
+            runtime: "cli-local",
+            productVersion: "1",
+            model: "cursor-model",
+            configSources: ["project"],
+          },
+        };
+      },
+    };
+
+    const judge = makeRuntimeJudge(runtime, "cursor-model");
+    expect(await judge("no secrets", "assistant: safe")).toBe(true);
+    expect(runOptions?.model).toBe("cursor-model");
   });
 });

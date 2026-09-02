@@ -126,7 +126,7 @@ describe("Cursor sprint-size.sh (sessionStart)", () => {
   });
 });
 
-describe("Cursor workflow-check.sh (afterFileEdit)", () => {
+describe("Cursor workflow-check.sh (postToolUse)", () => {
   it("only acts on BACKLOG.md / TASKS.md edits", async () => {
     const root = await gitProject();
     await writeFile(
@@ -138,7 +138,10 @@ describe("Cursor workflow-check.sh (afterFileEdit)", () => {
       "## Current Sprint\n- [ ] WP-001 — Thing\n",
     );
     expect(
-      runHook(root, "workflow-check.sh", { file_path: "src/index.ts" }),
+      runHook(root, "workflow-check.sh", {
+        tool_name: "Edit",
+        tool_input: { path: "src/index.ts" },
+      }),
     ).toBe("{}");
   });
 
@@ -161,9 +164,12 @@ describe("Cursor workflow-check.sh (afterFileEdit)", () => {
       join(root, "TASKS.md"),
       "## Current Sprint\n- [ ] WP-012 — Thing\n",
     );
-    expect(runHook(root, "workflow-check.sh", { file_path: "TASKS.md" })).toBe(
-      "{}",
-    );
+    expect(
+      runHook(root, "workflow-check.sh", {
+        tool_name: "Edit",
+        tool_input: { path: "TASKS.md" },
+      }),
+    ).toBe("{}");
   });
 
   it("warns when a WP entry lives in a P-section AND the Current Sprint", async () => {
@@ -177,7 +183,8 @@ describe("Cursor workflow-check.sh (afterFileEdit)", () => {
       "## Current Sprint\n- [ ] WP-012 — Thing\n",
     );
     const stdout = runHook(root, "workflow-check.sh", {
-      file_path: "TASKS.md",
+      tool_name: "Edit",
+      tool_input: { path: "TASKS.md" },
     });
     const parsed = JSON.parse(stdout) as { additional_context?: string };
     expect(parsed.additional_context).toContain("WP-012");

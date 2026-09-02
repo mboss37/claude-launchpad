@@ -31,7 +31,7 @@ export async function createOrMergeCursorHooks(
   >;
   let merged: Record<string, unknown>;
   try {
-    merged = mergeCursorHooks(existing, generated);
+    merged = mergeCursorHooks(migrateWorkflowHook(existing), generated);
   } catch {
     return false;
   }
@@ -40,6 +40,30 @@ export async function createOrMergeCursorHooks(
   await mkdir(join(root, ".cursor"), { recursive: true });
   await writeFile(path, next);
   return true;
+}
+
+function migrateWorkflowHook(
+  document: Record<string, unknown>,
+): Record<string, unknown> {
+  const hooks =
+    document.hooks !== null &&
+    typeof document.hooks === "object" &&
+    !Array.isArray(document.hooks)
+      ? (document.hooks as Record<string, unknown>)
+      : {};
+  const afterFileEdit = Array.isArray(hooks.afterFileEdit)
+    ? hooks.afterFileEdit.filter(
+        (entry) =>
+          entry === null ||
+          typeof entry !== "object" ||
+          (entry as { command?: unknown }).command !==
+            ".cursor/hooks/workflow-check.sh",
+      )
+    : hooks.afterFileEdit;
+  return {
+    ...document,
+    hooks: { ...hooks, afterFileEdit },
+  };
 }
 
 export async function refreshCursorHookScripts(

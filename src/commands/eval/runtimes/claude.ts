@@ -123,7 +123,8 @@ function claudeMetadata(
     harness: "claude",
     runtime,
     productVersion: "unknown",
-    model: model ?? "default",
+    model: model ?? "unknown",
+    ...(model ? { requestedModel: model } : {}),
     configSources: ["project"],
   };
 }

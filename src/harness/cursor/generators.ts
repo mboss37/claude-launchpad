@@ -35,6 +35,7 @@ export interface CursorHooksDocument {
     readonly beforeReadFile?: ReadonlyArray<CursorGeneratedHook>;
     readonly beforeShellExecution?: ReadonlyArray<CursorGeneratedHook>;
     readonly afterFileEdit?: ReadonlyArray<CursorGeneratedHook>;
+    readonly postToolUse?: ReadonlyArray<CursorGeneratedHook>;
     readonly afterShellExecution?: ReadonlyArray<CursorGeneratedHook>;
     readonly sessionStart?: ReadonlyArray<CursorGeneratedHook>;
   };
@@ -58,7 +59,6 @@ export function generateCursorHooks(
     ...(detected.language && detected.language in CURSOR_FORMATTERS
       ? [{ command: ".cursor/hooks/auto-format.sh" }]
       : []),
-    { command: ".cursor/hooks/workflow-check.sh" },
   ];
   return {
     version: 1,
@@ -70,6 +70,7 @@ export function generateCursorHooks(
         { command: ".cursor/hooks/destructive-shell.sh", failClosed: true },
       ],
       afterFileEdit,
+      postToolUse: [{ command: ".cursor/hooks/workflow-check.sh" }],
       afterShellExecution: [{ command: ".cursor/hooks/sprint-open.sh" }],
       sessionStart: [
         { command: ".cursor/hooks/session-context.sh" },

@@ -16,6 +16,7 @@ const REQUIRED_HOOKS: ReadonlyArray<{
   readonly command: string;
   readonly message: string;
   readonly severity: DiagnosticIssue["severity"];
+  readonly event?: string;
   readonly when?: (language: string | null) => boolean;
 }> = [
   {
@@ -38,6 +39,7 @@ const REQUIRED_HOOKS: ReadonlyArray<{
     command: ".cursor/hooks/workflow-check.sh",
     message: "missing workflow check",
     severity: "medium",
+    event: "postToolUse",
   },
   {
     command: ".cursor/hooks/session-context.sh",
@@ -64,7 +66,7 @@ export async function analyzeCursorHooks(
   if (config.hooks.length > 0 && config.parseErrors.length === 0) {
     for (const required of REQUIRED_HOOKS) {
       if (required.when && !required.when(language)) continue;
-      if (hasCommand(config, required.command)) continue;
+      if (hasCommand(config, required.command, required.event)) continue;
       issues.push({
         analyzer: "Hooks",
         severity: required.severity,
@@ -125,8 +127,14 @@ async function addMissingScriptIssue(
   }
 }
 
-function hasCommand(config: CursorConfig, command: string): boolean {
-  return config.hooks.some((hook) => hook.command === command);
+function hasCommand(
+  config: CursorConfig,
+  command: string,
+  event?: string,
+): boolean {
+  return config.hooks.some(
+    (hook) => hook.command === command && (!event || hook.event === event),
+  );
 }
 
 async function addStaleScriptIssues(

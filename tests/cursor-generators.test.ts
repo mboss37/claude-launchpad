@@ -56,6 +56,24 @@ describe("Cursor generators", () => {
     expect(hooks.hooks.beforeReadFile?.[0]?.failClosed).toBe(true);
   });
 
+  it("registers workflow context on postToolUse", () => {
+    const generated = generateCursorHooks(fixedDetectedProject);
+    const hooks = generated.hooks as Record<
+      string,
+      ReadonlyArray<{ command: string }> | undefined
+    >;
+    expect(
+      hooks.postToolUse?.some((hook) =>
+        hook.command.includes("workflow-check.sh"),
+      ),
+    ).toBe(true);
+    expect(
+      hooks.afterFileEdit?.some((hook) =>
+        hook.command.includes("workflow-check.sh"),
+      ),
+    ).toBe(false);
+  });
+
   it("generates a Cursor-native enhance skill with no Claude Code references", () => {
     const skill = generateCursorEnhanceSkill();
     expect(skill).toContain("AGENTS.md");

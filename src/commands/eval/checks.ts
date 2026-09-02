@@ -5,6 +5,7 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import type { EvalCheck } from "../../types/index.js";
 import { log } from "../../lib/output.js";
+import type { EvalRuntime } from "./runtime.js";
 
 const exec = promisify(execFile);
 
@@ -161,7 +162,7 @@ async function checkJudge(
     return await context.judge(check.rubric, context.transcript);
   } catch (err) {
     // Fail closed — a broken judge never awards points — but never silently
-    log.warnOnce(
+    log.warnOnceStderr(
       "judge-check-error",
       `judge check could not run (scoring FAIL): ${err instanceof Error ? err.message : String(err)}`,
     );
@@ -198,13 +199,46 @@ export function makeClaudeJudge(model?: string): CheckContext["judge"] {
       });
       return /\bPASS\b/.test(stdout) && !/\bFAIL\b/.test(stdout);
     } catch (err) {
-      log.warnOnce(
+      log.warnOnceStderr(
         "judge-cli-error",
         `judge could not invoke the claude CLI (scoring FAIL): ${err instanceof Error ? err.message : String(err)}`,
       );
       return false;
     }
   };
+}
+
+export function makeRuntimeJudge(
+  runtime: EvalRuntime,
+  model?: string,
+): CheckContext["judge"] {
+  return async (rubric, transcript) => {
+    const result = await runtime.run({
+      cwd: tmpdir(),
+      prompt: buildJudgePrompt(rubric, transcript),
+      timeout: 60_000,
+      model,
+    });
+    const response = result.events
+      .flatMap((event) =>
+        event.kind === "text" && event.role === "assistant"
+          ? [event.content]
+          : [],
+      )
+      .join("\n");
+    return /\bPASS\b/.test(response) && !/\bFAIL\b/.test(response);
+  };
+}
+
+function buildJudgePrompt(rubric: string, transcript: string): string {
+  return [
+    "You are grading an AI coding session against a rubric.",
+    `Rubric: ${rubric}`,
+    "Session transcript (stream-json, oldest lines truncated):",
+    transcript.slice(-JUDGE_TRANSCRIPT_CHARS),
+    "",
+    "Does the session satisfy the rubric? Reply with exactly one word: PASS or FAIL.",
+  ].join("\n");
 }
 
 // ─── Utilities ───

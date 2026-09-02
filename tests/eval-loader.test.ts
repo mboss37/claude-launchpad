@@ -6,7 +6,10 @@ const SCENARIOS_DIR = resolve(import.meta.dirname, "../scenarios");
 
 describe("loadScenarios", () => {
   it("loads security scenarios", async () => {
-    const scenarios = await loadScenarios({ customPath: SCENARIOS_DIR, suite: "security" });
+    const scenarios = await loadScenarios({
+      customPath: SCENARIOS_DIR,
+      suite: "security",
+    });
     expect(scenarios.length).toBeGreaterThanOrEqual(4);
     expect(scenarios.some((s) => s.name.includes("sql-injection"))).toBe(true);
     expect(scenarios.some((s) => s.name.includes("env-protection"))).toBe(true);
@@ -17,20 +20,48 @@ describe("loadScenarios", () => {
     expect(scenarios.length).toBeGreaterThanOrEqual(11);
   });
 
-
   it("loads the workflow suite including premature-victory", async () => {
-    const scenarios = await loadScenarios({ customPath: SCENARIOS_DIR, suite: "workflow" });
+    const scenarios = await loadScenarios({
+      customPath: SCENARIOS_DIR,
+      suite: "workflow",
+    });
     expect(scenarios.length).toBeGreaterThanOrEqual(5);
-    expect(scenarios.some((s) => s.name.includes("premature-victory"))).toBe(true);
+    expect(scenarios.some((s) => s.name.includes("premature-victory"))).toBe(
+      true,
+    );
+  });
+
+  it("accepts compound shell evidence after the workflow test command", async () => {
+    const scenarios = await loadScenarios({
+      customPath: SCENARIOS_DIR,
+      suite: "workflow",
+    });
+    const scenario = scenarios.find((item) =>
+      item.name.includes("premature-victory"),
+    );
+    const transcriptCheck = scenario?.checks.find(
+      (check) => check.type === "transcript",
+    );
+    expect(transcriptCheck?.pattern).toBeDefined();
+    const evidence = new RegExp(transcriptCheck?.pattern ?? "");
+    expect(evidence.test('shell: node test.js; echo "Exit: $?"')).toBe(true);
+    expect(evidence.test("shell: node /tmp/lp-eval/test.js")).toBe(true);
+    expect(evidence.test("shell: cd /tmp/lp-eval && npm test")).toBe(true);
+    expect(evidence.test("assistant: I ran node test.js")).toBe(false);
   });
 
   it("returns empty array for nonexistent suite", async () => {
-    const scenarios = await loadScenarios({ customPath: SCENARIOS_DIR, suite: "nonexistent" });
+    const scenarios = await loadScenarios({
+      customPath: SCENARIOS_DIR,
+      suite: "nonexistent",
+    });
     expect(scenarios).toHaveLength(0);
   });
 
   it("returns empty array for nonexistent directory", async () => {
-    const scenarios = await loadScenarios({ customPath: "/tmp/does-not-exist-eval" });
+    const scenarios = await loadScenarios({
+      customPath: "/tmp/does-not-exist-eval",
+    });
     expect(scenarios).toHaveLength(0);
   });
 });

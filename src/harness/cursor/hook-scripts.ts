@@ -2,7 +2,7 @@ import { access, chmod, mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { FORCE_PUSH_ERE } from "../../lib/hook-input.js";
 
-export const CURSOR_HOOK_VERSION = 1;
+export const CURSOR_HOOK_VERSION = 2;
 
 export const CURSOR_FORMATTERS: Record<
   string,
@@ -77,7 +77,7 @@ exit 0
 
 /**
  * Ported from WORKFLOW_CHECK in src/lib/hook-scripts.ts — same drift checks,
- * adapted to Cursor's afterFileEdit stdin shape and additional_context output.
+ * adapted to Cursor's postToolUse stdin shape and additional_context output.
  * Restricted to P-section entries vs '## Current Sprint' so Changelog and
  * "Depends on:" mentions never trigger false positives.
  */
@@ -85,7 +85,7 @@ export function workflowCheckScript(): string {
   return `${header()}
 command -v jq >/dev/null 2>&1 || { echo '{}'; exit 0; }
 input=$(cat 2>/dev/null)
-fp=$(echo "$input" | jq -r '.file_path // .path // empty' 2>/dev/null)
+fp=$(echo "$input" | jq -r '.tool_input.file_path // .tool_input.path // empty' 2>/dev/null)
 echo "$fp" | grep -qE '(^|/)(BACKLOG|TASKS)\\.md$' || { echo '{}'; exit 0; }
 
 warnings=""

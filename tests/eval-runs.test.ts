@@ -2,7 +2,9 @@ import { describe, it, expect } from "vitest";
 import { resolveRuns } from "../src/commands/eval/loader.js";
 import {
   buildEvalJsonReport,
+  defaultRuntimeMetadata,
   evalReportDir,
+  metadataFromResults,
   resolveEvalHarness,
   scenarioSupportsHarness,
   skippedEvalResult,
@@ -53,6 +55,7 @@ describe("scenario harness support", () => {
     expect(skipped.skipped).toBe(true);
     expect(skipped.passed).toBe(false);
     expect(skipped.skipReason).toMatch(/cursor/i);
+    expect(skipped.runs).toBe(0);
   });
 });
 
@@ -70,6 +73,7 @@ describe("eval report metadata", () => {
           score: 10,
           maxScore: 10,
           passed: true,
+          runs: 3,
           checks: [{ label: "blocked", passed: true, points: 10 }],
         },
       ],
@@ -80,7 +84,6 @@ describe("eval report metadata", () => {
         model: "haiku",
         configSources: ["project"],
       },
-      1,
     );
     expect(report.results[0]).toMatchObject({
       scenario: "security/env-protection",
@@ -91,7 +94,20 @@ describe("eval report metadata", () => {
     expect(report.harness).toBe("claude");
     expect(report.runtime).toBe("sdk-local");
     expect(report.model).toBe("haiku");
-    expect(report.runs).toBe(1);
+    expect(report.runs).toBe(3);
     expect(report.passed).toBe(true);
+  });
+
+  it("uses unknown runtime metadata when no scenario actually ran", () => {
+    const fallback = defaultRuntimeMetadata("cursor", "auto");
+    const skipped = skippedEvalResult("x", "cursor");
+    expect(metadataFromResults([skipped], fallback)).toMatchObject({
+      harness: "cursor",
+      runtime: "unknown",
+      productVersion: "unknown",
+      model: "unknown",
+      requestedModel: "auto",
+    });
+    expect(buildEvalJsonReport([skipped], fallback).runs).toBe(0);
   });
 });

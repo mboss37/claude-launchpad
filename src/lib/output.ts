@@ -39,8 +39,13 @@ const warnedKeys = new Set<string>();
 export const log = {
   success: (msg: string): void => console.log(`  ${chalk.green("✓")} ${msg}`),
   error: (msg: string): void => console.log(`  ${chalk.red("✗")} ${msg}`),
-  warn: (msg: string): void => console.error(`  ${chalk.yellow("!")} ${msg}`),
+  warn: (msg: string): void => console.log(`  ${chalk.yellow("!")} ${msg}`),
   warnOnce: (key: string, msg: string): void => {
+    if (warnedKeys.has(key)) return;
+    warnedKeys.add(key);
+    console.log(`  ${chalk.yellow("!")} ${msg}`);
+  },
+  warnOnceStderr: (key: string, msg: string): void => {
     if (warnedKeys.has(key)) return;
     warnedKeys.add(key);
     console.error(`  ${chalk.yellow("!")} ${msg}`);

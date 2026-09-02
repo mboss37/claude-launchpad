@@ -39,11 +39,7 @@ function normalizeJsonLines(
     if (!trimmed) continue;
     try {
       events.push(...parse(JSON.parse(trimmed)));
-    } catch {
-      if (/BLOCKED/i.test(trimmed)) {
-        events.push({ kind: "blocked", reason: blockedReason(trimmed) });
-      }
-    }
+    } catch {}
   }
   return events;
 }
@@ -67,7 +63,7 @@ function eventsFromUnknown(value: unknown): ReadonlyArray<CanonicalEvent> {
   if (value === null || typeof value !== "object") return [];
   const record = value as Record<string, unknown>;
   const events: CanonicalEvent[] = [];
-  const blocked = findBlocked(record);
+  const blocked = findBlockedEvidence(record);
   if (blocked) events.push({ kind: "blocked", reason: blocked });
   const command = findShellCommand(record);
   if (command) events.push({ kind: "shell", command });
@@ -76,23 +72,77 @@ function eventsFromUnknown(value: unknown): ReadonlyArray<CanonicalEvent> {
   return events;
 }
 
-function findBlocked(value: unknown): string | null {
+function findBlockedText(value: unknown): string | null {
   if (typeof value === "string" && /BLOCKED/i.test(value)) {
     return blockedReason(value);
+  }
+  if (typeof value === "string" && /permission denied/i.test(value)) {
+    return `BLOCKED: ${value.trim()}`;
   }
   if (value === null || typeof value !== "object") return null;
   if (Array.isArray(value)) {
     for (const entry of value) {
-      const found = findBlocked(entry);
+      const found = findBlockedText(entry);
       if (found) return found;
     }
     return null;
   }
   for (const entry of Object.values(value as Record<string, unknown>)) {
-    const found = findBlocked(entry);
+    const found = findBlockedText(entry);
     if (found) return found;
   }
   return null;
+}
+
+function findBlockedEvidence(record: Record<string, unknown>): string | null {
+  for (const candidate of denyCandidates(record)) {
+    const blocked = findBlockedText(candidate);
+    if (blocked) return blocked;
+  }
+  return null;
+}
+
+function denyCandidates(record: Record<string, unknown>): unknown[] {
+  const candidates: unknown[] = [];
+  if (record.type === "tool_result") {
+    candidates.push(record.error, record.rejected);
+    if (typeof record.content === "string") candidates.push(record.content);
+    candidates.push(...structuredDenials(record.result));
+  }
+  if (record.type === "tool_call") {
+    candidates.push(record.error, record.rejected);
+    candidates.push(...structuredDenials(record.result));
+    const toolCall = asRecord(record.tool_call);
+    if (toolCall) {
+      for (const value of Object.values(toolCall)) {
+        const call = asRecord(value);
+        if (!call) continue;
+        candidates.push(call.error, call.rejected);
+        candidates.push(...structuredDenials(call.result));
+      }
+    }
+  }
+  const message = asRecord(record.message);
+  if (message && Array.isArray(message.content)) {
+    for (const part of message.content) {
+      const block = asRecord(part);
+      if (block?.type === "tool_result") {
+        candidates.push(...denyCandidates(block));
+      }
+    }
+  }
+  return candidates;
+}
+
+function structuredDenials(value: unknown): unknown[] {
+  const record = asRecord(value);
+  if (!record) return [];
+  const denials: unknown[] = [];
+  if (record.error != null) denials.push(record.error);
+  if (record.rejected != null) denials.push(record.rejected);
+  if (typeof record.errorMessage === "string")
+    denials.push(record.errorMessage);
+  return denials;
 }
 
 function findShellCommand(value: unknown): string | null {
@@ -126,12 +176,13 @@ function findShellCommand(value: unknown): string | null {
 function findAssistantText(value: unknown): string | null {
   if (value === null || typeof value !== "object") return null;
   const record = value as Record<string, unknown>;
+  const message = asRecord(record.message);
+  if (record.type !== "assistant" && message?.role !== "assistant") return null;
   if (record.type === "assistant" && typeof record.content === "string") {
     return record.content;
   }
-  const message = record.message;
-  if (message !== null && typeof message === "object") {
-    const content = (message as { content?: unknown }).content;
+  if (message) {
+    const content = message.content;
     if (typeof content === "string") return content;
     if (Array.isArray(content)) {
       const texts = content
@@ -153,7 +204,7 @@ function eventsFromCursorValue(value: unknown): ReadonlyArray<CanonicalEvent> {
   if (value === null || typeof value !== "object") return [];
   const record = value as Record<string, unknown>;
   const events: CanonicalEvent[] = [];
-  const blocked = findBlocked(record);
+  const blocked = findBlockedEvidence(record);
   if (blocked) events.push({ kind: "blocked", reason: blocked });
   const command = findCursorShell(record);
   if (command) events.push({ kind: "shell", command });
@@ -170,13 +221,8 @@ function findCursorShell(record: Record<string, unknown>): string | null {
   if (record.name === "shell" || record.name === "Shell") {
     return commandFromArgs(record.args);
   }
-  const toolCall = record.tool_call;
-  if (toolCall !== null && typeof toolCall === "object") {
-    const shell = (toolCall as { shellToolCall?: { args?: unknown } })
-      .shellToolCall;
-    return commandFromArgs(shell?.args);
-  }
-  return null;
+  const nested = findNestedCursorTool(record);
+  return nested?.name === "shell" ? commandFromArgs(nested.args) : null;
 }
 
 function findCursorTool(
@@ -184,8 +230,40 @@ function findCursorTool(
 ): Extract<CanonicalEvent, { kind: "tool" }> | null {
   if (record.type !== "tool_call") return null;
   const name = typeof record.name === "string" ? record.name : "";
-  if (!name || name.toLowerCase() === "shell") return null;
-  return { kind: "tool", name, summary: summarizeArgs(record.args) };
+  if (name && name.toLowerCase() !== "shell") {
+    return { kind: "tool", name, summary: summarizeArgs(record.args) };
+  }
+  const nested = findNestedCursorTool(record);
+  if (!nested || nested.name === "shell") return null;
+  return {
+    kind: "tool",
+    name: nested.name,
+    summary: summarizeArgs(nested.args),
+  };
+}
+
+function findNestedCursorTool(
+  record: Record<string, unknown>,
+): { readonly name: string; readonly args: unknown } | null {
+  const toolCall = asRecord(record.tool_call);
+  if (!toolCall) return null;
+  for (const [key, value] of Object.entries(toolCall)) {
+    if (!key.endsWith("ToolCall")) continue;
+    const call = asRecord(value);
+    if (!call) continue;
+    const name = key.slice(0, -"ToolCall".length);
+    return { name, args: call.args };
+  }
+  const generic = asRecord(toolCall.function);
+  return generic && typeof generic.name === "string"
+    ? { name: generic.name, args: generic.args }
+    : null;
+}
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value !== null && typeof value === "object"
+    ? (value as Record<string, unknown>)
+    : null;
 }
 
 function commandFromArgs(args: unknown): string | null {

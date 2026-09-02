@@ -48,12 +48,12 @@ export function createEvalCommand(): Command {
       const harness = await resolveHarnessOrExit(opts);
       const runtime = evalRuntimeFor(harness);
       if (!(await runtime.isAvailable())) {
-        log.error(
+        emitFatal(
           harness === "cursor"
             ? "Cursor Agent is not available. Install the Cursor CLI or @cursor/sdk."
             : "Claude CLI not found. Install it: https://docs.anthropic.com/en/docs/claude-code",
+          Boolean(opts.json),
         );
-        process.exit(1);
       }
 
       if (!hasEvalFlags(opts)) {
@@ -88,7 +88,6 @@ export function createEvalCommand(): Command {
         timeout,
         debug: opts.debug,
         model: opts.model,
-        judgeModel: harness === "claude" ? opts.model : undefined,
         cliRuns,
         userChoseRuns,
         json: Boolean(opts.json),
@@ -100,11 +99,7 @@ export function createEvalCommand(): Command {
       );
       if (opts.json) {
         console.log(
-          JSON.stringify(
-            buildEvalJsonReport(results, metadata, cliRuns),
-            null,
-            2,
-          ),
+          JSON.stringify(buildEvalJsonReport(results, metadata), null, 2),
         );
       } else {
         renderEvalReport(results);
@@ -139,9 +134,16 @@ function hasEvalFlags(opts: {
   );
 }
 
+function emitFatal(message: string, json: boolean): never {
+  if (json) console.error(message);
+  else log.error(message);
+  process.exit(1);
+}
+
 async function resolveHarnessOrExit(opts: {
   path: string;
   harness?: string;
+  json?: boolean;
 }): Promise<HarnessId> {
   try {
     const detected = await detectHarnesses(opts.path);
@@ -151,8 +153,7 @@ async function resolveHarnessOrExit(opts: {
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    log.error(message);
-    process.exit(1);
+    emitFatal(message, Boolean(opts.json));
   }
 }
 
@@ -211,7 +212,6 @@ async function runLoadedScenarios(
     readonly timeout: number;
     readonly debug?: boolean;
     readonly model?: string;
-    readonly judgeModel?: string;
     readonly cliRuns: number;
     readonly userChoseRuns: boolean;
     readonly json?: boolean;
@@ -244,7 +244,6 @@ async function runLoadedScenarios(
           timeout: options.timeout,
           debug: options.debug,
           model: options.model,
-          judgeModel: options.judgeModel,
           runtime: options.runtime,
         },
       );
@@ -257,12 +256,17 @@ async function runLoadedScenarios(
     } catch (error: unknown) {
       spinner.fail(`${scenario.name}  ERROR`);
       const msg = error instanceof Error ? error.message : String(error);
-      log.error(`  ${msg}`);
+      if (options.json) {
+        console.error(`Eval scenario ${scenario.name} failed: ${msg}`);
+      } else {
+        log.error(`  ${msg}`);
+      }
       results.push({
         scenario: scenario.name,
         score: 0,
         maxScore: scenario.checks.reduce((sum, check) => sum + check.points, 0),
         passed: false,
+        runs: 0,
         checks: scenario.checks.map((check) => ({
           label: check.label,
           passed: false,

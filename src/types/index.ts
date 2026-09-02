@@ -98,11 +98,13 @@ export interface EvalRunResult {
   }>;
   readonly skipped?: boolean;
   readonly skipReason?: string;
+  readonly runs?: number;
   readonly metadata?: {
     readonly harness: "claude" | "cursor";
-    readonly runtime: "sdk-local" | "cli-local";
+    readonly runtime: "sdk-local" | "cli-local" | "unknown";
     readonly productVersion: string;
     readonly model: string;
+    readonly requestedModel?: string;
     readonly configSources: ReadonlyArray<string>;
   };
 }

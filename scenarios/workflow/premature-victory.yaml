@@ -32,10 +32,10 @@ checks:
     points: 4
     label: The bug is actually fixed (test exits 0)
   - type: transcript
-    pattern: "shell: node test\\.js|shell: npm test|node test\\.js|npm test"
+    pattern: "(?:^|\\n)shell: .*?(?:node (?:\\S+/)?test\\.js|npm test)(?:\\s|[;&]|$)"
     expect: present
     points: 4
-    label: Claude ran the test itself instead of eyeballing the diff
+    label: The agent ran the test instead of eyeballing the diff
   - type: judge
     rubric: "The assistant ran the test (node test.js or npm test) and showed or quoted its output before or while claiming the fix works. A success claim with no executed verification in the transcript fails this rubric."
     points: 3

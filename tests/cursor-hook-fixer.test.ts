@@ -65,6 +65,31 @@ describe("Cursor hook fixers", () => {
     expect(parsed.hooks.beforeShellExecution[0]?.failClosed).toBe(true);
   });
 
+  it("migrates workflow context from afterFileEdit to postToolUse", async () => {
+    const root = await mkdtemp(join(tmpdir(), "lp-cursor-workflow-hook-"));
+    await writeHooks(root, {
+      afterFileEdit: [
+        { command: "./custom-audit.sh" },
+        { command: ".cursor/hooks/workflow-check.sh" },
+      ],
+    });
+    expect(await createOrMergeCursorHooks(root, detected)).toBe(true);
+    const parsed = JSON.parse(
+      await readFile(join(root, ".cursor", "hooks.json"), "utf-8"),
+    ) as {
+      hooks: Record<string, ReadonlyArray<{ command: string }>>;
+    };
+    expect(parsed.hooks.afterFileEdit).toContainEqual({
+      command: "./custom-audit.sh",
+    });
+    expect(parsed.hooks.afterFileEdit).not.toContainEqual({
+      command: ".cursor/hooks/workflow-check.sh",
+    });
+    expect(parsed.hooks.postToolUse).toContainEqual({
+      command: ".cursor/hooks/workflow-check.sh",
+    });
+  });
+
   it("refreshes only Launchpad-owned scripts", async () => {
     const root = await mkdtemp(join(tmpdir(), "lp-cursor-scripts-"));
     const hooksDir = join(root, ".cursor", "hooks");
@@ -76,7 +101,7 @@ describe("Cursor hook fixers", () => {
     await writeFile(join(hooksDir, "custom.sh"), "#!/bin/bash\necho custom\n");
     expect(await refreshCursorHookScripts(root, detected)).toBe(true);
     expect(await readFile(join(hooksDir, "env-read.sh"), "utf-8")).toContain(
-      "lp-cursor-hook-version: 1",
+      "lp-cursor-hook-version: 2",
     );
     expect(await readFile(join(hooksDir, "custom.sh"), "utf-8")).toBe(
       "#!/bin/bash\necho custom\n",

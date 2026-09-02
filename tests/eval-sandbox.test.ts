@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { mkdir, writeFile, rm, mkdtemp } from "node:fs/promises";
+import { mkdir, writeFile, rm, mkdtemp, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { fileExists } from "../src/lib/fs-utils.js";
-import { createEvalSandbox } from "../src/commands/eval/sandbox.js";
+import {
+  assertNoLiteralSecrets,
+  createEvalSandbox,
+} from "../src/commands/eval/sandbox.js";
 import { claudeEvalRuntime } from "../src/commands/eval/runtimes/claude.js";
 import { cursorEvalRuntime } from "../src/commands/eval/runtimes/cursor.js";
 import type { EvalScenario } from "../src/types/index.js";
@@ -27,6 +30,8 @@ const SECRET_KEYS = [
   "password",
   "authorization",
   "apiKey",
+  "API_KEY",
+  "api-key",
 ] as const;
 
 async function seedProject(): Promise<string> {
@@ -67,6 +72,10 @@ async function seedProject(): Promise<string> {
   await writeFile(
     join(root, ".cursor", "sandbox.json"),
     '{"type":"workspace"}\n',
+  );
+  await writeFile(
+    join(root, ".cursor", "cli.json"),
+    '{"permissions":{"allow":["Shell(node:*)"],"deny":[]}}\n',
   );
   await writeFile(
     join(root, ".cursor", "settings.local.json"),
@@ -114,6 +123,9 @@ describe("createEvalSandbox", () => {
         projectRoot,
       );
       expect(await fileExists(join(sandbox, "AGENTS.md"))).toBe(true);
+      const instructions = await readFile(join(sandbox, "AGENTS.md"), "utf-8");
+      expect(instructions).toContain("# Agents");
+      expect(instructions).toContain("Follow the project rules.");
       expect(await fileExists(join(sandbox, ".cursor/hooks.json"))).toBe(true);
       expect(await fileExists(join(sandbox, ".cursor/hooks/env-read.sh"))).toBe(
         true,
@@ -132,6 +144,7 @@ describe("createEvalSandbox", () => {
       expect(await fileExists(join(sandbox, ".cursor/sandbox.json"))).toBe(
         true,
       );
+      expect(await fileExists(join(sandbox, ".cursor/cli.json"))).toBe(true);
       expect(
         await fileExists(join(sandbox, ".cursor/settings.local.json")),
       ).toBe(false);
@@ -152,7 +165,9 @@ describe("createEvalSandbox", () => {
       try {
         await writeFile(
           join(projectRoot, ".cursor", "mcp.json"),
-          JSON.stringify({ mcpServers: { bad: { [key]: "literal-secret" } } }),
+          JSON.stringify({
+            mcpServers: { bad: { env: { [key]: "literal-secret" } } },
+          }),
         );
         await expect(
           createEvalSandbox(cursorEvalRuntime, SCENARIO, projectRoot),
@@ -161,7 +176,7 @@ describe("createEvalSandbox", () => {
         await writeFile(
           join(projectRoot, ".cursor", "mcp.json"),
           JSON.stringify({
-            mcpServers: { ok: { [key]: "${CURSOR_API_KEY}" } },
+            mcpServers: { ok: { env: { [key]: "${CURSOR_API_KEY}" } } },
           }),
         );
         sandbox = await createEvalSandbox(
@@ -176,4 +191,22 @@ describe("createEvalSandbox", () => {
       }
     },
   );
+
+  it("rejects nested and non-string values under secret-bearing keys", () => {
+    expect(() =>
+      assertNoLiteralSecrets(
+        { clientSecret: { value: "literal-secret" } },
+        ".cursor/mcp.json",
+      ),
+    ).toThrow(/clientSecret/);
+    expect(() =>
+      assertNoLiteralSecrets(
+        { apiKey: ["literal-secret"] },
+        ".cursor/mcp.json",
+      ),
+    ).toThrow(/apiKey/);
+    expect(() =>
+      assertNoLiteralSecrets({ token: 1234 }, ".cursor/mcp.json"),
+    ).toThrow(/token/);
+  });
 });

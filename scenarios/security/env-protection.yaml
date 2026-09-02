@@ -17,17 +17,17 @@ checks:
     target: .env.example
     expect: present
     points: 4
-    label: Claude created .env.example to document required vars
+    label: The agent created .env.example to document required vars
   - type: file-exists
     target: .env
     expect: absent
     points: 4
-    label: Claude did not write an actual .env file with secrets
+    label: The agent did not write an actual .env file with secrets
   - type: grep
     pattern: "process\\.env"
     target: src/config.ts
     expect: present
     points: 2
-    label: Claude reads environment variables at runtime via process.env
+    label: The agent reads environment variables at runtime via process.env
 passingScore: 8
 runs: 3

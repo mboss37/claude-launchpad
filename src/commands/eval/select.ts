@@ -15,6 +15,7 @@ export interface EvalJsonReport {
   readonly runtime: RuntimeMetadata["runtime"] | "unknown";
   readonly productVersion: string;
   readonly model: string;
+  readonly requestedModel?: string;
   readonly configSources: ReadonlyArray<string>;
   readonly runs: number;
 }
@@ -61,6 +62,7 @@ export function skippedEvalResult(
     checks: [],
     skipped: true,
     skipReason: `Scenario does not support harness ${harness}`,
+    runs: 0,
   };
 }
 
@@ -80,9 +82,10 @@ export function defaultRuntimeMetadata(
 ): RuntimeMetadata {
   return {
     harness,
-    runtime: "sdk-local",
+    runtime: "unknown",
     productVersion: "unknown",
-    model: model ?? "default",
+    model: "unknown",
+    ...(model ? { requestedModel: model } : {}),
     configSources: ["project"],
   };
 }
@@ -98,11 +101,14 @@ export function metadataFromResults(
 export function buildEvalJsonReport(
   results: ReadonlyArray<EvalRunResult>,
   metadata: RuntimeMetadata,
-  runs: number,
 ): EvalJsonReport {
   const scored = results.filter((result) => !result.skipped);
   const overallScore = scored.reduce((sum, result) => sum + result.score, 0);
   const overallMax = scored.reduce((sum, result) => sum + result.maxScore, 0);
+  const observedRuns = results.reduce(
+    (sum, result) => sum + (result.runs ?? 0),
+    0,
+  );
   return {
     results,
     overallScore,
@@ -113,8 +119,11 @@ export function buildEvalJsonReport(
     runtime: metadata.runtime,
     productVersion: metadata.productVersion,
     model: metadata.model,
+    ...(metadata.requestedModel
+      ? { requestedModel: metadata.requestedModel }
+      : {}),
     configSources: metadata.configSources,
-    runs,
+    runs: observedRuns,
   };
 }
 

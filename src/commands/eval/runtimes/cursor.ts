@@ -29,13 +29,16 @@ class CursorNoFallbackError extends Error {
 export const cursorEvalRuntime: EvalRuntime = {
   id: "cursor",
   async isAvailable() {
-    try {
-      await import("@cursor/sdk");
-      await rememberAgentVersion();
-      return true;
-    } catch {
-      return cursorCliExists();
+    if (process.env.CURSOR_API_KEY) {
+      try {
+        await import("@cursor/sdk");
+        await rememberAgentVersion();
+        return true;
+      } catch {
+        return cursorCliExists();
+      }
     }
+    return cursorCliExists();
   },
   prepareSandbox: copyCursorProjectConfig,
   run: runCursor,
@@ -59,7 +62,10 @@ async function runCursorSdk(
     throw new Error("SDK unavailable");
   }
   const sdk = await import("@cursor/sdk");
-  const agent = await sdk.Agent.create({
+  await rememberAgentVersion();
+  const deadline = Date.now() + options.timeout;
+  let agent: SdkAgentHandle | undefined;
+  const createPromise = sdk.Agent.create({
     apiKey: process.env.CURSOR_API_KEY,
     ...(options.model ? { model: { id: options.model } } : {}),
     local: {
@@ -69,22 +75,44 @@ async function runCursorSdk(
     },
   });
   try {
-    return await collectSdkTranscript(agent, options);
+    agent = await withDeadline(
+      createPromise,
+      deadline,
+      "agent creation",
+      undefined,
+      (late) => disposeAgent(late),
+    );
+    return await collectSdkTranscript(
+      agent,
+      options,
+      deadline,
+      cachedAgentVersion ?? "unknown",
+    );
   } finally {
-    await agent[Symbol.asyncDispose]();
+    if (agent) await disposeAgent(agent);
   }
 }
 
 async function collectSdkTranscript(
   agent: SdkAgentHandle,
   options: RuntimeRunOptions,
+  deadline: number,
+  productVersion: string,
 ): Promise<RuntimeTranscript> {
   let started = false;
   try {
+    const run = await withDeadline(
+      agent.send(options.prompt),
+      deadline,
+      "send",
+      undefined,
+      (late) => late.cancel(),
+    );
     started = true;
-    const run = await agent.send(options.prompt);
-    const rawLines = await readSdkStream(run, options.timeout);
-    const result = await run.wait();
+    const rawLines = await readSdkStream(run, deadline);
+    const result = await withDeadline(run.wait(), deadline, "wait", () =>
+      run.cancel(),
+    );
     if (result.status !== "finished") {
       throw new CursorNoFallbackError(
         `Cursor run ended with status ${result.status}`,
@@ -95,7 +123,12 @@ async function collectSdkTranscript(
       events: rawLines.flatMap((line) =>
         normalizeCursorSdkEvent(safeParse(line)),
       ),
-      metadata: cursorMetadata("sdk-local", options.model),
+      metadata: cursorMetadata(
+        "sdk-local",
+        modelId(result.model),
+        productVersion,
+        options.model,
+      ),
     };
   } catch (error) {
     if (started) throw new CursorNoFallbackError(error);
@@ -105,46 +138,45 @@ async function collectSdkTranscript(
 
 async function readSdkStream(
   run: SdkRunHandle,
-  timeout: number,
+  deadline: number,
 ): Promise<string[]> {
-  const timeoutId = setTimeout(() => {
-    void run.cancel();
-  }, timeout);
   const rawLines: string[] = [];
-  try {
+  const collect = async (): Promise<string[]> => {
     for await (const event of run.stream()) {
       rawLines.push(JSON.stringify(event));
     }
     return rawLines;
-  } finally {
-    clearTimeout(timeoutId);
-  }
+  };
+  return withDeadline(collect(), deadline, "stream", () => run.cancel());
 }
 
 async function runCursorCli(
   options: RuntimeRunOptions,
 ): Promise<RuntimeTranscript> {
   const args = cursorCliArgs(options);
+  await rememberAgentVersion();
   try {
     const { stdout } = await exec("agent", args, {
       cwd: options.cwd,
       timeout: options.timeout,
       maxBuffer: 10 * 1024 * 1024,
     });
+    if (!hasSuccessfulCliResult(stdout)) {
+      throw new Error(
+        "Cursor Agent CLI exited without a successful terminal result",
+      );
+    }
     return {
       raw: stdout,
       events: normalizeCursorRaw(stdout),
-      metadata: cursorMetadata("cli-local", options.model),
+      metadata: cursorMetadata(
+        "cli-local",
+        cursorCliModel(stdout),
+        cachedAgentVersion,
+        options.model,
+      ),
     };
-  } catch (error: unknown) {
-    if (error && typeof error === "object" && "stdout" in error) {
-      const raw = String((error as { stdout: unknown }).stdout ?? "");
-      return {
-        raw,
-        events: normalizeCursorRaw(raw),
-        metadata: cursorMetadata("cli-local", options.model),
-      };
-    }
+  } catch (error) {
     throw error;
   }
 }
@@ -159,12 +191,15 @@ function cursorCliArgs(options: RuntimeRunOptions): string[] {
 function cursorMetadata(
   runtime: RuntimeMetadata["runtime"],
   model?: string,
+  productVersion?: string,
+  requestedModel?: string,
 ): RuntimeMetadata {
   return {
     harness: "cursor",
     runtime,
-    productVersion: cachedAgentVersion ?? "unknown",
-    model: model ?? "default",
+    productVersion: productVersion ?? "unknown",
+    model: model ?? "unknown",
+    ...(requestedModel ? { requestedModel } : {}),
     configSources: ["project"],
   };
 }
@@ -215,6 +250,78 @@ function safeParse(line: string): unknown {
   }
 }
 
+function hasSuccessfulCliResult(raw: string): boolean {
+  return raw.split("\n").some((line) => {
+    const value = safeParse(line);
+    if (value === null || typeof value !== "object") return false;
+    const record = value as Record<string, unknown>;
+    return (
+      record.type === "result" &&
+      record.subtype === "success" &&
+      record.is_error !== true
+    );
+  });
+}
+
+function cursorCliModel(raw: string): string | undefined {
+  for (const line of raw.split("\n")) {
+    const value = safeParse(line);
+    if (value === null || typeof value !== "object") continue;
+    const record = value as Record<string, unknown>;
+    if (record.type === "system" && record.subtype === "init") {
+      const model = modelId(record.model);
+      if (model) return model;
+    }
+  }
+  return undefined;
+}
+
+function modelId(model: unknown): string | undefined {
+  if (typeof model === "string") return model;
+  if (model === null || typeof model !== "object") return undefined;
+  const id = (model as { id?: unknown }).id;
+  return typeof id === "string" ? id : undefined;
+}
+
+async function withDeadline<T>(
+  promise: Promise<T>,
+  deadline: number,
+  stage: string,
+  onTimeout?: () => Promise<void>,
+  onLateResolve?: (value: T) => Promise<void>,
+): Promise<T> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<T>((_, reject) => {
+    timeoutId = setTimeout(
+      () => {
+        if (onTimeout) void onTimeout().catch(() => undefined);
+        reject(
+          new CursorNoFallbackError(new Error(`Cursor SDK ${stage} timed out`)),
+        );
+      },
+      Math.max(1, deadline - Date.now()),
+    );
+  });
+  try {
+    return await Promise.race([promise, timeout]);
+  } catch (error) {
+    if (onLateResolve) {
+      void promise.then((value) => onLateResolve(value)).catch(() => undefined);
+    }
+    throw error;
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
+}
+
+async function disposeAgent(agent: SdkAgentHandle): Promise<void> {
+  const dispose = agent[Symbol.asyncDispose]().catch(() => undefined);
+  await Promise.race([
+    dispose,
+    new Promise<void>((resolve) => setTimeout(resolve, 1_000)),
+  ]);
+}
+
 async function copyCursorProjectConfig(
   sandboxDir: string,
   projectRoot: string,
@@ -237,6 +344,10 @@ async function copyCursorProjectConfig(
     join(sandboxDir, ".cursor", "sandbox.json"),
   );
   await copyJsonWithoutSecrets(
+    join(projectRoot, ".cursor", "cli.json"),
+    join(sandboxDir, ".cursor", "cli.json"),
+  );
+  await copyJsonWithoutSecrets(
     join(projectRoot, ".cursor", "mcp.json"),
     join(sandboxDir, ".cursor", "mcp.json"),
   );
@@ -255,6 +366,6 @@ interface SdkAgentHandle {
 
 interface SdkRunHandle {
   stream(): AsyncIterable<unknown>;
-  wait(): Promise<{ status: string }>;
+  wait(): Promise<{ status: string; model?: unknown }>;
   cancel(): Promise<void>;
 }

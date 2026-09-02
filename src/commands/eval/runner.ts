@@ -1,7 +1,7 @@
 import { rm } from "node:fs/promises";
 import type { EvalScenario, EvalRunResult } from "../../types/index.js";
 import type { RuntimeTranscript } from "./runtime.js";
-import { evaluateChecks, makeClaudeJudge } from "./checks.js";
+import { evaluateChecks, makeClaudeJudge, makeRuntimeJudge } from "./checks.js";
 import type { EvalRuntime } from "./runtime.js";
 import { createEvalSandbox } from "./sandbox.js";
 import { normalizeClaudeRaw, serializeCanonicalEvents } from "./transcript.js";
@@ -11,7 +11,6 @@ interface RunOptions {
   readonly timeout: number;
   readonly debug?: boolean;
   readonly model?: string;
-  readonly judgeModel?: string;
   readonly runtime: EvalRuntime;
 }
 
@@ -45,11 +44,12 @@ export async function runScenario(
       scenario,
       sandboxDir,
       transcript,
-      options.judgeModel,
+      options.runtime,
+      options.model,
     );
   } finally {
     if (options.debug) {
-      console.log(`  DEBUG: Sandbox preserved at ${sandboxDir}`);
+      console.error(`  DEBUG: Sandbox preserved at ${sandboxDir}`);
     } else {
       await rm(sandboxDir, { recursive: true, force: true }).catch(() => {});
     }
@@ -71,13 +71,17 @@ export async function runScenarioWithRetries(
   }
 
   const sorted = [...results].sort((a, b) => a.score - b.score);
-  return sorted[Math.floor(sorted.length / 2)];
+  return {
+    ...sorted[Math.floor(sorted.length / 2)],
+    runs: scenario.runs,
+  };
 }
 
 async function scoreResults(
   scenario: EvalScenario,
   sandboxDir: string,
   transcript: RuntimeTranscript,
+  runtime: EvalRuntime,
   model?: string,
 ): Promise<EvalRunResult> {
   const canonical =
@@ -87,7 +91,10 @@ async function scoreResults(
   const checkResults = await evaluateChecks(scenario.checks, sandboxDir, {
     transcript: canonical,
     rawTranscript: transcript.raw,
-    judge: makeClaudeJudge(model),
+    judge:
+      runtime.id === "cursor"
+        ? makeRuntimeJudge(runtime, model)
+        : makeClaudeJudge(model),
   });
 
   const score = checkResults
@@ -102,6 +109,7 @@ async function scoreResults(
     maxScore,
     passed: score >= scenario.passingScore,
     checks: checkResults,
+    runs: 1,
     metadata: transcript.metadata,
   };
 }

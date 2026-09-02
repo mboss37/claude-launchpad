@@ -3,9 +3,10 @@ import type { CanonicalEvent } from "./transcript.js";
 
 export interface RuntimeMetadata {
   readonly harness: "claude" | "cursor";
-  readonly runtime: "sdk-local" | "cli-local";
+  readonly runtime: "sdk-local" | "cli-local" | "unknown";
   readonly productVersion: string;
   readonly model: string;
+  readonly requestedModel?: string;
   readonly configSources: ReadonlyArray<string>;
 }
 

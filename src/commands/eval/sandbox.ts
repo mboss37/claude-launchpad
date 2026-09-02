@@ -10,7 +10,7 @@ import type { EvalRuntime } from "./runtime.js";
 
 const exec = promisify(execFile);
 
-const SECRET_KEY = /token|secret|password|authorization|apikey/i;
+const SECRET_KEY = /token|secret|password|authorization|apikey/;
 const ENV_REFERENCE = /^\$[A-Z_][A-Z0-9_]*$|^\$\{(?:env:)?[A-Z_][A-Z0-9_]+\}$/i;
 
 export async function createEvalSandbox(
@@ -88,9 +88,14 @@ async function writeScenarioInstructions(
 ): Promise<void> {
   if (!scenario.setup.instructions) return;
   const name = harness === "cursor" ? "AGENTS.md" : "CLAUDE.md";
+  const path = join(sandboxDir, name);
+  const existing = (await fileExists(path))
+    ? await readFile(path, "utf-8")
+    : "";
+  const separator = existing.length > 0 && !existing.endsWith("\n") ? "\n" : "";
   await writeFile(
-    join(sandboxDir, name),
-    `# Eval Scenario\n\n${scenario.setup.instructions}\n`,
+    path,
+    `${existing}${separator}\n# Eval Scenario\n\n${scenario.setup.instructions}\n`,
   );
 }
 
@@ -123,16 +128,24 @@ function findLiteralSecretKey(value: unknown): string | null {
   }
   if (value === null || typeof value !== "object") return null;
   for (const [key, entry] of Object.entries(value)) {
-    if (
-      SECRET_KEY.test(key) &&
-      typeof entry === "string" &&
-      entry.length > 0 &&
-      !ENV_REFERENCE.test(entry)
-    ) {
+    const normalizedKey = key.replace(/[^a-z0-9]/gi, "").toLowerCase();
+    if (SECRET_KEY.test(normalizedKey) && isLiteralSecretValue(entry)) {
       return key;
     }
     const nested = findLiteralSecretKey(entry);
     if (nested) return nested;
   }
   return null;
+}
+
+function isLiteralSecretValue(entry: unknown): boolean {
+  if (entry === null || entry === undefined) return false;
+  if (typeof entry === "string") {
+    return entry.length > 0 && !ENV_REFERENCE.test(entry);
+  }
+  return (
+    typeof entry === "number" ||
+    typeof entry === "boolean" ||
+    typeof entry === "object"
+  );
 }
