@@ -1,4 +1,4 @@
-name: Claude Code Config Quality
+name: Agent Config Quality
 
 on:
   pull_request:
@@ -6,6 +6,9 @@ on:
       - 'CLAUDE.md'
       - '.claude/**'
       - '.claudeignore'
+      - 'AGENTS.md'
+      - '.cursor/**'
+      - '.cursorignore'
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -20,5 +23,5 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Check Claude Code config quality
+      - name: Check coding-agent config quality
         run: npx claude-launchpad@latest doctor --min-score 80 --json

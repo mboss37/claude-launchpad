@@ -30,6 +30,9 @@ coverage/
 .claude/memory/
 CLAUDE.local.md
 
+# Cursor (local only)
+.cursor/*.log
+
 # Supabase (local)
 supabase/.temp/
 

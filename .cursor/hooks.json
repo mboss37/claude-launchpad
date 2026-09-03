@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeReadFile": [
+      {
+        "command": ".cursor/hooks/env-read.sh",
+        "failClosed": true
+      }
+    ],
+    "beforeShellExecution": [
+      {
+        "command": ".cursor/hooks/destructive-shell.sh",
+        "failClosed": true
+      }
+    ],
+    "afterFileEdit": [
+      {
+        "command": ".cursor/hooks/auto-format.sh"
+      }
+    ],
+    "postToolUse": [
+      {
+        "command": ".cursor/hooks/workflow-check.sh"
+      }
+    ],
+    "afterShellExecution": [
+      {
+        "command": ".cursor/hooks/sprint-open.sh"
+      }
+    ],
+    "sessionStart": [
+      {
+        "command": ".cursor/hooks/session-context.sh"
+      },
+      {
+        "command": ".cursor/hooks/sprint-size.sh"
+      }
+    ]
+  }
+}
