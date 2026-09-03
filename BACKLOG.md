@@ -47,17 +47,7 @@ One-paragraph description.
 
 ## P1 — Soon (within 2–3 sprints)
 
-### WP-057 — Cursor M5: docs sweep and 1.18.0 release
-
-- **Priority:** P1
-- **Proposed:** 2026-08-30
-- **Stories / Docs:** docs/superpowers/specs/2026-08-30-cursor-agent-support-design.md (Release Decomposition M5); docs/superpowers/plans/2026-08-30-cursor-m5-docs-release.md
-- **Depends on:** M2, M3, M4 (Cursor `--fix`, eval, local memory) complete on master
-- **Estimate:** S
-- **Trigger to pull:** The session after M4 closes. Do not pull earlier. Do not publish Cursor as "full" before this WP.
-- **Definition of done:** Cursor-only `init` output contains no `.claude/` or `CLAUDE.md` strings in TASKS.md, BACKLOG.md, or `.cursor/rules/*.mdc`. README + docs/content/docs/{index,init,doctor}.mdx describe `--harness` and the real command matrix (eval/memory local-Cursor only after M3/M4; Cloud memory never). Version is 1.18.0 in package.json and src/cli.ts. CHANGELOG has a 1.18.0 section. `pnpm publish:release` succeeded, `npm view claude-launchpad version` is 1.18.0, git tag `v1.18.0` exists, `gh release` exists, TASKS.md Release Plan line says shipped.
-
-One public Cursor release after the product is complete. M1-M4 do not bump versions or publish.
+<!-- Empty. -->
 
 ---
 
@@ -129,6 +119,7 @@ Two small interaction bugs in `init` when both harnesses are selected: a decline
 
 ## Changelog
 
+- **2026-09-03:** Sprint / M5 closed. WP-057 done. v1.18.0 shipped (npm latest, tag, GitHub release). Cursor is a first-class local harness.
 - **2026-09-01:** WP-059 minted and pulled into Sprint 43. Cursor M3: eval through Cursor Agent.
 - **2026-09-01:** Sprint 42 closed. WP-058, WP-055 done (Cursor `--fix` + live canary + doctor/generator parity). No version bump.
 - **2026-08-30:** WP-058 minted and pulled into Sprint 42 with WP-055. Cursor M2: `--fix` + live canary.
