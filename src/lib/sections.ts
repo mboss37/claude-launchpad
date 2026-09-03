@@ -17,7 +17,7 @@ export const BACKLOG_CONTENT =
 
 export const STOP_AND_SWARM_CONTENT =
   "Three failed iterations on the same problem = stop iterating alone.\n" +
-  "(An iteration = an attempted fix that did not change the failing symptom. Announce \"Attempt N\" when retrying so the count stays visible.)\n" +
+  '(An iteration = an attempted fix that did not change the failing symptom. Announce "Attempt N" when retrying so the count stays visible.)\n' +
   "First, one systematic pass — it usually resolves the loop without the swarm:\n" +
   "reproduce the failure, read the FULL error output, state one hypothesis about the root cause, and verify it BEFORE writing any fix.\n" +
   "Only if that pass fails, swarm: dispatch at least 3 parallel subagents via the Task tool — in a single message so they run concurrently — each investigating from a different angle:\n" +
@@ -30,8 +30,10 @@ export const STOP_AND_SWARM_CONTENT =
   "For re-planning after repeated failure, switch to plan mode instead of attempting again.";
 
 /** The exact phrase shipped by pre-v1.12 templates — doctor flags and rewrites it. */
-export const STALE_SWARM_PHRASE = "spin up at least 3 parallel agents via the Agent tool";
-export const SWARM_PHRASE_REPLACEMENT = "dispatch at least 3 parallel subagents via the Task tool (in a single message so they run concurrently)";
+export const STALE_SWARM_PHRASE =
+  "spin up at least 3 parallel agents via the Agent tool";
+export const SWARM_PHRASE_REPLACEMENT =
+  "dispatch at least 3 parallel subagents via the Task tool (in a single message so they run concurrently)";
 
 export const OFF_LIMITS_CONTENT =
   "- Never hardcode secrets — use environment variables\n" +
@@ -46,7 +48,7 @@ export const SKILL_AUTHORING_CONTENT =
   "- Add allowed-tools in frontmatter to restrict tool access (e.g. Read, Glob, Grep for read-only skills)\n" +
   "- Add argument-hint in frontmatter showing the expected input format (use $ARGUMENTS or $0, $1 for dynamic input)\n" +
   "- Set disable-model-invocation: true for skills with side effects (deploy, send messages)\n" +
-  "- Structure as phases: Research, Plan, Execute, Verify with \"Done when:\" success criteria per phase\n" +
+  '- Structure as phases: Research, Plan, Execute, Verify with "Done when:" success criteria per phase\n' +
   "- Handle edge cases and preconditions before execution";
 
 /**
@@ -54,8 +56,16 @@ export const SKILL_AUTHORING_CONTENT =
  * anchored to the sprint's base commit, with the manual pass as fallback.
  * Verification commands are interpolated from stack detection when known.
  */
-export function sprintReviewsContent(testCommand: string | null, lintCommand: string | null, superpowers = false): string {
-  const known = [testCommand, lintCommand].filter((c): c is string => !!c).map((c) => `\`${c}\``).join(" and ");
+export function sprintReviewsContent(
+  testCommand: string | null,
+  lintCommand: string | null,
+  superpowers = false,
+  reviewerAgentPath = ".claude/agents/code-reviewer.md",
+): string {
+  const known = [testCommand, lintCommand]
+    .filter((c): c is string => !!c)
+    .map((c) => `\`${c}\``)
+    .join(" and ");
   const verifyLine = known
     ? `- Run ${known} — must pass before the sprint-ending commit`
     : "- Run the project's test and typecheck commands — they must pass before the sprint-ending commit";
@@ -64,11 +74,12 @@ export function sprintReviewsContent(testCommand: string | null, lintCommand: st
     "- Find the sprint base: \`git log --grep 'chore(sprint-' -n 1 --format=%H\`\n" +
     "- Run /code-review on the diff from that base; fix all Critical and Important findings before committing\n" +
     "- Run /security-review if the sprint touched auth, input handling, or dependencies\n" +
-    verifyLine + "\n" +
+    verifyLine +
+    "\n" +
     "- If /code-review is unavailable, do a manual pass: dead code, debug logs, TODO hacks, convention violations, hardcoded values\n" +
     (superpowers
       ? "- superpowers detected: invoke superpowers:requesting-code-review for the independent pass (severity-gated)\n"
-      : "- For an independent second pass, dispatch the code-reviewer agent (.claude/agents/code-reviewer.md) with the base/head SHAs\n") +
+      : `- For an independent second pass, dispatch the code-reviewer agent (${reviewerAgentPath}) with the base/head SHAs\n`) +
     "- Skip only if the sprint was trivial (docs or config-only changes)"
   );
 }

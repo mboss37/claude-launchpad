@@ -64,7 +64,7 @@ export function createDoctorCommand(): Command {
       if (harnesses.length === 0) {
         if (!opts.json) {
           printBanner();
-          log.error("No Claude Code configuration found in this directory.");
+          log.error("No coding agent config found in this directory.");
           log.info(
             "Run `claude-launchpad init` to set up a project, or cd into a configured project.",
           );
@@ -262,6 +262,7 @@ async function finishClaudeReport(
         2,
       ),
     );
+    exitOnMinScore(opts.minScore, overallScore);
     return;
   }
 

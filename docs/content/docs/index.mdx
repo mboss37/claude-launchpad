@@ -1,13 +1,14 @@
 ---
 title: Getting Started
-description: Install Claude Launchpad and score your Claude Code setup in 10 seconds. Doctor diagnoses your CLAUDE.md, hooks, and permissions; eval proves Claude follows your rules; memory persists decisions across sessions and machines.
+description: Install Claude Launchpad and score your coding-agent setup in seconds. Doctor diagnoses Claude Code or Cursor Agent config; eval proves the agent follows your rules; memory persists decisions across sessions and machines.
 ---
 
 import { Step, Steps } from 'fumadocs-ui/components/steps';
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 
-Claude Code follows your CLAUDE.md rules about 80% of the time. Hooks run at 100%.
-Most projects have zero hooks configured. Claude Launchpad fixes that.
+Claude Code follows CLAUDE.md rules about 80% of the time. Hooks run at 100%.
+Most projects have zero hooks configured. Claude Launchpad scores and repairs
+that setup — and does the same for local Cursor Agent projects.
 
 ## Install
 
@@ -35,9 +36,19 @@ Or install globally:
   </Tab>
 </Tabs>
 
-Claude Launchpad has 4 CLI commands (`init`, `doctor`, `eval`, `memory`) and 2 skills (`/lp-enhance`, `/lp-migrate-memory`). Memory is optional.
+Claude Launchpad has 4 CLI commands (`init`, `doctor`, `eval`, `memory`) and 2 skills (`/lp-enhance`, `/lp-migrate-memory`). Memory is optional. The npm package name stays `claude-launchpad`.
 
-Use `--harness cursor` or `--harness both` to scaffold and diagnose local Cursor Agent projects (`AGENTS.md`, `.cursor/`). Cursor doctor is read-only in this milestone (`--fix` is rejected). Eval and memory remain Claude-only until later milestones. Cursor Cloud memory is not supported.
+Two local harnesses share the same workflow files (`TASKS.md`, `BACKLOG.md`) and the same memory store. Scores are never averaged.
+
+| Command | Claude Code | Local Cursor Agent |
+|---|---|---|
+| `init` | default (`CLAUDE.md`, `.claude/`) | `--harness cursor` (`AGENTS.md`, `.cursor/`) |
+| `doctor` / `--fix` | yes | yes (`--harness auto` detects either) |
+| `eval` | yes | `--harness cursor` |
+| `memory install` | yes | `--harness cursor` (same SQLite + MCP) |
+| `/lp-enhance` | `.claude/skills/lp-enhance/` | `.cursor/skills/lp-enhance/` |
+
+`--harness both` scaffolds or diagnoses both surfaces in one run. `--min-score` gates each harness separately. Cursor Cloud Agents cannot use the local memory MCP server.
 
 <Callout type="info">
   **Why hooks matter:** CLAUDE.md rules are ~80% reliable. Hooks are 100% enforced. A SessionStart hook that runs `cat TASKS.md` means Claude sees your tasks at every session start. A SessionStart hook with the `compact` matcher re-surfaces tasks after context compression, keeping work on track.
@@ -53,7 +64,7 @@ Use `--harness cursor` or `--harness both` to scaffold and diagnose local Cursor
     ```bash
     claude-launchpad init
     ```
-    Generates baseline config files in-project (`CLAUDE.md`, `TASKS.md`, `.claude/settings.json`) and creates `.claudeignore`, `.claude/.gitignore`, and `.claude/rules/conventions.md` when missing. It also offers `/lp-enhance` install (project/global/skip) when not already installed.
+    Generates baseline config for the selected harness. Default is Claude Code (`CLAUDE.md`, `.claude/`). `init --harness cursor` writes `AGENTS.md` and `.cursor/`. Shared `TASKS.md` and `BACKLOG.md` are written once.
   </Step>
   <Step>
     ### Diagnose + fix
@@ -63,18 +74,18 @@ Use `--harness cursor` or `--harness both` to scaffold and diagnose local Cursor
     Catches anything init missed and auto-fixes it.
   </Step>
   <Step>
-    ### Let Claude perfect it
+    ### Let the agent perfect it
     ```
     /lp-enhance
     ```
-    Inside Claude Code, run the skill. Claude reads your codebase, restructures CLAUDE.md, and fills in architecture, conventions, and guardrails with real content.
+    Inside Claude Code or Cursor Agent, run the skill. It reads your codebase and fills in architecture, conventions, and guardrails on `CLAUDE.md` or `AGENTS.md`.
   </Step>
   <Step>
     ### Prove it works
     ```bash
     claude-launchpad eval
     ```
-    17 scenarios test if Claude actually follows your rules.
+    17 scenarios test whether the selected agent actually follows your rules. Use `--harness cursor` for Cursor Agent.
   </Step>
 </Steps>
 
@@ -97,11 +108,11 @@ Use `--harness cursor` or `--harness both` to scaffold and diagnose local Cursor
     Adds missing hooks/rules/sections, security defaults, and creates `/lp-enhance` only when no project/global/legacy install already exists. Jumps to ~86%.
   </Step>
   <Step>
-    ### Let Claude clean it up
+    ### Let the agent clean it up
     ```
     /lp-enhance
     ```
-    Inside Claude Code, type `/lp-enhance`. The fixer appends sections mechanically - the skill has Claude restructure and rewrite CLAUDE.md into clean, project-specific content.
+    Type `/lp-enhance` in Claude Code or Cursor Agent. The fixer appends sections mechanically — the skill rewrites the instruction file with project-specific content.
   </Step>
   <Step>
     ### Prove it works
@@ -118,8 +129,8 @@ Use `--harness cursor` or `--harness both` to scaffold and diagnose local Cursor
 | When | Run |
 |---|---|
 | Added dependencies, changed frameworks, modified hooks | `doctor --fix` |
-| Major refactor, new modules, CLAUDE.md feels stale | `/lp-enhance` |
-| Before a release, after config changes, Claude ignoring rules | `eval` |
+| Major refactor, new modules, CLAUDE.md or AGENTS.md feels stale | `/lp-enhance` |
+| Before a release, after config changes, the agent ignoring rules | `eval` |
 | You want cross-session memory with local SQLite + MCP tools | `memory` |
 
 <Callout type="info">
@@ -133,15 +144,15 @@ Each tool handles one job. No overlap.
 | Responsibility | `init` | `doctor --fix` | `/lp-enhance` | `eval` | `memory` |
 |---|---|---|---|---|---|
 | Detect stack and framework | ✓ | | | | |
-| Generate CLAUDE.md, TASKS.md, BACKLOG.md | ✓ | | | | |
-| Generate settings.json and hooks | ✓ | ✓ | | | |
-| Generate .claudeignore | ✓ | ✓ | | | |
+| Generate CLAUDE.md / AGENTS.md, TASKS.md, BACKLOG.md | ✓ | | | | |
+| Generate settings or hooks.json | ✓ | ✓ | | | |
+| Generate .claudeignore / .cursorignore | ✓ | ✓ | | | |
 | Score config 0-100 | | ✓ | | | |
 | Fix missing sections, rules, permissions | | ✓ | | | |
-| Rewrite CLAUDE.md with real project content | | | ✓ | | |
+| Rewrite CLAUDE.md / AGENTS.md with real project content | | | ✓ | | |
 | Suggest hooks, MCP servers, path-scoped rules | | | ✓ | | |
-| Overflow conventions to .claude/rules/ | | | ✓ | | |
-| Prove Claude follows your rules | | | | ✓ | |
+| Overflow conventions to rules files | | | ✓ | | |
+| Prove the agent follows your rules | | | | ✓ | |
 | Run sandbox test scenarios | | | | ✓ | |
 | Persistent cross-session memory | | | | | ✓ |
 | Memory dashboard, sync, migration | | | | | ✓ |
@@ -156,8 +167,8 @@ Each tool handles one job. No overlap.
 | `claude-launchpad` / `doctor` | Locally, free |
 | `claude-launchpad doctor --fix` | Locally, free |
 | `claude-launchpad doctor --watch` | Locally, free |
-| `/lp-enhance` (skill) | Inside Claude Code |
-| `claude-launchpad eval` | Via Claude CLI |
+| `/lp-enhance` (skill) | Inside Claude Code or Cursor Agent |
+| `claude-launchpad eval` | Via Claude CLI or Cursor Agent |
 | `claude-launchpad memory` | Locally |
 | `claude-launchpad memory --dashboard` | Locally |
 | `claude-launchpad memory push/pull` | Via GitHub API |
@@ -165,7 +176,7 @@ Each tool handles one job. No overlap.
 | `claude-launchpad memory sync clean` | Locally |
 
 <Callout type="info">
-  Commands marked **Locally** run offline with zero API calls. Commands marked **Via Claude CLI** require Claude Code installed and authenticated. Memory is optional.
+  Commands marked **Locally** run offline with zero API calls. Eval requires the selected harness CLI or SDK (Claude Code or Cursor Agent) and authentication. Memory is optional.
 </Callout>
 
 ## Next Steps
@@ -173,7 +184,7 @@ Each tool handles one job. No overlap.
 <Cards>
   <Card title="init" description="Scaffold a secure config for your project" href="/docs/init" />
   <Card title="doctor" description="Score your config and auto-fix issues" href="/docs/doctor" />
-  <Card title="enhance" description="Let Claude perfect your CLAUDE.md" href="/docs/enhance" />
-  <Card title="eval" description="Prove Claude follows your rules" href="/docs/eval" />
+  <Card title="enhance" description="Let the agent rewrite CLAUDE.md or AGENTS.md" href="/docs/enhance" />
+  <Card title="eval" description="Prove the agent follows your rules" href="/docs/eval" />
   <Card title="memory" description="Persistent intelligent memory across sessions" href="/docs/memory" />
 </Cards>

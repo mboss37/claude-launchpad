@@ -1,12 +1,17 @@
 import type { InitOptions } from "../../../types/index.js";
 
-export function generateBacklogMd(options: InitOptions): string {
+export function generateBacklogMd(
+  options: InitOptions,
+  extras: { readonly workflowRulePath?: string } = {},
+): string {
   const today = new Date().toISOString().slice(0, 10);
+  const workflowRulePath =
+    extras.workflowRulePath ?? ".claude/rules/workflow.md";
   return `# ${options.name} — Backlog
 
 > **Single source of truth for future work.** Every work package (WP) that's been proposed but not yet started lives here.
 >
-> Rules (see \`.claude/rules/workflow.md\` for the full lifecycle):
+> Rules (see \`${workflowRulePath}\` for the full lifecycle):
 > - Every WP uses the template below — no freeform entries.
 > - WPs are **moved** to \`TASKS.md\` when pulled into a sprint, not copied. A WP lives in exactly one file at a time.
 > - Priority ordering: **P0 > P1 > P2 > P3**. P0 items sit at the top.

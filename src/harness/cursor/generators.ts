@@ -90,7 +90,10 @@ export function generateAgentsMd(
   features: { readonly superpowers: boolean } = { superpowers: false },
 ): string {
   return renderAgentInstructions(
-    buildAgentInstructions(options, detected, features),
+    buildAgentInstructions(options, detected, {
+      ...features,
+      reviewerAgentPath: ".cursor/agents/code-reviewer.md",
+    }),
   );
 }
 
@@ -107,7 +110,9 @@ export function generateCursorWorkflowRule(): string {
     description: "Workflow rules",
     globs: "{BACKLOG.md,TASKS.md}",
     alwaysApply: false,
-    body: stripClaudeRuleChrome(generateWorkflowRule()),
+    body: translateWorkflowRuleForCursor(
+      stripClaudeRuleChrome(generateWorkflowRule()),
+    ),
     marker: `lp-cursor-workflow-version: ${CURSOR_WORKFLOW_RULE_VERSION}`,
   });
 }
@@ -117,7 +122,9 @@ export function generateCursorHooksRule(): string {
     description: "Hook authoring rules",
     globs: "{.cursor/hooks.json,.cursor/hooks/**}",
     alwaysApply: false,
-    body: stripClaudeRuleChrome(generateHooksRule()),
+    body: translateHooksRuleForCursor(
+      stripClaudeRuleChrome(generateHooksRule()),
+    ),
     marker: `lp-cursor-hooks-version: ${CURSOR_HOOKS_RULE_VERSION}`,
   });
 }
@@ -147,6 +154,27 @@ function stripClaudeRuleChrome(content: string): string {
   return withoutFrontmatter
     .replace(/<!-- lp-[a-z-]+-version: \d+ -->\n*/g, "")
     .replace(/^\n+/, "");
+}
+
+function translateWorkflowRuleForCursor(body: string): string {
+  return body
+    .replaceAll(".claude/rules/conventions.md", ".cursor/rules/conventions.mdc")
+    .replaceAll("PostToolUse", "postToolUse");
+}
+
+function translateHooksRuleForCursor(body: string): string {
+  return body
+    .replaceAll(
+      "# Claude Code Hook Authoring Rules",
+      "# Cursor Hook Authoring Rules",
+    )
+    .replaceAll("Claude Code", "Cursor Agent")
+    .replaceAll(".claude/settings.local.json", ".cursor/hooks.json")
+    .replaceAll(".claude/settings.json", ".cursor/hooks.json")
+    .replaceAll("PreToolUse", "beforeShellExecution")
+    .replaceAll("SessionStart", "sessionStart")
+    .replaceAll("PostToolUse", "afterFileEdit")
+    .replaceAll(".claude/", ".cursor/");
 }
 
 function stripFrontmatter(content: string): string {

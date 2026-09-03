@@ -1,9 +1,19 @@
 import type { InitOptions } from "../../../types/index.js";
 
-export function generateTasksMd(options: InitOptions): string {
+const DEFAULT_WORKFLOW_RULE = ".claude/rules/workflow.md";
+
+export function generateTasksMd(
+  options: InitOptions,
+  extras: { readonly workflowRulePath?: string } = {},
+): string {
+  const workflowRulePath = extras.workflowRulePath ?? DEFAULT_WORKFLOW_RULE;
+  const opener =
+    workflowRulePath === DEFAULT_WORKFLOW_RULE
+      ? "Claude: Read at session start."
+      : "Read at session start.";
   return `# ${options.name} — Task Tracker
 
-> Claude: Read at session start. See \`.claude/rules/workflow.md\` for the rules.
+> ${opener} See \`${workflowRulePath}\` for the rules.
 >
 > - \`## Current Sprint\` holds ONLY active-sprint WPs. Empty between sprints.
 > - WPs are pulled from \`BACKLOG.md\` into here (moved, not copied).

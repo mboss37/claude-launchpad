@@ -11,7 +11,7 @@ const program = new Command()
   .description(
     "Score your coding agent config, fix the gaps, prove the agent follows your rules.",
   )
-  .version("1.17.1", "-v, --version")
+  .version("1.18.0", "-v, --version")
   .action(async () => {
     const detected = await detectHarnesses(process.cwd());
 

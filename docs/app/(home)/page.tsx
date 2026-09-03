@@ -30,7 +30,7 @@ const newProjectSteps = [
     icon: RocketIcon,
     prefix: "$",
     command: "claude-launchpad init",
-    detail: "Generate the baseline Claude setup for a new repo.",
+    detail: "Generate Claude Code or Cursor Agent config (`--harness cursor`).",
     href: "/docs/init",
   },
   {
@@ -44,15 +44,14 @@ const newProjectSteps = [
     icon: SparklesIcon,
     prefix: ">",
     command: "/lp-enhance",
-    detail:
-      "Claude reads your code and completes CLAUDE.md with real conventions and guardrails.",
+    detail: "The agent reads your code and completes CLAUDE.md or AGENTS.md.",
     href: "/docs/enhance",
   },
   {
     icon: FlaskConicalIcon,
     prefix: "$",
     command: "claude-launchpad eval",
-    detail: "Run scenarios to verify Claude actually follows your rules.",
+    detail: "Run scenarios to verify the agent actually follows your rules.",
     href: "/docs/eval",
   },
 ] as const;
@@ -76,15 +75,14 @@ const existingProjectSteps = [
     icon: SparklesIcon,
     prefix: ">",
     command: "/lp-enhance",
-    detail:
-      "Claude reads your code and completes CLAUDE.md with real conventions and guardrails.",
+    detail: "The agent reads your code and completes CLAUDE.md or AGENTS.md.",
     href: "/docs/enhance",
   },
   {
     icon: FlaskConicalIcon,
     prefix: "$",
     command: "claude-launchpad eval",
-    detail: "Run scenarios to verify Claude actually follows your rules.",
+    detail: "Run scenarios to verify the agent actually follows your rules.",
     href: "/docs/eval",
   },
 ] as const;
@@ -280,7 +278,7 @@ const JSON_LD = {
     "https://www.npmjs.com/package/claude-launchpad",
   ],
   description:
-    "CLI that scores Claude Code configs, fixes them with hooks and permissions, proves compliance with eval, and adds persistent memory with free cross-machine sync.",
+    "CLI that scores Claude Code and Cursor Agent configs, fixes them with hooks and permissions, proves compliance with eval, and adds persistent memory with free cross-machine sync.",
 };
 
 export default function HomePage() {
@@ -294,52 +292,77 @@ export default function HomePage() {
       <div className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(rgba(148,163,184,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.05)_1px,transparent_1px)] bg-size-[36px_36px] mask-[linear-gradient(to_bottom,rgba(0,0,0,0.55),transparent)]" />
 
       <PageSection className="pt-12 sm:pt-16">
-        <div className="max-w-3xl">
-          <Badge
-            variant="outline"
-            className="border-fd-border bg-fd-background/45"
-          >
-            Claude Launchpad
-          </Badge>
-          <h1 className="mt-5 text-[2.35rem] font-bold leading-[1.02] tracking-tight sm:text-6xl">
-            Claude follows your rules.
-            <span className="mt-2 block text-fd-muted-foreground sm:text-7xl">
-              With proof.
-            </span>
-          </h1>
-          <p className="mt-4 max-w-2xl text-[15px] leading-7 text-fd-muted-foreground sm:text-lg">
-            Claude follows CLAUDE.md ~80% of the time. Hooks run at 100%. Most
-            setups ship with zero hooks. Launchpad scores your Claude Code
-            config, fixes the gaps with hooks and permissions, and runs
-            scenarios to prove Claude follows your rules in practice.
-          </p>
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,3fr)_minmax(240px,1.15fr)] lg:items-center lg:gap-14">
+          <div className="max-w-3xl">
+            <h1 className="text-[2.35rem] font-bold leading-[1.02] tracking-tight sm:text-6xl">
+              Claude follows your rules.
+              <span className="mt-2 block text-fd-muted-foreground sm:text-7xl">
+                With proof.
+              </span>
+            </h1>
+            <p className="mt-4 max-w-2xl text-[15px] leading-7 text-fd-muted-foreground sm:text-lg">
+              Claude follows CLAUDE.md ~80% of the time. Hooks run at 100%. Most
+              setups ship with zero hooks. Launchpad scores Claude Code and
+              local Cursor Agent config, fixes the gaps with hooks and
+              permissions, and runs scenarios to prove the agent follows your
+              rules. Cursor Cloud memory is not supported.
+            </p>
 
-          <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-            <InstallBlock
-              command="npx claude-launchpad"
-              className="w-full sm:w-auto"
-            />
-            <div className="grid w-full grid-cols-1 gap-2 min-[420px]:grid-cols-2 sm:contents">
-              <Link
-                href="/docs"
-                className={buttonVariants({
-                  className: "h-11 shrink-0 whitespace-nowrap rounded-xl px-4",
-                })}
-              >
-                Open quickstart
-                <ArrowRightIcon className="h-4 w-4" />
-              </Link>
-              <a
-                href="https://www.npmjs.com/package/claude-launchpad"
-                className={buttonVariants({
-                  variant: "outline",
-                  className: "h-11 shrink-0 whitespace-nowrap rounded-xl px-4",
-                })}
-              >
-                View npm package
-              </a>
+            <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+              <InstallBlock
+                command="npx claude-launchpad"
+                className="w-full sm:w-auto"
+              />
+              <div className="grid w-full grid-cols-1 gap-2 min-[420px]:grid-cols-2 sm:contents">
+                <Link
+                  href="/docs"
+                  className={buttonVariants({
+                    className:
+                      "h-11 shrink-0 whitespace-nowrap rounded-xl px-4",
+                  })}
+                >
+                  Open quickstart
+                  <ArrowRightIcon className="h-4 w-4" />
+                </Link>
+                <a
+                  href="https://www.npmjs.com/package/claude-launchpad"
+                  className={buttonVariants({
+                    variant: "outline",
+                    className:
+                      "h-11 shrink-0 whitespace-nowrap rounded-xl px-4",
+                  })}
+                >
+                  View npm package
+                </a>
+              </div>
             </div>
           </div>
+
+          <Link
+            href="/docs/init"
+            className="group relative overflow-hidden rounded-2xl border border-fd-border bg-fd-card/65 p-5 shadow-[0_14px_36px_rgba(2,6,23,0.18)] transition-colors hover:border-fd-foreground/25 hover:bg-fd-card lg:-translate-y-1"
+          >
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-emerald-400/55 to-transparent" />
+            <div className="flex items-center justify-between gap-3">
+              <Badge className="px-2 py-0.5">New</Badge>
+              <ArrowRightIcon className="h-4 w-4 text-fd-muted-foreground transition-transform group-hover:translate-x-0.5" />
+            </div>
+            <p className="mt-5 font-mono text-[10px] uppercase tracking-[0.2em] text-fd-muted-foreground">
+              Official support
+            </p>
+            <p className="mt-1.5 text-xl font-semibold tracking-tight">
+              Cursor Agent
+            </p>
+            <p className="mt-2 text-sm leading-6 text-fd-muted-foreground">
+              Scaffold, diagnose, repair, and evaluate with native Cursor
+              config. Memory is the same local SQLite + MCP — Cloud memory is
+              not supported.
+            </p>
+            <span className="mt-5 inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-[0.14em]">
+              Explore support
+              <ArrowRightIcon className="h-3.5 w-3.5" />
+            </span>
+          </Link>
         </div>
 
         <div className="mt-8 grid gap-4 lg:grid-cols-[1fr_1fr]">
@@ -444,8 +467,8 @@ export default function HomePage() {
           <div>
             <SectionHeading
               eyebrow="Verify behavior"
-              title="Eval: prove Claude follows your rules"
-              description="A doctor score of 95% means your config looks good. An eval FAIL means Claude ignores those rules in practice. Eval closes the gap between configuration and actual behavior."
+              title="Eval: prove the agent follows your rules"
+              description="A doctor score of 95% means your config looks good. An eval FAIL means the agent ignores those rules in practice. Eval closes the gap between configuration and actual behavior — Claude Code or Cursor Agent."
             />
             <div className="mt-6 space-y-3 text-sm text-fd-muted-foreground">
               <p>
@@ -453,8 +476,8 @@ export default function HomePage() {
                 and workflow.
               </p>
               <p>
-                Each run creates an isolated sandbox with your full .claude/
-                config copied in. Your code is never touched.
+                Each run creates an isolated sandbox with that harness's config
+                copied in (.claude/ or .cursor/). Your code is never touched.
               </p>
             </div>
             <div className="mt-6">
@@ -508,7 +531,7 @@ export default function HomePage() {
             <SectionHeading
               eyebrow="Optional add-on"
               title="Your decisions follow you everywhere"
-              description="Claude's built-in memory resets per machine. Launchpad syncs memories to a private GitHub Gist. Switch laptops, pair on a teammate's machine, or set up a new dev environment. Your architecture decisions, bug patterns, and conventions are already there."
+              description="Claude's built-in memory resets per machine. Launchpad uses one local SQLite store for Claude Code and Cursor Agent, synced via a private GitHub Gist. Cursor Cloud Agents cannot use this local MCP server."
             />
             <div className="flex items-center justify-center">
               <div className="relative flex items-center gap-0">
@@ -590,7 +613,8 @@ export default function HomePage() {
                   </span>
                 </div>
                 <p className="mt-3 text-sm text-fd-muted-foreground">
-                  One command to set up. Claude does the bookkeeping from there.
+                  One command to set up. Same store for Claude Code and Cursor
+                  Agent.
                 </p>
                 <div className="mt-4 space-y-2 text-sm text-fd-muted-foreground">
                   <div className="flex items-center gap-2">
@@ -599,8 +623,8 @@ export default function HomePage() {
                     GitHub Gist)
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-fd-foreground">✓</span> Relevant
-                    memories injected automatically at session start
+                    <span className="text-fd-foreground">✓</span> Claude injects
+                    memories at session start; Cursor uses memory_search
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-fd-foreground">✓</span> Stale
@@ -801,7 +825,7 @@ export default function HomePage() {
                   false,
                 ],
                 [
-                  "Generate CLAUDE.md, TASKS.md, BACKLOG.md (WP template)",
+                  "Generate CLAUDE.md / AGENTS.md, TASKS.md, BACKLOG.md",
                   true,
                   false,
                   false,
@@ -809,16 +833,23 @@ export default function HomePage() {
                   false,
                 ],
                 [
-                  "Generate settings.json and hooks",
+                  "Generate settings.json or hooks.json",
                   true,
                   true,
                   false,
                   false,
                   false,
                 ],
-                ["Generate .claudeignore", true, true, false, false, false],
                 [
-                  "Generate .claude/rules/workflow.md (path-scoped)",
+                  "Generate .claudeignore / .cursorignore",
+                  true,
+                  true,
+                  false,
+                  false,
+                  false,
+                ],
+                [
+                  "Generate workflow rules (Claude paths or Cursor globs)",
                   true,
                   true,
                   false,
@@ -852,7 +883,7 @@ export default function HomePage() {
                 ],
                 ["Add stop-and-swarm rule", true, true, false, false, false],
                 [
-                  "Rewrite CLAUDE.md with real project content",
+                  "Rewrite CLAUDE.md / AGENTS.md with real project content",
                   false,
                   false,
                   true,
@@ -868,7 +899,7 @@ export default function HomePage() {
                   false,
                 ],
                 [
-                  "Overflow conventions to .claude/rules/",
+                  "Overflow conventions to harness rule files",
                   false,
                   false,
                   true,
@@ -876,7 +907,7 @@ export default function HomePage() {
                   false,
                 ],
                 [
-                  "Prove Claude follows your rules",
+                  "Prove the agent follows your rules",
                   false,
                   false,
                   false,

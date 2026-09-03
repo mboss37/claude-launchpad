@@ -14,17 +14,19 @@
 - **Sprint 42**: Cursor M2 (unpublished) — WP-058: `doctor --fix` for Cursor/both + live Agent canary green on `2026.08.25-3e8eec8`. WP-055: sandbox parse errors, shared `scoreIssues`, wired harness profiles, sprint-size parity, formatter alignment. Review: 0 Critical, 4 Important fixed in-sprint (both-mode `--min-score` stale score, structurally bad `hooks.json`, missing/stale hook repair, tautological C4). 705 tests, 21/21 + 25/25 regression. No version bump.
 
 ## Current Sprint
-
-- [ ] WP-059 — Cursor M3: eval through Cursor Agent
+<!-- Empty between sprints. Pull from BACKLOG.md when starting. -->
 
 ## Release Plan
 - **v1.17.1** ✅ shipped 2026-07-08 (npm latest, verified via clean-dir npx -v) — patch: 1.17.0 binary misreported its version (stale dist in tarball); publish pipeline now builds + verifies the artifact. Earlier releases: CHANGELOG.md.
-- **v1.18.0** not ready — Cursor as a second local harness. Lands only at Milestone 5 (docs sweep + publish) after M2 `--fix`, M3 eval, and M4 local memory. Do not publish from M1-M4.
+- **v1.18.0** ready — Cursor as a second local harness (init, doctor `--fix`, eval, local memory, docs). Package + CLI are `1.18.0`; changelog is written. Publish after merge to master: `pnpm publish:release`, tag `v1.18.0`, GitHub release, then flip this line to shipped.
 - **Cursor canary CI (blocked):** repo secret `CURSOR_API_KEY` is not set. Before dispatching **Cursor Agent Canary**, create a key in the Cursor dashboard and `gh secret set CURSOR_API_KEY`. Do not add a schedule until one GitHub run is green. Local canary already passed on Agent `2026.08.25-3e8eec8`.
 - **v2.0.0** not scheduled — reserved for a doctor plan/apply rewrite if ever committed to.
 - Rule: a release line says only "shipped" or "ready"; verify against `npm view claude-launchpad dist-tags` before trusting this section. Publishing ends with flipping this line — a publish without that edit is unfinished.
 
 ## Session Log
+### 2026-09-03
+- M5 docs + 1.18.0 version bump on `feat/cursor-harness-support`. Public docs treat Cursor as a first-class local harness. Review Important leftovers fixed (Cursor init Claude paths, memory auto-inject copy, Claude `--json --min-score`). Ready to publish after merge. GitHub Cursor canary still needs `CURSOR_API_KEY`.
+
 ### 2026-09-01
 - Closed Sprint 42 on `feat/cursor-harness-support`: Cursor `--fix` + live canary (Agent `2026.08.25-3e8eec8`) + WP-055 parity. Review 4 Important fixed in-sprint. GitHub canary still blocked on `CURSOR_API_KEY`. Next: M3 eval. Do not publish.
 

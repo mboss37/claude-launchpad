@@ -3,7 +3,7 @@ title: /lp-migrate-memory
 description: "Migrate Claude Code built-in auto-memory files into agentic-memory with the /lp-migrate-memory skill: dedupe, type assignment, and importance scoring in one pass."
 ---
 
-Skill that ports your existing `~/.claude/projects/*/memory/*.md` files into the agentic-memory system. Installed automatically when you run `claude-launchpad memory` with shared placement. For local placement, run the skill manually with `/lp-migrate-memory` inside Claude Code.
+Skill that ports your existing `~/.claude/projects/*/memory/*.md` files into the agentic-memory system. Installed automatically when you run `claude-launchpad memory` with Claude shared placement. For local placement, run `/lp-migrate-memory` inside Claude Code. Cursor Agent uses the same SQLite store after `memory install --harness cursor`; this skill is Claude Code's legacy-file importer.
 
 ```
 /lp-migrate-memory

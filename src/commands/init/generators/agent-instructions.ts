@@ -21,7 +21,10 @@ export interface AgentInstructionDocument {
 export function buildAgentInstructions(
   options: InitOptions,
   detected: DetectedProject,
-  features: { readonly superpowers: boolean },
+  features: {
+    readonly superpowers: boolean;
+    readonly reviewerAgentPath?: string;
+  },
 ): AgentInstructionDocument {
   return {
     title: options.name,
@@ -37,6 +40,7 @@ export function buildAgentInstructions(
           detected.testCommand,
           detected.lintCommand,
           features.superpowers,
+          features.reviewerAgentPath,
         ).split("\n"),
       },
       {

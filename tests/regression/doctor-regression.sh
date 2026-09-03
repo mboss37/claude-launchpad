@@ -36,7 +36,7 @@ mkdir -p "$S1" && cd "$S1"
 git init -q && echo "# test" > README.md && git add . && git commit -qm "init"
 
 OUTPUT=$($CLI doctor 2>&1 || true)
-echo "$OUTPUT" | grep -q "No Claude Code configuration" && green "S1: doctor fails gracefully on empty project" || red "S1: doctor should report no config found"
+echo "$OUTPUT" | grep -q "No coding agent config" && green "S1: doctor fails gracefully on empty project" || red "S1: doctor should report no config found"
 
 # ── Scenario 2: Minimal config, doctor + --fix ──
 header "Scenario 2: Minimal config, doctor --fix"

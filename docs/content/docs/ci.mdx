@@ -1,15 +1,21 @@
 ---
 title: CI Integration
-description: "Gate pull requests on Claude Code config quality with claude-launchpad doctor in GitHub Actions — plus a weekly canary that tests your generated config against the latest Claude Code release."
+description: "Gate pull requests on coding-agent config quality with claude-launchpad doctor in GitHub Actions — plus a weekly canary that tests generated config against the live harness."
 ---
 
-Add this GitHub Action to your repo. Every pull request that touches Claude Code config files will be checked automatically. Score below threshold = PR blocked.
+Add this GitHub Action to your repo. Every pull request that touches agent config files will be checked automatically. Score below threshold = PR blocked. `--min-score` gates each detected harness separately and never averages Claude with Cursor.
 
-```yaml title=".github/workflows/claude-config.yml"
-name: Claude Code Config Quality
+```yaml title=".github/workflows/agent-config.yml"
+name: Agent Config Quality
 on:
   pull_request:
-    paths: ['CLAUDE.md', '.claude/**', '.claudeignore']
+    paths:
+      - 'CLAUDE.md'
+      - '.claude/**'
+      - '.claudeignore'
+      - 'AGENTS.md'
+      - '.cursor/**'
+      - '.cursorignore'
 jobs:
   config-check:
     runs-on: ubuntu-latest
@@ -20,13 +26,13 @@ jobs:
       - run: npx claude-launchpad@latest doctor --min-score 80 --json
 ```
 
-The `--min-score 80` flag returns exit code 1 if the score is below 80, which blocks the PR. The `--json` flag outputs structured JSON for programmatic consumption.
+The `--min-score 80` flag returns exit code 1 if either harness is below 80. The `--json` flag outputs structured JSON for programmatic consumption. Pin `--harness claude` or `--harness cursor` if you only want one report.
 
 ## The canary pattern (how launchpad guards itself)
 
-Generated configs can rot silently: Claude Code evolves, and a hook that was correct last quarter may no longer fire at all — with no error anywhere. Unit tests can't catch this because they validate what a tool *emits*, not what Claude Code *executes*.
+Generated configs can rot silently: the harness evolves, and a hook that was correct last quarter may no longer fire at all — with no error anywhere. Unit tests can't catch this because they validate what a tool *emits*, not what the agent *executes*.
 
-Launchpad's own repo runs a weekly [canary workflow](https://github.com/mboss37/claude-launchpad/blob/master/.github/workflows/canary.yml) that scaffolds a fresh project with `init -y`, installs the **latest** Claude Code release, and asserts real behavior in live headless sessions:
+Launchpad's own repo runs a weekly [Claude canary](https://github.com/mboss37/claude-launchpad/blob/master/.github/workflows/canary.yml) that scaffolds a fresh project with `init -y`, installs the **latest** Claude Code release, and asserts real behavior in live headless sessions:
 
 - the destructive-command hook actually blocks `rm -rf /...`
 - the `.env` guard actually fires (and the seeded secret stays out of the transcript)
@@ -35,3 +41,5 @@ Launchpad's own repo runs a weekly [canary workflow](https://github.com/mboss37/
 - SessionStart memory context injection actually produces output
 
 Failures open a `canary-failure` issue automatically. It needs an `ANTHROPIC_API_KEY` secret and costs a few cents per run (short haiku sessions). If you maintain your own hook library, steal this pattern — it's in [`scripts/canary.sh`](https://github.com/mboss37/claude-launchpad/blob/master/scripts/canary.sh).
+
+A separate [Cursor Agent canary](https://github.com/mboss37/claude-launchpad/blob/master/.github/workflows/cursor-canary.yml) scaffolds `init --harness cursor` and runs live Agent checks (`pnpm canary:cursor`, `pnpm canary:cursor:eval`). It needs a `CURSOR_API_KEY` secret.

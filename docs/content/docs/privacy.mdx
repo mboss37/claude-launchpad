@@ -5,9 +5,9 @@ description: "Claude Launchpad runs fully offline: no telemetry, no analytics, n
 
 ## What the tool reads
 
-- `CLAUDE.md` and `.claude/` directory (your Claude Code config)
+- `CLAUDE.md` and `.claude/` (Claude Code config)
+- `AGENTS.md`, `.cursor/`, and `.cursorignore` (Cursor Agent config)
 - `package.json`, `go.mod`, `pyproject.toml`, and other manifest files (for stack detection)
-- `.claudeignore` (for ignore pattern analysis)
 
 ## What it does NOT collect
 
@@ -16,11 +16,11 @@ description: "Claude Launchpad runs fully offline: no telemetry, no analytics, n
 - No authentication or accounts
 - No network requests from doctor, init, or --fix
 
-## Commands that use Claude
+## Commands that call a model
 
-**Enhance** opens an interactive Claude Code session. Claude reads your codebase through your local CLI — no data passes through this tool.
+**Enhance** is a skill that runs inside your Claude Code or Cursor Agent session. The agent reads your codebase through that local session — no data passes through this tool.
 
-**Eval** runs Claude via the Agent SDK (or falls back to the CLI) in isolated temp directories. Your source code is never copied into the sandbox — only your `.claude/` config files.
+**Eval** runs the selected harness (Claude Agent SDK / Claude CLI, or Cursor Agent SDK / `agent` CLI) in isolated temp directories. Your source code is never copied into the sandbox — only that harness's config files.
 
 ## Third-party services
 
@@ -32,4 +32,4 @@ description: "Claude Launchpad runs fully offline: no telemetry, no analytics, n
 
 MIT licensed. Full source code: [github.com/mboss37/claude-launchpad](https://github.com/mboss37/claude-launchpad)
 
-Last updated: March 29, 2026
+Last updated: September 2, 2026

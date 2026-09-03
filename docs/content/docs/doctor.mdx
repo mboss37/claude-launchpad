@@ -1,11 +1,11 @@
 ---
-title: "doctor — Claude Code Config Linter"
-description: "Lint your Claude Code setup: score CLAUDE.md, hooks, permissions, and MCP config 0-100, then auto-fix the gaps offline and free. The CLAUDE.md linter with 9 analyzers."
+title: "doctor — Coding-agent config linter"
+description: "Lint Claude Code or Cursor Agent setup: score instructions, hooks, permissions, and MCP config 0-100, then auto-fix the gaps offline and free."
 ---
 
 import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
 
-The core of the tool. Runs 7 core analyzers against your `.claude/` directory and `CLAUDE.md`, plus a Workflow analyzer when BACKLOG.md exists and a Memory analyzer when agentic-memory is detected.
+The core of the tool. For Claude Code it runs 7 core analyzers against `.claude/` and `CLAUDE.md`, plus Workflow when BACKLOG.md exists and Memory when agentic-memory is detected. For Cursor Agent it scores `AGENTS.md`, `.cursor/hooks.json`, rules, ignore, and MCP separately. Scores are never averaged.
 
 Low scores signal real problems: conventions ignored, credentials exposed, context lost mid-session, every session starting from scratch. Doctor finds these gaps before they waste your time.
 
@@ -17,15 +17,15 @@ claude-launchpad doctor
 
 | Flag | Description |
 |---|---|
-| `--fix` | Auto-fix: hooks, CLAUDE.md sections, rules, .claudeignore, credentials |
+| `--fix` | Auto-fix: hooks, CLAUDE.md or AGENTS.md sections, rules, .claudeignore / .cursorignore, credentials |
 | `--fix --dry-run` | Preview what --fix would change without applying |
 | `--watch` | Re-runs every second when config files change |
 | `--min-score <n>` | Exit code 1 if below threshold (for CI) |
 | `--json` | Pure JSON, no banner |
 | `-p, --path <dir>` | Run on a different directory |
-| `--harness` | `auto` (default), `claude`, `cursor`, or `both`. Scores are never averaged; `--min-score` gates each harness separately. Cursor `--fix` isn't available yet — targeting Cursor alone with `--fix` errors, and in both mode Claude fixes apply while Cursor stays report-only. |
+| `--harness` | `auto` (default), `claude`, `cursor`, or `both`. Scores are never averaged; `--min-score` gates each harness separately. `--fix` repairs Launchpad-managed files for every selected harness. |
 
-## Analyzers
+## Claude analyzers
 
 | Analyzer | What it catches |
 |---|---|
@@ -38,6 +38,20 @@ claude-launchpad doctor
 | **MCP Servers** | Invalid transport configs, missing commands/URLs, MCP servers not in `allowedMcpServers` whitelist. `allowedMcpServers` is a security setting that restricts which MCP servers Claude can use -- without it, any server added to `.mcp.json` or settings is auto-trusted. `--fix` populates it from your configured servers. |
 | **Workflow** (when BACKLOG.md exists) | Batch audits the hooks can't do per-edit: WP entries missing mandatory template fields, P0 items older than 14 days (P0 means next sprint), a changelog silent for 30+ days while WPs sit in the backlog. |
 | **Memory** (optional) | MCP server config, hooks, autoMemory conflicts, CLAUDE.md guidance, tool permissions. Also cross-checks `allowedMcpServers` — if the allowlist is set without `agentic-memory`, the MCP server can't register and memory silently breaks. HIGH severity; `--fix` adds it back. Only runs when agentic-memory is detected. |
+
+## Cursor analyzers
+
+`doctor --harness cursor` (or `auto` when `AGENTS.md`, `.cursor/hooks.json`, or `.cursor/rules/*.mdc` exist) scores a separate report. A bare `.cursor/` directory from the Cursor IDE is not enough.
+
+| Analyzer | What it catches |
+|---|---|
+| **Instructions** | Missing `AGENTS.md`, instruction budget (~200 lines), missing sections (stack, commands, conventions, guardrails). Overflow belongs in `.cursor/rules/*.mdc`. |
+| **Hooks** | Missing or stale Launchpad hook scripts, structurally bad `hooks.json`, fail-closed `.env` and destructive-shell hooks. |
+| **Rules** | Missing or stale `verification.mdc`, missing YAML `globs:` frontmatter. |
+| **Security** | `.env` missing from `.cursorignore`. |
+| **MCP** | Unreadable `.cursor/mcp.json` or invalid `mcpServers` shape. |
+
+`--fix` writes missing Launchpad-managed Cursor files, repairs stale hook scripts, migrates `workflow-check` onto `postToolUse`, and refuses to clobber a structurally invalid `hooks.json`.
 
 ## What --fix applies
 
@@ -79,7 +93,7 @@ claude-launchpad doctor
 </Callout>
 
 <Callout type="info">
-  After `--fix`, use `/lp-enhance` inside Claude Code to restructure your CLAUDE.md. The fixer appends sections mechanically - the skill rewrites them into clean, project-specific content.
+  After `--fix`, use `/lp-enhance` inside Claude Code or Cursor Agent to restructure the instruction file. The fixer appends sections mechanically — the skill rewrites them into clean, project-specific content.
 </Callout>
 
 <Callout type="info">
@@ -93,7 +107,7 @@ Doctor isn't a one-time setup tool. It's a health check. Re-run it when:
 - You add or remove dependencies
 - You change frameworks or build tools
 - You modify hooks, permissions, or settings manually
-- Your score drops after an `enhance` or manual CLAUDE.md edit
+- Your score drops after an `enhance` or a manual CLAUDE.md / AGENTS.md edit
 - Before a release, to catch config drift
 
 Use `--watch` during active config editing to see your score update in real-time.
@@ -101,7 +115,7 @@ Use `--watch` during active config editing to see your score update in real-time
 ## Next
 
 <Cards>
-  <Card title="enhance" description="Let Claude perfect your CLAUDE.md with real content" href="/docs/enhance" />
-  <Card title="eval" description="Prove Claude follows your rules with test scenarios" href="/docs/eval" />
+  <Card title="enhance" description="Rewrite CLAUDE.md or AGENTS.md with real content" href="/docs/enhance" />
+  <Card title="eval" description="Prove the agent follows your rules with test scenarios" href="/docs/eval" />
   <Card title="CI Integration" description="Block PRs that degrade your config quality" href="/docs/ci" />
 </Cards>

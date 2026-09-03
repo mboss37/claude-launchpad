@@ -61,8 +61,18 @@ function plannedCursorFiles(
       content: generateAgentsMd(options, detected),
       overwrite: options.force === true,
     },
-    { relative: "TASKS.md", content: generateTasksMd(options) },
-    { relative: "BACKLOG.md", content: generateBacklogMd(options) },
+    {
+      relative: "TASKS.md",
+      content: generateTasksMd(options, {
+        workflowRulePath: ".cursor/rules/workflow.mdc",
+      }),
+    },
+    {
+      relative: "BACKLOG.md",
+      content: generateBacklogMd(options, {
+        workflowRulePath: ".cursor/rules/workflow.mdc",
+      }),
+    },
     {
       relative: ".cursor/hooks.json",
       content: `${JSON.stringify(generateCursorHooks(detected), null, 2)}\n`,

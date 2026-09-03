@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.18.0] — 2026-09-03
+
+### Added
+- **Added Cursor Agent as a first-class local harness.** `init` accepts `--harness claude|cursor|both`, doctor accepts `auto|claude|cursor|both`, and eval accepts `claude|cursor`. Claude remains the default for init; doctor auto-detects configured harnesses.
+- **Added native Cursor project scaffolding.** `init --harness cursor` creates `AGENTS.md`, `.cursor/hooks.json`, `.cursor/rules/*.mdc`, `.cursorignore`, hook scripts, a code-reviewer agent, and a Cursor-native `/lp-enhance` skill. `--harness both` writes both instruction surfaces and shares `TASKS.md` / `BACKLOG.md`.
+- **Added Cursor diagnosis and deterministic repair.** Doctor scores Cursor instructions, hooks, rules, security, and MCP config independently. `--fix` repairs Launchpad-managed files without clobbering unrelated entries or unmarked user files; `--min-score` gates each harness separately instead of averaging scores.
+- **Added eval through Cursor Agent.** `eval --harness cursor` runs scenarios through the Cursor SDK or `agent` CLI in a Cursor-only sandbox, normalizes transcripts into stable events, records observed runtime metadata, and saves reports under `.cursor/eval/`.
+- **Added Cursor memory installation without a second memory system.** `memory install --harness cursor` merges `.cursor/mcp.json` and uses the same local SQLite database, MCP tools, dashboard, decay model, sync commands, and `npx claude-launchpad memory serve` process as Claude Code.
+- **Added local Cursor canaries.** Native hooks, doctor repair, isolated eval behavior, JSON output, and policy enforcement are exercised against the real Cursor Agent (`pnpm canary:cursor`). The GitHub Actions workflow is dispatch-only and needs a `CURSOR_API_KEY` secret.
+
+### Changed
+- **Changed the root command to recognize either harness.** Running `claude-launchpad` routes to doctor when it detects Claude Code or Cursor Agent configuration.
+- **Changed public documentation to cover both local harnesses.** README, quickstart, command pages, CI examples, privacy notes, metadata, and the landing page now show the real Claude/Cursor command matrix.
+- **Changed Cursor workflow checks to use `postToolUse`.** The hook receives the edited file path from Cursor's native tool-input envelope and preserves the same BACKLOG/TASKS drift checks as Claude Code.
+- **Changed eval reporting to distinguish requested and observed facts.** JSON output keeps diagnostics on stderr, reports the observed model and Agent version, and treats only structured deny/error events as blocked evidence.
+
+### Not supported
+- **Cursor Cloud memory is not supported.** Memory depends on a local SQLite database and local stdio MCP server.
+- **Cursor memory does not auto-inject or auto-sync at session boundaries.** Cursor guidance calls `memory_search`; use `memory sync`, `memory push`, or `memory pull` explicitly.
+
+
 ## [1.17.1] — 2026-07-08
 
 ### Fixed

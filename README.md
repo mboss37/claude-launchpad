@@ -14,7 +14,7 @@ Launchpad scores your coding-agent config, fixes gaps with hooks and permissions
 
 Cursor can also consume Claude Code files (`CLAUDE.md`, `.claude/skills/`, `.claude/agents/`, supported hooks) when [third-party configuration](https://cursor.com/docs/reference/third-party-hooks) is enabled. That is a migration bridge, not the native target. Launchpad generates native Cursor files (`AGENTS.md`, `.cursor/`) and certifies them with a live Agent canary. Verified against Cursor Agent `2026.08.25-3e8eec8` via `pnpm canary:cursor`. Eval through Cursor Agent is `pnpm canary:cursor:eval`.
 
-For developers using Claude Code who want consistent results: solo devs, vibe coders, AI-first teams.
+For developers using Claude Code or Cursor Agent who want consistent results: solo devs, vibe coders, AI-first teams.
 
 ## Install and See Your Score
 
@@ -72,9 +72,9 @@ The three-file split keeps each concern where it belongs:
 | `TASKS.md` | What we're doing now | Current sprint, session log (empty between sprints) |
 | `BACKLOG.md` | What we're doing later | WP-NNN template, 7 mandatory fields, P0/P1/P2/P3 sections |
 
-Init generates all three plus `.claude/rules/workflow.md`, a path-scoped rule file Claude auto-loads only when editing BACKLOG.md or TASKS.md. It also installs a `workflow-check.sh` hook that injects drift warnings into Claude's context (as PostToolUse `additionalContext` — bare hook stdout never reaches the model): a WP entry live in both files, TASKS.md > 80 lines, Current Sprint > 15 items, Session Log > 3 entries, and dependency-blind pulls (`Depends on:` WP still in the backlog).
+Init generates all three plus a path-scoped workflow rule: `.claude/rules/workflow.md` (Claude) or `.cursor/rules/workflow.mdc` (Cursor). It also installs a `workflow-check.sh` hook that injects drift warnings into the agent's context: a WP entry live in both files, TASKS.md > 80 lines, Current Sprint > 15 items, Session Log > 3 entries, and dependency-blind pulls.
 
-Doctor flags MEDIUM when workflow.md is missing, LOW when the hook is missing, and MEDIUM on duplicate `## Memory` headings in CLAUDE.md. `--fix` installs or repairs any of them without clobbering existing user content. See the [workflow docs](https://mboss37.github.io/claude-launchpad/docs/workflow) for the full lifecycle.
+Doctor flags MEDIUM when the workflow rule is missing, LOW when the hook is missing, and MEDIUM on duplicate `## Memory` headings. `--fix` installs or repairs any of them without clobbering existing user content. See the [workflow docs](https://mboss37.github.io/claude-launchpad/docs/workflow) for the full lifecycle.
 
 ## Commands
 
@@ -87,11 +87,11 @@ Doctor flags MEDIUM when workflow.md is missing, LOW when the hook is missing, a
 | `claude-launchpad doctor --harness cursor` | Score a Cursor Agent project; add `--fix` to repair Launchpad-managed files | Locally, free |
 | `claude-launchpad eval` | Run Claude or Cursor Agent against test scenarios | Via the selected harness CLI/SDK |
 | `claude-launchpad memory` | Optional knowledge base that persists across sessions | Locally |
-| `/lp-enhance` (skill) | Claude reads your code and completes CLAUDE.md | Inside Claude Code |
+| `/lp-enhance` (skill) | The agent reads your code and completes CLAUDE.md or AGENTS.md | Inside Claude Code or Cursor Agent |
 
 ## Doctor
 
-Runs 7 analyzers against your `.claude/` directory and CLAUDE.md. No API calls, no network, no cost.
+Runs analyzers against the selected harness. Claude: `.claude/` and CLAUDE.md. Cursor: `AGENTS.md` and `.cursor/`. Scores stay separate. No API calls, no network, no cost.
 
 **Analyzers:**
 
@@ -111,7 +111,7 @@ An optional Memory analyzer runs when agentic memory is detected.
 
 | Flag | What it does |
 |---|---|
-| `--fix` | Auto-fix: adds hooks, CLAUDE.md sections, BACKLOG.md, rules, .claudeignore |
+| `--fix` | Auto-fix: adds hooks, CLAUDE.md or AGENTS.md sections, BACKLOG.md, rules, .claudeignore / .cursorignore |
 | `--fix --dry-run` | Preview fixes without applying them |
 | `--watch` | Re-runs every second as you edit config files |
 | `--json` | Pure JSON output for scripts and CI |
@@ -137,25 +137,29 @@ Reads your manifest files (package.json, go.mod, pyproject.toml, etc.) and gener
   ✓ Generated .claude/rules/conventions.md
 ```
 
-**What init writes:**
+**What init writes (Claude, default):**
 - Always: `CLAUDE.md`, `TASKS.md`, `BACKLOG.md`, `.claude/settings.json`
 - Creates when missing: `.claude/.gitignore`, `.claudeignore`, `.claude/rules/conventions.md`, `.claude/rules/workflow.md`, `.claude/rules/hooks.md`, `.claude/rules/verification.md`, `.claude/agents/code-reviewer.md`
 - Offers `/lp-enhance` install (project/global/skip) if not already present
-- CLAUDE.md includes a stop-and-swarm rule: after 3 failed attempts, Claude spins up parallel agents instead of retrying the same approach
+
+**What init writes (`--harness cursor`):**
+- Always: `AGENTS.md`, `TASKS.md`, `BACKLOG.md`, `.cursor/hooks.json`, `.cursorignore`
+- Creates when missing: `.cursor/rules/*.mdc`, `.cursor/agents/code-reviewer.md`, `.cursor/skills/lp-enhance/SKILL.md`, hook scripts under `.cursor/hooks/`
+- `--force` overwrites `AGENTS.md` only
 
 **Supported stacks:** TypeScript, JavaScript, Python, Go, Ruby, Rust, Dart, PHP, Java, Kotlin, Swift, Elixir, C#. Detects frameworks: Next.js, FastAPI, Django, Rails, Laravel, Express, SvelteKit, Angular, NestJS, and 15+ more.
 
 ## Enhance
 
-Init detects your stack but cannot read your architecture. The `/lp-enhance` skill runs inside Claude Code to fill in the details.
+Init detects your stack but cannot read your architecture. The `/lp-enhance` skill runs inside Claude Code or Cursor Agent to fill in the details.
 
 ```
 /lp-enhance
 ```
 
-Claude reads your codebase and updates CLAUDE.md with real content: actual architecture, actual conventions, actual guardrails. Not boilerplate. It also suggests project-specific hooks and MCP servers.
+The agent reads your codebase and updates `CLAUDE.md` or `AGENTS.md` with real content: actual architecture, actual conventions, actual guardrails. Not boilerplate. It also suggests project-specific hooks and MCP servers.
 
-Stays under the 200-instruction budget. Overflows detailed content to `.claude/rules/` files. If the skill is missing, `doctor --fix` will create it.
+Stays under the 200-instruction budget. Overflows detailed content to `.claude/rules/` or `.cursor/rules/*.mdc`. If the skill is missing, `doctor --fix` will create it.
 
 **When to re-run:** after major refactors, new dependencies, or architecture changes.
 
@@ -191,9 +195,9 @@ Results save to `.claude/eval/` or `.cursor/eval/` as structured markdown. Feed 
 
 | Suite | Scenarios | What it tests |
 |---|---|---|
-| `security` | 6 | SQL injection, .env protection, secret exposure, input validation, credential read, env exfil via Bash |
+| `security` | 7 | SQL injection, .env protection, secret exposure, input validation, credential read, env exfil via Bash, env-read-attempt |
 | `conventions` | 5 | Error handling, immutability, file size, naming, no hardcoded values |
-| `workflow` | 4 | Git conventions, session continuity, memory persistence, deferred tracking |
+| `workflow` | 5 | Git conventions, session continuity, memory persistence, deferred tracking, premature-victory |
 
 **Flags:**
 
@@ -211,7 +215,7 @@ Results save to `.claude/eval/` or `.cursor/eval/` as structured markdown. Feed 
 
 ## Hooks
 
-CLAUDE.md rules are ~80% reliable. Hooks are 100% enforced by the harness. Init and `--fix` set up these hooks automatically:
+Instruction-file rules are ~80% reliable. Hooks are 100% enforced by the harness. Init and `--fix` set up these hooks automatically. Claude event names below; Cursor uses the native equivalents (`beforeReadFile`, `beforeShellExecution`, `afterFileEdit`, `postToolUse`, `sessionStart`).
 
 | Hook | Trigger | What it does |
 |---|---|---|
@@ -223,7 +227,7 @@ CLAUDE.md rules are ~80% reliable. Hooks are 100% enforced by the harness. Init 
 | **workflow-check** | After BACKLOG.md/TASKS.md Edit/Write | Injects context warnings: WP entry in both files, TASKS.md > 80 lines, Current Sprint > 15 items, Session Log > 3 entries, dependency-blind pulls |
 | **sprint-size / sprint-open** | Session start / `git commit` | Warns on microsprints (<3 WPs), oversized sprints (>7 WPs), new sprint opened without BACKLOG cleanup |
 
-Memory projects get three additional hooks:
+Claude Code memory projects get three additional hooks. Cursor Agent does not — it uses `memory_search` and explicit `memory sync` / `push` / `pull`:
 
 | Hook | Trigger | What it does |
 |---|---|---|
@@ -238,7 +242,7 @@ Claude's built-in memory resets per machine. Launchpad gives each project persis
 **Why this memory and not another:**
 
 - **Free cross-machine sync.** Native Claude Code memory is single-machine; cloud memory layers need API keys and subscriptions. Launchpad syncs through a private GitHub Gist you already have — zero cost, deletions propagate, machines converge.
-- **Measured, not assumed.** The only Claude Code memory with a benchmark suite (59 tests) gating every release: retrieval quality, injection quality, decay accuracy, scale. `doctor` diagnoses memory health; `eval` proves behavior.
+- **Measured, not assumed.** The only local agent memory with a benchmark suite (59 tests) gating every release: retrieval quality, injection quality, decay accuracy, scale. `doctor` diagnoses memory health; `eval` proves behavior.
 - **Zero infrastructure.** One native dep, stdio MCP, local SQLite. No Docker, no vector DB service, no localhost API server, no cloud account.
 - **Engineered injection.** Session context is packed by 6-signal relevance scoring with diversity re-ranking under a token budget — not just "last N memories".
 
@@ -251,7 +255,7 @@ Interactive setup if not installed, stats if it is. The one native dep is instal
 
 Once set up, `claude-launchpad memory sync` is the everyday command — pull + push in one call, so every machine has the same project brain. Deletions propagate too (tombstones): machines converge to the same memory set, never more, never less. This is the piece Claude Code's built-in memory doesn't do — see [built-in vs Launchpad memory](https://mboss37.github.io/claude-launchpad/docs/memory#built-in-memory-vs-launchpad-memory).
 
-- Relevant memories auto-injected at session start, new memories stored as Claude works
+- Claude: relevant memories auto-injected at session start. Cursor: call `memory_search` — no auto-inject. New memories stored as the agent works.
 - Stale knowledge fades, important decisions persist
 - Each project has its own scoped memory
 - `--dashboard` opens a terminal UI with vim nav, filtering, and search
@@ -260,14 +264,14 @@ Full flag and subcommand reference in [the memory docs](https://mboss37.github.i
 
 ## Use in CI
 
-Block PRs that degrade your Claude Code config quality:
+Block PRs that degrade your agent config quality. `--min-score` gates each harness separately:
 
 ```yaml
-# .github/workflows/claude-config.yml
-name: Claude Code Config Quality
+# .github/workflows/agent-config.yml
+name: Agent Config Quality
 on:
   pull_request:
-    paths: ['CLAUDE.md', '.claude/**', '.claudeignore']
+    paths: ['CLAUDE.md', '.claude/**', '.claudeignore', 'AGENTS.md', '.cursor/**', '.cursorignore']
 jobs:
   config-check:
     runs-on: ubuntu-latest
@@ -282,19 +286,20 @@ Score below threshold = exit code 1 = PR blocked.
 
 ## Glossary
 
-New to Claude Code? Here's what the terms mean.
+New to the harnesses? Here's what the terms mean.
 
 | Term | What it is |
 |---|---|
-| **CLAUDE.md** | A markdown file in your project root that tells Claude how to work on your code. Think of it as instructions for your AI pair programmer. [Official docs](https://docs.anthropic.com/en/docs/claude-code/memory#claudemd) |
-| **TASKS.md** | Sprint tracker and session log. Claude reads this at session start to pick up where you left off. |
+| **CLAUDE.md** | Claude Code's project instruction file. [Official docs](https://docs.anthropic.com/en/docs/claude-code/memory#claudemd) |
+| **AGENTS.md** | Cursor Agent's project instruction file. Same job as CLAUDE.md, different filename. |
+| **TASKS.md** | Sprint tracker and session log. Shared by both harnesses. |
 | **BACKLOG.md** | Where deferred features live. Priority tiers (P0/P1/P2) keep future ideas organized without cluttering TASKS.md. |
-| **Hooks** | Shell commands that run automatically when Claude does something. CLAUDE.md rules are ~80% reliable. Hooks are 100% enforced. A SessionStart hook that runs `cat TASKS.md` means Claude sees your task list at every session start. |
-| **Instruction budget** | CLAUDE.md has a soft limit of ~200 actionable lines. Past that, Claude starts ignoring rules at the bottom. Doctor counts your lines and warns you. |
-| **Rules** | Extra markdown files in `.claude/rules/` that Claude reads alongside CLAUDE.md. Use them to offload detailed conventions so CLAUDE.md stays under budget. |
-| **Compaction** | When a conversation gets too long, Claude compresses older messages. Without a PostCompact hook, Claude loses track of your sprint and session context mid-work. The hook re-injects TASKS.md after compaction so Claude stays on track. |
-| **MCP Servers** | External tools Claude can connect to (databases, APIs, docs). Configured in `.mcp.json` (project scope) or `.claude/settings.json`. Most projects don't need them. |
-| **.claudeignore** | Like `.gitignore` but for Claude. Tells Claude which files to skip so it doesn't waste time reading noise. |
+| **Hooks** | Commands that run automatically when the agent does something. Instruction-file rules are ~80% reliable. Hooks are 100% enforced. |
+| **Instruction budget** | Soft limit of ~200 actionable lines in CLAUDE.md or AGENTS.md. Past that, rules at the bottom get ignored. Doctor counts them. |
+| **Rules** | Extra files in `.claude/rules/` or `.cursor/rules/*.mdc` so the instruction file stays under budget. |
+| **Compaction** | Claude Code compresses long conversations. A SessionStart `compact` matcher re-injects TASKS.md. Cursor uses `sessionStart`. |
+| **MCP Servers** | External tools. Claude: `.mcp.json` or settings. Cursor: `.cursor/mcp.json`. |
+| **.claudeignore / .cursorignore** | Like `.gitignore` for the agent — skip noise files. |
 
 ## Privacy
 
@@ -302,7 +307,7 @@ New to Claude Code? Here's what the terms mean.
 - Doctor, init, and fix run fully offline
 - Memory stores data locally at `~/.agentic-memory/`
 - Sync (`memory push/pull`) uses a private GitHub Gist under your account
-- Enhance and eval run through your local Claude CLI
+- Enhance runs inside the local Claude Code or Cursor Agent session; eval uses that harness's CLI/SDK
 
 [Full privacy policy](https://mboss37.github.io/claude-launchpad/privacy.html).
 

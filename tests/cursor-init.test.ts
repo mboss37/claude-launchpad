@@ -110,6 +110,29 @@ describe("Cursor init scaffold", () => {
       "# My tasks\n",
     );
   });
+
+  it("Cursor-only scaffold has no Claude surface leftovers", async () => {
+    const root = await mkdtemp(join(tmpdir(), "lp-cursor-honest-"));
+    await scaffoldCursor(
+      root,
+      { name: "demo", description: "" },
+      fixedDetectedProject,
+    );
+    const files = [
+      "AGENTS.md",
+      "TASKS.md",
+      "BACKLOG.md",
+      ".cursor/rules/hooks.mdc",
+      ".cursor/rules/workflow.mdc",
+      ".cursor/agents/code-reviewer.md",
+    ];
+    for (const relative of files) {
+      const body = await readFile(join(root, relative), "utf-8");
+      expect(body, relative).not.toContain(".claude/");
+      expect(body, relative).not.toContain("CLAUDE.md");
+      expect(body, relative).not.toContain("Claude Code");
+    }
+  });
 });
 
 describe("init harness selection", () => {

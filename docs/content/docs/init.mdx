@@ -1,15 +1,19 @@
 ---
-title: "init — Scaffold a Claude Code Setup"
-description: "Scaffold a complete Claude Code setup in seconds: CLAUDE.md, security hooks, permissions, verification rules, backlog workflow, and a code-reviewer agent — auto-detected for your stack."
+title: "init — Scaffold a coding-agent setup"
+description: "Scaffold Claude Code or local Cursor Agent config in seconds: instruction file, security hooks, permissions, verification rules, backlog workflow, and a code-reviewer agent — auto-detected for your stack."
 ---
 
 import { File, Folder, Files } from 'fumadocs-ui/components/files';
 
-Starting a new Claude Code project means writing CLAUDE.md, settings, hooks, and permissions by hand. Most people skip half of it. Init detects your stack and generates the full setup in one command.
+Starting a new agent project means writing the instruction file, settings, hooks, and permissions by hand. Most people skip half of it. Init detects your stack and generates the full setup in one command.
 
 ```bash
 claude-launchpad init
+claude-launchpad init --harness cursor
+claude-launchpad init --harness both
 ```
+
+Default is Claude Code. `--harness cursor` writes native Cursor files (`AGENTS.md`, `.cursor/`). `--harness both` writes both surfaces and shared `TASKS.md` / `BACKLOG.md` once.
 
 ## Flags
 
@@ -17,12 +21,12 @@ claude-launchpad init
 |---|---|
 | `-n, --name` | Project name (auto-detected from directory) |
 | `-y, --yes` | Accept all defaults without prompting |
-| `-f, --force` | Overwrite existing generated instruction file |
+| `-f, --force` | Overwrite the generated instruction file (`CLAUDE.md` and/or `AGENTS.md`) for the selected harness |
 | `--harness` | `claude` (default), `cursor`, or `both` |
 
-With `--yes`, `/lp-enhance` installation defaults to project scope (unless already installed). `--yes` without `--force` exits with code 1 when CLAUDE.md already exists; combine `-y --force` for full automation.
+With `--yes`, `/lp-enhance` installation defaults to project scope (unless already installed). `--yes` without `--force` exits with code 1 when the selected instruction file already exists; combine `-y --force` for full automation.
 
-## What it writes
+## What it writes (Claude Code)
 
 Always writes these files, and creates additional files only when they do not already exist:
 
@@ -56,6 +60,41 @@ Always writes these files, and creates additional files only when they do not al
 - **hooks/sprint-size-check.sh** and **hooks/sprint-open-check.sh**: warn on microsprints / oversized sprints / BACKLOG drift at commit time.
 - **hooks/workflow-check.sh**: PostToolUse staleness check that warns on duplicate WP IDs across BACKLOG+TASKS, TASKS > 80 lines, Current Sprint > 15 items, Session Log > 3 entries.
 
+## What it writes (Cursor Agent)
+
+`init --harness cursor` writes native Cursor files. Shared `TASKS.md` and `BACKLOG.md` are the same as Claude.
+
+<Files>
+  <File name="AGENTS.md" />
+  <File name="TASKS.md" />
+  <File name="BACKLOG.md" />
+  <File name=".cursorignore" />
+  <Folder name=".cursor" defaultOpen>
+    <File name="hooks.json" />
+    <File name="rules/conventions.mdc" />
+    <File name="rules/workflow.mdc" />
+    <File name="rules/hooks.mdc" />
+    <File name="rules/verification.mdc" />
+    <File name="agents/code-reviewer.md" />
+    <File name="skills/lp-enhance/SKILL.md" />
+    <File name="hooks/env-read.sh" />
+    <File name="hooks/destructive-shell.sh" />
+    <File name="hooks/auto-format.sh" />
+    <File name="hooks/workflow-check.sh" />
+    <File name="hooks/sprint-open.sh" />
+    <File name="hooks/session-context.sh" />
+    <File name="hooks/sprint-size.sh" />
+  </Folder>
+</Files>
+
+- **AGENTS.md**: stack, commands, conventions, guardrails — Cursor's instruction file.
+- **hooks.json**: fail-closed security hooks (`.env` deny, destructive shell deny) plus workflow, format, and session-context scripts.
+- **.cursorignore**: language-specific ignore patterns (Cursor's equivalent of `.claudeignore`).
+- **rules/*.mdc**: path-scoped conventions, workflow, hook authoring, and verification rules (`globs:` frontmatter).
+- **lp-enhance skill**: AI-powered AGENTS.md improver at `.cursor/skills/lp-enhance/SKILL.md`.
+
+`--force` overwrites `AGENTS.md` only. Other Cursor files are created when missing and left alone if you already customized them.
+
 ## Sprint review hook
 
 Init generates a PostToolUse hook that triggers automated code review when a sprint completes. Without this, you commit whatever Claude produced. With it, Claude reviews its own changes before they land:
@@ -74,12 +113,12 @@ The nudge is a suggestion, not a gate. Claude can ignore it for docs-only or con
 **Frameworks:** Next.js, FastAPI, Django, Rails, Laravel, Express, SvelteKit, Angular, NestJS, and 15+ more.
 
 <Callout type="info">
-  After init, use `/lp-enhance` inside Claude Code to have Claude read your actual codebase and fill in the architecture and guardrails - not boilerplate, real project-specific content.
+  After init, use `/lp-enhance` inside Claude Code or Cursor Agent to fill in architecture and guardrails from the real codebase — not boilerplate.
 </Callout>
 
 ## Next
 
 <Cards>
   <Card title="doctor" description="Score your new config and fix remaining issues" href="/docs/doctor" />
-  <Card title="enhance" description="Let Claude perfect your CLAUDE.md" href="/docs/enhance" />
+  <Card title="enhance" description="Rewrite CLAUDE.md or AGENTS.md from the codebase" href="/docs/enhance" />
 </Cards>

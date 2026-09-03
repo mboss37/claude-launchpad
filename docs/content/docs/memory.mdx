@@ -1,14 +1,15 @@
 ---
-title: "Claude Code Memory — Persistent, Synced, Measured"
-description: Persistent memory for Claude Code with free cross-machine sync via private GitHub Gist. Local SQLite, zero servers, zero API cost, ranked context injection (6-signal scoring + diversity + token budget), and benchmarks that measure retrieval quality. The alternative to cloud memory layers and machine-local native memory.
+title: "Memory — Persistent, Synced, Measured"
+description: Persistent memory for Claude Code and local Cursor Agent with free cross-machine sync via private GitHub Gist. Same local SQLite and MCP server for both harnesses. Cursor Cloud memory is not supported.
 ---
 
 Without memory, you re-explain the same architecture every session. "We use server components by default." "The API validates with Zod." "Don't touch the legacy auth module." Every. Single. Time. The context window is large, but it resets to zero when a session ends.
 
-Launchpad gives Claude persistent, project-scoped memory that syncs across devices via a private GitHub Gist. Switch laptops, pair on a teammate's machine, or set up a new dev environment. Your architecture decisions, bug patterns, and conventions are already there. You stop repeating yourself. Claude stops asking.
+Launchpad gives each project persistent, project-scoped memory that syncs across devices via a private GitHub Gist. Claude Code and local Cursor Agent share the same SQLite store and the same `npx claude-launchpad memory serve` MCP server. Switch laptops, pair on a teammate's machine, or set up a new dev environment. Your architecture decisions, bug patterns, and conventions are already there.
 
 ```bash
 claude-launchpad memory
+claude-launchpad memory install --harness cursor
 ```
 
 Running without flags starts an interactive setup that walks you through installation.
@@ -30,13 +31,13 @@ Honest guidance: single machine, zero-setup preference → keep the built-in sys
 
 ## What changes
 
-Once memory is installed, three things happen automatically:
+Once memory is installed, Claude Code does three things automatically:
 
 1. **Session start** — Memories from other devices are pulled (if sync is configured), then relevant memories are injected into context based on your current branch, files, and recent work. No manual loading, no "please recall X."
-2. **During sessions** — Claude stores decisions, patterns, and insights as it works via MCP tools. CLAUDE.md guides it on what to remember.
+2. **During sessions** — The agent stores decisions, patterns, and insights as it works via MCP tools. CLAUDE.md / AGENTS.md guides it on what to remember.
 3. **Session end** — Memories are pushed to your private GitHub Gist (if sync is configured) so they're available on any machine next session.
 
-The result: Claude remembers your architecture decisions, bug patterns, deployment quirks, and conventions across sessions.
+**Cursor Agent is different.** Install writes `.cursor/mcp.json` and appends guidance to an existing `AGENTS.md`. Cursor does **not** auto-inject memories at session start — the guidance tells the agent to call `memory_search`. There are no Cursor *memory* lifecycle hooks (`sessionStart` still injects TASKS.md). Use `memory push` / `memory pull` (or `memory sync`) for cross-device sync. Cursor Cloud Agents cannot use this local MCP server.
 
 ## Prerequisites
 
@@ -53,7 +54,7 @@ This requires a C++ compiler (Xcode on macOS, build-essential on Linux). The CLI
 | Flag / Subcommand | Description |
 |---|---|
 | `--dashboard` | Open the interactive memory TUI dashboard |
-| `install` | Explicitly (re-)run the install flow — useful when the setup is half-broken or after a purge |
+| `install` | Explicitly (re-)run the install flow. `--harness claude`, `cursor`, or `both` writes the MCP file for harnesses that are already installed. `-y` installs into every detected harness. |
 | `stats` | Memory counts, types, DB size, top-injected (`--json` for scripts) |
 | `doctor` | Diagnose the memory setup: DB health, hooks, MCP registration (`--json` for scripts) |
 
@@ -65,19 +66,31 @@ Running `claude-launchpad memory` without flags uses a smart default:
 - If memory is partially installed (e.g. config written but MCP server not registered, or database missing), it tells you what's wrong and points at `memory install`
 - If memory is fully installed, it shows memory stats
 
-Memory counts as fully installed only when **both** the SessionStart context hook **and** the `agentic-memory` MCP registration are present (checked across `.mcp.json`, `settings.local.json`, and `~/.claude.json`). Earlier versions only looked at the hook, which could report "healthy" on a setup with no MCP server registered.
+Memory counts as fully installed when the `agentic-memory` MCP server is registered **and** the selected harness can use it:
+
+- **Claude Code:** SessionStart context hook plus MCP in `.mcp.json`, settings, or `~/.claude.json`
+- **Cursor Agent:** `agentic-memory` in `.cursor/mcp.json` (no lifecycle hook)
+
+`memory doctor` warns if Cursor is detected but `.cursor/mcp.json` has no `agentic-memory` entry — a leftover global `~/.agentic-memory` database from another project is not enough.
 
 `claude-launchpad memory --dashboard` requires memory to be fully installed first.
 
 ## What it installs
 
+Shared for both harnesses:
+
 - SQLite database at `~/.agentic-memory/` (shared across projects, scoped per project internally)
+- 7 MCP tools for storing, searching, and managing memories
+- Memory guidance in CLAUDE.md (Claude) or an existing AGENTS.md (Cursor). Cursor guidance tells the agent to call `memory_search` and does not claim session auto-injection.
+- Claude MCP registration via `claude mcp add`, or Cursor registration via `.cursor/mcp.json` (`npx claude-launchpad memory serve`)
+
+Claude Code only:
+
 - SessionStart hook that injects relevant memories at session start. Your hook can call a `.sh` wrapper instead of running the command directly. Doctor reads one level inside the script, so `bash .claude/session-start.sh` satisfies the check as long as the script itself runs `claude-launchpad memory context`.
 - SessionStart pull hook and SessionEnd push hook (when sync is configured) for automatic cross-device sync
-- 7 MCP tools for storing, searching, and managing memories
-- Memory guidance section in CLAUDE.md (or `.claude/CLAUDE.md` for local placement)
-- `/lp-migrate-memory` skill for porting legacy auto-memory files (shared placement only)
-- MCP server registration via `claude mcp add` (project or local scope based on placement)
+- `/lp-migrate-memory` skill for porting legacy Claude Code auto-memory files (Claude shared placement only)
+
+Cursor Agent does not get those lifecycle hooks. Use `memory_search` in-session and `memory sync` / `push` / `pull` for cross-device sync.
 
 If auto-registration fails, run the command manually:
 
@@ -128,7 +141,7 @@ Decay is a pure function of a memory's age. Opening many sessions never accelera
 
 ## MCP tools
 
-These are the tools Claude uses to maintain its knowledge base. You rarely call them directly — Claude uses them as needed during sessions.
+These are the tools the agent uses to maintain its knowledge base. You rarely call them directly — the agent uses them as needed during sessions. On Cursor, call `memory_search` at session start; nothing is injected automatically.
 
 | Tool | What it does |
 |---|---|
@@ -184,7 +197,7 @@ claude-launchpad memory sync --all
 
 Push and pull auto-detect the current project from your working directory. No `--project` flag needed.
 
-When sync is configured, `doctor --fix` adds SessionStart and SessionEnd hooks that pull and push automatically. You rarely need to run these commands manually after initial setup.
+When sync is configured, Claude `doctor --fix` adds SessionStart and SessionEnd hooks that pull and push automatically. Cursor has no equivalent hooks — run `memory sync` yourself.
 
 ### Gist structure
 
@@ -303,5 +316,5 @@ When Claude explicitly searches for memories (via `memory_search`), results use 
 
 <Cards>
   <Card title="doctor" description="Check your full config health including memory" href="/docs/doctor" />
-  <Card title="/lp-enhance" description="AI-improve your CLAUDE.md with memory guidance" href="/docs/enhance" />
+  <Card title="/lp-enhance" description="AI-improve CLAUDE.md or AGENTS.md with memory guidance" href="/docs/enhance" />
 </Cards>

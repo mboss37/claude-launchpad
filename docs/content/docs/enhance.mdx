@@ -1,9 +1,9 @@
 ---
 title: /lp-enhance
-description: AI-powered CLAUDE.md improver - runs as a /lp-enhance skill inside Claude Code.
+description: AI-powered instruction-file improver — runs as a /lp-enhance skill inside Claude Code or Cursor Agent.
 ---
 
-After init, your CLAUDE.md has the basics but not the details. Claude still guesses your architecture, your conventions, and your off-limits zones. The `/lp-enhance` skill runs inside your Claude Code session, reads your actual codebase, and fills in what matters.
+After init, the instruction file has the basics but not the details. The agent still guesses your architecture, conventions, and off-limits zones. `/lp-enhance` runs inside the session, reads the codebase, and fills in what matters — `CLAUDE.md` on Claude Code, `AGENTS.md` on Cursor Agent.
 
 ```
 /lp-enhance
@@ -13,37 +13,38 @@ After init, your CLAUDE.md has the basics but not the details. Claude still gues
 
 `init` offers installation only when `/lp-enhance` is not already installed (project/global/legacy). In interactive mode you can choose project scope, global scope, or skip. With `--yes`, it defaults to project scope.
 
-- **Project scope** (`.claude/skills/lp-enhance/SKILL.md`) - available in this project only
-- **Global scope** (`~/.claude/skills/lp-enhance/SKILL.md`) - available in all projects
+- **Claude project scope** (`.claude/skills/lp-enhance/SKILL.md`) — this project only
+- **Claude global scope** (`~/.claude/skills/lp-enhance/SKILL.md`) — all Claude Code projects
+- **Cursor project scope** (`.cursor/skills/lp-enhance/SKILL.md`) — written by `init --harness cursor`
 
-If missing, `doctor --fix` creates it at project scope.
+If missing on Claude, `doctor --fix` creates the project-scope skill. Cursor `--fix` repairs the Cursor skill when Launchpad manages it.
 
 ## What it does
 
 - Fills in Architecture, Conventions, Off-Limits, Memory & Learnings, Key Decisions (skips Backlog, which you maintain manually)
-- Stays under the 200-instruction budget - overflows detailed content to `.claude/rules/`
-- Suggests project-specific hooks (including SessionStart widened to cover compact/clear)
+- Stays under the 200-instruction budget — overflows detailed content to `.claude/rules/` or `.cursor/rules/*.mdc`
+- Suggests project-specific hooks (Claude: SessionStart widened for compact/clear; Cursor: `.cursor/hooks.json` snippets)
 - Suggests path-scoped rules and monorepo excludes
 - Suggests MCP servers based on detected external services
-- Runs inside your session - Claude already has your codebase context
+- Runs inside your session — the agent already has your codebase context
 
 ## Instruction budget
 
-CLAUDE.md has a soft limit of ~200 actionable lines. Past that, Claude starts ignoring rules at the bottom. Doctor warns at 200. The skill targets 200, and moves detailed content to `.claude/rules/` files when overflow occurs.
+`CLAUDE.md` and `AGENTS.md` have a soft limit of ~200 actionable lines. Past that, the agent starts ignoring rules at the bottom. Doctor warns at 200. The skill targets 200, and moves detailed content to harness rule files when overflow occurs.
 
 ## When to re-run
 
-CLAUDE.md gets stale as your codebase changes. Re-run `/lp-enhance` when:
+The instruction file gets stale as your codebase changes. Re-run `/lp-enhance` when:
 
 - You've done a major refactor or added new modules
 - Your architecture has shifted (new services, changed patterns)
-- Claude keeps making wrong assumptions about your codebase
-- Doctor shows your CLAUDE.md sections are missing or incomplete
+- The agent keeps making wrong assumptions about your codebase
+- Doctor shows instruction sections are missing or incomplete
 - It's been a few sprints and the instructions no longer match reality
 
 ## Next
 
 <Cards>
-  <Card title="eval" description="Prove Claude actually follows your enhanced config" href="/docs/eval" />
+  <Card title="eval" description="Prove the agent actually follows your enhanced config" href="/docs/eval" />
   <Card title="doctor" description="Re-check your score after enhancement" href="/docs/doctor" />
 </Cards>
